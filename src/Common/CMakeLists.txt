@@ -96,6 +96,7 @@ CaretUndoStack.h
 CaretUnitsTypeEnum.h
 Cluster.h
 ClusterContainer.h
+ClusterTypeEnum.h
 ColorFunctions.h
 CubicSpline.h
 DataCompressZLib.h
@@ -274,6 +275,7 @@ CaretUndoStack.cxx
 CaretUnitsTypeEnum.cxx
 Cluster.cxx
 ClusterContainer.cxx
+ClusterTypeEnum.cxx
 ColorFunctions.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx

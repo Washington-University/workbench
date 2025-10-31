@@ -61,14 +61,18 @@ EventIdentificationHighlightStereotaxicLocationsInTabs::~EventIdentificationHigh
  * Add a label name and its stereotaxic xyz
  * @param labelName
  *    Name of label
+ * @param clusterType
+ *    Type of cluster
  * @param xyz
  *    Stereotaxic XYZ of label
  */
 void
 EventIdentificationHighlightStereotaxicLocationsInTabs::addLabelAndStereotaxicXYZ(const AString& labelName,
-                               const Vector3D& xyz)
+                                                                                  const ClusterTypeEnum::Enum clusterType,
+                                                                                  const Vector3D& xyz)
 {
     m_labels.emplace_back(labelName,
+                          clusterType,
                           xyz);
 }
 
@@ -108,6 +112,17 @@ const AString&
 EventIdentificationHighlightStereotaxicLocationsInTabs::getLabelName(const int32_t index) const
 {
     return m_labels[index].m_labelName;
+}
+
+/**
+ * @return Type of cluster at the given index
+ * @param index
+ *    The index
+ */
+ClusterTypeEnum::Enum
+EventIdentificationHighlightStereotaxicLocationsInTabs::getClusterType(const int32_t index) const
+{
+    return m_labels[index].m_clusterType;
 }
 
 /**

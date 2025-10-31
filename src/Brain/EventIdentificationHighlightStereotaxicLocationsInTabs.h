@@ -26,6 +26,7 @@
 #include <memory>
 #include <vector>
 
+#include "ClusterTypeEnum.h"
 #include "Event.h"
 #include "Vector3D.h"
 
@@ -48,6 +49,7 @@ namespace caret {
         EventIdentificationHighlightStereotaxicLocationsInTabs& operator=(const EventIdentificationHighlightStereotaxicLocationsInTabs&) = delete;
         
         void addLabelAndStereotaxicXYZ(const AString& labelName,
+                                       const ClusterTypeEnum::Enum clusterType,
                                        const Vector3D& xyz);
         
         Mode getMode() const;
@@ -58,6 +60,8 @@ namespace caret {
         
         const AString& getLabelName(const int32_t index) const;
 
+        ClusterTypeEnum::Enum getClusterType(const int32_t index) const;
+        
         const Vector3D& getLabelStereotaxicXYZ(const int32_t index) const;
         
         void addIdentificationText(const AString& text);
@@ -70,11 +74,15 @@ namespace caret {
         class LabelAndStereotaxicXyz {
         public:
             LabelAndStereotaxicXyz(const AString& labelName,
+                                   const ClusterTypeEnum::Enum clusterType,
                                    const Vector3D& xyz)
             : m_labelName(labelName)
+            , m_clusterType(clusterType)
             , m_xyz(xyz) { }
             
             AString m_labelName;
+            
+            ClusterTypeEnum::Enum m_clusterType;
             
             Vector3D m_xyz;
         };

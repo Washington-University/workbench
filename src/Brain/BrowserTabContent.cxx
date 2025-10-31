@@ -2290,6 +2290,7 @@ BrowserTabContent::processHighlightStereotaxicEvent(EventIdentificationHighlight
                  * Label name to search for
                  */
                 const AString labelSearchName(highlightEvent->getLabelName(iterSearchName));
+                const ClusterTypeEnum::Enum labelSearchClusterType(highlightEvent->getClusterType(iterSearchName));
                 
                 /*
                  * Loop through label files from the overlays of this tab
@@ -2322,11 +2323,10 @@ BrowserTabContent::processHighlightStereotaxicEvent(EventIdentificationHighlight
                         /*
                          * Label selection hierarchy from label file and map index in an overlay
                          */
-                        const int32_t tabIndex(0);
                         const LabelSelectionItemModel* labelSelectionItemModel =
                         labelFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
                                                                           DisplayGroupEnum::DISPLAY_GROUP_TAB,
-                                                                          tabIndex);
+                                                                          getTabNumber());
                         CaretAssert(labelSelectionItemModel);
                         
                         /*
@@ -2336,33 +2336,32 @@ BrowserTabContent::processHighlightStereotaxicEvent(EventIdentificationHighlight
                         std::vector<LabelSelectionItem*> matchingItems(labelSelectionItemModel->getItemsWithName(labelSearchName));
                         
                         for (LabelSelectionItem* item : matchingItems) {
-                            const LabelSelectionItem::CogSet* cogSet(item->getMyAndChildrenCentersOfGravity());
-                            if (cogSet != NULL) {
-                                const LabelSelectionItem::COG* allCOG(cogSet->getAllCOG());
-                                if (allCOG != NULL) {
-                                    /*
-                                     * Move volume slices in this tab to the given stereotaxic coordinate
-                                     */
-                                    const Vector3D xyz(allCOG->getXYZ());
-                                    selectVolumeSlicesAtCoordinate(xyz);
-                                    
-                                    /*
-                                     * Text that gets displayed in the identification window
-                                     */
-                                    const AString idInfo("Tab "
-                                                         + getTabName()
-                                                         + " crosshairs moved to "
-                                                         + xyz.toString()
-                                                         + " for "
-                                                         + item->getPrimaryName());
-                                    highlightEvent->addIdentificationText(idInfo);
-                                    highlightEvent->setEventProcessed();
-                                    
-                                    /*
-                                     * Once a match is found, we're done!
-                                     */
-                                    return;
-                                }
+                            const LabelSelectionItem::COG* cog(item->getCogWithClusterType(labelSearchClusterType));
+                            if (cog != NULL) {
+                                /*
+                                 * Move volume slices in this tab to the given stereotaxic coordinate
+                                 */
+                                const Vector3D xyz(cog->getXYZ());
+                                selectVolumeSlicesAtCoordinate(xyz);
+                                
+                                /*
+                                 * Text that gets displayed in the identification window
+                                 */
+                                const AString idInfo("Tab "
+                                                     + getTabName()
+                                                     + " crosshairs moved to "
+                                                     + xyz.toString()
+                                                     + " for "
+                                                     + item->getPrimaryName()
+                                                     + " with cluster type "
+                                                     + ClusterTypeEnum::toGuiName(labelSearchClusterType));
+                                highlightEvent->addIdentificationText(idInfo);
+                                highlightEvent->setEventProcessed();
+                                
+                                /*
+                                 * Once a match is found, we're done!
+                                 */
+                                return;
                             }
                         }
                     }

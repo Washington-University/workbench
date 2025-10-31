@@ -31,6 +31,7 @@
 #include "CaretHierarchy.h"
 #include "CaretObject.h"
 #include "Cluster.h"
+#include "ClusterTypeEnum.h"
 #include "SceneableInterface.h"
 
 
@@ -43,14 +44,22 @@ namespace caret {
     public:
         class COG : public CaretObject {
         public:
-            COG(const AString& title,
+            COG(const ClusterTypeEnum::Enum clusterType,
+                const AString& title,
                 const Vector3D& xyz,
                 const int64_t numberOfBrainordinates)
-            : m_title(title),
+            : m_clusterType(clusterType),
+            m_title(title),
             m_xyz(xyz),
             m_numberOfBrainordinates(numberOfBrainordinates) { }
             
             ~COG() { }
+            
+            ClusterTypeEnum::Enum getClusterType() const { return m_clusterType; }
+            
+            AString getClusterTypeName() const {
+                return ClusterTypeEnum::toGuiName(m_clusterType);
+            }
             
             AString getTitle() const { return m_title; }
             
@@ -60,6 +69,7 @@ namespace caret {
 
             virtual AString toString() const override {
                 const AString msg("Title=" + m_title
+                                  + ", Type=" + getClusterTypeName()
                                   + ", XYZ=" + m_xyz.toString()
                                   + ", num-brainordinates=" + AString::number(m_numberOfBrainordinates));
                 return msg;
@@ -85,6 +95,8 @@ namespace caret {
                            + m_xyz.toString());
             }
         private:
+            ClusterTypeEnum::Enum m_clusterType;
+            
             AString m_title;
             
             Vector3D m_xyz;
@@ -122,7 +134,8 @@ namespace caret {
                         m_allCOG->merge(*cogSet->m_allCOG);
                     }
                     else {
-                        m_allCOG.reset(new COG("Sum All",
+                        m_allCOG.reset(new COG(ClusterTypeEnum::LABEL_AND_CHILDREN_ALL,
+                                               "Sum All",
                                                cogSet->m_allCOG->getXYZ(),
                                                cogSet->m_allCOG->getNumberOfBrainordinates()));
                     }
@@ -134,7 +147,8 @@ namespace caret {
                         m_centralCOG->merge(*cogSet->m_centralCOG);
                     }
                     else {
-                        m_centralCOG.reset(new COG("Sum Central",
+                        m_centralCOG.reset(new COG(ClusterTypeEnum::LABEL_AND_CHILDREN_CENTRAL,
+                                                   "Sum Central",
                                                cogSet->m_centralCOG->getXYZ(),
                                                cogSet->m_centralCOG->getNumberOfBrainordinates()));
                     }
@@ -146,7 +160,8 @@ namespace caret {
                         m_leftCOG->merge(*cogSet->m_leftCOG);
                     }
                     else {
-                        m_leftCOG.reset(new COG("Sum Left",
+                        m_leftCOG.reset(new COG(ClusterTypeEnum::LABEL_AND_CHILDREN_LEFT,
+                                                "Sum Left",
                                                cogSet->m_leftCOG->getXYZ(),
                                                cogSet->m_leftCOG->getNumberOfBrainordinates()));
                     }
@@ -158,7 +173,8 @@ namespace caret {
                         m_rightCOG->merge(*cogSet->m_rightCOG);
                     }
                     else {
-                        m_rightCOG.reset(new COG("Sum Right",
+                        m_rightCOG.reset(new COG(ClusterTypeEnum::LABEL_AND_CHILDREN_RIGHT,
+                                                 "Sum Right",
                                                cogSet->m_rightCOG->getXYZ(),
                                                cogSet->m_rightCOG->getNumberOfBrainordinates()));
                     }
@@ -216,6 +232,10 @@ namespace caret {
         const CogSet* getCentersOfGravity() const;
         
         const CogSet* getMyAndChildrenCentersOfGravity() const;
+        
+        const std::vector<const COG*> getAllCOGS() const;
+        
+        const COG* getCogWithClusterType(const ClusterTypeEnum::Enum clusterType) const;
         
         void setClusters(const std::vector<const Cluster*>& clusters);
         

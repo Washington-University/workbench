@@ -651,6 +651,47 @@ LabelSelectionItem::getMyAndChildrenCentersOfGravity() const
 }
 
 /**
+  @return All COGS both COGs and COGS with children
+ */
+const std::vector<const LabelSelectionItem::COG*>
+LabelSelectionItem::getAllCOGS() const
+{
+    std::vector<const LabelSelectionItem::COG*> cogsOut;
+    
+    {
+        const CogSet* cogSet(getMyAndChildrenCentersOfGravity());
+        if (cogSet != NULL) {
+            std::vector<const COG*> cogs(cogSet->getCOGs());
+            cogsOut.insert(cogsOut.end(), cogs.begin(), cogs.end());
+        }
+    }
+    {
+        const CogSet* cogSet(getCentersOfGravity());
+        if (cogSet != NULL) {
+            std::vector<const COG*> cogs(cogSet->getCOGs());
+            cogsOut.insert(cogsOut.end(), cogs.begin(), cogs.end());
+        }
+    }
+
+    return cogsOut;
+}
+
+/*
+ * Get the COG of the given cluster type
+ */
+const LabelSelectionItem::COG*
+LabelSelectionItem::getCogWithClusterType(const ClusterTypeEnum::Enum clusterType) const
+{
+    const std::vector<const COG*> allCOGS(getAllCOGS());
+    for (const COG* cog : allCOGS) {
+        if (cog->getClusterType() == clusterType) {
+            return cog;
+        }
+    }
+    return NULL;
+}
+
+/**
  * Log a warning when there is more that one cluster for a side
  * @param cog
  *    The existing COG
@@ -707,7 +748,8 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
                     multipleClusterWarning(centralCOG, c, clusters);
                 }
                 else {
-                    centralCOG = new COG(title,
+                    centralCOG = new COG(ClusterTypeEnum::LABEL_CENTRAL,
+                                         title,
                                          c->getCenterOfGravityXYZ(),
                                          c->getNumberOfBrainordinates());
                     centralSplitFlag = c->isSplitClusterFlag();
@@ -718,7 +760,8 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
                     multipleClusterWarning(leftCOG, c, clusters);
                 }
                 else {
-                    leftCOG = new COG(title,
+                    leftCOG = new COG(ClusterTypeEnum::LABEL_LEFT,
+                                      title,
                                       c->getCenterOfGravityXYZ(),
                                       c->getNumberOfBrainordinates());
                 }
@@ -728,7 +771,8 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
                     multipleClusterWarning(rightCOG, c, clusters);
                 }
                 else {
-                    rightCOG = new COG(title,
+                    rightCOG = new COG(ClusterTypeEnum::LABEL_RIGHT,
+                                       title,
                                        c->getCenterOfGravityXYZ(),
                                        c->getNumberOfBrainordinates());
                 }
@@ -744,7 +788,10 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
         || (rightCOG != NULL)) {
         Vector3D zeros;
         int64_t numBrainordinates(0);
-        allCOG = new COG("All", zeros, numBrainordinates);
+        allCOG = new COG(ClusterTypeEnum::LABEL_ALL,
+                         "All",
+                         zeros,
+                         numBrainordinates);
         if (centralCOG != NULL) {
             /*
              * Central is split into right and left clusters.

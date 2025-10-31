@@ -400,6 +400,7 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
      * My clusters
      */
     std::vector<QAction*> clusterActions;
+    std::vector<ClusterTypeEnum::Enum> clusterTypes;
     std::vector<Vector3D> clusterXYZs;
     const LabelSelectionItem::CogSet* allCogSet(labelItem->getMyAndChildrenCentersOfGravity());
     if (allCogSet != NULL) {
@@ -412,8 +413,10 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
             }
             clusterActions.push_back(a);
             clusterXYZs.push_back(c->getXYZ());
+            clusterTypes.push_back(c->getClusterType());
         }
         CaretAssert(clusterActions.size() == clusterXYZs.size());
+        CaretAssert(clusterActions.size() == clusterTypes.size());
     }
     const LabelSelectionItem::CogSet* cogSet(labelItem->getCentersOfGravity());
     if (cogSet != NULL) {
@@ -429,8 +432,10 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
             }
             clusterActions.push_back(a);
             clusterXYZs.push_back(c->getXYZ());
+            clusterTypes.push_back(c->getClusterType());
         }
         CaretAssert(clusterActions.size() == clusterXYZs.size());
+        CaretAssert(clusterActions.size() == clusterTypes.size());
     }
     
     if ( ! menu.actions().isEmpty()) {
@@ -456,6 +461,9 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
                         CaretAssertVectorIndex(clusterXYZs, i);
                         const Vector3D cogXYZ(clusterXYZs[i]);
                         if (labelIdFlag) {
+                            CaretAssertVectorIndex(clusterTypes, i);
+                            const ClusterTypeEnum::Enum clusterType(clusterTypes[i]);
+                            
                             /*
                              * Get the label file and map and its hierarchy text
                              */
@@ -481,6 +489,7 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
                             EventIdentificationHighlightStereotaxicLocationsInTabs highlightEvent(caretHierarchyText);
                             CaretAssertVectorIndex(clusterActions, i);
                             highlightEvent.addLabelAndStereotaxicXYZ(labelName,
+                                                                     clusterType,
                                                                      cogXYZ);
                             
                             /*
@@ -492,9 +501,9 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
                                 if (cogSet != NULL) {
                                     const LabelSelectionItem::COG* cog(cogSet->getAllCOG());
                                     if (cog != NULL) {
-                                        const Vector3D xyz(cog->getXYZ());
                                         highlightEvent.addLabelAndStereotaxicXYZ(pi->text(),
-                                                                                 xyz);
+                                                                                 cog->getClusterType(),
+                                                                                 cog->getXYZ());
                                     }
                                 }
                             }
