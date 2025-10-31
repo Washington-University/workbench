@@ -49,6 +49,7 @@ DisplayPropertiesLabels::DisplayPropertiesLabels()
     m_displayGroup.fill(DisplayGroupEnum::getDefaultValue());
     m_labelViewMode.fill(LabelViewModeEnum::LIST);
     m_showUnusedLabelsInHierarchiesFlag = false;
+    m_showBranchesWithoutLabelsFlag = false;
     
     std::vector<DataFileTypeEnum::Enum> dataFileTypes {
         DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
@@ -68,6 +69,8 @@ DisplayPropertiesLabels::DisplayPropertiesLabels()
     
     m_sceneAssistant->add("m_showUnusedLabelsInHierarchiesFlag",
                           &m_showUnusedLabelsInHierarchiesFlag);
+    m_sceneAssistant->add("m_showBranchesWithoutLabelsFlag",
+                          &m_showBranchesWithoutLabelsFlag);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup.data());
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<LabelViewModeEnum, LabelViewModeEnum::Enum>("m_labelViewMode",
@@ -202,6 +205,32 @@ DisplayPropertiesLabels::setShowUnusedLabelsInHierarchies(const bool status)
 {
     if (status != m_showUnusedLabelsInHierarchiesFlag) {
         m_showUnusedLabelsInHierarchiesFlag = status;
+        
+        EventDisplayPropertiesLabels eventDPL(EventDisplayPropertiesLabels::Mode::SEND_SHOW_UNUSED_LABELS_CHANGED);
+        eventDPL.setDisplayPropertiesLabels(this);
+        EventManager::get()->sendEvent(eventDPL.getPointer());
+    }
+}
+
+/**
+ * @return True if branches without labels should be shown hierarchies
+ */
+bool
+DisplayPropertiesLabels::isShowBranchesWithoutLabelsInHierarchies() const
+{
+    return m_showBranchesWithoutLabelsFlag;
+}
+
+/**
+ * Set branches without labels should be shown hierarchies
+ * @param status
+ *    New status
+ */
+void
+DisplayPropertiesLabels::setShowBranchesWithoutLabelsInHierarchies(const bool status)
+{
+    if (status != m_showBranchesWithoutLabelsFlag) {
+        m_showBranchesWithoutLabelsFlag = status;
         
         EventDisplayPropertiesLabels eventDPL(EventDisplayPropertiesLabels::Mode::SEND_SHOW_UNUSED_LABELS_CHANGED);
         eventDPL.setDisplayPropertiesLabels(this);

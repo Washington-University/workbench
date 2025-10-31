@@ -91,6 +91,18 @@ LabelSelectionItemModelProxyFilter::filterAcceptsRow(int sourceRow,
      * Note that unused labels are disabled
      */
     if (item->isEnabled()) {
+        LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(item));
+        if (labelItem != NULL) {
+            const LabelSelectionItem::CogSet* allCogSet(labelItem->getMyAndChildrenCentersOfGravity());
+            if (allCogSet != NULL) {
+                const std::vector<const LabelSelectionItem::COG*>& cogs(allCogSet->getCOGs());
+                if (cogs.empty()) {
+                    if ( ! m_showBranchesWithoutLabelsFlag) {
+                        return false;
+                    }
+                }
+            }
+        }
         return true;
     }
     if (m_showUnusedLabelsFlag) {
@@ -123,6 +135,7 @@ LabelSelectionItemModelProxyFilter::receiveEvent(Event* event)
                 const DisplayPropertiesLabels* dpl(eventDPL->getDisplayPropertiesLabels());
                 CaretAssert(dpl);
                 m_showUnusedLabelsFlag = dpl->isShowUnusedLabelsInHierarchies();
+                m_showBranchesWithoutLabelsFlag = dpl->isShowBranchesWithoutLabelsInHierarchies();
                 m_showHideStatusValid  = true;
                 
                 /*

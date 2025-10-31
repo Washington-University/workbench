@@ -24,7 +24,9 @@
 #include <cstdint>
 #include <set>
 #include <utility>
+#include <vector>
 
+#include <QModelIndex>
 #include <QWidget>
 
 #include "SceneableInterface.h"
@@ -121,6 +123,10 @@ namespace caret {
         
         int32_t getBrowserTabIndex() const;
         
+        void resetFindItems();
+        
+        void resetFindItemsAndFindText();
+        
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex = -1;
@@ -155,7 +161,10 @@ namespace caret {
         
         QComboBox* m_showNameComboBox;
         
-        QList<QStandardItem*> m_findItems;
+        /*
+         * Find model indices are in proxy model, not the model from the file
+         */
+        std::vector<QModelIndex> m_findItemModelIndices;
         
         int32_t m_findItemsCurrentIndex = 0;
         

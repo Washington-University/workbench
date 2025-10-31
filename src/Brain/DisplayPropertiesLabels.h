@@ -62,6 +62,10 @@ namespace caret {
         void setLabelViewModeForTab(const int32_t browserTabIndex,
                                     const LabelViewModeEnum::Enum labelViewMode);
         
+        bool isShowBranchesWithoutLabelsInHierarchies() const;
+        
+        void setShowBranchesWithoutLabelsInHierarchies(const bool status);
+        
         bool isShowUnusedLabelsInHierarchies() const;
         
         void setShowUnusedLabelsInHierarchies(const bool status);
@@ -94,6 +98,8 @@ namespace caret {
         std::array<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>, DisplayGroupEnum::NUMBER_OF_GROUPS> m_fileSelectionModelsForDisplayGroups;
         
         bool m_showUnusedLabelsInHierarchiesFlag = false;
+        
+        bool m_showBranchesWithoutLabelsFlag = false;
     };
     
 #ifdef __DISPLAY_PROPERTIES_LABELS_DECLARE__

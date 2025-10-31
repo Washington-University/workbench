@@ -636,9 +636,7 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
                         }
                         m_treeView->adjustSize();
                         
-                        m_findItems.clear();
-                        m_findItemsCurrentIndex = 0;
-                        findTextLineEditTextChanged(m_findTextLineEdit->text());
+                        resetFindItems();
                         
                         const AString selectedName(m_labelHierarchyModel->getSelectedAlternativeName());
                         int32_t showNameIndex(0);
@@ -670,9 +668,7 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
         m_treeView->setModel(NULL);
         m_treeView->setEnabled(false);
         
-        m_findItems.clear();
-        m_findItemsCurrentIndex = 0;
-        findTextLineEditTextChanged(m_findTextLineEdit->text());
+        resetFindItemsAndFindText();
     }
     
     m_treeView->adjustSize();
@@ -796,13 +792,24 @@ LabelSelectionViewHierarchyController::moreActionTriggered()
     DisplayPropertiesLabels* dsl(GuiManager::get()->getBrain()->getDisplayPropertiesLabels());
 
     QMenu menu;
+    
+    QAction* showBranchesWithoutLabelsAction = menu.addAction("Show branches without labels");
+    showBranchesWithoutLabelsAction->setCheckable(true);
+    showBranchesWithoutLabelsAction->setChecked(dsl->isShowBranchesWithoutLabelsInHierarchies());
+    
     QAction* unusedLabelsAction = menu.addAction("Show unused labels");
     unusedLabelsAction->setCheckable(true);
     unusedLabelsAction->setChecked(dsl->isShowUnusedLabelsInHierarchies());
     
     QAction* selectedAction = menu.exec(m_moreToolButton->mapToGlobal(QPoint(0, 0)));
-    if (selectedAction == unusedLabelsAction) {
+    if (selectedAction == showBranchesWithoutLabelsAction) {
+        dsl->setShowBranchesWithoutLabelsInHierarchies(showBranchesWithoutLabelsAction->isChecked());
+        resetFindItems();
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    }
+    else if (selectedAction == unusedLabelsAction) {
         dsl->setShowUnusedLabelsInHierarchies(unusedLabelsAction->isChecked());
+        resetFindItems();
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     else if (selectedAction != NULL) {
@@ -816,22 +823,31 @@ LabelSelectionViewHierarchyController::moreActionTriggered()
 void
 LabelSelectionViewHierarchyController::findActionTriggered()
 {
-    m_findItems.clear();
+    m_findItemModelIndices.clear();
     m_findItemsCurrentIndex = 0;
     
     if (m_labelHierarchyModel != NULL) {
         const QString findText(m_findTextLineEdit->text().trimmed());
         
         const int modelColumn(0);
-        m_findItems = m_labelHierarchyModel->findItems(findText,
-                                                       (Qt::MatchContains
-                                                        | Qt::MatchRecursive),
-                                                       modelColumn);
-        if (m_findItems.isEmpty()) {
-            GuiManager::get()->beep();
+        QList<QStandardItem*> matchingItems(m_labelHierarchyModel->findItems(findText,
+                                                                             (Qt::MatchContains
+                                                                              | Qt::MatchRecursive),
+                                                                             modelColumn));
+        for (QStandardItem* item : matchingItems) {
+            const QModelIndex sourceModelIndex(m_labelHierarchyModel->indexFromItem(item));
+            if (sourceModelIndex.isValid()) {
+                const QModelIndex modelIndex(m_proxyFilter->mapFromSource(sourceModelIndex));
+                if (modelIndex.isValid()) {
+                    m_findItemModelIndices.push_back(modelIndex);
+                }
+            }
         }
-        scrollTreeViewToFindItem();
     }
+    if (m_findItemModelIndices.empty()) {
+        GuiManager::get()->beep();
+    }
+    scrollTreeViewToFindItem();
 }
 
 /**
@@ -849,24 +865,20 @@ LabelSelectionViewHierarchyController::nextActionTriggered()
 void
 LabelSelectionViewHierarchyController::scrollTreeViewToFindItem()
 {
-    const int32_t numFindItems(m_findItems.size());
+    const int32_t numFindItems(m_findItemModelIndices.size());
     if (numFindItems > 0) {
         if ((m_findItemsCurrentIndex < 0)
             || (m_findItemsCurrentIndex >= numFindItems)) {
             m_findItemsCurrentIndex = 0;
         }
-        CaretAssertVectorIndex(m_findItems, m_findItemsCurrentIndex);
-        const QStandardItem* item(m_findItems[m_findItemsCurrentIndex]);
-        const QModelIndex sourceModelIndex(m_labelHierarchyModel->indexFromItem(item));
-        if (sourceModelIndex.isValid()) {
-            const QModelIndex modelIndex(m_proxyFilter->mapFromSource(sourceModelIndex));
-            if (modelIndex.isValid()) {
-                m_treeView->setCurrentIndex(modelIndex);
-                m_treeView->scrollTo(modelIndex,
-                                     QTreeView::PositionAtCenter);
-            }
+        CaretAssertVectorIndex(m_findItemModelIndices, m_findItemsCurrentIndex);
+        const QModelIndex modelIndex(m_findItemModelIndices[m_findItemsCurrentIndex]);
+        if (modelIndex.isValid()) {
+            m_treeView->setCurrentIndex(modelIndex);
+            m_treeView->scrollTo(modelIndex,
+                                 QTreeView::PositionAtCenter);
         }
-        
+
         /*
          * For 'next'
          */
@@ -886,8 +898,27 @@ LabelSelectionViewHierarchyController::findTextLineEditTextChanged(const QString
 {
     m_findAction->setEnabled( ! text.trimmed().isEmpty());
     m_nextAction->setEnabled(false);
-    m_findItems.clear();
+    m_findItemModelIndices.clear();
     m_findItemsCurrentIndex = 0;
+}
+
+/**
+ * Reset find items but and clear find text
+ */
+void
+LabelSelectionViewHierarchyController::resetFindItemsAndFindText()
+{
+    m_findTextLineEdit->clear();
+    resetFindItems();
+}
+
+/**
+ * Reset find items but do not clear find text
+ */
+void
+LabelSelectionViewHierarchyController::resetFindItems()
+{
+    findTextLineEditTextChanged(m_findTextLineEdit->text());
 }
 
 

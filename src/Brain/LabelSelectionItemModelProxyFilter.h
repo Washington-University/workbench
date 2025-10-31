@@ -60,6 +60,11 @@ namespace caret {
          */
         mutable bool m_showUnusedLabelsFlag = false;
         
+        /*
+         * If true, show branches without labels, else hide them
+         */
+        mutable bool m_showBranchesWithoutLabelsFlag = true;
+        
         /**
          * If true, m_showUnusedLabelsFlag is valid;
          * If false, m_showUnusedLabelsFlag needs to be updated
