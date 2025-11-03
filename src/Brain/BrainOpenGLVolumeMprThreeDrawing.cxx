@@ -3215,16 +3215,33 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
             }
             else if (enabledBlendingFlag) {
                 if (firstFlag) {
-                    setupMprBlending(BlendingMode::MPR_UNDERLAY_SLICE,
-                                     s_INVALID_ALPHA_VALUE,
-                                     s_INVALID_NUMBER_OF_SLICES);
-                    /*
-                     * May fix labels on/off when only one layer
-                     * setupMprBlending(BlendingMode::MPR_OVERLAY_SLICE, //JWH 27aug2024
-                     *                1.0,
-                     *                s_INVALID_NUMBER_OF_SLICES);
-                     */
                     firstFlag = false;
+                    
+                    /*
+                     * Added 01nov2025.  Seems to allow background
+                     * to show through voxels with alpha equal to
+                     * zero.
+                     *
+                     * Note: enabling this might cause a white line
+                     * around the edge of the volume slice (texture).
+                     */
+                    const bool allowBackgroundToShowThroughFlag(true);
+                    if (allowBackgroundToShowThroughFlag) {
+                        setupMprBlending(BlendingMode::MPR_OVERLAY_SLICE,
+                                         vdi.opacity,
+                                         s_INVALID_NUMBER_OF_SLICES);
+                    }
+                    else {
+                        setupMprBlending(BlendingMode::MPR_UNDERLAY_SLICE,
+                                         s_INVALID_ALPHA_VALUE,
+                                         s_INVALID_NUMBER_OF_SLICES);
+                        /*
+                         * May fix labels on/off when only one layer
+                         * setupMprBlending(BlendingMode::MPR_OVERLAY_SLICE, //JWH 27aug2024
+                         *                1.0,
+                         *                s_INVALID_NUMBER_OF_SLICES);
+                         */
+                    }
                 }
                 else {
                     setupMprBlending(BlendingMode::MPR_OVERLAY_SLICE,
