@@ -497,15 +497,49 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
                              */
                             std::vector<LabelSelectionItem*> parentItems(labelItem->getAncestors());
                             for (LabelSelectionItem* pi : parentItems) {
-                                const LabelSelectionItem::CogSet* cogSet(pi->getMyAndChildrenCentersOfGravity());
-                                if (cogSet != NULL) {
-                                    const LabelSelectionItem::COG* cog(cogSet->getAllCOG());
-                                    if (cog != NULL) {
-                                        highlightEvent.addLabelAndStereotaxicXYZ(pi->text(),
-                                                                                 cog->getClusterType(),
-                                                                                 cog->getXYZ());
-                                    }
+                                /*
+                                 * For parent's always use a COG that is parent and its children
+                                 * Many parents do not have just 'LABEL' COGs
+                                 */
+                                ClusterTypeEnum::Enum parentClusterType(clusterType);
+                                switch (clusterType) {
+                                    case ClusterTypeEnum::LABEL_AND_CHILDREN_ALL:
+                                        break;
+                                    case ClusterTypeEnum::LABEL_AND_CHILDREN_CENTRAL:
+                                        break;
+                                    case ClusterTypeEnum::LABEL_AND_CHILDREN_LEFT:
+                                        break;
+                                    case ClusterTypeEnum::LABEL_AND_CHILDREN_RIGHT:
+                                        break;
+                                    case ClusterTypeEnum::LABEL_ALL:
+                                        parentClusterType = ClusterTypeEnum::LABEL_AND_CHILDREN_ALL;
+                                        break;
+                                    case ClusterTypeEnum::LABEL_CENTRAL:
+                                        parentClusterType = ClusterTypeEnum::LABEL_AND_CHILDREN_CENTRAL;
+                                        break;
+                                    case ClusterTypeEnum::LABEL_LEFT:
+                                        parentClusterType = ClusterTypeEnum::LABEL_AND_CHILDREN_LEFT;
+                                        break;
+                                    case ClusterTypeEnum::LABEL_RIGHT:
+                                        parentClusterType = ClusterTypeEnum::LABEL_AND_CHILDREN_RIGHT;
+                                        break;
                                 }
+                                const LabelSelectionItem::COG* cog(pi->getCogWithClusterType(parentClusterType));
+                                if (cog != NULL) {
+                                    highlightEvent.addLabelAndStereotaxicXYZ(pi->text(),
+                                                                             cog->getClusterType(),
+                                                                             cog->getXYZ());
+                                }
+//                                pi->getAllCOGS();
+//                                const LabelSelectionItem::CogSet* cogSet(pi->getMyAndChildrenCentersOfGravity());
+//                                if (cogSet != NULL) {
+//                                    const LabelSelectionItem::COG* cog(cogSet->getAllCOG());
+//                                    if (cog != NULL) {
+//                                        highlightEvent.addLabelAndStereotaxicXYZ(pi->text(),
+//                                                                                 cog->getClusterType(),
+//                                                                                 cog->getXYZ());
+//                                    }
+//                                }
                             }
                             EventManager::get()->sendEvent(highlightEvent.getPointer());
                             
