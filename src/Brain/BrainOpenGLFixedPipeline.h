@@ -124,6 +124,10 @@ namespace caret {
         static void drawGraphicsRegionSelectionBox(const GraphicsRegionSelectionBox* graphicsRegionSelectionBox,
                                                    const GraphicsRegionSelectionBox::DrawMode drawMode,
                                                    const float rgba[4]);
+
+        static bool isImageCaptureInProgress();
+        
+        static void setImageCaptureInProgress(const bool status);
         
     protected:
         void drawModelsImplementation(const int32_t windowIndex,
@@ -739,6 +743,8 @@ namespace caret {
         static float COLOR_GREEN[3];
         static float COLOR_BLUE[3];
         
+        static bool s_imageCaptureInProgressFlag;
+        
         friend class BrainOpenGLAnnotationDrawingFixedPipeline;
         friend class BrainOpenGLChartDrawingFixedPipeline;
         friend class BrainOpenGLChartTwoDrawingFixedPipeline;
@@ -763,6 +769,7 @@ namespace caret {
     float BrainOpenGLFixedPipeline::COLOR_GREEN[3] = { 0.0, 1.0, 0.0 };
     float BrainOpenGLFixedPipeline::COLOR_BLUE[3]  = { 0.0, 0.0, 1.0 };
     const float BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance = 1.0;
+    bool BrainOpenGLFixedPipeline::s_imageCaptureInProgressFlag = false;
 #endif //__BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
 } // namespace

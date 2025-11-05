@@ -3099,6 +3099,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
      * in image capture.
      */
     BrainOpenGLShape::setImmediateModeOverride(true);
+    BrainOpenGLFixedPipeline::setImageCaptureInProgress(true);
     
     QImage image;
     
@@ -3158,6 +3159,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
         imageCaptureEvent->setBackgroundColor(backgroundColor);
     }
     
+    BrainOpenGLFixedPipeline::setImageCaptureInProgress(true);
     BrainOpenGLShape::setImmediateModeOverride(false);
     BrainOpenGL::setAllowTabHighlighting(true);
     

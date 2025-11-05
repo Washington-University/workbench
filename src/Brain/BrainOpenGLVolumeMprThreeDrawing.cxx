@@ -3370,6 +3370,18 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                         }
                     }
                     
+                    /**
+                     * Using 'smooth' (averaging of neighboring voxels) and blending (alpha)
+                     * causes problems (streaks) during image capture operations that
+                     * render to an offscreen buffer.
+                     */
+                    if (BrainOpenGLFixedPipeline::isImageCaptureInProgress()) {
+                        if (magSmoothFlag) {
+                            magSmoothFlag  = false;
+                            magNearestFlag = true;
+                        }
+                    }
+                    
                     if (discreteFlag) {
                         primitive->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::NEAREST);
                         primitive->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::NEAREST);

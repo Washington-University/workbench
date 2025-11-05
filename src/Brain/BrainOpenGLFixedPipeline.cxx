@@ -9959,6 +9959,27 @@ BrainOpenGLFixedPipeline::applyHistologyOrientationYoking()
     }
 }
 
+/**
+ * @return True if an image capture of OpenGL is in progress
+ */
+bool
+BrainOpenGLFixedPipeline::isImageCaptureInProgress()
+{
+    return s_imageCaptureInProgressFlag;
+}
+
+/**
+ * Set an image capture of OpenGL is in progress
+ * @param status
+ *    New status
+ */
+void
+BrainOpenGLFixedPipeline::setImageCaptureInProgress(const bool status)
+{
+    s_imageCaptureInProgressFlag = status;
+}
+
+
 /* ============================================================================ */
 /**
  * Constructor.

@@ -667,6 +667,11 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     }
     
     /*
+     * Prevents artifacts with blending with smoothed voxels
+     */
+    BrainOpenGLFixedPipeline::setImageCaptureInProgress(true);
+    
+    /*
      * Get settings of capture dialog from scene
      */
     const ImageCaptureDialogSettings* sceneCaptureSettings(SessionManager::get()->getImageCaptureDialogSettings());
