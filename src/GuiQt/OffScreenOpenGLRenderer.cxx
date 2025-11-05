@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include "BrainOpenGLWidget.h"
+#include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
 
 #define __OFF_SCREEN_OPEN_G_L_RENDERER_DECLARE__
@@ -118,7 +120,7 @@ OffScreenOpenGLRenderer::OffScreenOpenGLRenderer(QGLWidget* openglWidget,
 
     QOpenGLFramebufferObjectFormat frameBufferFormat;
     frameBufferFormat.setSamples(2);
-    frameBufferFormat.setAttachment(QOpenGLFramebufferObject::Depth);
+    frameBufferFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
     frameBufferFormat.setTextureTarget(GL_TEXTURE_2D);
 
     m_frameBuffer.reset(new QOpenGLFramebufferObject(width,
@@ -130,6 +132,19 @@ OffScreenOpenGLRenderer::OffScreenOpenGLRenderer(QGLWidget* openglWidget,
         return;
     }
     
+    CaretLogInfo("Requested and Active QSurfaceFormats equal: "
+                 + AString::fromBool(m_offScreenSurface->requestedFormat() == m_offScreenSurface->format())
+                 + "\nOffScreen Surface Requested Format:\n"
+                 + BrainOpenGLWidget::QSurfaceFormatToString(m_offScreenSurface->requestedFormat())
+                 + "\nOffScreen Surface Active Format:\n"
+                 + BrainOpenGLWidget::QSurfaceFormatToString(m_offScreenSurface->format()));
+    
+    CaretLogInfo("Requested and Active QOpenGLFramebufferObjectFormats equal: "
+                 + AString::fromBool(frameBufferFormat == m_frameBuffer->format())
+                 + "\nReqested QOpenGLFramebufferObjectFormat:\n"
+                 + QOpenGLFramebufferObjectFormatToString(frameBufferFormat)
+                 + "\nActive QOpenGLFramebufferObjectFormat:\n"
+                 + QOpenGLFramebufferObjectFormatToString(m_frameBuffer->format()));
 }
 
 /**
@@ -167,5 +182,35 @@ OffScreenOpenGLRenderer::getImage()
     return image;
 }
 
+/**
+ * @return Text representation of QOpenGLFramebufferObjectFormat
+ */
+QString
+OffScreenOpenGLRenderer::QOpenGLFramebufferObjectFormatToString(const QOpenGLFramebufferObjectFormat& format)
+{
+    AString attString;
+    switch (format.attachment()) {
+        case QOpenGLFramebufferObject::NoAttachment:
+            attString = "QOpenGLFramebufferObject::NoAttachment";
+            break;
+        case QOpenGLFramebufferObject::CombinedDepthStencil:
+            attString = "QOpenGLFramebufferObject::CombinedDepthStencil";
+            break;
+        case QOpenGLFramebufferObject::Depth:
+            attString = "QOpenGLFramebufferObject::Depth";
+            break;
+    }
+    
+    AString text;
+    
+    text += ("Attachment: " + attString
+             + "\nMipmap: " + AString::fromBool(format.mipmap())
+             + "\nSamples: " + AString::number(format.samples())
+             + "\nInternal texture format (int value of GLenum): "
+                + AString::number(static_cast<long>(format.internalTextureFormat()))
+             );
+    
+    return text;
+}
 
 

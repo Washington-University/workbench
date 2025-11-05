@@ -322,22 +322,12 @@ BrainOpenGLWidget::initializeGL()
     }
 }
 
-/**
- * @return Information about OpenGL.
- */
-QString
-BrainOpenGLWidget::getOpenGLInformation()
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+AString
+BrainOpenGLWidget::QSurfaceFormatToString(const QSurfaceFormat& format)
 {
     AString info;
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-    info += ("Rendering with Qt5 QOpenGLWidget.\n");
-#else
-    info += ("Rendering with Qt5 QGLWidget (deprecated).\n");
-#endif
-    info += ("\n");
     
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-    QSurfaceFormat format = this->format();
     AString swapInfo("Swap Behavior: ");
     switch (format.swapBehavior()) {
         case QSurfaceFormat::DefaultSwapBehavior:
@@ -353,7 +343,7 @@ BrainOpenGLWidget::getOpenGLInformation()
             swapInfo += ("TripleBuffer");
             break;
     }
-
+    
     info += ("QOpenGLWidget Context:"
              "\n   Alpha: " + AString::fromBool(format.hasAlpha())
              + "\n   Alpha size: " + AString::number(format.alphaBufferSize())
@@ -380,7 +370,71 @@ BrainOpenGLWidget::getOpenGLInformation()
             info += ("\nOpenGL CompatibilityProfile - Functionality from earlier OpenGL versions is available.");
             break;
     }
+    return info;
+}
+#endif
+
+/**
+ * @return Information about OpenGL.
+ */
+QString
+BrainOpenGLWidget::getOpenGLInformation()
+{
+    AString info;
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    info += ("Rendering with Qt5 QOpenGLWidget.\n");
+#else
+    info += ("Rendering with Qt5 QGLWidget (deprecated).\n");
+#endif
+    info += ("\n");
     
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+//    QSurfaceFormat format = this->format();
+    info += QSurfaceFormatToString(this->format());
+//    QSurfaceFormat format = this->format();
+//    AString swapInfo("Swap Behavior: ");
+//    switch (format.swapBehavior()) {
+//        case QSurfaceFormat::DefaultSwapBehavior:
+//            swapInfo += ("DefaultSwapBehavior");
+//            break;
+//        case QSurfaceFormat::SingleBuffer:
+//            swapInfo += ("SingleBuffer");
+//            break;
+//        case QSurfaceFormat::DoubleBuffer:
+//            swapInfo += ("DoubleBuffer");
+//            break;
+//        case QSurfaceFormat::TripleBuffer:
+//            swapInfo += ("TripleBuffer");
+//            break;
+//    }
+//
+//    info += ("QOpenGLWidget Context:"
+//             "\n   Alpha: " + AString::fromBool(format.hasAlpha())
+//             + "\n   Alpha size: " + AString::number(format.alphaBufferSize())
+//             + "\n   Depth size: " + AString::number(format.depthBufferSize())
+//             + "\n   Red size: " + AString::number(format.redBufferSize())
+//             + "\n   Green size: " + AString::number(format.greenBufferSize())
+//             + "\n   Blue size: " + AString::number(format.blueBufferSize())
+//             + "\n   Samples size: " + AString::number(format.samples())
+//             + "\n   Stencil size: " + AString::number(format.stencilBufferSize())
+//             + "\n   " + swapInfo
+//             + "\n   Swap Interval: " + AString::number(format.swapInterval())
+//             + "\n   Stereo: " + AString::fromBool(format.stereo())
+//             + "\n   Major Version: " + AString::number(format.majorVersion())
+//             + "\n   Minor Version: " + AString::number(format.minorVersion()));
+//    
+//    switch (format.profile()) {
+//        case QSurfaceFormat::NoProfile:
+//            info += ("\nOpenGL NoProfile - OpenGL version is lower than 3.2. For 3.2 and newer this is same as CoreProfile.");
+//            break;
+//        case QSurfaceFormat::CoreProfile:
+//            info += ("\nOpenGL CoreProfile - Functionality deprecated in OpenGL version 3.0 is not available.");
+//            break;
+//        case QSurfaceFormat::CompatibilityProfile:
+//            info += ("\nOpenGL CompatibilityProfile - Functionality from earlier OpenGL versions is available.");
+//            break;
+//    }
+//    
 #else
     QGLFormat format = this->format();
     info += ("QGLWidget Context:"

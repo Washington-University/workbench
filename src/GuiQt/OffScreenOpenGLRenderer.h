@@ -29,6 +29,7 @@
 
 class QGLWidget;
 class QOpenGLFramebufferObject;
+class QOpenGLFramebufferObjectFormat;
 class QOffscreenSurface;
 class QOpenGLContext;
 class QOpenGLWidget;
@@ -61,6 +62,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        static QString QOpenGLFramebufferObjectFormatToString(const QOpenGLFramebufferObjectFormat& format);
+        
         OffScreenOpenGLRenderer(const OffScreenOpenGLRenderer&);
 
         OffScreenOpenGLRenderer& operator=(const OffScreenOpenGLRenderer&);

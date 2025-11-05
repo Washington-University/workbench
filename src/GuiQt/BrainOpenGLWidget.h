@@ -145,6 +145,10 @@ namespace caret {
         
         int32_t adjustForHighDPI(const int32_t value) const;
         
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+        static AString QSurfaceFormatToString(const QSurfaceFormat& format);
+#endif
+
     protected:
         virtual void initializeGL() override;
         
