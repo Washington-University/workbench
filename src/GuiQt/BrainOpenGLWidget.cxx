@@ -3114,7 +3114,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
         imageCaptureEvent->setBackgroundColor(backgroundColor);
     }
     
-    BrainOpenGLFixedPipeline::setImageCaptureInProgress(true);
+    BrainOpenGLFixedPipeline::setImageCaptureInProgress(false);
     BrainOpenGLShape::setImmediateModeOverride(false);
     BrainOpenGL::setAllowTabHighlighting(true);
     
