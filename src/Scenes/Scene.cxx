@@ -27,6 +27,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneInfo.h"
+#include "ScenePathName.h"
 #include "WuQMacroGroup.h"
 
 using namespace caret;
@@ -330,6 +331,33 @@ Scene::getDescendantWithName(const AString& objectName)
     }
     
     return sceneObject;
+}
+
+/**
+ * @return All descendant (children, grandchildren, etc.) that are ScenePathName objects.
+ * Note that elements may be empty.
+ */
+
+std::vector<ScenePathName*>
+Scene::getAllScenePathNameDescendants() const
+{
+    std::vector<ScenePathName*> scenePathNameObjects;
+    
+    std::vector<SceneObject*> allDescendants(getDescendants());
+    for (SceneObject* so : allDescendants) {
+        if (so->getDataType() == SceneObjectDataTypeEnum::SCENE_PATH_NAME) {
+            /*
+             * Note: Both ScenePathName and ScenePathNameArray are
+             * of type SCENE_PATH_NAME so we need to cast.
+             */
+            ScenePathName* spn(so->castToScenePathName());
+            if (spn != NULL) {
+                scenePathNameObjects.push_back(spn);
+            }
+        }
+    }
+    
+    return scenePathNameObjects;
 }
 
 /**

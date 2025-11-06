@@ -31,6 +31,7 @@ namespace caret {
     class SceneClass;
     class SceneInfo;
     class SceneObject;
+    class ScenePathName;
     class WuQMacroGroup;
     
     class Scene : public CaretObjectTracksModification {
@@ -54,6 +55,8 @@ namespace caret {
         std::vector<SceneObject*> getDescendants() const;
         
         SceneObject* getDescendantWithName(const AString& objectName);
+        
+        std::vector<ScenePathName*> getAllScenePathNameDescendants() const;
         
         void addClass(SceneClass* sceneClass);
         
