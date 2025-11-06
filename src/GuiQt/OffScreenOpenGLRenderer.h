@@ -62,8 +62,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
         static QString QOpenGLFramebufferObjectFormatToString(const QOpenGLFramebufferObjectFormat& format);
-        
+#endif
         OffScreenOpenGLRenderer(const OffScreenOpenGLRenderer&);
 
         OffScreenOpenGLRenderer& operator=(const OffScreenOpenGLRenderer&);

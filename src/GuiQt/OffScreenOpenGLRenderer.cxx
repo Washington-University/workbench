@@ -27,8 +27,8 @@
 #include "OffScreenOpenGLRenderer.h"
 #undef __OFF_SCREEN_OPEN_G_L_RENDERER_DECLARE__
 
-#include <QOpenGLFramebufferObject>
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+#include <QOpenGLFramebufferObject>
 #include <QOpenGLWidget>
 #else
 #include <QGLFormat>
@@ -132,6 +132,7 @@ OffScreenOpenGLRenderer::OffScreenOpenGLRenderer(QGLWidget* openglWidget,
         return;
     }
     
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     CaretLogInfo("Requested and Active QSurfaceFormats equal: "
                  + AString::fromBool(m_offScreenSurface->requestedFormat() == m_offScreenSurface->format())
                  + "\nOffScreen Surface Requested Format:\n"
@@ -145,6 +146,7 @@ OffScreenOpenGLRenderer::OffScreenOpenGLRenderer(QGLWidget* openglWidget,
                  + QOpenGLFramebufferObjectFormatToString(frameBufferFormat)
                  + "\nActive QOpenGLFramebufferObjectFormat:\n"
                  + QOpenGLFramebufferObjectFormatToString(m_frameBuffer->format()));
+#endif
 }
 
 /**
@@ -182,6 +184,7 @@ OffScreenOpenGLRenderer::getImage()
     return image;
 }
 
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 /**
  * @return Text representation of QOpenGLFramebufferObjectFormat
  */
@@ -212,5 +215,6 @@ OffScreenOpenGLRenderer::QOpenGLFramebufferObjectFormatToString(const QOpenGLFra
     
     return text;
 }
+#endif
 
 
