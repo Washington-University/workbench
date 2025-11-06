@@ -80,6 +80,7 @@ OperationProbtrackXDotConvert.h
 OperationSceneFileMerge.h
 OperationSceneFileRelocate.h
 OperationSceneFileUpdate.h
+OperationSceneFileUtility.h
 OperationSetMapName.h
 OperationSetMapNames.h
 OperationSetStructure.h
@@ -178,6 +179,7 @@ OperationProbtrackXDotConvert.cxx
 OperationSceneFileMerge.cxx
 OperationSceneFileRelocate.cxx
 OperationSceneFileUpdate.cxx
+OperationSceneFileUtility.cxx
 OperationSetMapName.cxx
 OperationSetMapNames.cxx
 OperationSetStructure.cxx
