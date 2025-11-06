@@ -27,8 +27,8 @@
 #include "OffScreenOpenGLRenderer.h"
 #undef __OFF_SCREEN_OPEN_G_L_RENDERER_DECLARE__
 
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 #include <QOpenGLFramebufferObject>
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 #include <QOpenGLWidget>
 #else
 #include <QGLFormat>
