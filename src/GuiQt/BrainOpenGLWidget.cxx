@@ -3054,7 +3054,13 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
      * in image capture.
      */
     BrainOpenGLShape::setImmediateModeOverride(true);
-    BrainOpenGLFixedPipeline::setImageCaptureInProgress(true);
+
+    /*
+     * Smoothing voxels may cause artifacts if
+     * opacity is used in volume's voxels
+     */
+    // Disable on 10Nov2025
+    //BrainOpenGLFixedPipeline::setImageCaptureInProgress(true);
     
     QImage image;
     
