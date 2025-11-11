@@ -66,6 +66,8 @@ namespace caret {
         
         AString convertToHtmlPageWithCssFontHeight(const int fontHeight) const;
         
+        static AString convertHtmlToPlainText(const AString& html);
+        
         int32_t indexOfAnyChar(const AString& str,
                                int from = 0) const;
         

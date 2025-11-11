@@ -18,6 +18,8 @@
  */
 /*LICENSE_END*/
 
+#include <map>
+
 #include <QList>
 #include <QTextStream>
 
@@ -816,6 +818,45 @@ AString::replaceHtmlSpecialCharactersWithEscapeCharacters() const
     
     return htmlString;
 }
+
+/**
+ * Convert HTML text to plain text.
+ * Only a small set of tags are supported.
+ * @param html
+ *   The input HTML text
+ *@return
+ *   Plain text
+ */
+AString
+AString::convertHtmlToPlainText(const AString& html)
+{
+    AString text(html);
+    
+    std::map<AString, AString> htmlTagToPlainText;
+    htmlTagToPlainText.insert(std::make_pair("\n", ""));
+    htmlTagToPlainText.insert(std::make_pair("<html>", ""));
+    htmlTagToPlainText.insert(std::make_pair("</html>", ""));
+    htmlTagToPlainText.insert(std::make_pair("<body>", ""));
+    htmlTagToPlainText.insert(std::make_pair("</body>", ""));
+    htmlTagToPlainText.insert(std::make_pair("<p>", "\n\n"));
+    htmlTagToPlainText.insert(std::make_pair("</p>", ""));
+    htmlTagToPlainText.insert(std::make_pair("<br>", "\n"));
+    htmlTagToPlainText.insert(std::make_pair("</br>", ""));
+    htmlTagToPlainText.insert(std::make_pair("<ul>", ""));
+    htmlTagToPlainText.insert(std::make_pair("</ul>", "\n"));
+    htmlTagToPlainText.insert(std::make_pair("<li>", "\n   * "));
+    htmlTagToPlainText.insert(std::make_pair("</li>", "\n"));
+
+
+    for (const auto& ht : htmlTagToPlainText) {
+        text = text.replace(ht.first,
+                            ht.second,
+                            Qt::CaseInsensitive);
+    }
+    
+    return text;
+}
+
 
 AString AString::fixUnicodeHyphens(bool* hyphenReplaced, bool* hadOtherNonAscii, const bool& quiet) const
 {
