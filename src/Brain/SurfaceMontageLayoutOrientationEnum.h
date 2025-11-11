@@ -39,8 +39,12 @@ public:
         COLUMN_LAYOUT_ORIENTATION,
         /** Landscape */
         LANDSCAPE_LAYOUT_ORIENTATION,
+        /** Landscape Transpose */
+        LANDSCAPE_LAYOUT_ORIENTATION_TRANSPOSED,
         /** Portrait */
         PORTRAIT_LAYOUT_ORIENTATION,
+        /** Portrait Transpose*/
+        PORTRAIT_LAYOUT_ORIENTATION_TRANSPOSED,
         /** Row */
         ROW_LAYOUT_ORIENTATION
     };

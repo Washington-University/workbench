@@ -285,7 +285,13 @@ SurfaceMontageConfigurationFlatMaps::updateSurfaceMontageViewports(std::vector<S
             case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
                 surfaceMontageViewports[i].setRowAndColumn(0, i);
                 break;
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION_TRANSPOSED:
+                surfaceMontageViewports[i].setRowAndColumn(0, i);
+                break;
             case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[i].setRowAndColumn(i, 0);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION_TRANSPOSED:
                 surfaceMontageViewports[i].setRowAndColumn(i, 0);
                 break;
             case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:

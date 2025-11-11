@@ -312,7 +312,15 @@ SurfaceMontageConfigurationHippocampus::updateSurfaceMontageViewports(std::vecto
                 surfaceMontageViewports[0].setRowAndColumn(0, 0);
                 surfaceMontageViewports[1].setRowAndColumn(0, 1);
                 break;
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION_TRANSPOSED:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(0, 1);
+                break;
             case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(1, 0);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION_TRANSPOSED:
                 surfaceMontageViewports[0].setRowAndColumn(0, 0);
                 surfaceMontageViewports[1].setRowAndColumn(1, 0);
                 break;
@@ -379,7 +387,11 @@ SurfaceMontageConfigurationHippocampus::updateSurfaceMontageViewports(std::vecto
                 break;
             case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
                 break;
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION_TRANSPOSED:
+                break;
             case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION_TRANSPOSED:
                 break;
             case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:
                 for (int32_t i = 0; i < 4; i++) {
@@ -424,6 +436,16 @@ SurfaceMontageConfigurationHippocampus::updateSurfaceMontageViewports(std::vecto
                 surfaceMontageViewports[6].setRowAndColumn(0, 3);
                 surfaceMontageViewports[7].setRowAndColumn(1, 3);
                 break;
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION_TRANSPOSED:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0); // DONE
+                surfaceMontageViewports[1].setRowAndColumn(0, 2);
+                surfaceMontageViewports[2].setRowAndColumn(0, 1);
+                surfaceMontageViewports[3].setRowAndColumn(0, 3);
+                surfaceMontageViewports[4].setRowAndColumn(1, 0);
+                surfaceMontageViewports[5].setRowAndColumn(1, 2);
+                surfaceMontageViewports[6].setRowAndColumn(1, 1);
+                surfaceMontageViewports[7].setRowAndColumn(1, 3);
+                break;
             case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
                 surfaceMontageViewports[0].setRowAndColumn(0, 0);
                 surfaceMontageViewports[1].setRowAndColumn(1, 0);
@@ -432,6 +454,16 @@ SurfaceMontageConfigurationHippocampus::updateSurfaceMontageViewports(std::vecto
                 surfaceMontageViewports[4].setRowAndColumn(2, 0);
                 surfaceMontageViewports[5].setRowAndColumn(3, 0);
                 surfaceMontageViewports[6].setRowAndColumn(2, 1);
+                surfaceMontageViewports[7].setRowAndColumn(3, 1);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION_TRANSPOSED:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(2, 0); // Done
+                surfaceMontageViewports[2].setRowAndColumn(0, 1);
+                surfaceMontageViewports[3].setRowAndColumn(2, 1);
+                surfaceMontageViewports[4].setRowAndColumn(1, 0);
+                surfaceMontageViewports[5].setRowAndColumn(3, 0);
+                surfaceMontageViewports[6].setRowAndColumn(1, 1);
                 surfaceMontageViewports[7].setRowAndColumn(3, 1);
                 break;
             case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:

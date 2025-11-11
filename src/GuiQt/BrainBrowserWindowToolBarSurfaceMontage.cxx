@@ -92,7 +92,10 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolTipAndStatusTip(m_surfaceMontageLayoutOrientationEnumComboBox->getWidget(),
                                          ("Selects Surface Layout:\n"
                                           "   Landscape (Layout left-to-right)\n"
-                                          "   Portrait  (Layout top-to-bottom)"));
+                                          "   Landscape Transposed (Swaps bottom-left with upper-right)\n"
+                                          "   Portrait  (Layout top-to-bottom)\n"
+                                          "   Portrait Transposed (Swaps second and third rows)\n"
+                                          "Note: Transposed only affects layouts with eight surfaces"));
     m_surfaceMontageLayoutOrientationEnumComboBox->getComboBox()->setObjectName(objectNamePrefix
                                                                                 + ":SurfaceMontageOrientation");
     WuQMacroManager::instance()->addMacroSupportToObject(m_surfaceMontageLayoutOrientationEnumComboBox->getComboBox(),

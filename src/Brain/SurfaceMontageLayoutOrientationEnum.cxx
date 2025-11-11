@@ -114,9 +114,17 @@ SurfaceMontageLayoutOrientationEnum::initialize()
                                                            "LANDSCAPE_LAYOUT_ORIENTATION",
                                                            "Landscape"));
     
+    enumData.push_back(SurfaceMontageLayoutOrientationEnum(LANDSCAPE_LAYOUT_ORIENTATION_TRANSPOSED,
+                                                           "LANDSCAPE_LAYOUT_ORIENTATION_TRANSPOSE",
+                                                           "Landscape Transposed"));
+    
     enumData.push_back(SurfaceMontageLayoutOrientationEnum(PORTRAIT_LAYOUT_ORIENTATION,
                                                            "PORTRAIT_LAYOUT_ORIENTATION",
                                                            "Portrait"));
+    
+    enumData.push_back(SurfaceMontageLayoutOrientationEnum(PORTRAIT_LAYOUT_ORIENTATION_TRANSPOSED,
+                                                           "PORTRAIT_LAYOUT_ORIENTATION_TRANSPOSED",
+                                                           "Portrait Transposed"));
     
     enumData.push_back(SurfaceMontageLayoutOrientationEnum(ROW_LAYOUT_ORIENTATION,
                                                            "ROW_LAYOUT_ORIENTATION",

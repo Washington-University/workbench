@@ -234,7 +234,15 @@ SurfaceMontageConfigurationHippocampusFlatMaps::updateSurfaceMontageViewports(st
                 surfaceMontageViewports[0].setRowAndColumn(0, 0);
                 surfaceMontageViewports[1].setRowAndColumn(0, 1);
                 break;
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION_TRANSPOSED:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(0, 1);
+                break;
             case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(1, 0);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION_TRANSPOSED:
                 surfaceMontageViewports[0].setRowAndColumn(0, 0);
                 surfaceMontageViewports[1].setRowAndColumn(1, 0);
                 break;
@@ -275,7 +283,11 @@ SurfaceMontageConfigurationHippocampusFlatMaps::updateSurfaceMontageViewports(st
                 break;
             case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
                 break;
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION_TRANSPOSED:
+                break;
             case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION_TRANSPOSED:
                 break;
             case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:
                 for (int32_t i = 0; i < 4; i++) {
