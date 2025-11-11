@@ -60,6 +60,12 @@ namespace caret {
         static bool isShowSceneCommandAvailable();
         
         static std::vector<AString> getCompatibilitySwitches() { std::vector<AString> ret; ret.push_back("-show-scene-two"); return ret; }
+        
+        static void loadSceneFileAndRestoreScene(const AString& sceneFileName,
+                                                 const AString& sceneNameOrNumber,
+                                                 const bool doNotUseSceneColorsFlag,
+                                                 AString& errorMessageOut);
+
     private:
         class Inputs {
         public:
@@ -89,12 +95,7 @@ namespace caret {
         
         static void applyMapYoking(const MapYokingGroupEnum::Enum mapYokingGroup,
                                    const int32_t mapYokingMapIndex);
-        
-        static void loadSceneFileAndRestoreScene(const AString& sceneFileName,
-                                                 const AString& sceneNameOrNumber,
-                                                 const bool doNotUseSceneColorsFlag,
-                                                 AString& errorMessageOut);
-        
+                
         static void setRemoteLoginAndPassword(const AString& username,
                                               const AString& password);
         
