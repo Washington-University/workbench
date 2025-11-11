@@ -85,6 +85,7 @@
 #include "SceneCreateReplaceDialog.h"
 #include "SceneFile.h"
 #include "SceneFileInformationDialog.h"
+#include "SceneFileRestructureDialog.h"
 #include "SceneInfo.h"
 #include "ScenePreviewDialog.h"
 #include "SceneReplaceAllDialog.h"
@@ -850,6 +851,30 @@ SceneDialog::saveAsSelectedSceneFile()
     loadSceneFileComboBox(sceneFile);
     
     return true;
+}
+
+/**
+ * Reorganize the scene file and its data files
+ */
+void
+SceneDialog::restructureSceneFileButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        WuQMessageBox::errorOk(m_saveAsSceneFilePushButton, "There is no selected scene file to restructure");
+        return;
+    }
+    if (sceneFile->isModified()) {
+        WuQMessageBox::errorOk(m_restructureSceneFilePushButton, "Scene file is modifed, it must be saved to restructure");
+    }
+    
+    SceneFileRestructureDialog dialog(sceneFile->getFileName(),
+                                      m_restructureSceneFilePushButton);
+    dialog.exec();
+    
+    if (dialog.isSuccess()) {
+        
+    }
 }
 
 /**
@@ -2434,6 +2459,11 @@ SceneDialog::createSceneFileWidget()
     const AString moveToolTip("<html><body>Display a file selection dialog for moving the scene file to a new name.<p>"
                              + baseToolTip
                              + "</body></html>");
+    const AString reorganizeToolTip("<html><body>Display a reorganizing a scene file and its data files.  "
+                                    "Reorganzing copies the scene file and all of its data files to a new location.  "
+                                    "The scene file is in the top level directory and all of the data files are placed "
+                                    "into a subdirectory."
+                                    "</body></html>");
 
     /*
      * New File button
@@ -2476,6 +2506,14 @@ SceneDialog::createSceneFileWidget()
                      this, &SceneDialog::moveSceneFileButtonClicked);
     
     /*
+     * Reorganize button
+     */
+    m_restructureSceneFilePushButton = new QPushButton("Restructure...");
+    m_restructureSceneFilePushButton->setToolTip(reorganizeToolTip);
+    QObject::connect(m_restructureSceneFilePushButton, &QPushButton::clicked,
+                     this, &SceneDialog::restructureSceneFileButtonClicked);
+    
+    /*
      * Upload button
      */
     m_uploadSceneFilePushButton = new QPushButton("Upload...");
@@ -2497,6 +2535,7 @@ SceneDialog::createSceneFileWidget()
     m_sceneFileButtonsGroup = new WuQWidgetObjectGroup(this);
     m_sceneFileButtonsGroup->add(m_saveSceneFilePushButton);
     m_sceneFileButtonsGroup->add(m_saveAsSceneFilePushButton);
+    m_sceneFileButtonsGroup->add(m_restructureSceneFilePushButton);
     m_sceneFileButtonsGroup->add(m_moveSceneFilePushButton);
     m_sceneFileButtonsGroup->add(m_uploadSceneFilePushButton);
     m_sceneFileButtonsGroup->add(m_zipSceneFilePushButton);
@@ -2520,18 +2559,19 @@ SceneDialog::createSceneFileWidget()
     gridLayout->setColumnStretch(5,   0);
     int row = 0;
     gridLayout->addWidget(sceneFileLabel,                 row, 0, Qt::AlignRight);
-    gridLayout->addWidget(m_sceneFileSelectionComboBox,   row, 1, 1, 3);
-    gridLayout->addWidget(m_newSceneFilePushButton,       row, 4);
-    gridLayout->addWidget(m_saveSceneFilePushButton,      row, 5);
-    gridLayout->addWidget(m_zipSceneFilePushButton,       row, 6);
+    gridLayout->addWidget(m_sceneFileSelectionComboBox,   row, 1, 1, 4);
+    gridLayout->addWidget(m_newSceneFilePushButton,       row, 5);
+    gridLayout->addWidget(m_saveSceneFilePushButton,      row, 6);
+    gridLayout->addWidget(m_zipSceneFilePushButton,       row, 7);
     row++;
-    gridLayout->addWidget(modifiedLabel,                  row, 0, Qt::AlignRight);
-    gridLayout->addWidget(m_sceneFileModifiedStatusLabel, row, 1, Qt::AlignLeft);
-    gridLayout->addWidget(m_showFileStructurePushButton,  row, 2);
-    gridLayout->addWidget(m_moveSceneFilePushButton,      row, 3);
-    gridLayout->addWidget(m_openSceneFilePushButton,      row, 4);
-    gridLayout->addWidget(m_saveAsSceneFilePushButton,    row, 5);
-    gridLayout->addWidget(m_uploadSceneFilePushButton,    row, 6);
+    gridLayout->addWidget(modifiedLabel,                   row, 0, Qt::AlignRight);
+    gridLayout->addWidget(m_sceneFileModifiedStatusLabel,  row, 1, Qt::AlignLeft);
+    gridLayout->addWidget(m_showFileStructurePushButton,   row, 2);
+    gridLayout->addWidget(m_restructureSceneFilePushButton, row, 3);
+    gridLayout->addWidget(m_moveSceneFilePushButton,       row, 4);
+    gridLayout->addWidget(m_openSceneFilePushButton,       row, 5);
+    gridLayout->addWidget(m_saveAsSceneFilePushButton,     row, 6);
+    gridLayout->addWidget(m_uploadSceneFilePushButton,     row, 7);
     row++;
     
     return widget;
@@ -3193,7 +3233,8 @@ SceneDialog::updateSceneFileModifiedStatusLabel()
     m_saveSceneFilePushButton->setEnabled(saveButtonEnabledFlag);
     m_moveSceneFilePushButton->setEnabled( (! saveButtonEnabledFlag)
                                           && (getSelectedSceneFile() != NULL));
-    
+    m_restructureSceneFilePushButton->setEnabled( (! saveButtonEnabledFlag)
+                                                && (getSelectedSceneFile() != NULL));
     m_showFileStructurePushButton->setEnabled(haveScenesFlag);
     m_zipSceneFilePushButton->setEnabled(haveScenesFlag);
     m_uploadSceneFilePushButton->setEnabled(haveScenesFlag);

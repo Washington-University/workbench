@@ -238,9 +238,10 @@ ELSE()
         SceneBasePathWidget.h
 	SceneClassInfoWidget.h
         SceneCreateReplaceDialog.h
+        SceneDataFileTreeItemModel.h
         SceneDialog.h
         SceneFileInformationDialog.h
-        SceneDataFileTreeItemModel.h
+	SceneFileRestructureDialog.h
         ScenePreviewDialog.h
         SceneReplaceAllDialog.h
 	SceneSelectionWidget.h
@@ -576,10 +577,11 @@ ScaleBarWidget.h
 SceneBasePathWidget.h
 SceneClassInfoWidget.h
 SceneCreateReplaceDialog.h
-SceneDialog.h
-SceneFileInformationDialog.h
 SceneDataFileTreeItem.h
 SceneDataFileTreeItemModel.h
+SceneDialog.h
+SceneFileInformationDialog.h
+SceneFileRestructureDialog.h
 ScenePreviewDialog.h
 SceneReplaceAllDialog.h
 SceneSelectionWidget.h
@@ -934,10 +936,11 @@ ScaleBarWidget.cxx
 SceneBasePathWidget.cxx
 SceneClassInfoWidget.cxx
 SceneCreateReplaceDialog.cxx
-SceneDialog.cxx
-SceneFileInformationDialog.cxx
 SceneDataFileTreeItem.cxx
 SceneDataFileTreeItemModel.cxx
+SceneDialog.cxx
+SceneFileInformationDialog.cxx
+SceneFileRestructureDialog.cxx
 ScenePreviewDialog.cxx
 SceneReplaceAllDialog.cxx
 SceneSelectionWidget.cxx

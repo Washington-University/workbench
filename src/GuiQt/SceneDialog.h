@@ -95,6 +95,8 @@ namespace caret {
         
         void moveSceneFileButtonClicked();
         
+        void restructureSceneFileButtonClicked();
+        
         void uploadSceneFileButtonClicked();
         
         void zipSceneFileButtonClicked();
@@ -220,6 +222,8 @@ namespace caret {
         QPushButton* m_saveAsSceneFilePushButton;
         
         QPushButton* m_moveSceneFilePushButton;
+        
+        QPushButton* m_restructureSceneFilePushButton;
         
         QPushButton* m_uploadSceneFilePushButton;
         

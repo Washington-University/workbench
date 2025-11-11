@@ -79,8 +79,8 @@ OperationNiftiInformation.h
 OperationProbtrackXDotConvert.h
 OperationSceneFileMerge.h
 OperationSceneFileRelocate.h
+OperationSceneFileRestructure.h
 OperationSceneFileUpdate.h
-OperationSceneFileUtility.h
 OperationSetMapName.h
 OperationSetMapNames.h
 OperationSetStructure.h
@@ -178,8 +178,8 @@ OperationNiftiInformation.cxx
 OperationProbtrackXDotConvert.cxx
 OperationSceneFileMerge.cxx
 OperationSceneFileRelocate.cxx
+OperationSceneFileRestructure.cxx
 OperationSceneFileUpdate.cxx
-OperationSceneFileUtility.cxx
 OperationSetMapName.cxx
 OperationSetMapNames.cxx
 OperationSetStructure.cxx
