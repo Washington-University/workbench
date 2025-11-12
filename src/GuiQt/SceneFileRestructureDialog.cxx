@@ -156,6 +156,7 @@ SceneFileRestructureDialog::SceneFileRestructureDialog(const AString& sceneFileN
     }
     m_previewCheckBox->setChecked(s_previousPreviewFlag);
     m_skipMissingFilesCheckBox->setChecked(s_previousSkipMissingFilessFlag);
+    m_testScenesCheckBox->setChecked(s_previousTestScenesFlag);
     
     if ( ! sceneFileName.isEmpty()) {
         initializeWithSceneFile(sceneFileName);
@@ -233,6 +234,7 @@ SceneFileRestructureDialog::okButtonClicked()
     s_previousOutputDirectory         = m_outputDirectoryLineEdit->text().trimmed();
     s_previousPreviewFlag             = m_previewCheckBox->isChecked();
     s_previousSkipMissingFilessFlag   = m_skipMissingFilesCheckBox->isChecked();
+    s_previousTestScenesFlag          = m_testScenesCheckBox->isChecked();
     s_previousOvewriteFilesMode       = static_cast<OperationSceneFileRestructure::OverwriteFilesMode>(m_overwriteFilesComboBox->currentData().toInt());
     
     if (s_previousSceneFileName.isEmpty()) {
@@ -263,9 +265,9 @@ SceneFileRestructureDialog::okButtonClicked()
                                                                  s_previousOutputDirectory,
                                                                  OperationSceneFileRestructure::MessageMode::GUI,
                                                                  s_previousOvewriteFilesMode,
-                                                                 m_previewCheckBox->isChecked(),
-                                                                 m_skipMissingFilesCheckBox->isChecked(),
-                                                                 m_testScenesCheckBox->isChecked(),
+                                                                 s_previousPreviewFlag,
+                                                                 s_previousSkipMissingFilessFlag,
+                                                                 s_previousTestScenesFlag,
                                                                  outputMessages);
         m_successFlag = true;
     }

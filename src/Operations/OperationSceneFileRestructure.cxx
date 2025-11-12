@@ -18,7 +18,16 @@
  */
 /*LICENSE_END*/
 
+//#ifdef CARET_OS_MACOSX
+//#define HAVE_STD_FILESYSTEM_LIBRARY 1
+//#endif
+
+#ifdef HAVE_STD_FILESYSTEM_LIBRARY
 #include <filesystem>
+#else
+#include <QFile>
+#endif
+
 #include <map>
 #include <memory>
 #include <set>
@@ -27,7 +36,6 @@
 #include <QDir>
 
 #include "CaretLogger.h"
-#include "CaretTemporaryFile.h"
 #include "FileInformation.h"
 #include "OperationException.h"
 #include "OperationSceneFileRestructure.h"
@@ -368,7 +376,10 @@ OperationSceneFileRestructure::copySceneFileAndDataFiles(const AString& inputSce
             }
         }
     }
-    CaretAssert(FileInformation(dataFilesDirectoryName).exists());
+    
+    if ( ! previewModeFlag) {
+        CaretAssert(FileInformation(dataFilesDirectoryName).exists());
+    }
     
     /*
      * Copy the data files to their new locations
@@ -416,7 +427,7 @@ OperationSceneFileRestructure::copySceneFileAndDataFiles(const AString& inputSce
     /*
      * Write scene file
      */
-    const AString writeSceneMsg("..."
+    const AString writeSceneMsg("\n..."
                                 + previewText
                                 + "writing scene file: "
                                 + outputSceneFileName);
@@ -490,7 +501,7 @@ OperationSceneFileRestructure::copyDataFiles(const std::vector<std::pair<AString
         FileInformation fromFileInfo(fromFileName);
         const int64_t fileSize(fromFileInfo.size());
         const AString sizeString(FileInformation::fileSizeToStandardUnits(fileSize));
-        const AString copyMsg("..." + previewText + "copying: " + sizeString + " from " + fromFileName
+        const AString copyMsg("\n..." + previewText + "copying: " + sizeString + " from " + fromFileName
                               + "\n      to: " + toFileName);
         switch (messageMode) {
             case MessageMode::GUI:
@@ -507,37 +518,58 @@ OperationSceneFileRestructure::copyDataFiles(const std::vector<std::pair<AString
                     /* file was copied */
                 }
                 else {
-                    const bool useFileSystemFlag(true);
-                    if (useFileSystemFlag) {
-                        QFileInfo fromFileInfo(fromFileName);
-                        QFileInfo toFileInfo(toFileName);
-                        try {
-                            if (allowOverwriteFilesFlag) {
-                                std::filesystem::copy(fromFileInfo.filesystemAbsoluteFilePath(),
-                                                      toFileInfo.filesystemAbsoluteFilePath(),
-                                                      std::filesystem::copy_options::overwrite_existing);
-                            }
-                            else {
-                                /* Will throw exception of "to" file exists */
-                                std::filesystem::copy(fromFileInfo.filesystemAbsoluteFilePath(),
-                                                      toFileInfo.filesystemAbsoluteFilePath(),
-                                                      std::filesystem::copy_options::none);
-                            }
+#ifdef HAVE_STD_FILESYSTEM_LIBRARY
+                    QFileInfo fromFileInfo(fromFileName);
+                    QFileInfo toFileInfo(toFileName);
+                    try {
+                        if (allowOverwriteFilesFlag) {
+                            std::filesystem::copy(fromFileInfo.filesystemAbsoluteFilePath(),
+                                                  toFileInfo.filesystemAbsoluteFilePath(),
+                                                  std::filesystem::copy_options::overwrite_existing);
                         }
-                        catch (const std::filesystem::filesystem_error& e) {
-                            throw DataFileException("Failed to copy \""
-                                                    + fromFileName
-                                                    + "\" to \""
-                                                    + toFileName
-                                                    + "\": "
-                                                    + AString(e.what()));
+                        else {
+                            /* Will throw exception of "to" file exists */
+                            std::filesystem::copy(fromFileInfo.filesystemAbsoluteFilePath(),
+                                                  toFileInfo.filesystemAbsoluteFilePath(),
+                                                  std::filesystem::copy_options::none);
                         }
                     }
-                    else {
-                        CaretTemporaryFile ctf;
-                        ctf.readFile(fromFileName);
-                        ctf.writeFile(toFileName);
+                    catch (const std::filesystem::filesystem_error& e) {
+                        throw DataFileException("Failed to copy \""
+                                                + fromFileName
+                                                + "\" to \""
+                                                + toFileName
+                                                + "\": "
+                                                + AString(e.what()));
                     }
+#else // HAVE_STD_FILESYSTEM_LIBRARY
+                    if (QFileInfo::exists(toFileName)) {
+                        if (allowOverwriteFilesFlag) {
+                            /*
+                             * QFile::copy() will not overwrite the target filename
+                             * so we need to remove the target file
+                             */
+                            const bool successFlag(QFile::remove(toFileName));
+                            if ( ! successFlag) {
+                                throw DataFileException("Unable to remove existing output file prior to overwriting it: "
+                                                        + toFileName);
+                            }
+                        }
+                        else {
+                            throw DataFileException("Overwriting of existing files disabled for "
+                                                    + toFileName);
+                        }
+                    }
+                    const bool successFlag(QFile::copy(fromFileName,
+                                                       toFileName));
+                    if ( ! successFlag) {
+                        throw DataFileException("Failed to copy \""
+                                                + fromFileName
+                                                + "\" to \""
+                                                + toFileName
+                                                + "\"");
+                    }
+#endif // HAVE_STD_FILESYSTEM_LIBRARY
                 }
             }
             catch (const DataFileException& dfe) {
@@ -693,8 +725,6 @@ OperationSceneFileRestructure::updateDataFilePaths(SceneFile* sceneFile,
                     const AString relocatedFileName(dataFilesDirectoryName
                                                  + "/"
                                                  + filename);
-//                    std::cout << "..." << previewText << "ScenePathName: " << spn->stringValue() << std::endl;
-//                    std::cout << "      changed to: " << relocatedFileName << std::endl;
                     
                     if (executeModeFlag) {
                         spn->setValue(relocatedFileName);
