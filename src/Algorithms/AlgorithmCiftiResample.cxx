@@ -138,7 +138,7 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
         "If you are resampling a dconn and your machine has a large amount of memory, you might consider using -cifti-resample-dconn-memory to avoid writing and rereading an intermediate file.  " +
         "The <template-direction> argument should usually be COLUMN, as dtseries, dscalar, and dlabel all have brainordinates on that direction.  " +
         "If spheres are not specified for a surface structure which exists in the cifti files, its data is copied without resampling or dilation.  " +
-        "Dilation is done with the 'nearest' method, and is done on <new-sphere> for surface data.  " +
+        "Dilation is done with the 'weighted' method by default (except for label data on the surface - volume label data uses weighted popularity logic by default), and is done on <new-sphere> for surface data.  " +
         "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.  " +
         "If neither -affine nor -warpfield are specified, the identity transform is assumed for the volume data.\n\n" +
         "The recommended resampling methods are ADAP_BARY_AREA and CUBIC (cubic spline), except for label data which should use ADAP_BARY_AREA and ENCLOSING_VOXEL.  " +

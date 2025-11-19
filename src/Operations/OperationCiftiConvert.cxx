@@ -113,10 +113,11 @@ OperationParameters* OperationCiftiConvert::getParameters()
     fromText->createOptionalParameter(6, "-reset-scalars", "reset mapping along rows to scalars, taking length from the text file");
     
     AString myText = AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI.  ") +
+        "Its output does not have a valid spatial shape, it merely uses the other formats to encode the packed cifti matrix as-is.  " +
         "You must specify exactly one of -to-gifti-ext, -from-gifti-ext, -to-nifti, -from-nifti, -to-text, or -from-text.\n\n" +
         "This command cannot map surface-based parts of the cifti file to a spatially-correct volume file, or map volume-based data to the surface, see -volume-to-surface-mapping and -metric-to-volume-mapping instead (other commands such as -cifti-separate are also required).\n\n" +
         "If you want to write an existing CIFTI file with a different CIFTI version, see -file-convert, and its -cifti-version-convert option.\n\n" +
-        "If you want part of the CIFTI file as a metric, label, or volume file, see -cifti-separate.  " +
+        "If you want part of the CIFTI file as a standard metric, label, or volume file, see -cifti-separate.  " +
         "If you want to create a CIFTI file from metric and/or volume files, see the -cifti-create-* commands.\n\n" +
         "If you want to import a matrix in non-CIFTI format that is restricted to an ROI, first obtain a template CIFTI file matching that ROI (you can use -cifti-create-dense-scalar if you don't have such a file).  " +
         "Use -cifti-convert to import it to CIFTI format, and you can then expand the file into a standard brainordinates space with -cifti-create-dense-from-template.  " +
