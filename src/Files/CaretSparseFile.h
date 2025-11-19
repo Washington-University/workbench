@@ -107,7 +107,7 @@ namespace caret {
         CaretSparseFile(const CaretSparseFile& rhs);
         CiftiXML m_xml;
     public:
-        const int64_t* getDimensions() { return m_header.dims; }
+        const int64_t* getDimensions() const { return m_header.dims; }
         
         CaretSparseFile() { m_valuesOffset = -1; };
         
@@ -119,6 +119,8 @@ namespace caret {
         
         ///get a reference to the XML data
         const CiftiXML& getCiftiXML() const { return m_xml; }
+        
+        ValueType getDatatype() const { return ValueType(m_header.valueType); }
         
         template <typename V>
         void getRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<V>& valuesOut)
