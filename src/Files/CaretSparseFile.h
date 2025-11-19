@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
 #include <limits>
 #include <vector>
 #include <stdint.h>
@@ -29,6 +30,7 @@
 #include "ByteSwapping.h"
 #include "CaretAssert.h"
 #include "CaretBinaryFile.h"
+#include "CaretMutex.h"
 #include "CiftiXML.h"
 #include "DataFile.h"
 #include "DataFileException.h"
@@ -96,16 +98,14 @@ namespace caret {
         void decodeFibers(const uint64_t& coded, FiberFractions& decoded); //takes a uint because right shift on signed is implementation dependent
         void readFileV1(FileInformation& fileInfo);
         void readFileV2(FileInformation& fileInfo);
+        CaretMutex m_sparseLock, m_denseLock; //protect against seek/read race condition and use of internal buffers - no overlap between buffers used, so this can be simple (note, dense calls sparse)
         CaretBinaryFile m_file;
         HeaderV2 m_header;
         int64_t m_valuesOffset;
         std::vector<int64_t> m_indexArray, m_scratchIndices;
-        //std::vector<uint64_t> m_scratchSparseFibersRow, m_scratchFullFibersRow;
         std::vector<char> m_scratchByteArray;
         CaretSparseFile(const CaretSparseFile& rhs);
         CiftiXML m_xml;
-        //bool m_longIndex;
-        //ValueType m_valueType;
     public:
         const int64_t* getDimensions() { return m_header.dims; }
         
@@ -120,8 +120,6 @@ namespace caret {
         ///get a reference to the XML data
         const CiftiXML& getCiftiXML() const { return m_xml; }
         
-        //void getRow(const int64_t& index, int64_t* rowOut);
-        
         template <typename V>
         void getRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<V>& valuesOut)
         {
@@ -132,6 +130,7 @@ namespace caret {
             const int indexSize = m_header.indexSize();
             const int entrySize = indexSize + m_header.valueSize();
             int64_t bytesToRead = entriesToRead * entrySize;
+            CaretMutexLocker locked(&m_sparseLock); //protect m_file and m_scratchByteArray
             m_scratchByteArray.resize(bytesToRead);
             m_file.seek(m_valuesOffset + start * entrySize);
             m_file.read(m_scratchByteArray.data(), bytesToRead);
@@ -151,6 +150,7 @@ namespace caret {
         void getRow(const int64_t& index, V* valuesOut)
         {
             std::vector<V> sparseValues; //no good way to keep this allocated between calls...static and omp critical would work, but...
+            CaretMutexLocker locked(&m_denseLock); //protect m_scratchIndices, let the sparse function protect m_file, etc
             getRowSparse(index, m_scratchIndices, sparseValues);
             int64_t nextindex = 0;
             for (int64_t indexindex = 0; indexindex < (int64_t)m_scratchIndices.size(); ++indexindex)
@@ -259,20 +259,15 @@ namespace caret {
         return ret;
     }
     
-    //REMOVEME: the old implementation as a specialization
-    //template<>
-    //void CaretSparseFile::getRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<int64_t>& valuesOut);
-
     class CaretSparseFileWriter
     {
         static void encodeFibers(const FiberFractions& orig, uint64_t& coded);
         static uint32_t myclamp(const int& x);
         CaretBinaryFile m_file;
         CaretSparseFile::HeaderV2 m_header;
-        int64_t m_valuesOffset, m_nextRowIndex;//, m_dims[2];
+        int64_t m_valuesOffset, m_nextRowIndex;
         bool m_finished;
-        std::vector<uint64_t> m_lengthArray;//, m_scratchRow;
-        //std::vector<int64_t> m_scratchArray, m_scratchSparseRow;
+        std::vector<uint64_t> m_lengthArray;
         std::vector<char> m_scratchBytes;
         CaretSparseFileWriter(const CaretSparseFileWriter& rhs);
         CiftiXML m_xml;
@@ -336,13 +331,7 @@ namespace caret {
             }
             m_file.write(m_scratchBytes.data(), m_scratchBytes.size());
         }
-        /*
-        ///you must write the rows in order, though you can skip empty rows
-        void writeRow(const int64_t& index, const int64_t* row);
         
-        ///you must write the rows in order, though you can skip empty rows
-        void writeRowSparse(const int64_t& index, const std::vector<int64_t>& indices, const std::vector<int64_t>& values);
-        //*/
         ///you must write the rows in order, though you can skip empty rows
         void writeFibersRow(const int64_t& index, const FiberFractions* row) { writeRow(index, row); }
         
