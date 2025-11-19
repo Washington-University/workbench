@@ -86,7 +86,7 @@ namespace
     
     bool shouldSwap(const CiftiFile::ENDIAN& endian)
     {
-        if (ByteSwapping::isBigEndian())
+        if (ByteSwapping::isSystemBigEndian())
         {
             if (endian == CiftiFile::LITTLE) return true;
         } else {

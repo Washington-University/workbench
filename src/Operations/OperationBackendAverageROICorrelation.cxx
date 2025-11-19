@@ -129,8 +129,8 @@ void OperationBackendAverageROICorrelation::useParameters(OperationParameters* m
         int32_t outSize = rowSize;
         if (ByteOrderEnum::isSystemBigEndian())
         {
-            ByteSwapping::swapBytes(rowScratch.data(), rowSize);//beware, we are doing the byteswapping in place
-            ByteSwapping::swapBytes(&outSize, 1);
+            ByteSwapping::swapArray(rowScratch.data(), rowSize);//beware, we are doing the byteswapping in place
+            ByteSwapping::swap(outSize);
         }
         ofstream outfile(outfileName.toLocal8Bit().constData(), ios_base::out | ios_base::binary | ios_base::trunc);
         if (!outfile.write((char*)&outSize, 4))

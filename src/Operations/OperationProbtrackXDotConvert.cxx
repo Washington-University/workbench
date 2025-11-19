@@ -21,6 +21,8 @@
 #include "OperationProbtrackXDotConvert.h"
 #include "OperationException.h"
 #include "CaretLogger.h"
+#include "CaretPointer.h"
+#include "CaretSparseFile.h"
 #include "CiftiFile.h"
 #include "MetricFile.h"
 #include "StructureEnum.h"
@@ -59,7 +61,9 @@ OperationParameters* OperationProbtrackXDotConvert::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addStringParameter(1, "dot-file", "input .dot file");
-    ret->addCiftiOutputParameter(2, "cifti-out", "output cifti file");
+    ret->addStringParameter(2, "file-out", "output - output cifti or wbsparse file"); //HACK: fake the output formatting
+    
+    ret->createOptionalParameter(11, "-wbsparse", "write output as a .wbsparse file, not cifti");
     
     OptionalParameter* rowVoxelOpt = ret->createOptionalParameter(3, "-row-voxels", "the output mapping along a row will be voxels");
     rowVoxelOpt->addStringParameter(1, "voxel-list-file", "a text file containing IJK indices for the voxels used");
@@ -107,7 +111,7 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
 {
     LevelProgress myProgress(myProgObj);
     AString dotFileName = myParams->getString(1);
-    CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
+    AString outFileName = myParams->getString(2);
     OptionalParameter* rowVoxelOpt = myParams->getOptionalParameter(3);
     OptionalParameter* rowSurfaceOpt = myParams->getOptionalParameter(4);
     OptionalParameter* rowCiftiOpt = myParams->getOptionalParameter(9);
@@ -116,6 +120,7 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     OptionalParameter* colCiftiOpt = myParams->getOptionalParameter(10);
     bool transpose = myParams->getOptionalParameter(7)->m_present;
     bool halfMatrix = myParams->getOptionalParameter(8)->m_present;
+    bool outIsSparse = myParams->getOptionalParameter(11)->m_present;
     int numRowOpts = 0, numColOpts = 0;
     if (rowVoxelOpt->m_present) ++numRowOpts;
     if (rowSurfaceOpt->m_present) ++numRowOpts;
@@ -131,55 +136,38 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     {
         throw OperationException("you must specify exactly one of -col-voxels, -col-surface, and -col-cifti");
     }
-    CiftiXMLOld myXML;
-    myXML.resetRowsToBrainModels();
-    myXML.resetColumnsToBrainModels();
+    CiftiXML myXML;
+    myXML.setNumberOfDimensions(2);
+    myXML.setMap(CiftiXML::ALONG_ROW, CiftiBrainModelsMap());
+    myXML.setMap(CiftiXML::ALONG_COLUMN, CiftiBrainModelsMap());
     vector<int64_t> rowReorderMap, colReorderMap;
     if (rowVoxelOpt->m_present)
     {
-        addVoxelMapping(rowVoxelOpt->getVolume(2), rowVoxelOpt->getString(1), myXML, rowReorderMap, CiftiXMLOld::ALONG_ROW);
+        addVoxelMapping(rowVoxelOpt->getVolume(2), rowVoxelOpt->getString(1), myXML.getBrainModelsMap(CiftiXML::ALONG_ROW), rowReorderMap);
     }
     if (rowSurfaceOpt->m_present)
     {
         MetricFile* myMetric = rowSurfaceOpt->getMetric(1);
-        myXML.addSurfaceModelToRows(myMetric->getNumberOfNodes(), myMetric->getStructure(), myMetric->getValuePointerForColumn(0));
+        myXML.getBrainModelsMap(CiftiXML::ALONG_ROW).addSurfaceModel(myMetric->getNumberOfNodes(), myMetric->getStructure(), myMetric->getValuePointerForColumn(0));
     }
     if (rowCiftiOpt->m_present)
     {
-        AString directionName = rowCiftiOpt->getString(2);
-        int myDir;
-        if (directionName == "ROW")
-        {
-            myDir = CiftiXMLOld::ALONG_ROW;
-        } else if (directionName == "COLUMN") {
-            myDir = CiftiXMLOld::ALONG_COLUMN;
-        } else {
-            throw OperationException("incorrect string for direction, use ROW or COLUMN");
-        }
-        myXML.copyMapping(CiftiXMLOld::ALONG_ROW, rowCiftiOpt->getCifti(1)->getCiftiXMLOld(), myDir);
+        int myDir = CiftiXML::directionFromString(rowCiftiOpt->getString(2));
+        myXML.setMap(CiftiXML::ALONG_ROW, *(rowCiftiOpt->getCifti(1)->getCiftiXML().getMap(myDir)));
     }
     if (colVoxelOpt->m_present)
     {
-        addVoxelMapping(colVoxelOpt->getVolume(2), colVoxelOpt->getString(1), myXML, colReorderMap, CiftiXMLOld::ALONG_COLUMN);
+        addVoxelMapping(colVoxelOpt->getVolume(2), colVoxelOpt->getString(1), myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN), colReorderMap);
     }
     if (colSurfaceOpt->m_present)
     {
         MetricFile* myMetric = colSurfaceOpt->getMetric(1);
-        myXML.addSurfaceModelToColumns(myMetric->getNumberOfNodes(), myMetric->getStructure(), myMetric->getValuePointerForColumn(0));
+        myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).addSurfaceModel(myMetric->getNumberOfNodes(), myMetric->getStructure(), myMetric->getValuePointerForColumn(0));
     }
     if (colCiftiOpt->m_present)
     {
-        AString directionName = colCiftiOpt->getString(2);
-        int myDir;
-        if (directionName == "ROW")
-        {
-            myDir = CiftiXMLOld::ALONG_ROW;
-        } else if (directionName == "COLUMN") {
-            myDir = CiftiXMLOld::ALONG_COLUMN;
-        } else {
-            throw OperationException("incorrect string for direction, use ROW or COLUMN");
-        }
-        myXML.copyMapping(CiftiXMLOld::ALONG_COLUMN, colCiftiOpt->getCifti(1)->getCiftiXMLOld(), myDir);
+        int myDir = CiftiXML::directionFromString(colCiftiOpt->getString(2));
+        myXML.setMap(CiftiXML::ALONG_COLUMN, *(colCiftiOpt->getCifti(1)->getCiftiXML().getMap(myDir)));
     }
     fstream dotFile(dotFileName.toLatin1().constData(), fstream::in);
     if (!dotFile.good())
@@ -188,7 +176,7 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     }
     SparseValue tempValue;
     vector<SparseValue> dotFileContents;
-    int32_t rowSize = myXML.getNumberOfColumns(), colSize = myXML.getNumberOfRows();
+    int64_t rowSize = myXML.getDimensionLength(CiftiXML::ALONG_ROW), colSize = myXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
     if (halfMatrix && rowSize != colSize)
     {
         throw OperationException("-make-symmetric was specified, but the matrix is not square");
@@ -288,12 +276,20 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     {
         CaretLogInfo("sorting finished");
     }
-    myCiftiOut->setCiftiXML(myXML);
+    CiftiFile myCiftiOut;
+    CaretPointer<CaretSparseFileWriter> mySparseOut;
+    if (outIsSparse)
+    {
+        mySparseOut.grabNew(new CaretSparseFileWriter(outFileName, myXML, CaretSparseFile::Float32));
+    } else {
+        myCiftiOut.setCiftiXML(myXML);
+        myCiftiOut.setWritingFile(outFileName);
+    }
     int64_t cur = 0, end = (int64_t)dotFileContents.size();
-    vector<float> scratchRow(myXML.getNumberOfColumns(), 0.0f);
-    vector<bool> checkDuplicate(myXML.getNumberOfColumns(), false);
+    vector<float> scratchRow(rowSize, 0.0f);
+    vector<bool> checkDuplicate(rowSize, false);
     int64_t whichRow = 0;//set all rows, in case initial allocation doesn't give a zeroed matrix
-    while (whichRow < myXML.getNumberOfRows())
+    while (whichRow < colSize)
     {
         int64_t next = cur;
         while (next < end && dotFileContents[next].index[1] == whichRow) ++next;
@@ -347,10 +343,21 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
         }
         if (colVoxelOpt->m_present)
         {
-            myCiftiOut->setRow(scratchRow.data(), colReorderMap[whichRow]);
+            if (outIsSparse)
+            {
+                mySparseOut->writeRow(colReorderMap[whichRow], scratchRow.data());
+            } else {
+                myCiftiOut.setRow(scratchRow.data(), colReorderMap[whichRow]);
+            }
         } else {
-            myCiftiOut->setRow(scratchRow.data(), whichRow);
+            if (outIsSparse)
+            {
+                mySparseOut->writeRow(whichRow, scratchRow.data());
+            } else {
+                myCiftiOut.setRow(scratchRow.data(), whichRow);
+            }
         }
+        //re-zero elements we touched in the scratch array
         if (rowVoxelOpt->m_present)
         {
             for (int64_t i = cur; i < next; ++i)
@@ -372,7 +379,7 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     }
 }
 
-void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol, const AString& textFileName, CiftiXMLOld& myXML, vector<int64_t>& reorderMapping, const int& direction)
+void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol, const AString& textFileName, CiftiBrainModelsMap& myMap, vector<int64_t>& reorderMapping)
 {
     if (myLabelVol->getType() != SubvolumeAttributes::LABEL)
     {
@@ -380,10 +387,10 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
     }
     vector<int64_t> myDims;
     myLabelVol->getDimensions(myDims);
-    myXML.setVolumeDimsAndSForm(myDims.data(), myLabelVol->getSform());
+    myMap.setVolumeSpace(VolumeSpace(myDims.data(), myLabelVol->getSform()));
     const GiftiLabelTable* myLabelTable = myLabelVol->getMapLabelTable(0);
     map<int, StructureEnum::Enum> labelMap;//maps label values to structures
-    vector<vector<voxelIndexType> > voxelLists;//voxel lists for each volume component
+    vector<vector<int64_t> > voxelLists;//voxel lists for each volume component
     vector<vector<int64_t> > inputIndices;//index from the input space, matched to voxelLists
     map<StructureEnum::Enum, int> componentMap;//maps structures to indexes in voxelLists
     vector<int32_t> labelKeys;
@@ -409,7 +416,7 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
     }
     voxelLists.resize(count);
     inputIndices.resize(count);
-    voxelIndexType vi, vj, vk;
+    int64_t vi, vj, vk;
     fstream myTextFile(textFileName.toLatin1().constData(), fstream::in);
     if (!myTextFile.good())
     {
@@ -447,12 +454,7 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
         if (listSize != 0)
         {
             forwardMap.insert(forwardMap.end(), inputIndices[i].begin(), inputIndices[i].end());//append the structure's input index list, building lookup of new index->input index
-            if (direction == CiftiXMLOld::ALONG_ROW)
-            {
-                myXML.addVolumeModelToRows(voxelLists[i], iter->first);
-            } else {
-                myXML.addVolumeModelToColumns(voxelLists[i], iter->first);
-            }
+            myMap.addVolumeModel(iter->first, voxelLists[i]);
         }
     }
     int64_t reorderSize = (int64_t)forwardMap.size();

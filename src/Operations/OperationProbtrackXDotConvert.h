@@ -26,11 +26,11 @@
 
 namespace caret {
     
-    class CiftiXMLOld;
+    class CiftiBrainModelsMap;
     
     class OperationProbtrackXDotConvert : public AbstractOperation
     {
-        static void addVoxelMapping(const VolumeFile* myLabelVol, const AString& textFileName, CiftiXMLOld& myXML, std::vector<int64_t>& reorderMapping, const int& direction);
+        static void addVoxelMapping(const VolumeFile* myLabelVol, const AString& textFileName, CiftiBrainModelsMap& myMap, std::vector<int64_t>& reorderMapping);
     public:
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

@@ -247,7 +247,6 @@ Base64.cxx
 BoundingBox.cxx
 BrainConstants.cxx
 ByteOrderEnum.cxx
-ByteSwapping.cxx
 CardinalDirectionEnum.cxx
 CaretAssertion.cxx
 CaretBinaryFile.cxx

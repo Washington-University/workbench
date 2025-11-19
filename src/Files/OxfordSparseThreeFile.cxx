@@ -19,7 +19,6 @@
 /*LICENSE_END*/
 
 #include "OxfordSparseThreeFile.h"
-#include "ByteOrderEnum.h"
 #include "ByteSwapping.h"
 #include "CaretAssert.h"
 #include "FileInformation.h"
@@ -46,9 +45,9 @@ OxfordSparseThreeFile::OxfordSparseThreeFile(const AString& dimFileName, const A
     FILE* indexFile = fopen(indexFileName.toLocal8Bit().constData(), "rb");
     if (indexFile == NULL) throw DataFileException("error opening index file");
     if (fread(lengthArray.data(), sizeof(int64_t), m_dims[1], indexFile) != (size_t)m_dims[1]) throw DataFileException("error reading index file");
-    if (ByteOrderEnum::isSystemBigEndian())
+    if (ByteSwapping::isSystemBigEndian())
     {
-        ByteSwapping::swapBytes(lengthArray.data(), m_dims[1]);
+        ByteSwapping::swapArray(lengthArray.data(), m_dims[1]);
     }
     m_indexArray[0] = 0;
     for (int64_t i = 0; i < m_dims[1]; ++i)
@@ -76,9 +75,9 @@ void OxfordSparseThreeFile::getRow(const int64_t& index, int64_t* rowOut)
     m_scratchArray.resize(numToRead);
     if (fseek(m_valueFile, start * sizeof(int64_t) * 2, SEEK_SET) != 0) throw DataFileException("failed to seek in value file");
     if (fread(m_scratchArray.data(), sizeof(int64_t), numToRead, m_valueFile) != (size_t)numToRead) throw DataFileException("error reading from value file");
-    if (ByteOrderEnum::isSystemBigEndian())
+    if (ByteSwapping::isSystemBigEndian())
     {
-        ByteSwapping::swapBytes(m_scratchArray.data(), numToRead);
+        ByteSwapping::swapArray(m_scratchArray.data(), numToRead);
     }
     int64_t curIndex = 0;
     for (int64_t i = 0; i < numToRead; i += 2)
@@ -108,9 +107,9 @@ void OxfordSparseThreeFile::getRowSparse(const int64_t& index, vector<int64_t>& 
     m_scratchArray.resize(numToRead);
     if (fseek(m_valueFile, start * sizeof(int64_t) * 2, SEEK_SET) != 0) throw DataFileException("failed to seek in value file");
     if (fread(m_scratchArray.data(), sizeof(int64_t), numToRead, m_valueFile) != (size_t)numToRead) throw DataFileException("error reading from value file");
-    if (ByteOrderEnum::isSystemBigEndian())
+    if (ByteSwapping::isSystemBigEndian())
     {
-        ByteSwapping::swapBytes(m_scratchArray.data(), numToRead);
+        ByteSwapping::swapArray(m_scratchArray.data(), numToRead);
     }
     indicesOut.resize(numNonzero);
     valuesOut.resize(numNonzero);
@@ -135,7 +134,7 @@ void OxfordSparseThreeFile::getFibersRow(const int64_t& index, FiberFractions* r
     {
         if (m_scratchRow[i] == 0)
         {
-            rowOut[i].zero();
+            rowOut[i].clear();
         } else {
             decodeFibers(m_scratchRow[i], rowOut[i]);
         }

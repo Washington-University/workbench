@@ -125,7 +125,7 @@ FiberOrientationTrajectory::setFiberFractions(const FiberFractions& fiberFractio
 {
     *m_fiberFraction = fiberFraction;
     if (m_fiberFraction->fiberFractions.empty()) {
-        m_fiberFraction->zero();
+        m_fiberFraction->clear();
     }
     m_fiberFractionTotalCountFloat = m_fiberFraction->totalCount;
 }
@@ -171,7 +171,7 @@ FiberOrientationTrajectory::finishAveraging()
         }
     }
     else {
-        m_fiberFraction->zero();
+        m_fiberFraction->clear();
     }
 }
 

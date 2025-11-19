@@ -1354,10 +1354,10 @@ GiftiDataArray::byteSwapData(const GiftiEndianEnum::Enum newEndian)
    endian = newEndian;
    switch (dataType) {
       case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
-         ByteSwapping::swapBytes(dataPointerFloat, getTotalNumberOfElements());
+         ByteSwapping::swapArray(dataPointerFloat, getTotalNumberOfElements());
          break;
       case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
-         ByteSwapping::swapBytes(dataPointerInt, getTotalNumberOfElements());
+         ByteSwapping::swapArray(dataPointerInt, getTotalNumberOfElements());
          break;
       case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
          // should not need to swap ??
