@@ -200,6 +200,19 @@ CaretDataFileSelectionComboBox::getSelectedFile() const
 }
 
 /**
+ * Set the given file as the selected file
+ * @param caretDataFile
+ */
+void
+CaretDataFileSelectionComboBox::setSelectedFile(CaretDataFile* caretDataFile)
+{
+    if (m_selectionModel != NULL) {
+        m_selectionModel->setSelectedFile(caretDataFile);
+        updateComboBox(m_selectionModel);
+    }
+}
+
+/**
  * Set the text displayed if no files are available
  * @param noFilesText
  *    The text

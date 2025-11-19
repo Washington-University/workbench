@@ -270,6 +270,7 @@ ELSE()
         VolumeFileCreateDialog.h
 	VolumeFileResampleDialog.h
 	VolumeMprSettingsWidget.h
+	VolumeMontageSetupDialog.h
 	VolumeObliqueOptionsWidget.h
 	VolumePropertiesEditorDialog.h
         VolumeSurfaceOutlineColorOrTabViewController.h
@@ -622,6 +623,7 @@ ViewModeEnum.h
 VolumeFileCreateDialog.h
 VolumeFileResampleDialog.h
 VolumeMprSettingsWidget.h
+VolumeMontageSetupDialog.h
 VolumeObliqueOptionsWidget.h
 VolumePropertiesEditorDialog.h
 VolumeSurfaceOutlineColorOrTabViewController.h
@@ -981,6 +983,7 @@ ViewModeEnum.cxx
 VolumeFileCreateDialog.cxx
 VolumeFileResampleDialog.cxx
 VolumeMprSettingsWidget.cxx
+VolumeMontageSetupDialog.cxx
 VolumeObliqueOptionsWidget.cxx
 VolumePropertiesEditorDialog.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx

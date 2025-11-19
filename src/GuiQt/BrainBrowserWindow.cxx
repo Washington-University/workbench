@@ -126,6 +126,7 @@
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
 #include "TileTabsGridConfigurationModifier.h"
+#include "VolumeMontageSetupDialog.h"
 #include "WindowTabAspectRatios.h"
 #include "WorkbenchInstallationAssistantDialog.h"
 #include "WuQDataEntryDialog.h"
@@ -1566,6 +1567,17 @@ void
 BrainBrowserWindow::processShowVolumePropertiesDialog()
 {
     GuiManager::get()->processShowVolumePropertiesEditorDialog(this);
+}
+
+/**
+ * Show the volume properties editor dialog.
+ */
+void
+BrainBrowserWindow::processShowVolumeMontageSetupDialog()
+{
+    VolumeMontageSetupDialog dialog(getBrowserTabContent(),
+                                    this);
+    dialog.exec();
 }
 
 /**
@@ -3040,13 +3052,34 @@ BrainBrowserWindow::processSurfaceMenuInformation()
 QMenu* 
 BrainBrowserWindow::createMenuVolume()
 {
-    QMenu* menu = new QMenu("Volume", this);
+    m_volumeMenu = new QMenu("Volume", this);
+    QObject::connect(m_volumeMenu, &QMenu::aboutToShow,
+                     this, &BrainBrowserWindow::volumeMenuAboutToShow);
     
-    menu->addAction("Properties...",
-                    this,
-                    SLOT(processShowVolumePropertiesDialog()));
-    
-    return menu;
+    m_volumeMenu->addAction("Properties...",
+                            this,
+                            SLOT(processShowVolumePropertiesDialog()));
+
+    m_volumeShowMontageSetupDialogAction = m_volumeMenu->addAction("Setup Volume Montage...",
+                                                                   this,
+                                                                   &BrainBrowserWindow::processShowVolumeMontageSetupDialog);
+    m_volumeShowMontageSetupDialogAction->setMenuRole(QAction::NoRole); 
+    return m_volumeMenu;
+}
+
+/**
+ * Called when volume menu is about to show
+ */
+void
+BrainBrowserWindow::volumeMenuAboutToShow()
+{
+    m_volumeShowMontageSetupDialogAction->setEnabled(false);
+    BrowserTabContent* btc(getBrowserTabContent());
+    if (btc != NULL) {
+        if (btc->isVolumeSlicesDisplayed()) {
+            m_volumeShowMontageSetupDialogAction->setEnabled(true);
+        }
+    }
 }
 
 /**

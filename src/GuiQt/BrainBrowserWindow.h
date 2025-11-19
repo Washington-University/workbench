@@ -251,8 +251,11 @@ namespace caret {
         void processHelpWorkbenchInstallationAssistant();
         
         void processShowSurfacePropertiesDialog();
-        void processShowVolumePropertiesDialog();
         
+        void volumeMenuAboutToShow();
+        void processShowVolumePropertiesDialog();
+        void processShowVolumeMontageSetupDialog();
+
         void processDevelopGraphicsTiming();
         void processDevelopGraphicsTimingDuration();
         void processDevelopOpenMPTesting();
@@ -498,6 +501,9 @@ namespace caret {
         QMenu* m_editMenu;
         QAction* m_editMenuRedoAction;
         QAction* m_editMenuUndoAction;
+        
+        QMenu* m_volumeMenu;
+        QAction* m_volumeShowMontageSetupDialogAction;
         
         BrainBrowserWindowOrientedToolBox* m_overlayHorizontalToolBox;
         BrainBrowserWindowOrientedToolBox* m_overlayVerticalToolBox;

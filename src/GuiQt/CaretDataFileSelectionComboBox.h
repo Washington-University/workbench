@@ -55,6 +55,8 @@ namespace caret {
         
         virtual QWidget* getWidget();
         
+        void setSelectedFile(CaretDataFile* caretDataFile);
+        
         void setNoFilesText(const AString& noFilesText);
         
         // ADD_NEW_METHODS_HERE
