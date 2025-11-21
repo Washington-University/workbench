@@ -845,6 +845,8 @@ GiftiTypeFile::isMappedWithPalette() const
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
@@ -928,6 +930,8 @@ GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormaliz
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
@@ -1267,6 +1271,8 @@ GiftiTypeFile::getBrainordinateMappingMatchImplementation(const CaretMappableDat
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
@@ -1391,6 +1397,8 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;

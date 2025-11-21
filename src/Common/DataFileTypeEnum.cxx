@@ -217,6 +217,13 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "dscalar.nii"));
     
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_SPARSE,
+                                        "CONNECTIVITY_DENSE_SPARSE",
+                                        "CIFTI - Dense Sparse",
+                                        "CONNECTIVITY SPARSE",
+                                        false,
+                                        "dconn.wbsparse"));
+    
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_TIME_SERIES,
                                         "CONNECTIVITY_DENSE_TIME_SERIES", 
                                         "CIFTI - Dense Data Series",
@@ -858,6 +865,9 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+                CaretAssertToDoWarning();  /* Not sure yet */
+                break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
@@ -1187,6 +1197,8 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 break;
@@ -1574,6 +1586,8 @@ DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             break;

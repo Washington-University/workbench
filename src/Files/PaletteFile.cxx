@@ -1841,6 +1841,8 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             checkShapeFile = true;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:

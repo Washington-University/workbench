@@ -154,6 +154,9 @@ namespace
                 useData = metricFile;
                 break;
             }
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+                CaretAssertToDoFatal();
+                break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             {
@@ -255,6 +258,9 @@ namespace
                 statsData = metricFile->getValuePointerForColumn(mapIndex);
                 break;
             }
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+                CaretAssertToDoFatal();
+                break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             {

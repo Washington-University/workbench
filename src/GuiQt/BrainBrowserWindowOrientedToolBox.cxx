@@ -877,6 +877,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+                    haveConnFiles = true;
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:

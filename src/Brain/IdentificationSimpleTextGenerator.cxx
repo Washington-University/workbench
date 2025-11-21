@@ -436,6 +436,8 @@ IdentificationSimpleTextGenerator::generateVolumeIdentificationText(Identificati
                             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                                 limitMapIndicesFlag = true;
                                 break;
+                            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+                                break;
                             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                                 limitMapIndicesFlag = true;
                                 break;
@@ -607,6 +609,8 @@ IdentificationSimpleTextGenerator::generateSurfaceIdentificationText(Identificat
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                     limitMapIndicesFlag = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                     limitMapIndicesFlag = true;

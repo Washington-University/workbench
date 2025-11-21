@@ -67,6 +67,7 @@ namespace caret {
     class CiftiConnectivityMatrixParcelFile;
     class CiftiConnectivityMatrixParcelDenseFile;
     class CiftiConnectivityMatrixParcelDynamicFile;
+    class CiftiDenseSparseFile;
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
     class CiftiFiberTrajectoryMapFile;
@@ -388,6 +389,14 @@ namespace caret {
         const CiftiFiberTrajectoryMapFile* getConnectivityFiberTrajectoryMapFile(int32_t indx) const;
         
         void getConnectivityFiberTrajectoryMapFiles(std::vector<CiftiFiberTrajectoryMapFile*>& ciftiFiberTrajectoryMapFilesOut) const;
+        
+        int32_t getNumberOfDenseSparseFiles() const;
+        
+        CiftiDenseSparseFile* getDenseSparseFile(const int32_t index);
+        
+        const CiftiDenseSparseFile* getDenseSparseFile(const int32_t index) const;
+        
+        std::vector<CiftiDenseSparseFile*>& getAllDenseSparseFiles();
         
         int32_t getNumberOfConnectivityMatrixParcelFiles() const;
         
@@ -828,6 +837,10 @@ namespace caret {
                                                                       CaretDataFile* caretDataFile,
                                                                       const AString& filename);
         
+        CiftiDenseSparseFile* addReadOrReloadDenseSparseFile(const FileModeAddReadReload fileMode,
+                                                             CaretDataFile* caretDataFile,
+                                                             const AString& filename);
+        
         CiftiParcelLabelFile* addReadOrReloadConnectivityParcelLabelFile(const FileModeAddReadReload fileMode,
                                                                 CaretDataFile* caretDataFile,
                                                                 const AString& filename);
@@ -985,6 +998,8 @@ namespace caret {
         std::vector<CiftiConnectivityMatrixParcelDenseFile*> m_connectivityMatrixParcelDenseFiles;
         
         std::vector<CiftiBrainordinateDataSeriesFile*> m_connectivityDataSeriesFiles;
+        
+        std::vector<CiftiDenseSparseFile*> m_ciftiDenseSparseFiles;
         
         std::vector<CaretDataFile*> m_nonModifiedFilesForRestoringScene;
         

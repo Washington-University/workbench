@@ -178,6 +178,9 @@ VolumeMappableInterface()
             m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+            /* Not a CIFTI file that uses CiftiFile for reading/writing */
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
@@ -801,6 +804,8 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
             expectedAlongRowMapType = CiftiMappingType::SCALARS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
@@ -2392,6 +2397,8 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
@@ -6021,6 +6028,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             useSeriesData = true;
            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+            CaretAssert(0);
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             useSeriesData = true;
             break;

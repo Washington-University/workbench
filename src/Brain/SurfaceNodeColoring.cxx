@@ -413,6 +413,9 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                  numNodes,
                                                                  overlayRGBV);
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+                    CaretAssertToDoWarning();
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                     isColoringValid = this->assignCiftiDataSeriesColoring(brainStructure,
                                                                       dynamic_cast<CiftiBrainordinateDataSeriesFile*>(selectedMapFile),

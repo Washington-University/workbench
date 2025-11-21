@@ -160,6 +160,9 @@ CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                 isMappableFile = true;
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+                isMappableFile = true;
+                break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 isMappableFile = true;
                 break;

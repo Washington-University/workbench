@@ -51,6 +51,8 @@ public:
         CONNECTIVITY_DENSE_PARCEL,
         /** Connectivity - Dense Scalar */
         CONNECTIVITY_DENSE_SCALAR,
+        /** Connectivity - Dense Sparse */
+        CONNECTIVITY_DENSE_SPARSE,
         /** Connectivity - Dense Time Series */
         CONNECTIVITY_DENSE_TIME_SERIES,
         /** Connectivity - Fiber Orientations TEMPORARY */

@@ -56,6 +56,7 @@
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "CiftiConnectivityMatrixDenseParcelFile.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
+#include "CiftiDenseSparseFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiFiberTrajectoryMapFile.h"
@@ -943,6 +944,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;
@@ -3047,6 +3050,86 @@ Brain::addReadOrReloadConnectivityDenseScalarFile(const FileModeAddReadReload fi
 }
 
 /**
+ * Read a  dense sparse file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+CiftiDenseSparseFile*
+Brain::addReadOrReloadDenseSparseFile(const FileModeAddReadReload fileMode,
+                                      CaretDataFile* caretDataFile,
+                                      const AString& filename)
+{
+    CiftiDenseSparseFile* cdsf = NULL;
+    if (caretDataFile != NULL) {
+        cdsf = dynamic_cast<CiftiDenseSparseFile*>(caretDataFile);
+        CaretAssert(cdsf);
+    }
+    else {
+        cdsf = new CiftiDenseSparseFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                cdsf->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+            
+            CaretAssertToDoFatal();
+            //validateCiftiMappableDataFile(cdsf);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete cdsf;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_ciftiDenseSparseFiles,
+                                      cdsf);
+        m_ciftiDenseSparseFiles.push_back(cdsf);
+    }
+    
+    return cdsf;
+}
+
+/**
  * Read a connectivity parcel data series file.
  *
  * @param fileMode
@@ -5063,6 +5146,48 @@ Brain::getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityM
 }
 
 /**
+ * @return Number of dense sparse files
+ */
+int32_t
+Brain::getNumberOfDenseSparseFiles() const
+{
+    return m_ciftiDenseSparseFiles.size();
+}
+
+/**
+ * @return Dense sparse file at the given index
+ * @param index
+ *    Index of file
+ */
+CiftiDenseSparseFile*
+Brain::getDenseSparseFile(const int32_t index)
+{
+    CaretAssertVectorIndex(m_ciftiDenseSparseFiles, index);
+    return m_ciftiDenseSparseFiles[index];
+}
+
+/**
+ * @return Dense sparse file at the given index (const)
+ * @param index
+ *    Index of file
+ */
+const CiftiDenseSparseFile*
+Brain::getDenseSparseFile(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_ciftiDenseSparseFiles, index);
+    return m_ciftiDenseSparseFiles[index];
+}
+
+/**
+ * @return All dense sparse files
+ */
+std::vector<CiftiDenseSparseFile*>&
+Brain::getAllDenseSparseFiles()
+{
+    return m_ciftiDenseSparseFiles;
+}
+
+/**
  * Add a data file to the brain.
  *
  * This will add the file to its corresponding data file type and add the
@@ -5137,6 +5262,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
             CiftiBrainordinateScalarFile* file = dynamic_cast<CiftiBrainordinateScalarFile*>(caretDataFile);
             CaretAssert(file);
             m_connectivityDenseScalarFiles.push_back(file);
+        }
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+        {
+            CiftiDenseSparseFile* file(dynamic_cast<CiftiDenseSparseFile*>(caretDataFile));
+            CaretAssert(file);
+            m_ciftiDenseSparseFiles.push_back(file);
         }
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
@@ -6371,6 +6503,8 @@ Brain::getReloadableDataFiles() const
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+                break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
@@ -6678,6 +6812,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead  = addReadOrReloadConnectivityDenseScalarFile(fileMode,
                                                                     caretDataFile,
                                                                         dataFileName);
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+                caretDataFileRead = addReadOrReloadDenseSparseFile(fileMode,
+                                                                   caretDataFile,
+                                                                   dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 caretDataFileRead  = addReadOrReloadConnectivityDataSeriesFile(fileMode,
@@ -8606,6 +8745,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
@@ -8727,6 +8868,8 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;

@@ -86,6 +86,7 @@ CiftiConnectivityMatrixDenseParcelFile.h
 CiftiConnectivityMatrixParcelDynamicFile.h
 CiftiConnectivityMatrixParcelFile.h
 CiftiConnectivityMatrixParcelDenseFile.h
+CiftiDenseSparseFile.h
 CiftiFiberOrientationFile.h
 CiftiFiberTrajectoryFile.h
 CiftiFiberTrajectoryMapFile.h
@@ -284,6 +285,7 @@ CiftiConnectivityMatrixDenseParcelFile.cxx
 CiftiConnectivityMatrixParcelFile.cxx
 CiftiConnectivityMatrixParcelDynamicFile.cxx
 CiftiConnectivityMatrixParcelDenseFile.cxx
+CiftiDenseSparseFile.cxx
 CiftiFiberOrientationFile.cxx
 CiftiFiberTrajectoryFile.cxx
 CiftiFiberTrajectoryMapFile.cxx

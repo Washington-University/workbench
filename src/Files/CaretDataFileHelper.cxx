@@ -36,6 +36,7 @@
 #include "CiftiConnectivityMatrixDenseParcelFile.h"
 #include "CiftiConnectivityMatrixParcelDenseFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
+#include "CiftiDenseSparseFile.h"
 #include "CiftiFile.h"
 #include "CiftiParcelLabelFile.h"
 #include "CiftiParcelScalarFile.h"
@@ -334,6 +335,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             caretDataFile = new CiftiBrainordinateScalarFile();
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+            caretDataFile = new CiftiDenseSparseFile();
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             caretDataFile = new CiftiBrainordinateDataSeriesFile();
