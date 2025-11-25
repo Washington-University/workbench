@@ -984,7 +984,7 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
                         QVector3D eulerAngles(q.toEulerAngles());
                         rotationAngles.set(eulerAngles[0],
                                            eulerAngles[1],
-                                           eulerAngles[2]);
+                                           -eulerAngles[2]); /* look down Z-axis (positive to negative) */
                     }
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
