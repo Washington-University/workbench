@@ -49,6 +49,7 @@ using namespace caret;
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CiftiDenseSparseFile.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
@@ -1043,6 +1044,7 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
         CiftiFiberTrajectoryFile* ciftiTrajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(dataFile);
         CiftiFiberTrajectoryMapFile* ciftiTrajMapFile = dynamic_cast<CiftiFiberTrajectoryMapFile*>(dataFile);
         CiftiScalarDataSeriesFile* ciftiSdsFile = dynamic_cast<CiftiScalarDataSeriesFile*>(dataFile);
+        CiftiDenseSparseFile* ciftiDenseSparseFile(dynamic_cast<CiftiDenseSparseFile*>(dataFile));
         
         const int32_t selectedCiftiRowIndex = m_ciftiRowFileIndexSpinBox->value() - m_ciftiRowFileIndexSpinBox->minimum();
         
@@ -1108,6 +1110,16 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
                                                                    voxelIJK,
                                                                    voxelXYZ,
                                                                    voxelValid);
+                }
+                else if (ciftiDenseSparseFile != NULL) {
+                    ciftiDenseSparseFile->getBrainordinateFromRowIndex(selectedCiftiRowIndex,
+                                                                       surfaceStructure,
+                                                                       surfaceNodeIndex,
+                                                                       surfaceNumberOfNodes,
+                                                                       surfaceNodeValid,
+                                                                       voxelIJK,
+                                                                       voxelXYZ,
+                                                                       voxelValid);
                 }
                 else {
                     errorMessageOut = "Neither CIFTI Mappable nor CIFTI Trajectory file.  Has new file type been added?";

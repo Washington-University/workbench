@@ -90,6 +90,7 @@ CiftiDenseSparseFile.h
 CiftiFiberOrientationFile.h
 CiftiFiberTrajectoryFile.h
 CiftiFiberTrajectoryMapFile.h
+CiftiFileDynamicLoadingInterface.h
 CiftiMappableDataFile.h
 CiftiMappableConnectivityMatrixDataFile.h
 CiftiParcelColoringModeEnum.h

@@ -25,6 +25,7 @@
 
 #include "BrainConstants.h"
 #include "ChartMatrixLoadingDimensionEnum.h"
+#include "CiftiFileDynamicLoadingInterface.h"
 #include "CiftiMappableDataFile.h"
 #include "VoxelIJK.h"
 
@@ -34,7 +35,7 @@ namespace caret {
     class SceneClassAssistant;
     
     class CiftiMappableConnectivityMatrixDataFile :
-    public CiftiMappableDataFile
+    public CiftiMappableDataFile, public CiftiFileDynamicLoadingInterface
     {
     protected:
         CiftiMappableConnectivityMatrixDataFile(const DataFileTypeEnum::Enum dataFileType);
@@ -42,35 +43,35 @@ namespace caret {
     public:
         virtual ~CiftiMappableConnectivityMatrixDataFile();
         
-        bool isMapDataLoadingEnabled(const int32_t mapIndex) const;
+        virtual bool isMapDataLoadingEnabled(const int32_t mapIndex) const override;
         
-        void setMapDataLoadingEnabled(const int32_t mapIndex,
-                                      const bool enabled);
+        virtual void setMapDataLoadingEnabled(const int32_t mapIndex,
+                                              const bool enabled) override;
         
         virtual void loadMapDataForSurfaceNode(const int32_t mapIndex,
                                                   const int32_t surfaceNumberOfNodes,
                                                   const StructureEnum::Enum structure,
                                                   const int32_t nodeIndex,
                                                   int64_t& rowIndexOut,
-                                                  int64_t& columnIndexOut);
+                                                  int64_t& columnIndexOut) override;
         
         virtual void loadMapAverageDataForSurfaceNodes(const int32_t mapIndex,
                                                        const int32_t surfaceNumberOfNodes,
                                                        const StructureEnum::Enum structure,
-                                                       const std::vector<int32_t>& nodeIndices);
+                                                       const std::vector<int32_t>& nodeIndices) override;
         
         virtual void loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                      const float xyz[3],
                                                      int64_t& rowIndexOut,
-                                                     int64_t& columnIndexOut);
+                                                     int64_t& columnIndexOut) override;
 
         virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
                                                        const int64_t volumeDimensionIJK[3],
-                                                       const std::vector<VoxelIJK>& voxelIndices);
+                                                       const std::vector<VoxelIJK>& voxelIndices) override;
         
-        void loadDataForRowIndex(const int64_t rowIndex);
+        void loadDataForRowIndex(const int64_t rowIndex) override;
         
-        void loadDataForColumnIndex(const int64_t rowIndex);
+        void loadDataForColumnIndex(const int64_t rowIndex) override;
                 
         virtual void clear();
         

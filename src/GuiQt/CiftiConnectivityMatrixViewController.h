@@ -38,6 +38,7 @@ namespace caret {
 
     class CiftiConnectivityMatrixDenseDynamicFile;
     class CiftiConnectivityMatrixParcelDynamicFile;
+    class CiftiDenseSparseFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiFiberTrajectoryFile;
     class CiftiFiberTrajectoryMapFile;
@@ -83,6 +84,7 @@ namespace caret {
         void getFileAtIndex(const int32_t indx,
                             CiftiMappableConnectivityMatrixDataFile* &ciftiMatrixFileOut,
                             CiftiConnectivityMatrixDenseDynamicFile* &ciftiDenseDynConnFileOut,
+                            CiftiDenseSparseFile* &ciftiDenseSparseFile,
                             CiftiConnectivityMatrixParcelDynamicFile* &ciftiParcelDynConnFileOut,
                             CiftiFiberTrajectoryFile* &ciftiTrajFileOut,
                             CiftiFiberTrajectoryMapFile* &ciftiTrajMapFileOut,

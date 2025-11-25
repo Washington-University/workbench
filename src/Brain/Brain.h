@@ -71,6 +71,7 @@ namespace caret {
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
     class CiftiFiberTrajectoryMapFile;
+    class CiftiFileDynamicLoadingInterface;
     class CiftiMappableDataFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiParcelLabelFile;
@@ -417,6 +418,8 @@ namespace caret {
         int32_t getNumberOfConnectivityTimeSeriesFiles() const;
         
         void getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityMatrixDataFile*>& allCiftiConnectivityMatrixFiles) const;
+        
+        std::vector<CiftiFileDynamicLoadingInterface*> getAllCiftiDynamicLoadingFiles() const;
         
         int32_t getNumberOfConnectivityDataSeriesFiles() const;
         
@@ -938,6 +941,8 @@ namespace caret {
         void updateFiberTrajectoryMatchingFiberOrientationFiles();
         
         void validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) const;
+        
+        void validateCiftiDenseSparseDataFile(const CiftiDenseSparseFile* ciftiDenseSparseFile) const;
         
         int32_t getDuplicateFileNameCounterForFileType(const DataFileTypeEnum::Enum dataFileType);
         

@@ -40,6 +40,7 @@
 #include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
+#include "CiftiDenseSparseFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
@@ -1150,12 +1151,15 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
         MetricFile* metricFile(NULL);
         MetricDynamicConnectivityFile* metricDynConnFile(NULL);
         CiftiMappableDataFile* cmdf = dynamic_cast<CiftiMappableDataFile*>(mapFile);
+        CiftiDenseSparseFile* cdsf(dynamic_cast<CiftiDenseSparseFile*>(mapFile));
         if (cmdf == NULL) {
-            labelFile = dynamic_cast<LabelFile*>(mapFile);
-            if (labelFile == NULL) {
-                metricDynConnFile = dynamic_cast<MetricDynamicConnectivityFile*>(mapFile);
-                if (metricDynConnFile == NULL) {
-                    metricFile = dynamic_cast<MetricFile*>(mapFile);
+            if (cdsf == NULL) {
+                labelFile = dynamic_cast<LabelFile*>(mapFile);
+                if (labelFile == NULL) {
+                    metricDynConnFile = dynamic_cast<MetricDynamicConnectivityFile*>(mapFile);
+                    if (metricDynConnFile == NULL) {
+                        metricFile = dynamic_cast<MetricFile*>(mapFile);
+                    }
                 }
             }
         }
@@ -1245,6 +1249,91 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 if (cmdf->isMappedWithPalette()) {
                     scalarHtmlTableBuilder.addRow(m_noDataText,
                                                   cmdf->getFileNameNoPath());
+                }
+            }
+        }
+        
+        if (cdsf != NULL) {
+            CaretAssert(cmdf == NULL);
+            AString boldText = (DataFileTypeEnum::toOverlayTypeName(cdsf->getDataFileType())
+                                + " "
+                                + cdsf->getFileNameNoPath());
+            
+            /*
+             * Does file have both label and scalar data
+             */
+            const bool parcelDataFlag(isParcelAndScalarTypeFile(cdsf->getDataFileType()));
+            AString textValue;
+            
+            const AString separator("<br>");
+            const bool valid = cdsf->getSurfaceNodeIdentificationForMaps(mapIndices,
+                                                                         surface->getStructure(),
+                                                                         nodeNumber,
+                                                                         surface->getNumberOfNodes(),
+                                                                         separator,
+                                                                         s_dataValueDigitsRightOfDecimal,
+                                                                         textValue);
+            if (valid) {
+                AString labelText;
+                if (cdsf->isMappedWithLabelTable()) {
+                    labelText = textValue;
+                }
+                AString scalarText;
+                if (cdsf->isMappedWithPalette()) {
+                    scalarText = textValue;
+                }
+                if (parcelDataFlag) {
+                    /*
+                     * Parcel data has parcel name, separator, scalar value 1, separator, scalar value 2, etc.
+                     * Display parcel name in label table, and scalar
+                     * value in the scalar table
+                     */
+                    QStringList parcelAndValue = textValue.split(separator);
+                    if (parcelAndValue.size() == static_cast<int>(mapIndices.size() + 1)) {
+                        labelText  = parcelAndValue.at(0);
+                        parcelAndValue.removeAt(0);
+                        scalarText = parcelAndValue.join(separator);
+                    }
+                }
+                
+                AString rowColumnIndex;
+                const int64_t rowIndex(cdsf->getRowIndexFromSurfaceVertex(surface->getStructure(),
+                                                                          surface->getNumberOfNodes(),
+                                                                          nodeNumber));
+                const int32_t columnIndex(-1);
+                if (rowIndex >= 0) {
+                    if (rowIndex >= 0) {
+                        rowColumnIndex = ("Row "
+                                          + AString::number(rowIndex
+                                                            + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+                    }
+                    if (columnIndex >= 0) {
+                        if ( ! rowColumnIndex.isEmpty()) {
+                            rowColumnIndex.append("<br>");
+                        }
+                        rowColumnIndex.append("Column "
+                                              + AString::number(columnIndex
+                                                                + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+                    }
+                }
+                if ( ! labelText.isEmpty()) {
+                    labelHtmlTableBuilder.addRow(labelText,
+                                                 cdsf->getFileNameNoPath());
+                }
+                if ( ! scalarText.isEmpty()) {
+                    scalarHtmlTableBuilder.addRow(scalarText,
+                                                  cdsf->getFileNameNoPath(),
+                                                  rowColumnIndex);
+                }
+            }
+            else {
+                if (cdsf->isMappedWithLabelTable()) {
+                    labelHtmlTableBuilder.addRow(m_noDataText,
+                                                 cdsf->getFileNameNoPath());
+                }
+                if (cdsf->isMappedWithPalette()) {
+                    scalarHtmlTableBuilder.addRow(m_noDataText,
+                                                  cdsf->getFileNameNoPath());
                 }
             }
         }

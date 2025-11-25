@@ -26,6 +26,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
+#include "CiftiFileDynamicLoadingInterface.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventGetDisplayedDataFiles.h"
@@ -76,7 +77,7 @@ CiftiConnectivityMatrixDataFileManager::~CiftiConnectivityMatrixDataFileManager(
  */
 void
 CiftiConnectivityMatrixDataFileManager::getDisplayedConnectivityMatrixFiles(Brain* brain,
-                                   std::vector<CiftiMappableConnectivityMatrixDataFile*>& ciftiMatrixFilesOut) const
+                                   std::vector<CiftiFileDynamicLoadingInterface*>& ciftiMatrixFilesOut) const
 {
     ciftiMatrixFilesOut.clear();
     
@@ -91,12 +92,11 @@ CiftiConnectivityMatrixDataFileManager::getDisplayedConnectivityMatrixFiles(Brai
         /*
          * All cifti matrix files, even if not displayed?
          */
-        brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFilesOut);
+        ciftiMatrixFilesOut = brain->getAllCiftiDynamicLoadingFiles();
         return;
     }
     
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    std::vector<CiftiFileDynamicLoadingInterface*> ciftiMatrixFiles(brain->getAllCiftiDynamicLoadingFiles());
 
     
     /*
@@ -116,13 +116,12 @@ CiftiConnectivityMatrixDataFileManager::getDisplayedConnectivityMatrixFiles(Brai
     /*
      * Find CIFTI matrix files that are displayed in an overlay
      */
-    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
-         iter != ciftiMatrixFiles.end();
-         iter++) {
+    for (auto& file : ciftiMatrixFiles) {
+        CaretMappableDataFile* cmdf(dynamic_cast<CaretMappableDataFile*>(file));
         if (std::find(displayedDataFiles.begin(),
                       displayedDataFiles.end(),
-                      *iter) != displayedDataFiles.end()) {
-            ciftiMatrixFilesOut.push_back(*iter);
+                      cmdf) != displayedDataFiles.end()) {
+            ciftiMatrixFilesOut.push_back(file);
         }
     }
 }
@@ -217,31 +216,33 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
 
 bool
 CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromConnectivityMatrixFile(
-                                               CiftiMappableConnectivityMatrixDataFile* ciftiConnMatrixFile,
-                                               const int32_t rowIndex,
-                                               const int32_t columnIndex,
+                                                                                  CiftiFileDynamicLoadingInterface* ciftiConnMatrixFile,
+                                                                                  const int32_t rowIndex,
+                                                                                  const int32_t columnIndex,
                                                                                   std::vector<AString>& rowColumnInformationOut,
                                                                                   HtmlTableBuilder& htmlTableBuilder)
 {
     const int32_t mapIndex = 0;
     
+    CaretMappableDataFile* mapFile(dynamic_cast<CaretMappableDataFile*>(ciftiConnMatrixFile));
+    CaretAssert(mapFile);
     if (rowIndex >= 0) {
         ciftiConnMatrixFile->loadDataForRowIndex(rowIndex);
-        ciftiConnMatrixFile->updateScalarColoringForMap(mapIndex);
-        rowColumnInformationOut.push_back(ciftiConnMatrixFile->getFileNameNoPath()
+        mapFile->updateScalarColoringForMap(mapIndex);
+        rowColumnInformationOut.push_back(mapFile->getFileNameNoPath()
                                           + " row index="
                                           + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
         htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                 ciftiConnMatrixFile->getFileNameNoPath());
+                                mapFile->getFileNameNoPath());
     }
     else if (columnIndex >= 0) {
         ciftiConnMatrixFile->loadDataForColumnIndex(columnIndex);
-        ciftiConnMatrixFile->updateScalarColoringForMap(mapIndex);
-        rowColumnInformationOut.push_back(ciftiConnMatrixFile->getFileNameNoPath()
+        mapFile->updateScalarColoringForMap(mapIndex);
+        rowColumnInformationOut.push_back(mapFile->getFileNameNoPath()
                                           + " column index="
                                           + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
         htmlTableBuilder.addRow(("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                 ciftiConnMatrixFile->getFileNameNoPath());
+                                mapFile->getFileNameNoPath());
     }
     
     return true;
@@ -268,17 +269,20 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                                                std::vector<AString>& rowColumnInformationOut,
                                                                HtmlTableBuilder& htmlTableBuilder)
 {
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiFileDynamicLoadingInterface*> ciftiMatrixFiles;
     getDisplayedConnectivityMatrixFiles(brain,
                                         ciftiMatrixFiles);
     
     
     bool haveData = false;
-    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+    for (std::vector<CiftiFileDynamicLoadingInterface*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
          iter++) {
-        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
-        if (cmf->isEmpty() == false) {
+        CiftiFileDynamicLoadingInterface* cmf = *iter;
+        CaretMappableDataFile* mapFile(dynamic_cast<CaretMappableDataFile*>(cmf));
+        CaretAssert(mapFile);
+        if (mapFile->isEmpty() == false) {
+
             const int32_t mapIndex = 0;
             int64_t rowIndex = -1;
             int64_t columnIndex = -1;
@@ -288,32 +292,32 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                            nodeIndex,
                                            rowIndex,
                                            columnIndex);
-            cmf->updateScalarColoringForMap(mapIndex);
+            mapFile->updateScalarColoringForMap(mapIndex);
             haveData = true;
             
             if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node
                  */
-                rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
+                rowColumnInformationOut.push_back(mapFile->getFileNameNoPath()
                                                   + " vertex index="
                                                   + AString::number(nodeIndex)
                                                   + ", row index="
                                                   + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                         cmf->getFileNameNoPath());
+                                         mapFile->getFileNameNoPath());
             }
             else if (columnIndex >= 0) {
                 /*
                  * Get row/column info for node
                  */
-                rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
+                rowColumnInformationOut.push_back(mapFile->getFileNameNoPath()
                                                   + " vertex index="
                                                   + AString::number(nodeIndex)
                                                   + ", column index="
                                                   + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 htmlTableBuilder.addRow(("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                         cmf->getFileNameNoPath());
+                                         mapFile->getFileNameNoPath());
             }
         }
     }
@@ -341,22 +345,24 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(Brain* br
                                                                        const SurfaceFile* surfaceFile,
                                                                        const std::vector<int32_t>& nodeIndices)
 {
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiFileDynamicLoadingInterface*> ciftiMatrixFiles;
     getDisplayedConnectivityMatrixFiles(brain,
                                         ciftiMatrixFiles);
     
     bool haveData = false;
-    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+    for (std::vector<CiftiFileDynamicLoadingInterface*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
          iter++) {
-        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
-        if (cmf->isEmpty() == false) {
+        CiftiFileDynamicLoadingInterface* cmf = *iter;
+        CaretMappableDataFile* mapFile(dynamic_cast<CaretMappableDataFile*>(cmf));
+        CaretAssert(mapFile);
+        if (mapFile->isEmpty() == false) {
             const int32_t mapIndex = 0;
             cmf->loadMapAverageDataForSurfaceNodes(mapIndex,
                                                    surfaceFile->getNumberOfNodes(),
                                                    surfaceFile->getStructure(),
                                                    nodeIndices);
-            cmf->updateScalarColoringForMap(mapIndex);
+            mapFile->updateScalarColoringForMap(mapIndex);
             haveData = true;
         }
     }
@@ -385,16 +391,18 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                                      std::vector<AString>& rowColumnInformationOut,
                                                                      HtmlTableBuilder& htmlTableBuilder)
 {
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiFileDynamicLoadingInterface*> ciftiMatrixFiles;
     getDisplayedConnectivityMatrixFiles(brain,
                                         ciftiMatrixFiles);
     
     bool haveData = false;
-    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+    for (std::vector<CiftiFileDynamicLoadingInterface*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
          iter++) {
-        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
-        if (cmf->isEmpty() == false) {
+        CiftiFileDynamicLoadingInterface* cmf = *iter;
+        CaretMappableDataFile* mapFile(dynamic_cast<CaretMappableDataFile*>(cmf));
+        CaretAssert(mapFile);
+        if (mapFile->isEmpty() == false) {
             const int32_t mapIndex = 0;
             int64_t rowIndex;
             int64_t columnIndex;
@@ -402,32 +410,32 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                  xyz,
                                                  rowIndex,
                                                  columnIndex);
-            cmf->updateScalarColoringForMap(mapIndex);
+            mapFile->updateScalarColoringForMap(mapIndex);
             haveData = true;
             
             if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node
                  */
-                rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
+                rowColumnInformationOut.push_back(mapFile->getFileNameNoPath()
                                                   + " Voxel XYZ="
                                                   + AString::fromNumbers(xyz, 3, ",")
                                                   + ", row index="
                                                   + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                         cmf->getFileNameNoPath());
+                                         mapFile->getFileNameNoPath());
             }
             else if (columnIndex >= 0) {
                 /*
                  * Get row/column info for node
                  */
-                rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
+                rowColumnInformationOut.push_back(mapFile->getFileNameNoPath()
                                                   + " Voxel XYZ="
                                                   + AString::fromNumbers(xyz, 3, ",")
                                                   + ", column index="
                                                   + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 htmlTableBuilder.addRow(("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                         cmf->getFileNameNoPath());
+                                         mapFile->getFileNameNoPath());
             }
             else {
                 /*
@@ -483,16 +491,18 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(Brain* br
                                                                        const int64_t volumeDimensionIJK[3],
                                                                        const std::vector<VoxelIJK>& voxelIndices)
 {
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiFileDynamicLoadingInterface*> ciftiMatrixFiles;
     getDisplayedConnectivityMatrixFiles(brain,
                                         ciftiMatrixFiles);
     
     bool haveData = false;
-    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+    for (std::vector<CiftiFileDynamicLoadingInterface*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
          iter++) {
-        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
-        if (cmf->isEmpty() == false) {
+        CiftiFileDynamicLoadingInterface* cmf = *iter;
+        CaretMappableDataFile* mapFile(dynamic_cast<CaretMappableDataFile*>(cmf));
+        CaretAssert(mapFile);
+        if (mapFile->isEmpty() == false) {
             const int32_t mapIndex = 0;
             if (cmf->loadMapAverageDataForVoxelIndices(mapIndex,
                                                        volumeDimensionIJK,
@@ -500,7 +510,7 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(Brain* br
             }
             haveData = true;
             
-            cmf->updateScalarColoringForMap(mapIndex);
+            mapFile->updateScalarColoringForMap(mapIndex);
         }
     }
     
@@ -521,19 +531,20 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(Brain* br
 bool
 CiftiConnectivityMatrixDataFileManager::hasNetworkFiles(Brain* brain) const
 {
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiFileDynamicLoadingInterface*> ciftiMatrixFiles;
     getDisplayedConnectivityMatrixFiles(brain,
                                         ciftiMatrixFiles);
     
     
-    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+    for (std::vector<CiftiFileDynamicLoadingInterface*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
          iter++) {
-        CiftiMappableConnectivityMatrixDataFile* cmdf = *iter;
-        
-        if (cmdf->isEmpty() == false) {
-            if (DataFile::isFileOnNetwork(cmdf->getFileName())) {
-                const int32_t numMaps = cmdf->getNumberOfMaps();
+        CiftiFileDynamicLoadingInterface* cmdf = *iter;
+        CaretMappableDataFile* mapFile(dynamic_cast<CaretMappableDataFile*>(cmdf));
+        CaretAssert(mapFile);
+        if (mapFile->isEmpty() == false) {
+            if (DataFile::isFileOnNetwork(mapFile->getFileName())) {
+                const int32_t numMaps = mapFile->getNumberOfMaps();
                 for (int32_t i = 0; i < numMaps; i++) {
                     if (cmdf->isMapDataLoadingEnabled(i)) {
                         return true;

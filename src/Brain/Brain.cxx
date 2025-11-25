@@ -712,6 +712,11 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityMatrixDenseFiles.clear();
     
+    for (auto& csdf : m_ciftiDenseSparseFiles) {
+        delete csdf;
+    }
+    m_ciftiDenseSparseFiles.clear();
+    
     for (std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator clfi = m_connectivityMatrixDenseParcelFiles.begin();
          clfi != m_connectivityMatrixDenseParcelFiles.end();
          clfi++) {
@@ -2707,6 +2712,40 @@ Brain::validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) 
     }
 }
 
+/**
+ * Validate a CIFTI Sparse Dense Data File.
+ * A file is valid if its surface mappings match the loaded surfaces.
+ *
+ * @param ciftiDenseSparseFile
+ *    File examined for validity.
+ * @throws DataFileException
+ *    If the file is found to be incompatible with the loaded surfaces.
+ */
+void
+Brain::validateCiftiDenseSparseDataFile(const CiftiDenseSparseFile* ciftiDenseSparseFile) const
+{
+    const int32_t numBrainStructures = getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numBrainStructures; i++) {
+        const StructureEnum::Enum structure = getBrainStructure(i)->getStructure();
+        const int numNodes = getBrainStructure(i)->getNumberOfNodes();
+        
+        const int numConnNodes = ciftiDenseSparseFile->getMappingSurfaceNumberOfNodes(structure);
+        if (numConnNodes > 0) {
+            if (numNodes != numConnNodes) {
+                AString msg = ("The CIFTI file contains "
+                               + AString::number(numConnNodes)
+                               + " nodes for structure "
+                               + StructureEnum::toGuiName(structure)
+                               + " but the corresponding surface brain structure contains "
+                               + AString::number(numNodes)
+                               + " nodes.");
+                throw DataFileException(ciftiDenseSparseFile->getFileName(),
+                                        msg);
+            }
+        }
+    }
+}
+
 
 /**
  * Read a connectivity matrix dense file.
@@ -3106,8 +3145,7 @@ Brain::addReadOrReloadDenseSparseFile(const FileModeAddReadReload fileMode,
                                         CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
             
-            CaretAssertToDoFatal();
-            //validateCiftiMappableDataFile(cdsf);
+            validateCiftiDenseSparseDataFile(cdsf);
         }
         catch (const DataFileException& dfe) {
             if (caretDataFile != NULL) {
@@ -5143,6 +5181,26 @@ Brain::getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityM
             allCiftiConnectivityMatrixFiles.push_back(cmdf);
         }
     }
+}
+
+/**
+ * @return All CIFTI dynamic loading data files
+ */
+std::vector<CiftiFileDynamicLoadingInterface*>
+Brain::getAllCiftiDynamicLoadingFiles() const
+{
+    std::vector<CiftiFileDynamicLoadingInterface*> dynFilesOut;
+    
+    std::vector<CaretDataFile*> allFiles;
+    getAllDataFiles(allFiles);
+    for (auto& file : allFiles) {
+        CiftiFileDynamicLoadingInterface* dynFile(dynamic_cast<CiftiFileDynamicLoadingInterface*>(file));
+        if (dynFile != NULL) {
+            dynFilesOut.push_back(dynFile);
+        }
+    }
+    
+    return dynFilesOut;
 }
 
 /**
@@ -8517,6 +8575,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityMatrixDenseFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_ciftiDenseSparseFiles.begin(),
+                           m_ciftiDenseSparseFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_omeZarrImageFiles.begin(),
                            m_omeZarrImageFiles.end());
     
@@ -9016,6 +9078,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
                                                                                            caretDataFile);
     if (connDenseIterator != m_connectivityMatrixDenseFiles.end()) {
         m_connectivityMatrixDenseFiles.erase(connDenseIterator);
+        return true;
+    }
+    
+    auto ciftiSpareDenseIterator = std::find(m_ciftiDenseSparseFiles.begin(),
+                                             m_ciftiDenseSparseFiles.end(),
+                                             caretDataFile);
+    if (ciftiSpareDenseIterator != m_ciftiDenseSparseFiles.end()) {
+        m_ciftiDenseSparseFiles.erase(ciftiSpareDenseIterator);
         return true;
     }
     

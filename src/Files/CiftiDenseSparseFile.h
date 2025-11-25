@@ -26,94 +26,109 @@
 #include "BrainConstants.h"
 #include "CaretMappableDataFile.h"
 #include "CaretSparseFile.h"
+#include "CiftiFileDynamicLoadingInterface.h"
 #include "DisplayGroupEnum.h"
+#include "FunctionResult.h"
 #include "SceneClassAssistant.h"
 #include "VoxelIJK.h"
 
 namespace caret {
-
+    
     class ConnectivityDataLoaded;
     class CiftiBrainordinateScalarFile;
     
-    class CiftiDenseSparseFile : public CaretMappableDataFile {
+    class CiftiDenseSparseFile : public CaretMappableDataFile, public CiftiFileDynamicLoadingInterface {
         
     public:
         CiftiDenseSparseFile();
         
         virtual ~CiftiDenseSparseFile();
         
-        virtual void clear();
+        virtual void clear() override;
         
-        bool isEmpty() const;
+        bool isEmpty() const override;
         
-        virtual StructureEnum::Enum getStructure() const;
+        virtual StructureEnum::Enum getStructure() const override;
         
-        virtual void setStructure(const StructureEnum::Enum structure);
+        virtual void setStructure(const StructureEnum::Enum structure) override;
         
-        virtual GiftiMetaData* getFileMetaData();
+        virtual GiftiMetaData* getFileMetaData() override;
         
-        virtual const GiftiMetaData* getFileMetaData() const;
+        virtual const GiftiMetaData* getFileMetaData() const override;
         
-        virtual bool isSurfaceMappable() const;
+        virtual bool isSurfaceMappable() const override;
         
-        virtual bool isVolumeMappable() const;
+        virtual bool isVolumeMappable() const override;
         
-        virtual int32_t getNumberOfMaps() const;
+        virtual int32_t getNumberOfMaps() const override;
         
-        virtual bool hasMapAttributes() const;
+        virtual bool hasMapAttributes() const override;
         
-        virtual AString getMapName(const int32_t mapIndex) const;
+        virtual AString getMapName(const int32_t mapIndex) const override;
         
         virtual void setMapName(const int32_t mapIndex,
-                                const AString& mapName);
+                                const AString& mapName) override;
         
-        virtual const GiftiMetaData* getMapMetaData(const int32_t mapIndex) const;
+        virtual const GiftiMetaData* getMapMetaData(const int32_t mapIndex) const override;
         
-        virtual GiftiMetaData* getMapMetaData(const int32_t mapIndex);
+        virtual GiftiMetaData* getMapMetaData(const int32_t mapIndex) override;
         
-        virtual AString getMapUniqueID(const int32_t mapIndex) const;
+        virtual AString getMapUniqueID(const int32_t mapIndex) const override;
         
-        virtual bool isMappedWithPalette() const;
+        virtual bool isMappedWithPalette() const override;
         
-        virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex);
+        virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex) override;
         
-        virtual const Histogram* getMapHistogram(const int32_t mapIndex);
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex) override;
         
         virtual const Histogram* getMapHistogram(const int32_t mapIndex,
                                                  const float mostPositiveValueInclusive,
                                                  const float leastPositiveValueInclusive,
                                                  const float leastNegativeValueInclusive,
                                                  const float mostNegativeValueInclusive,
-                                                 const bool includeZeroValues);
+                                                 const bool includeZeroValues) override;
         
-        virtual int64_t getDataSizeUncompressedInBytes() const;
+        virtual int64_t getDataSizeUncompressedInBytes() const override;
         
-        virtual const FastStatistics* getFileFastStatistics();
+        virtual const FastStatistics* getFileFastStatistics() override;
         
-        virtual const Histogram* getFileHistogram();
+        virtual const Histogram* getFileHistogram() override;
         
         virtual const Histogram* getFileHistogram(const float mostPositiveValueInclusive,
                                                   const float leastPositiveValueInclusive,
                                                   const float leastNegativeValueInclusive,
                                                   const float mostNegativeValueInclusive,
-                                                  const bool includeZeroValues);
-        virtual PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex);
+                                                  const bool includeZeroValues) override;
         
-        virtual const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const;
+        virtual PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) override;
+        
+        virtual const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const override;
+        
+        virtual bool getMapSurfaceNodeColoring(const int32_t mapIndex,
+                                               const StructureEnum::Enum structure,
+                                               float* surfaceRGBAOut,
+                                               float* dataValuesOut,
+                                               const int32_t surfaceNumberOfNodes);
+        
+        void invalidateColoringInAllMaps();
         
         virtual bool isMappedWithLabelTable() const;
         
-        virtual GiftiLabelTable* getMapLabelTable(const int32_t mapIndex);
+        virtual GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) override;
         
-        virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
+        virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const override;
         
-        virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) const;
+        virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) const override;
+        
+        virtual bool isMapColoringValid(const int32_t mapIndex) const;
         
         virtual void updateScalarColoringForMap(const int32_t mapIndex) override;
         
-        virtual void readFile(const AString& filename);
+        virtual void readFile(const AString& filename) override;
         
-        virtual void writeFile(const AString& filename);
+        virtual void writeFile(const AString& filename) override;
+        
+        int32_t getMappingSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
         
         void getBrainordinateFromRowIndex(const int64_t rowIndex,
                                           StructureEnum::Enum& surfaceStructureOut,
@@ -124,62 +139,104 @@ namespace caret {
                                           float voxelXYZOut[3],
                                           bool& voxelValidOut) const;
         
-        int64_t loadDataForSurfaceNode(const StructureEnum::Enum structure,
-                                    const int32_t surfaceNumberOfNodes,
-                                    const int32_t nodeIndex);
+        virtual void loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
+                                               const int32_t surfaceNumberOfNodes,
+                                               const StructureEnum::Enum structure,
+                                               const int32_t nodeIndex,
+                                               int64_t& rowIndexOut,
+                                               int64_t& columnIndexOut) override;
         
-        void loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
-                                            const int32_t surfaceNumberOfNodes,
-                                            const std::vector<int32_t>& nodeIndices);
+        virtual void loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex*/,
+                                                      const int32_t surfaceNumberOfNodes,
+                                                      const StructureEnum::Enum structure,
+                                                      const std::vector<int32_t>& nodeIndices) override;
         
-        virtual int64_t loadMapDataForVoxelAtCoordinate(const float xyz[3]);
+        virtual void loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
+                                                     const float xyz[3],
+                                                     int64_t& rowIndexOut,
+                                                     int64_t& columnIndexOut) override;
         
-        virtual void loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
-                                                       const std::vector<VoxelIJK>& voxelIndices);
+        virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
+                                                       const int64_t volumeDimensionIJK[3],
+                                                       const std::vector<VoxelIJK>& voxelIndices) override;
         
-        void loadDataForRowIndex(const int64_t rowIndex);
+        virtual void loadDataForRowIndex(const int64_t rowIndex) override;
         
-        bool isDataLoadingEnabled() const;
+        virtual void loadDataForColumnIndex(const int64_t columnIndex) override;
         
-        void setDataLoadingEnabled(const bool loadingEnabled);
-                
+        virtual bool isMapDataLoadingEnabled(const int32_t mapIndex) const override;
+        
+        virtual void setMapDataLoadingEnabled(const int32_t mapIndex,
+                                              const bool enabled) override;
+        
         void finishRestorationOfScene();
+        
+        int32_t getRowIndexFromSurfaceVertex(const StructureEnum::Enum surfaceStrucure,
+                                             const int32_t surfaceNumberOfNodes,
+                                             const int32_t nodeIndex) const;
+
+        virtual bool getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
+                                                         const StructureEnum::Enum structure,
+                                                         const int nodeIndex,
+                                                         const int32_t surfaceNumberOfNodes,
+                                                         const AString& dataValueSeparator,
+                                                         const int32_t digitsRightOfDecimal,
+                                                         AString& textOut) const override;
         
         bool supportsWriting() const;
         
-        CiftiBrainordinateScalarFile* newCiftiScalarFileFromLoadedRowData(const AString& destinationDirectory,
-                                                                          AString& errorMessageOut) const;
+//        CiftiBrainordinateScalarFile* newCiftiScalarFileFromLoadedRowData(const AString& destinationDirectory,
+//                                                                          AString& errorMessageOut) const;
         
         void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         bool hasCiftiXML() const;
         
         const CiftiXML getCiftiXML() const;
-
+        
+        bool isEnabledAsLayer() const;
+        
+        void setEnabledAsLayer(const bool enabled);
+        
         virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                         std::vector<float>& dataOut) const override;
-
+        
         virtual BrainordinateMappingMatch getBrainordinateMappingMatchImplementation(const CaretMappableDataFile* mapFile) const override;
         
         // ADD_NEW_METHODS_HERE
         
+        const std::vector<float>& getLoadedRowData() const;
+        
+        AString getLoadedRowFileDescription() const;
+        
+        AString getLoadedRowMapName() const;
+        
     private:
         CiftiDenseSparseFile(const CiftiDenseSparseFile&);
-
+        
         CiftiDenseSparseFile& operator=(const CiftiDenseSparseFile&);
         
     protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
-                                         SceneClass* sceneClass);
+                                         SceneClass* sceneClass) override;
         
         virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
-                                              const SceneClass* sceneClass);
+                                              const SceneClass* sceneClass) override;
         
-
+        
     private:
         bool loadRowsForAveraging(const std::vector<int64_t>& rowIndices);
         
+        FunctionResult loadDataForRowIndexPrivate(const int32_t rowIndex,
+                                                  std::vector<float>& dataOut) const;
+        
+        bool getThresholdData(const CaretMappableDataFile* threshMapFile,
+                              const int32_t threshMapIndex,
+                              std::vector<float>& thresholdDataOut) const;
+        
         void clearPrivate();
+        
+        void clearLoadedData();
         
         void writeLoadedDataToFile(const AString& filename) const;
         
@@ -208,14 +265,26 @@ namespace caret {
         
         std::unique_ptr<FastStatistics> m_mapFastStatistics;
         
+        std::vector<float> m_loadedRowData;
+        
+        std::vector<float> m_rgba;
+        
+        bool m_rgbaValidFlag = false;
+        
+        int32_t m_fileNumberOfRows = 0;
+        
+        int32_t m_fileNumberOfColumns = 0;
+        
+        bool m_enabledAsLayerFlag = true;
         
         // ADD_NEW_MEMBERS_HERE
-
+        
     };
     
 #ifdef __CIFTI_DENSE_SPARSE_FILE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __CIFTI_DENSE_SPARSE_FILE_DECLARE__
-
+    
 } // namespace
 #endif  //__CIFTI_DENSE_SPARSE_FILE__H_
+

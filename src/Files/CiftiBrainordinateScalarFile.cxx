@@ -29,6 +29,7 @@
 
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
+#include "CiftiDenseSparseFile.h"
 #include "CiftiFile.h"
 #include "CiftiXML.h"
 #include "DataFileException.h"
@@ -213,6 +214,122 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
     
     return NULL;
 }
+
+/**
+ * Create a Cifti Scalar File using the currently loaded row in a Cifti
+ * connectivity matrix file.
+ *
+ * @param ciftiDenseSparseFile
+ *    Cifti dense sparse file.
+ * @param destinationDirectory
+ *    Directory in which file is placed if the input matrix file is not
+ *    in a valid local (user's file system) directory.
+ * @param errorMessageOut
+ *    Will describe problem if there is an error.
+ * @return
+ *    Pointer to the newly created Cifti Scalar File.  If there is an error,
+ *    NULL will be returned and errorMessageOut will describe the problem.
+ */
+CiftiBrainordinateScalarFile*
+CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiSparseDenseFile(const CiftiDenseSparseFile* ciftiDenseSparseFile,
+                                                                       const AString& destinationDirectory,
+                                                                       AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    const std::vector<float>& loadedRowData = ciftiDenseSparseFile->getLoadedRowData();
+    if (loadedRowData.empty()) {
+        return NULL;
+    }
+    const AString loadedRowFileDescription(ciftiDenseSparseFile->getLoadedRowFileDescription());
+    const AString loadedRowMapName(ciftiDenseSparseFile->getLoadedRowMapName());
+    
+    CiftiBrainordinateScalarFile* scalarFile = NULL;
+    
+    try {
+        CiftiFile* ciftiFile = new CiftiFile();
+        
+        /*
+         * Copy XML from matrix file
+         * and update to be a scalar file.
+         */
+        const CiftiXML& ciftiMatrixXML = ciftiDenseSparseFile->getCiftiXML();
+        CiftiXML ciftiScalarXML = ciftiMatrixXML;
+        
+        CiftiBrainModelsMap brainModelsMap(ciftiMatrixXML.getBrainModelsMap(CiftiXML::ALONG_ROW));
+
+        CiftiScalarsMap scalarsMap;
+        scalarsMap.setLength(1);
+        scalarsMap.setMapName(0,
+                              loadedRowMapName);
+        ciftiScalarXML.setMap(CiftiXML::ALONG_ROW,
+                              scalarsMap);
+        ciftiScalarXML.setMap(CiftiXML::ALONG_COLUMN,
+                              brainModelsMap);
+        ciftiFile->setCiftiXML(ciftiScalarXML);
+        
+        /*
+         * Add data to the file
+         */
+        ciftiFile->setColumn(&loadedRowData[0],
+                             0);
+        
+        /*
+         * Create a scalar file
+         */
+        CiftiBrainordinateScalarFile* scalarFile = new CiftiBrainordinateScalarFile();
+        scalarFile->m_ciftiFile.grabNew(ciftiFile);
+        
+        
+        
+        /*
+         * May need to convert a remote path to a local path
+         */
+        FileInformation initialFileNameInfo(ciftiDenseSparseFile->getFileName());
+        const AString scalarFileName = initialFileNameInfo.getAsLocalAbsoluteFilePath(destinationDirectory,
+                                                                                      scalarFile->getDataFileType());
+        
+        /*
+         * Create name of scalar file with row/column information
+         */
+        FileInformation scalarFileInfo(scalarFileName);
+        AString thePath, theName, theExtension;
+        scalarFileInfo.getFileComponents(thePath,
+                                         theName,
+                                         theExtension);
+        theName.append("_" + loadedRowFileDescription);
+        const AString newFileName = FileInformation::assembleFileComponents(thePath,
+                                                                            theName,
+                                                                            theExtension);
+        scalarFile->setFileName(newFileName);
+        
+        scalarFile->initializeAfterReading(newFileName);
+        
+        /*
+         * Need to copy color palette since it may be the default
+         */
+        PaletteColorMapping* scalarPalette = scalarFile->getMapPaletteColorMapping(0);
+        CaretAssert(scalarPalette);
+        const PaletteColorMapping* palette = ciftiDenseSparseFile->getMapPaletteColorMapping(0);
+        CaretAssert(palette);
+        scalarPalette->copy(*palette,
+                            true);
+        
+        scalarFile->updateAfterFileDataChanges();
+        scalarFile->setModified();
+        
+        return scalarFile;
+    }
+    catch (const DataFileException& de) {
+        if (scalarFile != NULL) {
+            delete scalarFile;
+        }
+        errorMessageOut = de.whatString();
+    }
+    
+    return NULL;
+}
+
 
 /**
  * @return Is charting enabled for this file?

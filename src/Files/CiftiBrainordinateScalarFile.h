@@ -28,6 +28,7 @@
 
 namespace caret {
 
+    class CiftiDenseSparseFile;
     class CiftiMappableConnectivityMatrixDataFile;
     
     class CiftiBrainordinateScalarFile :
@@ -42,6 +43,10 @@ namespace caret {
         static CiftiBrainordinateScalarFile* newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile,
                                                                                              const AString& destinationDirectory,
                                                                                              AString& errorMessageOut);
+
+        static CiftiBrainordinateScalarFile* newInstanceFromRowInCiftiSparseDenseFile(const CiftiDenseSparseFile* ciftiDenseSparseFile,
+                                                                                      const AString& destinationDirectory,
+                                                                                      AString& errorMessageOut);
 
         virtual bool isLineSeriesChartingEnabled(const int32_t tabIndex) const;
         

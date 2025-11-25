@@ -32,6 +32,7 @@
 #include "CaretLogger.h"
 #include "CaretSparseFile.h"
 #include "CiftiMappableDataFile.h"
+#include "CiftiBrainModelsMap.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileContentInformation.h"
@@ -41,6 +42,7 @@
 #include "FastStatistics.h"
 #include "GiftiMetaData.h"
 #include "Histogram.h"
+#include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -111,6 +113,11 @@ CiftiDenseSparseFile::clearPrivate()
 {
     m_fileMetadata->clear();
     m_sparseFile.reset();
+    m_fileNumberOfRows = 0;
+    m_fileNumberOfColumns = 0;
+    m_loadedDataDescriptionForFileCopy.clear();
+    m_loadedDataDescriptionForMapName.clear();
+    m_rgbaValidFlag = false;
 }
 
 
@@ -125,9 +132,11 @@ CiftiDenseSparseFile::isEmpty() const
 
 /**
  * @return Is data loading enabled?
+ * @param mapIndex
+ *    Index of map
  */
 bool
-CiftiDenseSparseFile::isDataLoadingEnabled() const
+CiftiDenseSparseFile::isMapDataLoadingEnabled(const int32_t /*mapIndex*/) const
 {
     return m_dataLoadingEnabled;
 }
@@ -135,13 +144,16 @@ CiftiDenseSparseFile::isDataLoadingEnabled() const
 /**
  * Set data loading enabled.
  *
+ * @param mapIndex
+ *    Index of map
  * @param loadingEnabled
  *    New status of data loading.
  */
 void
-CiftiDenseSparseFile::setDataLoadingEnabled(const bool loadingEnabled)
+CiftiDenseSparseFile::setMapDataLoadingEnabled(const int32_t /*mapIndex*/,
+                                               const bool enabled)
 {
-    m_dataLoadingEnabled = loadingEnabled;
+    m_dataLoadingEnabled = enabled;
 }
 
 /**
@@ -213,6 +225,97 @@ CiftiDenseSparseFile::getNumberOfMaps() const
      * zero is interpreted as "nothing available".
      */
     return 1;
+}
+
+void
+CiftiDenseSparseFile::invalidateColoringInAllMaps()
+{
+    m_rgbaValidFlag = false;
+}
+
+/**
+ * Get the node coloring for the surface.
+ * @param mapIndex
+ *    Index of the map.
+ * @param structure
+ *    Surface structure nodes are colored.
+ * @param surfaceRGBAOut
+ *    Filled with RGBA coloring for the surface's nodes.
+ *    Contains numberOfNodes * 4 elements.
+ * @param dataValuesOut
+ *    Data values for the nodes (elements are valid when the alpha value in
+ *    the RGBA colors is valid (greater than zero).
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in the surface.
+ * @return
+ *    True if coloring is valid, else false.
+ */
+bool
+CiftiDenseSparseFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
+                                                 const StructureEnum::Enum structure,
+                                                 float* surfaceRGBAOut,
+                                                 float* dataValuesOut,
+                                                 const int32_t surfaceNumberOfNodes)
+{
+    const int32_t numCiftiNodes = getMappingSurfaceNumberOfNodes(structure);
+    
+    if (numCiftiNodes != surfaceNumberOfNodes) {
+        return false;
+    }
+    
+    /*
+     * Map data may be empty for connectivity matrix files with no rows loaded.
+     */
+    if (m_loadedRowData.empty()) {
+        return false;
+    }
+    
+    const CiftiXML& xml(m_sparseFile->getCiftiXML());
+    std::vector<CiftiBrainModelsMap::SurfaceMap> surfaceMap =
+    xml.getBrainModelsMap(CiftiXML::ALONG_ROW).getSurfaceMap(structure);
+    
+    const CiftiBrainModelsMap& brainModelsMap = xml.getBrainModelsMap(CiftiXML::ALONG_ROW);
+    
+    if ( ! m_rgbaValidFlag) {
+        updateScalarColoringForMap(mapIndex);
+    }
+    
+    bool validColorsFlag(false);
+    
+    const int64_t dataCount(m_loadedRowData.size());
+    
+    for (int32_t iNode = 0; iNode < surfaceNumberOfNodes; iNode++) {
+        const int64_t dataIndex(brainModelsMap.getIndexForNode(iNode,
+                                                               structure));
+        const int64_t iNode4(iNode * 4);
+        CaretAssertArrayIndex(surfaceRGBAOut, (surfaceNumberOfNodes * 4), iNode4);
+        
+        if (dataIndex >= 0) {
+            CaretAssert(dataIndex < dataCount);
+            
+            const int64_t data4 = dataIndex * 4;
+            CaretAssertArrayIndex(m_rgba, (dataCount * 4), dataIndex*4);
+            
+            surfaceRGBAOut[iNode4]   = m_rgba[data4];
+            surfaceRGBAOut[iNode4+1] = m_rgba[data4+1];
+            surfaceRGBAOut[iNode4+2] = m_rgba[data4+2];
+            surfaceRGBAOut[iNode4+3] = m_rgba[data4+3];
+            
+            dataValuesOut[iNode] = m_loadedRowData[dataIndex];
+            
+            validColorsFlag = true;
+        }
+        else {
+            surfaceRGBAOut[iNode4]   =  0.0;
+            surfaceRGBAOut[iNode4+1] =  0.0;
+            surfaceRGBAOut[iNode4+2] =  0.0;
+            surfaceRGBAOut[iNode4+3] = -1.0;
+            
+            dataValuesOut[iNode] = 0.0;
+        }
+    }
+
+    return validColorsFlag;
 }
 
 /**
@@ -333,6 +436,14 @@ CiftiDenseSparseFile::isMappedWithPalette() const
 const FastStatistics*
 CiftiDenseSparseFile::getMapFastStatistics(const int32_t /*mapIndex*/)
 {
+    if (isMappedWithPalette()) {
+        if ( ! m_mapFastStatistics) {
+            m_mapFastStatistics.reset(new FastStatistics());
+            m_mapFastStatistics->update(&m_loadedRowData[0],
+                                        m_loadedRowData.size());
+        }
+    }
+    
     return m_mapFastStatistics.get();
 }
 
@@ -347,8 +458,25 @@ CiftiDenseSparseFile::getMapFastStatistics(const int32_t /*mapIndex*/)
  *    not mapped using a palette).
  */
 const Histogram*
-CiftiDenseSparseFile::getMapHistogram(const int32_t /*mapIndex*/)
+CiftiDenseSparseFile::getMapHistogram(const int32_t mapIndex)
 {
+    if (isMappedWithPalette()) {
+        if ( ! m_mapHistogram) {
+            int32_t numberOfBuckets = 0;
+            switch (getPaletteNormalizationMode()) {
+                case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                    numberOfBuckets = getFileHistogramNumberOfBuckets();
+                    break;
+                case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                    numberOfBuckets = getMapPaletteColorMapping(mapIndex)->getHistogramNumberOfBuckets();
+                    break;
+            }
+            m_mapHistogram.reset(new Histogram(numberOfBuckets,
+                                               &m_loadedRowData[0],
+                                               m_loadedRowData.size()));
+        }
+    }
+    
     return m_mapHistogram.get();
 }
 
@@ -374,14 +502,37 @@ CiftiDenseSparseFile::getMapHistogram(const int32_t /*mapIndex*/)
  *    not mapped using a palette).
  */
 const Histogram*
-CiftiDenseSparseFile::getMapHistogram(const int32_t /*mapIndex*/,
+CiftiDenseSparseFile::getMapHistogram(const int32_t mapIndex,
                                        const float mostPositiveValueInclusive,
                                        const float leastPositiveValueInclusive,
                                        const float leastNegativeValueInclusive,
                                        const float mostNegativeValueInclusive,
                                        const bool includeZeroValues)
 {
-    return m_mapHistogramLimitedRange.get();
+    if (isMappedWithPalette()) {
+        if ( ! m_mapHistogram) {
+            int32_t numberOfBuckets = 0;
+            switch (getPaletteNormalizationMode()) {
+                case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                    numberOfBuckets = getFileHistogramNumberOfBuckets();
+                    break;
+                case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                    numberOfBuckets = getMapPaletteColorMapping(mapIndex)->getHistogramNumberOfBuckets();
+                    break;
+            }
+            m_mapHistogram.reset(new Histogram(numberOfBuckets));
+            m_mapHistogram->update(numberOfBuckets,
+                                   &m_loadedRowData[0],
+                                   m_loadedRowData.size(),
+                                   mostPositiveValueInclusive,
+                                   leastPositiveValueInclusive,
+                                   leastNegativeValueInclusive,
+                                   mostNegativeValueInclusive,
+                                   includeZeroValues);
+        }
+    }
+    
+    return m_mapHistogram.get();
 }
 
 /**
@@ -484,7 +635,7 @@ CiftiDenseSparseFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/)
  * @param mapIndex
  *    Index of the map.
  * @return
- *    Palette color mapping for the map (constant) (will be NULL for data
+ *    Palette color mapping for the map (will be NULL for data
  *    not mapped using a palette).
  */
 const PaletteColorMapping*
@@ -549,6 +700,83 @@ CiftiDenseSparseFile::getPaletteNormalizationModesSupported(std::vector<PaletteN
 }
 
 /**
+ * @return True if the map coloring for the given map is valid
+ */
+bool
+CiftiDenseSparseFile::isMapColoringValid(const int32_t mapIndex) const
+{
+    return m_rgbaValidFlag;
+}
+
+/**
+ * Get the thresholding data from the given thresholding file in a vector that
+ * has the same brainordinate mapping as this file.
+ *
+ * @param threshMapFile
+ *     The thresholding file.
+ * @param threshMapIndex
+ *     The map index in the thresholding file.
+ * @param thresholdDataOut
+ *     Output containing data for thresholding a map in this file.
+ */
+bool
+CiftiDenseSparseFile::getThresholdData(const CaretMappableDataFile* threshMapFile,
+                                       const int32_t threshMapIndex,
+                                       std::vector<float>& thresholdDataOut) const
+{
+//    CaretAssert(threshMapFile);
+//    CaretAssert(threshMapIndex >= 0);
+//    
+//    thresholdDataOut.resize(m_loadedRowData.size());
+//    
+//    switch (getBrainordinateMappingMatch(threshMapFile)) {
+//        case BrainordinateMappingMatch::EQUAL:
+//            threshMapFile->getM
+//            threshMapFile->getMapData(threshMapIndex,
+//                                              thresholdDataOut);
+//            break;
+//        case BrainordinateMappingMatch::NO:
+//            CaretAssert(0); /* should never happen */
+//            break;
+//        case BrainordinateMappingMatch::SUBSET:
+//        {
+//            /*
+//             * Since this file is a "subset" of the other file, will need to
+//             * data using the structures in each file.
+//             */
+//            std::vector<float> thresholdingFileMapData;
+//            threshMapFile->getMapData(threshMapIndex, thresholdingFileMapData);
+//            
+//            const CiftiBrainModelsMap* threshBrainMap = thresholdCiftiMapFile->getBrainordinateMapping();
+//            CaretAssert(threshBrainMap);
+//            const CiftiBrainModelsMap* dataBrainMap = getBrainordinateMapping();
+//            CaretAssert(dataBrainMap);
+//            
+//            const std::vector<CiftiBrainModelsMap::ModelInfo>& dataModelsMap   = dataBrainMap->getModelInfo();
+//            const std::vector<CiftiBrainModelsMap::ModelInfo>& threshModelsMap = threshBrainMap->getModelInfo();
+//            for (const auto& dataModelsInfo : dataModelsMap) {
+//                const StructureEnum::Enum structure = dataModelsInfo.m_structure;
+//                for (const auto& threshModelsInfo : threshModelsMap) {
+//                    if (structure == threshModelsInfo.m_structure) {
+//                        CaretAssert(dataModelsInfo.m_indexCount == threshModelsInfo.m_indexCount);
+//                        CaretAssertVectorIndex(thresholdingFileMapData, (threshModelsInfo.m_indexStart + threshModelsInfo.m_indexCount) - 1);
+//                        CaretAssertVectorIndex(thresholdDataOut, (dataModelsInfo.m_indexStart + dataModelsInfo.m_indexCount) - 1);
+//                        std::copy_n(&thresholdingFileMapData[threshModelsInfo.m_indexStart],
+//                                    threshModelsInfo.m_indexCount,
+//                                    &thresholdDataOut[dataModelsInfo.m_indexStart]);
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//            break;
+//    }
+//    
+//    return true;
+    return false;
+}
+
+/**
  * Update scalar coloring for a map.
  *
  * Note that some CIFTI files can be slow to color due to the need to
@@ -561,8 +789,100 @@ CiftiDenseSparseFile::getPaletteNormalizationModesSupported(std::vector<PaletteN
  *    Palette file containing palettes.
  */
 void
-CiftiDenseSparseFile::updateScalarColoringForMap(const int32_t /*mapIndex*/)
+CiftiDenseSparseFile::updateScalarColoringForMap(const int32_t mapIndex)
 {
+    m_rgbaValidFlag = false;
+    if (isMappedWithPalette()) {
+        FastStatistics* statistics = NULL;
+        switch (getPaletteNormalizationMode()) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                statistics = const_cast<FastStatistics*>(getFileFastStatistics());
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                statistics = const_cast<FastStatistics*>(getMapFastStatistics(mapIndex));
+                break;
+        }
+        
+        CaretAssert( ! m_loadedRowData.empty());
+        CaretAssert((m_loadedRowData.size() * 4) == m_rgba.size());
+        
+            CaretAssert(m_mapPaletteColorMapping);
+            if (statistics != NULL) {
+                bool useThreshMapFileFlag = false;
+                switch (m_mapPaletteColorMapping->getThresholdType()) {
+                    case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+                        useThreshMapFileFlag = true;
+                        break;
+                    case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+                        break;
+                    case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+                        break;
+                    case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+                        break;
+                    case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+                        break;
+                }
+                
+                if (useThreshMapFileFlag) {
+                    CaretLogSevere("Threholding is disabled for CiftiDenseSparseFile");
+                    useThreshMapFileFlag = false;
+                }
+                
+                if (useThreshMapFileFlag) {
+                    const CaretMappableDataFileAndMapSelectionModel* threshFileModel = this->getMapThresholdFileSelectionModel(mapIndex);
+                    CaretAssert(threshFileModel);
+                    const CaretMappableDataFile* threshMapFile = threshFileModel->getSelectedFile();
+                    if (threshMapFile != NULL) {
+                        const int32_t threshMapIndex = threshFileModel->getSelectedMapIndex();
+                        std::vector<float> thresholdData;
+                        getThresholdData(threshMapFile,
+                                         threshMapIndex,
+                                         thresholdData);
+                        CaretAssert(threshMapFile);
+                        CaretAssert(threshMapIndex >= 0);
+                        PaletteColorMapping* thresholdPaletteColorMapping = const_cast<PaletteColorMapping*>(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
+                        CaretAssert(thresholdPaletteColorMapping);
+                        CaretAssert(m_loadedRowData.size() == thresholdData.size());
+                        NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+                                                                      m_mapPaletteColorMapping.get(),
+                                                                      &m_loadedRowData[0],
+                                                                      thresholdPaletteColorMapping,
+                                                                      &thresholdData[0],
+                                                                      m_loadedRowData.size(),
+                                                                      &m_rgba[0]);
+                    }
+                    else {
+                        NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+                                                                      m_mapPaletteColorMapping.get(),
+                                                                      &m_loadedRowData[0],
+                                                                      m_mapPaletteColorMapping.get(),
+                                                                      &m_loadedRowData[0],
+                                                                      m_loadedRowData.size(),
+                                                                      &m_rgba[0]);
+                    }
+                }
+                else {
+                    NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+                                                                  m_mapPaletteColorMapping.get(),
+                                                                  &m_loadedRowData[0],
+                                                                  m_mapPaletteColorMapping.get(),
+                                                                  &m_loadedRowData[0],
+                                                                  m_loadedRowData.size(),
+                                                                  &m_rgba[0]);
+                }
+            }
+            else {
+                std::fill(m_rgba.begin(),
+                          m_rgba.end(),
+                          0);
+            }
+
+        
+        m_rgbaValidFlag = true;
+    }
+    else {
+        CaretAssert(0);
+    }
 }
 
 /**
@@ -583,8 +903,31 @@ CiftiDenseSparseFile::readFile(const AString& filename)
     try {
         m_sparseFile.reset(new CaretSparseFile());
         m_sparseFile->readFile(filename);
-        setFileName(filename);
         
+        const CiftiXML& ciftiXML(m_sparseFile->getCiftiXML());
+        const int32_t numDims(ciftiXML.getNumberOfDimensions());
+        if (numDims >= 2) {
+            m_fileNumberOfRows = ciftiXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
+            m_fileNumberOfColumns = ciftiXML.getDimensionLength(CiftiXML::ALONG_ROW);
+            if ((m_fileNumberOfRows * m_fileNumberOfColumns) <= 0) {
+                throw DataFileException("File dimensions invalid.  Rows="
+                                        + AString::number(m_fileNumberOfRows)
+                                        + ", Cols="
+                                        + AString::number(m_fileNumberOfColumns));
+            }
+        }
+        else {
+            throw DataFileException("Number of dimensions="
+                                    + AString::number(numDims)
+                                    + " is less than 2.");
+        }
+
+        setFileName(filename);
+        m_fileMetadata.reset(new GiftiMetaData(*ciftiXML.getFileMetaData()));
+        m_loadedRowData.resize(m_fileNumberOfColumns);
+        m_rgba.resize(m_fileNumberOfColumns * 4);
+        clearLoadedData();
+
         clearModified();
     }
     catch (const DataFileException& e) {
@@ -608,81 +951,124 @@ CiftiDenseSparseFile::writeFile(const AString& filename)
 }
 
 /**
- * Create a new cifti scalar data file from the loaded data of this file.
+ * Get the number of nodes for the structure for mapping data.
  *
- * @param errorMessageOut
- *    Error message if creation of new fiber trajectory file failed.
- * @param 
- *    Pointer to new file that was created or NULL if creation failed.
+ * @param structure
+ *     Structure for which number of nodes is requested.
+ * @return
+ *     Number of nodes corresponding to structure.  If no matching structure
+ *     is found, a negative value is returned.
  */
-CiftiBrainordinateScalarFile*
-CiftiDenseSparseFile::newCiftiScalarFileFromLoadedRowData(const AString& destinationDirectory,
-                                                                  AString& errorMessageOut) const
+int32_t
+CiftiDenseSparseFile::getMappingSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
 {
-    errorMessageOut = "";
+    int32_t numCiftiNodes = -1;
     
-//    const int64_t numTraj = static_cast<int64_t>(m_fiberOrientationTrajectories.size());
-//    if (numTraj <= 0) {
-//        errorMessageOut = "No data is loaded so cannot create file.";
+    const int32_t mappingDirection(CiftiXML::ALONG_ROW);
+    CaretAssert(m_sparseFile);
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    switch (ciftiXML.getMappingType(mappingDirection)) {
+        case CiftiMappingType::BRAIN_MODELS:
+        {
+            const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(mappingDirection);
+            if (map.hasSurfaceData(structure)) {
+                numCiftiNodes = map.getSurfaceNumberOfNodes(structure);
+            }
+        }
+            break;
+        case CiftiMappingType::LABELS:
+            CaretAssertMessage(0, "Mapping type should never be LABELS");
+            break;
+        case CiftiMappingType::PARCELS:
+            CaretAssertMessage(0, "Mapping type should never be PARCELS");
+            break;
+        case CiftiMappingType::SCALARS:
+            CaretAssertMessage(0, "Mapping type should never be SCALARS");
+            break;
+        case CiftiMappingType::SERIES:
+            CaretAssertMessage(0, "Mapping type should never be SERIES");
+            break;
+    }
+    
+    return numCiftiNodes;
+}
+
+///**
+// * Create a new cifti scalar data file from the loaded data of this file.
+// *
+// * @param errorMessageOut
+// *    Error message if creation of new fiber trajectory file failed.
+// * @param 
+// *    Pointer to new file that was created or NULL if creation failed.
+// */
+//CiftiBrainordinateScalarFile*
+//CiftiDenseSparseFile::newCiftiScalarFileFromLoadedRowData(const AString& destinationDirectory,
+//                                                                  AString& errorMessageOut) const
+//{
+//    errorMessageOut = "";
+//    
+////    const int64_t numTraj = static_cast<int64_t>(m_fiberOrientationTrajectories.size());
+////    if (numTraj <= 0) {
+////        errorMessageOut = "No data is loaded so cannot create file.";
+////        return NULL;
+////    }
+//    
+//    CiftiBrainordinateScalarFile* newFile = NULL;
+//    try {
+//        newFile = new CiftiBrainordinateScalarFile();
+//        AString rowInfo = "";
+//        if (m_loadedDataDescriptionForFileCopy.isEmpty() == false) {
+//            rowInfo = ("_"
+//                       + m_loadedDataDescriptionForFileCopy);
+//        }
+//        
+//        
+//        /*
+//         * May need to convert a remote path to a local path
+//         */
+//        FileInformation initialFileNameInfo(getFileName());
+//        const AString scalarFileName = initialFileNameInfo.getAsLocalAbsoluteFilePath(destinationDirectory,
+//                                                                                      getDataFileType());
+//        
+//        /*
+//         * Create name of scalar file with row/column information
+//         */
+//        FileInformation scalarFileInfo(scalarFileName);
+//        AString thePath, theName, theExtension;
+//        scalarFileInfo.getFileComponents(thePath,
+//                                         theName,
+//                                         theExtension);
+//        theName.append(rowInfo);
+//        const AString newFileName = FileInformation::assembleFileComponents(thePath,
+//                                                                            theName,
+//                                                                            theExtension);
+//        
+//        
+//        
+//        
+//        
+//        const AString tempFileName = (QDir::tempPath()
+//                                      + "/"
+//                                      + newFile->getFileNameNoPath());
+//        std::cout << "Filename: " << qPrintable(tempFileName) << std::endl;
+//        
+//        writeLoadedDataToFile(tempFileName);
+//        
+//        newFile->readFile(tempFileName);
+//        newFile->setFileName(newFileName);
+//        newFile->setModified();
+//        return newFile;
+//    }
+//    catch (const DataFileException& dfe) {
+//        if (newFile != NULL) {
+//            delete newFile;
+//        }
+//        errorMessageOut = dfe.whatString();
 //        return NULL;
 //    }
-    
-    CiftiBrainordinateScalarFile* newFile = NULL;
-    try {
-        newFile = new CiftiBrainordinateScalarFile();
-        AString rowInfo = "";
-        if (m_loadedDataDescriptionForFileCopy.isEmpty() == false) {
-            rowInfo = ("_"
-                       + m_loadedDataDescriptionForFileCopy);
-        }
-        
-        
-        /*
-         * May need to convert a remote path to a local path
-         */
-        FileInformation initialFileNameInfo(getFileName());
-        const AString scalarFileName = initialFileNameInfo.getAsLocalAbsoluteFilePath(destinationDirectory,
-                                                                                      getDataFileType());
-        
-        /*
-         * Create name of scalar file with row/column information
-         */
-        FileInformation scalarFileInfo(scalarFileName);
-        AString thePath, theName, theExtension;
-        scalarFileInfo.getFileComponents(thePath,
-                                         theName,
-                                         theExtension);
-        theName.append(rowInfo);
-        const AString newFileName = FileInformation::assembleFileComponents(thePath,
-                                                                            theName,
-                                                                            theExtension);
-        
-        
-        
-        
-        
-        const AString tempFileName = (QDir::tempPath()
-                                      + "/"
-                                      + newFile->getFileNameNoPath());
-        std::cout << "Filename: " << qPrintable(tempFileName) << std::endl;
-        
-        writeLoadedDataToFile(tempFileName);
-        
-        newFile->readFile(tempFileName);
-        newFile->setFileName(newFileName);
-        newFile->setModified();
-        return newFile;
-    }
-    catch (const DataFileException& dfe) {
-        if (newFile != NULL) {
-            delete newFile;
-        }
-        errorMessageOut = dfe.whatString();
-        return NULL;
-    }
-
-    return NULL;
-}
+//
+//    return NULL;
+//}
 
 /**
  * Write the loaded data to a file.
@@ -726,20 +1112,32 @@ CiftiDenseSparseFile::writeLoadedDataToFile(const AString& filename) const
 //    }
     
     sparseWriter.finish();
+    
+    throw DataFileException("Writing not supported.");
 }
 
 
-///**
-// * Clear the loaded fiber orientations.
-// */
-//void
-//CiftiDenseSparseFile::clearLoadedFiberOrientations()
-//{
-//    m_loadedDataDescriptionForMapName = "";
-//    m_loadedDataDescriptionForFileCopy = "";
-//    
-//    m_connectivityDataLoaded->reset();
-//}
+/**
+ * Clear the loaded data
+ */
+void
+CiftiDenseSparseFile::clearLoadedData()
+{
+    m_loadedDataDescriptionForMapName = "";
+    m_loadedDataDescriptionForFileCopy = "";
+    
+    std::fill(m_loadedRowData.begin(),
+              m_loadedRowData.end(),
+              0.0);
+    std::fill(m_rgba.begin(),
+              m_rgba.end(),
+              0);
+    
+    m_connectivityDataLoaded->reset();
+    m_mapFastStatistics.reset();
+    m_mapHistogram.reset();
+    m_mapHistogramLimitedRange.reset();
+}
 
 /**
  * Get the brainordinate from the given row.
@@ -824,118 +1222,199 @@ CiftiDenseSparseFile::getBrainordinateFromRowIndex(const int64_t rowIndex,
 }
 
 /**
- * Load data for the given surface node.
- * @param structure
- *    Structure in which surface node is located.
+ * @return the row number for the given surfaces node number
+ * @param surfaceStructure
+ *    The structrure
  * @param surfaceNumberOfNodes
- *    Number of nodes in the surface.
+ *    Number of nodes in surface
  * @param nodeIndex
- *    Index of the surface node.
- * @return 
- *    Index of row that was loaded or -1 if no data was found for node.
+ *    The node index
  */
-int64_t
-CiftiDenseSparseFile::loadDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                 const int32_t surfaceNumberOfNodes,
-                                                 const int32_t nodeIndex)
+int32_t
+CiftiDenseSparseFile::getRowIndexFromSurfaceVertex(const StructureEnum::Enum surfaceStrucure,
+                                                   const int32_t surfaceNumberOfNodes,
+                                                   const int32_t nodeIndex) const
 {
-    if (m_dataLoadingEnabled == false) {
-        return -1;
-    }
-    
-//    clearLoadedFiberOrientations();
-    
-//    validateAssignedMatchingFiberOrientationFile();
-    
     const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-    const CiftiBrainModelsMap& colMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
-    if (colMap.hasSurfaceData(structure) == false) {
+    const CiftiBrainModelsMap& brainMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if ( ! brainMap.hasSurfaceData(surfaceStrucure)) {
+        CaretLogFine("No data for structure "
+                     + StructureEnum::toGuiName(surfaceStrucure));
         return -1;
     }
-    if (colMap.getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) {
+    if (brainMap.getSurfaceNumberOfNodes(surfaceStrucure) != surfaceNumberOfNodes) {
+        CaretLogFine("Structure has wrong number of nodes="
+                     + AString::number(brainMap.getSurfaceNumberOfNodes(surfaceStrucure))
+                     + ", number of nodes should be "
+                     + AString::number(surfaceNumberOfNodes));
         return -1;
     }
     
-    const int64_t rowIndex = colMap.getIndexForNode(nodeIndex,
-                                                    structure);
-    if (rowIndex < 0) {
-        return -1;
+    return brainMap.getIndexForNode(nodeIndex,
+                                    surfaceStrucure);
+}
+
+/**
+ * Get the identification information for a surface node in the given maps.
+ *
+ * @param mapIndices
+ *    Indices of maps for which identification information is requested.
+ * @param structure
+ *    Structure of the surface.
+ * @param nodeIndex
+ *    Index of the node.
+ * @param numberOfNodes
+ *    Number of nodes in the surface.
+ * @param dataValueSeparator
+ *    Separator between multiple data values
+ * @param digitsRightOfDecimal
+ *    Digits right of decimal for real data
+ * @param textOut
+ *    Output containing identification information.
+ */
+bool
+CiftiDenseSparseFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& /*mapIndices*/,
+                                                           const StructureEnum::Enum structure,
+                                                           const int nodeIndex,
+                                                           const int32_t surfaceNumberOfNodes,
+                                                           const AString& /*dataValueSeparator*/,
+                                                           const int32_t digitsRightOfDecimal,
+                                                           AString& textOut) const
+{
+    CaretAssert(m_sparseFile);
+    textOut = "";
+    
+    bool validID = false;
+    
+    std::vector<float> numericalValues;
+    std::vector<bool>  numericalValuesValid;
+    AString textValue;
+    
+    /* Use along row since we want value from loaded data */
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& brainMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+    if ( ! brainMap.hasSurfaceData(structure)) {
+        CaretLogFine("No data for structure "
+                     + StructureEnum::toGuiName(structure));
+        return false;
+    }
+    if (brainMap.getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) {
+        CaretLogFine("Structure has wrong number of nodes="
+                     + AString::number(brainMap.getSurfaceNumberOfNodes(structure))
+                     + ", number of nodes should be "
+                     + AString::number(surfaceNumberOfNodes));
+        return false;
     }
     
+    const int64_t columnIndex = brainMap.getIndexForNode(nodeIndex,
+                                                         structure);
+    if ((columnIndex >= 0)
+        && (columnIndex < static_cast<int32_t>(m_loadedRowData.size()))) {
+        CaretAssertVectorIndex(m_loadedRowData, columnIndex);
+        const float value(m_loadedRowData[columnIndex]);
+        textOut = AString::number(value, 'f', digitsRightOfDecimal);
+        validID = true;
+    }
+
+    return validID;
+}
+
+
+/**
+ * Load connectivity data for the surface's node.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in surface.
+ * @param structure
+ *    Surface's structure.
+ * @param nodeIndex
+ *    Index of node number.
+ * @param rowIndexOut
+ *    Index of row corresponding to node or -1 if no row in the
+ *    matrix corresponds to the node.
+ * @param columnIndexOut
+ *    Index of column corresponding to node or -1 if no column in the
+ *    matrix corresponds to the node.
+ * @throw
+ *    DataFileException if there is an error.
+ */
+void
+CiftiDenseSparseFile::loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
+                                                const int32_t surfaceNumberOfNodes,
+                                                const StructureEnum::Enum structure,
+                                                const int32_t nodeIndex,
+                                                int64_t& rowIndexOut,
+                                                int64_t& columnIndexOut)
+{
+    rowIndexOut    = -1;
+    columnIndexOut = -1;
     
-    bool rowTest = false;
-    if (rowTest) {
-        /*
-         * Test loading a full row instead of sparse.
-         */
-        const int numCols = trajXML.getDimensionLength(CiftiXML::ALONG_ROW);
-//        fiberFractions.resize(numCols);
-//        m_sparseFile->getFibersRow(rowIndex, &fiberFractions[0]);
-//        
-//        for (int64_t i = 0; i < numCols; i++) {
-//            fiberIndices.push_back(i);
-//        }
+    if ( ! isEnabledAsLayer()) {
+        clearLoadedData();
+        return;
+    }
+    if ( ! m_dataLoadingEnabled) {
+        return;
+    }
+    
+    clearLoadedData();
+
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& brainMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if ( ! brainMap.hasSurfaceData(structure)) {
+        CaretLogFine("No data for structure "
+                      + StructureEnum::toGuiName(structure));
+        return;
+    }
+    if (brainMap.getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) {
+        CaretLogFine("Structure has wrong number of nodes="
+                                             + AString::number(brainMap.getSurfaceNumberOfNodes(structure))
+                                             + ", number of nodes should be "
+                                             + AString::number(surfaceNumberOfNodes));
+        return;
+    }
+    
+    const int64_t rowIndex = brainMap.getIndexForNode(nodeIndex,
+                                                      structure);
+    if (rowIndex > 0) {
+        const FunctionResult loadRowResult(loadDataForRowIndexPrivate(rowIndex,
+                                                                      m_loadedRowData));
+        if (loadRowResult.isOk()) {
+            m_loadedDataDescriptionForMapName = ("Row: "
+                                                 + AString::number(rowIndex)
+                                                 + ", Node Index: "
+                                                 + AString::number(nodeIndex)
+                                                 + ", Structure: "
+                                                 + StructureEnum::toName(structure));
+            m_loadedDataDescriptionForFileCopy = ("Row_"
+                                                  + AString::number(rowIndex));
+            
+            m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
+                                                            surfaceNumberOfNodes,
+                                                            nodeIndex,
+                                                            rowIndex,
+                                                            -1);
+        }
+        else {
+            clearLoadedData();
+            CaretLogFine(loadRowResult.getErrorMessage());
+            return;
+        }
     }
     else {
-//        m_sparseFile->getFibersRowSparse(rowIndex,
-//                                         fiberIndices,
-//                                         fiberFractions);
+        clearLoadedData();
     }
-//    CaretAssert(fiberIndices.size() == fiberFractions.size());
-
-//    const int64_t numFibers = static_cast<int64_t>(fiberIndices.size());
-//    
-//    CaretLogFine("For node "
-//                   + AString::number(nodeIndex)
-//                   + " number of rows loaded: "
-//                   + AString::number(numFibers));
-//    
-//    if (numFibers > 0) {
-//        m_fiberOrientationTrajectories.reserve(numFibers);
-//        
-//        for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
-//            const int64_t numFiberOrientations = m_matchingFiberOrientationFile->getNumberOfFiberOrientations();
-//            const int64_t fiberIndex = fiberIndices[iFiber];
-//            if (fiberIndex < numFiberOrientations) {
-//                const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
-//                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberIndex,
-//                                                                                 fiberOrientation);
-//                fot->setFiberFractions(fiberFractions[iFiber]);
-//                m_fiberOrientationTrajectories.push_back(fot);
-//            }
-//            else{
-//                CaretLogSevere("Invalid index="
-//                               + QString::number(fiberIndex)
-//                               + " into fiber orientations");
-//            }
-//        }
-        
-//        m_loadedDataDescriptionForMapName = ("Row: "
-//                                             + AString::number(rowIndex)
-//                                             + ", Node Index: "
-//                                             + AString::number(nodeIndex)
-//                                             + ", Structure: "
-//                                             + StructureEnum::toName(structure));
-//        m_loadedDataDescriptionForFileCopy = ("Row_"
-//                                              + AString::number(rowIndex));
-//        
-//        m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
-//                                                        surfaceNumberOfNodes,
-//                                                        nodeIndex,
-//                                                        rowIndex,
-//                                                        -1);
-//    }
-//    else {
-//        m_connectivityDataLoaded->reset();
-//        return -1;
-//    }
     
-    return rowIndex;
+    rowIndexOut = rowIndex;
 }
 
 /**
  * Load average data for the given surface nodes.
  *
+ * @param mapIndex
+ *    Index of the map
  * @param structure
  *    Structure in which surface node is located.
  * @param surfaceNumberOfNodes
@@ -944,76 +1423,56 @@ CiftiDenseSparseFile::loadDataForSurfaceNode(const StructureEnum::Enum structure
  *    Indices of the surface nodes.
  */
 void
-CiftiDenseSparseFile::loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
-                                                         const int32_t surfaceNumberOfNodes,
-                                                         const std::vector<int32_t>& nodeIndices)
+CiftiDenseSparseFile::loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex*/,
+                                                        const int32_t surfaceNumberOfNodes,
+                                                        const StructureEnum::Enum structure,
+                                                        const std::vector<int32_t>& nodeIndices)
 {
-//    switch (m_fiberTrajectoryFileType) {
-//        case FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE:
-//            break;
-//        case FIBER_TRAJECTORY_LOAD_SINGLE_ROW:
-//            return;
-//            break;
-//    }
-//    
-//    if (m_dataLoadingEnabled == false) {
-//        return;
-//    }
-//    
-//    clearLoadedFiberOrientations();
-//    
-//    if (surfaceNumberOfNodes <= 0) {
-//        return;
-//    }
-//    
-//    validateAssignedMatchingFiberOrientationFile();
-//    
-//    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-//    const CiftiBrainModelsMap& colMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
-//    
-//    if (colMap.hasSurfaceData(structure) == false) {
-//        return;
-//    }
-//    if (colMap.getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) {
-//        return;
-//    }
-//    
-//    /*
-//     * This map uses the index of a fiber orientation (from the Fiber Orientation File)
-//     * to a FiberOrientationTrajectory instance.  For averaging, items that have
-//     * a matching fiber orientation index are averaged.
-//     */
-//    std::map<int64_t, FiberOrientationTrajectory*> fiberOrientationIndexMapToFiberTrajectory;
-//    
-//    std::vector<int64_t> rowIndicesToLoad;
-//    
-//    const int32_t numberOfNodes = static_cast<int32_t>(nodeIndices.size());
-//    for (int32_t i = 0; i < numberOfNodes; i++) {
-//        const int32_t nodeIndex = nodeIndices[i];
-//        
-//        /*
-//         * Get and load row for node
-//         */
-//        const int64_t rowIndex = colMap.getIndexForNode(nodeIndex,
-//                                                        structure);
-//        if (rowIndex >= 0) {
-//            rowIndicesToLoad.push_back(rowIndex);
-//        }
-//    }
-//    
-//    if (loadRowsForAveraging(rowIndicesToLoad)) {
-//        m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
-//                                                               surfaceNumberOfNodes,
-//                                                               nodeIndices);
-//        
-//        m_loadedDataDescriptionForMapName = ("Structure: "
-//                                             + StructureEnum::toName(structure)
-//                                             + ", Averaged Node Count: "
-//                                             + AString::number(numberOfNodes));
-//        m_loadedDataDescriptionForFileCopy = ("Averaged_Node_Count_"
-//                                              + AString::number(numberOfNodes));
-//    }
+    if ( ! isEnabledAsLayer()) {
+        clearLoadedData();
+        return;
+    }
+    if ( ! m_dataLoadingEnabled) {
+        return;
+    }
     
+    clearLoadedData();
+    
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& brainMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if ( ! brainMap.hasSurfaceData(structure)) {
+        CaretLogFine("No data for structure "
+                     + StructureEnum::toGuiName(structure));
+        return;
+    }
+    if (brainMap.getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) {
+        CaretLogFine("Structure has wrong number of nodes="
+                     + AString::number(brainMap.getSurfaceNumberOfNodes(structure))
+                     + ", number of nodes should be "
+                     + AString::number(surfaceNumberOfNodes));
+        return;
+    }
+
+    std::vector<int64_t> rowIndices;
+    for (int32_t nodeIndex : nodeIndices) {
+        const int64_t rowIndex = brainMap.getIndexForNode(nodeIndex,
+                                                          structure);
+        if (rowIndex > 0) {
+            rowIndices.push_back(rowIndex);
+        }
+    }
+
+    if (loadRowsForAveraging(rowIndices)) {
+        m_loadedDataDescriptionForMapName = ("Structure: "
+                                             + StructureEnum::toName(structure)
+                                             + ", Averaged Node Count: "
+                                             + AString::number(nodeIndices.size()));
+        m_loadedDataDescriptionForFileCopy = ("Averaged_Node_Count_"
+                                              + AString::number(nodeIndices.size()));
+        m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
+                                                               surfaceNumberOfNodes,
+                                                               nodeIndices);
+    }
 }
 
 /**
@@ -1029,65 +1488,33 @@ CiftiDenseSparseFile::loadDataAverageForSurfaceNodes(const StructureEnum::Enum s
 bool
 CiftiDenseSparseFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndices)
 {
+    if (rowIndices.empty()) {
+        return false;
+    }
     
-//    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-//    const int64_t numberOfColumns = trajXML.getDimensionLength(CiftiXML::ALONG_ROW);
-//    
-//    std::vector<FiberFractions> fiberFractionsForRowVector(numberOfColumns);
-//    FiberFractions* fiberFractionsForRow = &fiberFractionsForRowVector[0];
-//    
-//    const int64_t numberOfRowsToLoad = static_cast<int64_t>(rowIndices.size());
-//    if (numberOfRowsToLoad <= 0) {
-//        return false;
-//    }
-//    
-//    const int32_t progressUpdateInterval = 1;
-//    EventProgressUpdate progressEvent(0,
-//                                      numberOfRowsToLoad,
-//                                      0,
-//                                      ("Loading data for "
-//                                       + QString::number(numberOfRowsToLoad)
-//                                       + " brainordinates in file ")
-//                                      + getFileNameNoPath());
-//    
-//    EventManager::get()->sendEvent(progressEvent.getPointer());
-//    for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
-//        const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(iCol);
-//        CaretAssert(fiberOrientation);
-//        m_fiberOrientationTrajectories.push_back(new FiberOrientationTrajectory(iCol,
-//                                                                                fiberOrientation));
-//    }
-//    
-//    bool userCancelled = false;
-//    
-//    for (int64_t iRow = 0; iRow < numberOfRowsToLoad; iRow++) {
-//        const int64_t rowIndex = rowIndices[iRow];
-//        
-//        if ((iRow % progressUpdateInterval) == 0) {
-//            progressEvent.setProgress(iRow,
-//                                      "");
-//            EventManager::get()->sendEvent(progressEvent.getPointer());
-//            if (progressEvent.isCancelled()) {
-//                userCancelled = true;
-//                break;
-//            }
-//        }
-//        
-//        m_sparseFile->getFibersRow(rowIndex,
-//                                   fiberFractionsForRow);
-//        
-//        for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
-//            FiberOrientationTrajectory* fot = m_fiberOrientationTrajectories[iCol];
-//            fot->addFiberFractionsForAveraging(fiberFractionsForRow[iCol]);
-//        }
-//    }
-//    
-//    if (userCancelled) {
-//        clearLoadedFiberOrientations();
-//        return false;
-//    }
-//    
-//    finishFiberOrientationTrajectoriesAveraging();
+    const int64_t rowLength(m_loadedRowData.size());
+    std::vector<float> rowDataSum(rowLength, 0.0);
+    std::vector<float> rowData(rowLength, 0.0);
+    
+    for (int32_t rowIndex : rowIndices) {
+        if (rowIndex > 0) {
+            const FunctionResult loadRowResult(loadDataForRowIndexPrivate(rowIndex,
+                                                                          rowData));
+            if (loadRowResult.isOk()) {
+                for (int64_t j = 0; j < rowLength; j++) {
+                    CaretAssertVectorIndex(rowDataSum, j);
+                    CaretAssertVectorIndex(rowData, j);
+                    rowDataSum[j] += rowData[j];
+                }
+            }
+        }
+    }
+    
+    const float numRowsFloat(rowIndices.size());
+    for (int64_t j = 0; j < rowLength; j++) {
+        CaretAssertVectorIndex(m_loadedRowData, j);
+        m_loadedRowData[j] /= numRowsFloat;
+    }
     
     return true;
 }
@@ -1095,85 +1522,66 @@ CiftiDenseSparseFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndice
 /**
  * Load data for a voxel at the given coordinate.
  *
+ * @param mapIndex
+ *    Index of map.
  * @param xyz
  *    Coordinate of voxel.
- * @return
- *    Index of row that was loaded or -1 if no data was found for coordinate.
+ * @param rowIndexOut
+ *    Index of row corresponding to voxel or -1 if no row in the
+ *    matrix corresponds to the voxel.
+ * @param columnIndexOut
+ *    Index of column corresponding to voxel or -1 if no column in the
+ *    matrix corresponds to the voxel.
  * @throw
  *    DataFileException if there is an error.
  */
-int64_t
-CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const float xyz[3])
+void
+CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/,
+                                                      const float xyz[3],
+                                                      int64_t& rowIndexOut,
+                                                      int64_t& columnIndexOut)
 {
+    rowIndexOut = -1;
+    columnIndexOut = -1;
+    
     m_connectivityDataLoaded->reset();
     
-    if (m_dataLoadingEnabled == false) {
-        return -1;
+    if ( ! isEnabledAsLayer()) {
+        clearLoadedData();
+        return;
+        
+    }
+    if ( ! m_dataLoadingEnabled) {
+        return;
     }
     
-//    clearLoadedFiberOrientations();
+    clearLoadedData();
     
-    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-    const CiftiBrainModelsMap& colMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
-    if (!colMap.hasVolumeData()) return -1;
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& colMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if ( ! colMap.hasVolumeData()) {
+        return;
+    }
     const VolumeSpace& colSpace = colMap.getVolumeSpace();
     int64_t ijk[3];
     colSpace.enclosingVoxel(xyz, ijk);
     const int64_t rowIndex = colMap.getIndexForVoxel(ijk);
-    if (rowIndex < 0) {
-        return -1;
+    if (rowIndex >= 0) {
+        const FunctionResult loadRowResult(loadDataForRowIndexPrivate(rowIndex,
+                                                                      m_loadedRowData));
+        if (loadRowResult.isOk()) {
+            m_loadedDataDescriptionForMapName = ("Row: "
+                                                 + AString::number(rowIndex)
+                                                 + ", Voxel XYZ: "
+                                                 + AString::fromNumbers(xyz, 3, ","));
+            m_loadedDataDescriptionForFileCopy = ("Row_"
+                                                  + AString::number(rowIndex));
+            m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
+                                                          rowIndex,
+                                                          -1);
+            rowIndexOut = rowIndex;
+        }
     }
-    
-//    std::vector<int64_t> fiberIndices;
-//    std::vector<FiberFractions> fiberFractions;
-//    m_sparseFile->getFibersRowSparse(rowIndex,
-//                                     fiberIndices,
-//                                     fiberFractions);
-//    CaretAssert(fiberIndices.size() == fiberFractions.size());
-//    
-//    const int64_t numFibers = static_cast<int64_t>(fiberIndices.size());
-//    
-//    CaretLogFine("For voxel at coordinate "
-//                 + AString::fromNumbers(xyz, 3, ",")
-//                 + " number of rows loaded: "
-//                 + AString::number(numFibers));
-//    
-//    if (numFibers > 0) {
-//        m_fiberOrientationTrajectories.reserve(numFibers);
-//        
-//        for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
-//            const int64_t numFiberOrientations = m_matchingFiberOrientationFile->getNumberOfFiberOrientations();
-//            const int64_t fiberIndex = fiberIndices[iFiber];
-//            if (fiberIndex < numFiberOrientations) {
-//                const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
-//                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberIndex,
-//                                                                                 fiberOrientation);
-//                fot->setFiberFractions(fiberFractions[iFiber]);
-//                m_fiberOrientationTrajectories.push_back(fot);
-//            }
-//            else{
-//                CaretLogSevere("Invalid index="
-//                               + QString::number(fiberIndex)
-//                               + " into fiber orientations");
-//            }
-//        }
-//        
-//        m_loadedDataDescriptionForMapName = ("Row: "
-//                                             + AString::number(rowIndex)
-//                                             + ", Voxel XYZ: "
-//                                             + AString::fromNumbers(xyz, 3, ",")
-//                                             + ", Structure: ");
-//        m_loadedDataDescriptionForFileCopy = ("Row_"
-//                                              + AString::number(rowIndex));
-//        m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
-//                                                      rowIndex,
-//                                                      -1);
-//    }
-//    else {
-//        return -1;
-//    }
-    
-    return rowIndex;
 }
 
 /**
@@ -1186,46 +1594,52 @@ CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const float xyz[3])
  * @throw
  *    DataFileException if there is an error.
  */
-void
-CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
-                                                            const std::vector<VoxelIJK>& voxelIndices)
+bool
+CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
+                                                        const int64_t volumeDimensionIJK[3],
+                                                        const std::vector<VoxelIJK>& voxelIndices)
 {
-    if (m_dataLoadingEnabled == false) {
-        return;
+    if ( ! isEnabledAsLayer()) {
+        clearLoadedData();
+        return false;
     }
     
-//    clearLoadedFiberOrientations();
+    if ( ! m_dataLoadingEnabled) {
+        return false;
+    }
     
-//    validateAssignedMatchingFiberOrientationFile();
-//    
-//    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-//    const CiftiBrainModelsMap& colMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
-//    
-//    if (colMap.hasVolumeData() == false) {
-//        return;
-//    }
-//    
-//    std::vector<int64_t> rowIndicesToLoad;
-//    const int32_t numberOfVoxels = static_cast<int32_t>(voxelIndices.size());
-//    for (int32_t i = 0; i < numberOfVoxels; i++) {
-//        /*
-//         * Get and load row for voxel
-//         */
-//        const int64_t rowIndex = colMap.getIndexForVoxel(voxelIndices[i].m_ijk);
-//        if (rowIndex >= 0) {
-//            rowIndicesToLoad.push_back(rowIndex);
-//        }
-//    }
-//    
-//    if (loadRowsForAveraging(rowIndicesToLoad)) {
-//        m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
-//                                                               voxelIndices);
-//        
-//        m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
-//                                             + AString::number(numberOfVoxels));
-//        m_loadedDataDescriptionForFileCopy = ("Average_Voxel_Count_"
-//                                              + AString::number(numberOfVoxels));
-//    }
+    clearLoadedData();
+
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& colMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+
+    if ( !colMap.hasVolumeData()) {
+        return false;
+    }
+    const VolumeSpace& colSpace = colMap.getVolumeSpace();
+
+    std::vector<int64_t> rowIndices;
+    
+    for (const VoxelIJK& ijk : voxelIndices) {
+        const int64_t rowIndex = colMap.getIndexForVoxel(ijk.m_ijk);
+        if (rowIndex >= 0) {
+            rowIndices.push_back(rowIndex);
+        }
+    }
+    
+    if ( ! rowIndices.empty()) {
+        if (loadRowsForAveraging(rowIndices)) {
+            m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
+                                                                   voxelIndices);
+            
+            m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
+                                                 + AString::number(rowIndices.size()));
+            m_loadedDataDescriptionForFileCopy = ("Average_Voxel_Count_"
+                                                  + AString::number(rowIndices.size()));
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -1239,53 +1653,92 @@ CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDime
 void
 CiftiDenseSparseFile::loadDataForRowIndex(const int64_t rowIndex)
 {
-//    clearLoadedFiberOrientations();
-//    
-//    validateAssignedMatchingFiberOrientationFile();
-//    
-//    std::vector<int64_t> fiberIndices;
-//    std::vector<FiberFractions> fiberFractions;
-//    m_sparseFile->getFibersRowSparse(rowIndex,
-//                                     fiberIndices,
-//                                     fiberFractions);
-//    CaretAssert(fiberIndices.size() == fiberFractions.size());
-//    
-//    const int64_t numFibers = static_cast<int64_t>(fiberIndices.size());
-//    
-//    if (numFibers > 0) {
-//        m_fiberOrientationTrajectories.reserve(numFibers);
-//        
-//        for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
-//            const int64_t numFiberOrientations = m_matchingFiberOrientationFile->getNumberOfFiberOrientations();
-//            const int64_t fiberIndex = fiberIndices[iFiber];
-//            if (fiberIndex < numFiberOrientations) {
-//                const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
-//                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberIndex,
-//                                                                                 fiberOrientation);
-//                fot->setFiberFractions(fiberFractions[iFiber]);
-//                m_fiberOrientationTrajectories.push_back(fot);
-//            }
-//            else{
-//                CaretLogSevere("Invalid index="
-//                               + QString::number(fiberIndex)
-//                               + " into fiber orientations");
-//            }
-//        }
-//        
-//        m_loadedDataDescriptionForMapName = ("Row: "
-//                                             + AString::number(rowIndex));
-//        m_loadedDataDescriptionForFileCopy = ("Row_"
-//                                              + AString::number(rowIndex));
-//        
-//        m_connectivityDataLoaded->setRowColumnLoading(rowIndex,
-//                                                      -1);
-//    }
-//    else {
-//        throw DataFileException(getFileName(),
-//                                "Row "
-//                                + AString::number(rowIndex)
-//                                + " is invalid or contains no data.");
-//    }
+    const FunctionResult loadResult(loadDataForRowIndexPrivate(rowIndex,
+                                                               m_loadedRowData));
+    if (loadResult.isOk()) {
+        m_loadedDataDescriptionForMapName = ("Row: "
+                                             + AString::number(rowIndex));
+        m_loadedDataDescriptionForFileCopy = ("Row_"
+                                              + AString::number(rowIndex));
+        
+        m_connectivityDataLoaded->setRowColumnLoading(rowIndex,
+                                                      -1);
+    }
+    else {
+        throw DataFileException(loadResult.getErrorMessage());
+    }
+}
+
+/**
+ * Load the given row index from the file even if the file is disabled for data loading
+ *
+ * @param columnIndex
+ *    Index of column that is loaded.
+ * @throw DataFileException
+ *    If an error occurs.
+ */
+void
+CiftiDenseSparseFile::loadDataForColumnIndex(const int64_t columnIndex)
+{
+    clearLoadedData();
+    CaretLogFine("Loading by column index not supported");
+}
+
+/**
+ * Load data for the given row index.
+ * @param rowIndex
+ *    Index of the row.
+ * @param dataOut
+ *    Contains data upon exit
+ * @return
+ *    Function result with ok/error and error message
+ */
+FunctionResult
+CiftiDenseSparseFile::loadDataForRowIndexPrivate(const int32_t rowIndex,
+                                                 std::vector<float>& dataOut) const
+{
+    if ((rowIndex < 0)
+        || (rowIndex >= m_fileNumberOfRows)) {
+        return FunctionResult::error("Invalid row index="
+                                     + AString::number(rowIndex)
+                                     + "   numRows="
+                                     + AString::number(m_fileNumberOfRows));
+    }
+    
+    if (static_cast<int32_t>(dataOut.size()) != m_fileNumberOfColumns) {
+        dataOut.resize(m_fileNumberOfColumns);
+    }
+    
+    m_sparseFile->getRow(rowIndex, dataOut.data());
+    
+    return FunctionResult::ok();
+}
+
+/**
+ * @return Reference to vector containing row data
+ */
+const std::vector<float>&
+CiftiDenseSparseFile::getLoadedRowData() const
+{
+    return m_loadedRowData;
+}
+
+/**
+ * @return String containg description of data for use in file name
+ */
+AString
+CiftiDenseSparseFile::getLoadedRowFileDescription() const
+{
+    return m_loadedDataDescriptionForFileCopy;
+}
+
+/**
+ * @return String containing map name for loaded data
+ */
+AString
+CiftiDenseSparseFile::getLoadedRowMapName() const
+{
+    return m_loadedDataDescriptionForMapName;
 }
 
 /**
@@ -1304,8 +1757,9 @@ CiftiDenseSparseFile::finishRestorationOfScene()
      * so temporarily enabled loading and then 
      * restore the status.
      */
-    const bool loadingEnabledStatus = isDataLoadingEnabled();
-    setDataLoadingEnabled(true);
+    const int32_t mapIndex(0);
+    const bool loadingEnabledStatus = isMapDataLoadingEnabled(mapIndex);
+    setMapDataLoadingEnabled(mapIndex, true);
     
     switch (m_connectivityDataLoaded->getMode()) {
         case ConnectivityDataLoaded::MODE_NONE:
@@ -1325,7 +1779,7 @@ CiftiDenseSparseFile::finishRestorationOfScene()
              * Never load by column !!!
              */
             CaretAssertMessage(0,
-                               "Fiber Trajectory never loads by column.");
+                               "Dense Sparse never loads by column.");
         }
             break;
         case ConnectivityDataLoaded::MODE_SURFACE_NODE:
@@ -1340,9 +1794,12 @@ CiftiDenseSparseFile::finishRestorationOfScene()
                                                             surfaceNodeIndex,
                                                             rowIndex,
                                                             columnIndex);
-            loadDataForSurfaceNode(structure,
-                                   surfaceNumberOfNodes,
-                                   surfaceNodeIndex);
+            loadMapDataForSurfaceNode(mapIndex,
+                                      surfaceNumberOfNodes,
+                                      structure,
+                                      surfaceNodeIndex,
+                                      rowIndex,
+                                      columnIndex);
         }
             break;
         case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
@@ -1353,9 +1810,10 @@ CiftiDenseSparseFile::finishRestorationOfScene()
             m_connectivityDataLoaded->getSurfaceAverageNodeLoading(structure,
                                                             surfaceNumberOfNodes,
                                                             surfaceNodeIndices);
-            loadDataAverageForSurfaceNodes(structure,
-                                   surfaceNumberOfNodes,
-                                   surfaceNodeIndices);
+            loadMapAverageDataForSurfaceNodes(mapIndex,
+                                              surfaceNumberOfNodes,
+                                              structure,
+                                              surfaceNodeIndices);
         }
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
@@ -1366,7 +1824,10 @@ CiftiDenseSparseFile::finishRestorationOfScene()
             m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ,
                                                           rowIndex,
                                                           columnIndex);
-            loadMapDataForVoxelAtCoordinate(volumeXYZ);
+            loadMapDataForVoxelAtCoordinate(mapIndex,
+                                            volumeXYZ,
+                                            rowIndex,
+                                            columnIndex);
         }
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
@@ -1375,13 +1836,15 @@ CiftiDenseSparseFile::finishRestorationOfScene()
             std::vector<VoxelIJK> voxelIndicesIJK;
             m_connectivityDataLoaded->getVolumeAverageVoxelLoading(volumeDimensionsIJK,
                                                                    voxelIndicesIJK);
-            loadMapAverageDataForVoxelIndices(volumeDimensionsIJK,
+            loadMapAverageDataForVoxelIndices(mapIndex,
+                                              volumeDimensionsIJK,
                                               voxelIndicesIJK);
         }
             break;
     }
     
-    setDataLoadingEnabled(loadingEnabledStatus);
+    setMapDataLoadingEnabled(mapIndex,
+                             loadingEnabledStatus);
 }
 
 /**
@@ -1432,6 +1895,8 @@ CiftiDenseSparseFile::restoreFileDataFromScene(const SceneAttributes* sceneAttri
                                                     sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    finishRestorationOfScene();
 }
 
 /**
@@ -1552,4 +2017,23 @@ CiftiDenseSparseFile::getBrainordinateMappingMatchImplementation(const CaretMapp
     return BrainordinateMappingMatch::NO;
 }
 
+/**
+ * @return True if this file is enabled as a layer
+ */
+bool
+CiftiDenseSparseFile::isEnabledAsLayer() const
+{
+    return m_enabledAsLayerFlag;
+}
+
+/**
+ * Set this file enabled as a layer
+ * @param enabled
+ *    New status
+ */
+void
+CiftiDenseSparseFile::setEnabledAsLayer(const bool enabled)
+{
+    m_enabledAsLayerFlag = enabled;
+}
 

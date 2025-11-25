@@ -35,6 +35,7 @@
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
+#include "CiftiDenseSparseFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiParcelLabelFile.h"
 #include "CiftiParcelScalarFile.h"
@@ -414,7 +415,11 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                  overlayRGBV);
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
-                    CaretAssertToDoWarning();
+                    isColoringValid = this->assignCiftiDenseSparseColoring(brainStructure,
+                                                                           dynamic_cast<CiftiDenseSparseFile*>(selectedMapFile),
+                                                                           selectedMapIndex,
+                                                                           numNodes,
+                                                                           overlayRGBV);
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                     isColoringValid = this->assignCiftiDataSeriesColoring(brainStructure,
@@ -1388,6 +1393,59 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
                                                rgbv,
                                                &dataValues[0],
                                                numberOfNodes);
+    return true;
+}
+
+/**
+ * Assign cifti dense sparse coloring to nodes
+ * @param brainStructure
+ *    The brain structure that contains the data files.
+ * @param ciftiDenseSparsFile
+ *    Cifti Dense Sparse file that is selected.
+ * @param ciftiMapUniqueID
+ *    UniqueID of selected map.
+ * @param numberOfNodes
+ *    Number of nodes in surface.
+ * @param rgbv
+ *    Color components set by this method.
+ *    Red, green, blue, valid.  If the valid component is
+ *    zero, it indicates that the overlay did not assign
+ *    any coloring to the node.
+ * @return
+ *    True if coloring is valid, else false.
+ */
+bool
+SurfaceNodeColoring::assignCiftiDenseSparseColoring(const BrainStructure* brainStructure,
+                                                    CiftiDenseSparseFile* ciftiDenseSparsFile,
+                                                    const int32_t mapIndex,
+                                                    const int32_t numberOfNodes,
+                                                    float* rgbv)
+{
+    if (mapIndex < 0) {
+        return false;
+    }
+    
+    /*
+     * Invalidate all coloring.
+     */
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        rgbv[i*4+3] = 0.0;
+    }
+    
+    /*
+     * Update coloring
+     */
+    if (ciftiDenseSparsFile->isMapColoringValid(mapIndex) == false) {
+        ciftiDenseSparsFile->updateScalarColoringForMap(mapIndex);
+    }
+    
+    std::vector<float> dataValues(numberOfNodes);
+    const StructureEnum::Enum structure = brainStructure->getStructure();
+    ciftiDenseSparsFile->getMapSurfaceNodeColoring(mapIndex,
+                                                   structure,
+                                                   rgbv,
+                                                   &dataValues[0],
+                                                   numberOfNodes);
     return true;
 }
 

@@ -866,7 +866,7 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
-                CaretAssertToDoWarning();  /* Not sure yet */
+                validFlag = includeNonWritableFileTypesFlag;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;

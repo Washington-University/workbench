@@ -29,7 +29,7 @@ namespace caret {
 
     class Brain;
     class CiftiConnectivityMatrixParcelFile;
-    class CiftiMappableConnectivityMatrixDataFile;
+    class CiftiFileDynamicLoadingInterface;
     class HtmlTableBuilder;
     class SurfaceFile;
     
@@ -68,7 +68,7 @@ namespace caret {
                                            std::vector<AString>& rowColumnInformationOut,
                                            HtmlTableBuilder& htmlTableBuilder);
         
-        bool loadRowOrColumnFromConnectivityMatrixFile(CiftiMappableConnectivityMatrixDataFile* parcelFile,
+        bool loadRowOrColumnFromConnectivityMatrixFile(CiftiFileDynamicLoadingInterface* parcelFile,
                                                        const int32_t rowIndex,
                                                        const int32_t columnIndex,
                                                        std::vector<AString>& rowColumnInformationOut,
@@ -87,7 +87,7 @@ namespace caret {
 
     private:
         void getDisplayedConnectivityMatrixFiles(Brain* brain,
-                                                 std::vector<CiftiMappableConnectivityMatrixDataFile*>& ciftiMatrixFilesOut) const;
+                                                 std::vector<CiftiFileDynamicLoadingInterface*>& ciftiMatrixFilesOut) const;
 
         // ADD_NEW_MEMBERS_HERE
     };
