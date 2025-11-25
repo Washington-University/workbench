@@ -41,6 +41,7 @@
 #include "BorderFile.h"
 #include "CaretLogger.h"
 #include "CaretOMP.h"
+#include "CiftiDenseSparseFile.h"
 #include "CiftiFile.h"
 #include "CiftiMappableDataFile.h"
 #include "EventProgressUpdate.h"
@@ -155,8 +156,37 @@ namespace
                 break;
             }
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
-                CaretAssertToDoFatal();
+            {
+                tempData.setNumberOfNodesAndColumns(numNodes, 1);
+                tempData.setStructure(surface->getStructure());
+                tempRoi.setNumberOfNodesAndColumns(numNodes, 1);
+                const CiftiDenseSparseFile* ciftiDenseSparseFile = dynamic_cast<const CiftiDenseSparseFile*>(dataFile);
+                CaretAssert(ciftiDenseSparseFile != NULL);
+                CaretAssert(ciftiDenseSparseFile->getMappingSurfaceNumberOfNodes(surface->getStructure()) == numNodes);
+                vector<float> surfData, ciftiRoi;
+                bool result = ciftiDenseSparseFile->getMapDataForSurface(mapIndex, surface->getStructure(), surfData, &ciftiRoi);
+                CaretAssert(result);
+                if (!result)
+                {
+                    CaretLogSevere("failed to get map data for map " + AString::number(mapIndex) + " of data file of type " + DataFileTypeEnum::toName(dataFile->getDataFileType()));
+                    return false;
+                }
+                tempData.setValuesForColumn(0, surfData.data());
+                vector<float> maskedROI(numNodes);
+                const float* gradRoiData = gradRoi->getValuePointerForColumn(0);
+                for (int i = 0; i < numNodes; ++i)
+                {
+                    if (gradRoiData[i] > 0.0f)
+                    {
+                        maskedROI[i] = ciftiRoi[i];
+                    } else {
+                        maskedROI[i] = 0.0f;
+                    }
+                }
+                tempRoi.setValuesForColumn(0, maskedROI.data());
+                useRoi = &tempRoi;
                 break;
+            }
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             {
@@ -259,8 +289,19 @@ namespace
                 break;
             }
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
-                CaretAssertToDoFatal();
+            {
+                const CiftiDenseSparseFile* ciftiDenseSparseFile = dynamic_cast<const CiftiDenseSparseFile*>(dataFile);
+                CaretAssert(ciftiDenseSparseFile != NULL);
+                bool result = ciftiDenseSparseFile->getMapDataForSurface(mapIndex, structure, tempStatsStore, &roiData);
+                CaretAssert(result);
+                if (!result)
+                {
+                    CaretLogSevere("failed to get map data for map " + AString::number(mapIndex) + " of data file of type " + DataFileTypeEnum::toName(dataFile->getDataFileType()));
+                    return false;
+                }
+                statsData = tempStatsStore.data();
                 break;
+            }
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             {

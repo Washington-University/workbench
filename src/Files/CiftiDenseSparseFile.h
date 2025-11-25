@@ -211,6 +211,14 @@ namespace caret {
         
         AString getLoadedRowMapName() const;
         
+        bool getMapDataForSurface(const int32_t mapIndex,
+                                  const StructureEnum::Enum structure,
+                                  std::vector<float>& surfaceMapData,
+                                  std::vector<float>* roiData) const;
+        
+        bool getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
+                                                             const int64_t surfaceNumberOfNodes,
+                                                             std::vector<int64_t>& dataIndicesForNodes) const;
     private:
         CiftiDenseSparseFile(const CiftiDenseSparseFile&);
         

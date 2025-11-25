@@ -703,7 +703,7 @@ CiftiDenseSparseFile::getPaletteNormalizationModesSupported(std::vector<PaletteN
  * @return True if the map coloring for the given map is valid
  */
 bool
-CiftiDenseSparseFile::isMapColoringValid(const int32_t mapIndex) const
+CiftiDenseSparseFile::isMapColoringValid(const int32_t /*mapIndex*/) const
 {
     return m_rgbaValidFlag;
 }
@@ -720,9 +720,9 @@ CiftiDenseSparseFile::isMapColoringValid(const int32_t mapIndex) const
  *     Output containing data for thresholding a map in this file.
  */
 bool
-CiftiDenseSparseFile::getThresholdData(const CaretMappableDataFile* threshMapFile,
-                                       const int32_t threshMapIndex,
-                                       std::vector<float>& thresholdDataOut) const
+CiftiDenseSparseFile::getThresholdData(const CaretMappableDataFile* /*threshMapFile*/,
+                                       const int32_t /*threshMapIndex*/,
+                                       std::vector<float>& /*thresholdDataOut*/) const
 {
 //    CaretAssert(threshMapFile);
 //    CaretAssert(threshMapIndex >= 0);
@@ -1079,40 +1079,8 @@ CiftiDenseSparseFile::getMappingSurfaceNumberOfNodes(const StructureEnum::Enum s
  *    If an error occurs.
  */
 void
-CiftiDenseSparseFile::writeLoadedDataToFile(const AString& filename) const
+CiftiDenseSparseFile::writeLoadedDataToFile(const AString& /*filename*/) const
 {
-    CiftiXML xml = m_sparseFile->getCiftiXML();
-    
-//    bool isWriteFullRow = false;
-//    if (static_cast<int64_t>(trajectories.size()) == xml.getDimensionLength(CiftiXML::ALONG_ROW)) {
-//        isWriteFullRow = true;
-//    }
-//    else {
-//    }
-        
-    /*
-     * Write to temp file!!!!!
-     */
-    CiftiScalarsMap tempMap;
-    tempMap.setLength(1);
-    tempMap.setMapName(0, m_loadedDataDescriptionForMapName);
-    xml.setMap(CiftiXML::ALONG_COLUMN, tempMap);
-    
-    CaretSparseFileWriter sparseWriter(filename,
-                                       xml);
-    const int64_t rowIndex = 0;
-//    if (isWriteFullRow) {
-//        sparseWriter.writeFibersRow(rowIndex,
-//                                    &fiberFractions[0]);
-//    }
-//    else {
-//        sparseWriter.writeFibersRowSparse(rowIndex,
-//                                          fiberIndices,
-//                                          fiberFractions);
-//    }
-    
-    sparseWriter.finish();
-    
     throw DataFileException("Writing not supported.");
 }
 
@@ -1595,7 +1563,7 @@ CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/
  *    DataFileException if there is an error.
  */
 bool
-CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
+CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int32_t /*mapIndex*/,
                                                         const int64_t volumeDimensionIJK[3],
                                                         const std::vector<VoxelIJK>& voxelIndices)
 {
@@ -1616,7 +1584,6 @@ CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
     if ( !colMap.hasVolumeData()) {
         return false;
     }
-    const VolumeSpace& colSpace = colMap.getVolumeSpace();
 
     std::vector<int64_t> rowIndices;
     
@@ -1678,7 +1645,7 @@ CiftiDenseSparseFile::loadDataForRowIndex(const int64_t rowIndex)
  *    If an error occurs.
  */
 void
-CiftiDenseSparseFile::loadDataForColumnIndex(const int64_t columnIndex)
+CiftiDenseSparseFile::loadDataForColumnIndex(const int64_t /*columnIndex*/)
 {
     clearLoadedData();
     CaretLogFine("Loading by column index not supported");
@@ -1739,6 +1706,101 @@ AString
 CiftiDenseSparseFile::getLoadedRowMapName() const
 {
     return m_loadedDataDescriptionForMapName;
+}
+
+bool
+CiftiDenseSparseFile::getMapDataForSurface(const int32_t /*mapIndex*/,
+                                           const StructureEnum::Enum structure,
+                                           std::vector<float>& surfaceMapData,
+                                           std::vector<float>* roiData) const
+{
+    surfaceMapData.clear();//empty data is secondary hint at failure
+    CaretAssert(m_sparseFile);
+    
+    const int32_t surfaceNumNodes = getMappingSurfaceNumberOfNodes(structure);
+    if (surfaceNumNodes < 1) return false;
+    
+    /*
+     * Map data may be empty for connectivity matrix files with no rows loaded.
+     */
+    if (m_loadedRowData.empty())
+    {
+        return false;
+    }
+    std::vector<int64_t> dataIndicesForNodes;
+    if (! getSurfaceDataIndicesForMappingToBrainordinates(structure,
+                                                          surfaceNumNodes,
+                                                          dataIndicesForNodes))
+    {
+        return false;//currently should never happen, this currently works for parcellated files
+    }
+    CaretAssert((int)dataIndicesForNodes.size() == surfaceNumNodes);
+    
+    surfaceMapData.resize(surfaceNumNodes, 0.0f);
+    if (roiData != NULL)
+    {
+        roiData->clear();//make sure all values get initialized before setting the roi nodes
+        roiData->resize(surfaceNumNodes, 0.0f);
+    }
+    for (int32_t iNode = 0; iNode < surfaceNumNodes; iNode++) {
+        CaretAssertVectorIndex(dataIndicesForNodes,
+                               iNode);
+        
+        const int64_t dataIndex = dataIndicesForNodes[iNode];
+        if (dataIndex >= 0) {
+            surfaceMapData[iNode] = m_loadedRowData[dataIndex];
+            if (roiData != NULL)
+            {
+                (*roiData)[iNode] = 1.0f;
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * Get the data indices corresponding to all nodes in the given surface.
+ *
+ * @param structure
+ *     Surface's structure.
+ * @param surfaceNumberOfNodes
+ *     Number of nodes in the surface.
+ * @param dataIndicesForNodes
+ *     Will containg "surfaceNumberOfNodes" element where the values are
+ *     indices into the CIFTI data.
+ * @return True if valid, else false.
+ */
+bool
+CiftiDenseSparseFile::getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
+                                                                       const int64_t surfaceNumberOfNodes,
+                                                                       std::vector<int64_t>& dataIndicesForNodes) const
+{
+    CaretAssert(m_sparseFile);
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    
+    if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) {
+        return false;
+    }
+    const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if (map.getSurfaceNumberOfNodes(structure) == surfaceNumberOfNodes) {
+        const std::vector<CiftiBrainModelsMap::SurfaceMap> surfaceMap = map.getSurfaceMap(structure);
+        
+        dataIndicesForNodes.resize(surfaceNumberOfNodes);
+        std::fill(dataIndicesForNodes.begin(),
+                  dataIndicesForNodes.end(),
+                  -1);
+        for (std::vector<CiftiBrainModelsMap::SurfaceMap>::const_iterator iter = surfaceMap.begin();
+             iter != surfaceMap.end();
+             iter++) {
+            const CiftiBrainModelsMap::SurfaceMap& nodeMap = *iter;
+            CaretAssertVectorIndex(dataIndicesForNodes,
+                                   nodeMap.m_surfaceNode);
+            dataIndicesForNodes[nodeMap.m_surfaceNode] = nodeMap.m_ciftiIndex;
+        }
+        
+        return true;
+    }
+    return false;
 }
 
 /**
