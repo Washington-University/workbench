@@ -204,7 +204,7 @@ namespace caret {
                         return clamp<V, int32_t>(convertValueReadRaw<int32_t>(buffer));
                     case Fibers:
                         CaretAssert(0); //error in debugger if we interpret encoded fibers as a number
-                        //fallthrough
+                        throw DataFileException("attempted to read fibers-type wbsparse as integers");
                     case Int64:
                         return clamp<V, int64_t>(convertValueReadRaw<int64_t>(buffer));
                     default:
@@ -222,7 +222,7 @@ namespace caret {
                         return (V)convertValueReadRaw<int32_t>(buffer);
                     case Fibers:
                         CaretAssert(0);
-                        //fallthrough
+                        throw DataFileException("attempted to read fibers-type wbsparse as floats");
                     case Int64:
                         return (V)convertValueReadRaw<int64_t>(buffer);
                     default:
@@ -243,10 +243,10 @@ namespace caret {
         static TO clamp(const FROM& in)
         {
             typedef std::numeric_limits<TO> mylimits;
-            if (mylimits::has_infinity && std::isinf(in)) return (TO)in;//in case we use this on float types at some point
+            if (mylimits::has_infinity && std::isinf(TO(in))) return TO(in);//in case we use this on float types at some point
             if (mylimits::max() < in) return mylimits::max();
             if (mylimits::lowest() > in) return mylimits::lowest();
-            return (TO)in;
+            return TO(in);
         }
     };
     
@@ -371,7 +371,7 @@ namespace caret {
                 }
                 case CaretSparseFile::Fibers:
                     CaretAssert(0); //error in debugger if we interpret encoded fibers as a number
-                    //fallthrough
+                    throw DataFileException("attempted to write scalar values to fibers-type wbsparse");
                 case CaretSparseFile::Int64:
                 {
                     int64_t& temp = *(int64_t*)buffer;

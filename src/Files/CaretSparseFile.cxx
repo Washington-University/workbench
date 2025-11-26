@@ -174,7 +174,7 @@ void CaretSparseFile::readFileV2(FileInformation& fileInfo)
 void CaretSparseFile::HeaderV2::read(CaretBinaryFile& file)
 {
     CaretAssert(sizeof(HeaderV2) == 21);
-    if (sizeof(HeaderV2) != 21) throw DataFileException("wbsparse v2 header struct has the wrong size, add no-padding directive and recompile: " + sizeof(HeaderV2));
+    if (sizeof(HeaderV2) != 21) throw DataFileException("wbsparse v2 header struct has the wrong size, add no-padding directive and recompile: " + AString::number(sizeof(HeaderV2)));
     file.read(this, sizeof(HeaderV2));
     if (ByteSwapping::isSystemBigEndian())
     {
@@ -191,7 +191,7 @@ void CaretSparseFile::HeaderV2::read(CaretBinaryFile& file)
 void CaretSparseFile::HeaderV2::write(CaretBinaryFile& file) const
 {
     CaretAssert(sizeof(HeaderV2) == 21);
-    if (sizeof(HeaderV2) != 21) throw DataFileException("wbsparse v2 header struct has the wrong size, add no-padding directive and recompile: " + sizeof(HeaderV2));
+    if (sizeof(HeaderV2) != 21) throw DataFileException("wbsparse v2 header struct has the wrong size, add no-padding directive and recompile: " + AString::number(sizeof(HeaderV2)));
     HeaderV2 temp(*this);
     if (ByteSwapping::isSystemBigEndian())
     {
@@ -261,14 +261,13 @@ CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const Cift
         {
             case 1:
                 m_header.minorVersion = -1;
-                ;;
+                break;
             case 2:
                 m_header.minorVersion = 0;
-                ;;
+                break;
             default:
                 CaretAssert(0);
                 throw DataFileException("unknown wbsparse version: " + AString::number(forceVersion));
-                ;;
         }
     }
     switch (m_header.minorVersion)

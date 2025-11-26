@@ -289,10 +289,10 @@ CiftiDenseSparseFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
         CaretAssertArrayIndex(surfaceRGBAOut, (surfaceNumberOfNodes * 4), iNode4);
         
         if (dataIndex >= 0) {
-            CaretAssert(dataIndex < m_loadedRowData.size());
+            CaretAssert(dataIndex < int64_t(m_loadedRowData.size()));
             
             const int64_t data4 = dataIndex * 4;
-            CaretAssertArrayIndex(m_rgba, (m_loadedRowData.size() * 4), dataIndex*4);
+            CaretAssertArrayIndex(m_rgba, int64_t(m_loadedRowData.size() * 4), dataIndex * 4);
             
             surfaceRGBAOut[iNode4]   = m_rgba[data4];
             surfaceRGBAOut[iNode4+1] = m_rgba[data4+1];

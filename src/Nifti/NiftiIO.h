@@ -290,7 +290,7 @@ namespace caret
     TO NiftiIO::clamp(const FROM& in)
     {
         typedef std::numeric_limits<TO> mylimits;
-        if (mylimits::has_infinity && std::isinf(in)) return (TO)in;//in case we use this on float types at some point
+        if (mylimits::has_infinity && std::isinf(TO(in))) return TO(in);//in case we use this on float types at some point
         if (mylimits::max() < in) return mylimits::max();
         if (mylimits::lowest() > in) return mylimits::lowest();
         /*if (mylimits::is_integer)//here is a c++03 solution to missing ::lowest
@@ -299,7 +299,7 @@ namespace caret
         } else {
             if (-mylimits::max() > in) return -mylimits::max();
         }//*/
-        return (TO)in;
+        return TO(in);
     }
 }
 
