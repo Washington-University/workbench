@@ -284,7 +284,7 @@ CaretMappableDataFileClusterFinder::findClustersInFile(const StructureEnum::Enum
     
     std::set<int32_t> labelKeysWithClusters;
     
-    const SurfaceFile* surfaceFile;
+    const SurfaceFile* surfaceFile(NULL);
     CaretPointer<TopologyHelper> topologyHelper;
     switch (m_findMode) {
         case FindMode::CIFTI_DENSE_LABEL:

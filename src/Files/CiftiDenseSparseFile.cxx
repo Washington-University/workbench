@@ -282,8 +282,6 @@ CiftiDenseSparseFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
     
     bool validColorsFlag(false);
     
-    const int64_t dataCount(m_loadedRowData.size());
-    
     for (int32_t iNode = 0; iNode < surfaceNumberOfNodes; iNode++) {
         const int64_t dataIndex(brainModelsMap.getIndexForNode(iNode,
                                                                structure));
@@ -291,10 +289,10 @@ CiftiDenseSparseFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
         CaretAssertArrayIndex(surfaceRGBAOut, (surfaceNumberOfNodes * 4), iNode4);
         
         if (dataIndex >= 0) {
-            CaretAssert(dataIndex < dataCount);
+            CaretAssert(dataIndex < m_loadedRowData.size());
             
             const int64_t data4 = dataIndex * 4;
-            CaretAssertArrayIndex(m_rgba, (dataCount * 4), dataIndex*4);
+            CaretAssertArrayIndex(m_rgba, (m_loadedRowData.size() * 4), dataIndex*4);
             
             surfaceRGBAOut[iNode4]   = m_rgba[data4];
             surfaceRGBAOut[iNode4+1] = m_rgba[data4+1];

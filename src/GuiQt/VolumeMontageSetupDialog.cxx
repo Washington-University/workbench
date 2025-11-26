@@ -136,7 +136,7 @@ VolumeMontageSetupDialog::createMontageInputWidget()
     m_montageInputVolumeSliceAxisComboBox->addItem("Volume's Parasagittal Axis");
     m_montageInputVolumeSliceAxisComboBox->setItemData(m_montageInputVolumeSliceAxisComboBox->count() - 1,
                                                  static_cast<int32_t>(VolumeSliceViewPlaneEnum::PARASAGITTAL));
-    QObject::connect(m_montageInputVolumeSliceAxisComboBox, &QComboBox::activated,
+    QObject::connect(m_montageInputVolumeSliceAxisComboBox, QOverload<int>::of(&QComboBox::activated),
                      this, &VolumeMontageSetupDialog::montageInputVolumeSliceAxisComboBoxValueChanged);
     
 
@@ -826,7 +826,6 @@ VolumeMontageSetupDialog::volumeCoordinateToSliceIndex(const Vector3D& xyz) cons
             
             const int32_t viewPlaneInteger(m_montageInputVolumeSliceAxisComboBox->currentData().toInt());
             const VolumeSliceViewPlaneEnum::Enum slicePlane(VolumeSliceViewPlaneEnum::fromIntegerCode(viewPlaneInteger, NULL));
-            float x(0.0), y(0.0), z(0.0);
             switch (slicePlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     break;

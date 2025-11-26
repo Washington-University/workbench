@@ -941,8 +941,7 @@ HistologySlice::getAxisLabels(const bool flipLeftRightFlag,
     }
     const HistologySliceImage* hsi(getHistologySliceImage(0));
     CaretAssert(hsi);
-    const MediaFile* mediaFile(hsi->getMediaFile());
-    CaretAssert(mediaFile);
+    CaretAssert(hsi->getMediaFile());
     
     /*
      * Get the basis vector.

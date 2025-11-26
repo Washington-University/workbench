@@ -869,7 +869,7 @@ GroupAndNameHierarchyViewController::findTextLineEditTextChanged(const QString& 
  *     Column of click
  */
 void
-GroupAndNameHierarchyViewController::treeItemDoubleClicked(QTreeWidgetItem* item, int column)
+GroupAndNameHierarchyViewController::treeItemDoubleClicked(QTreeWidgetItem* /*item*/, int /*column*/)
 {
 }
 
@@ -881,6 +881,6 @@ GroupAndNameHierarchyViewController::treeItemDoubleClicked(QTreeWidgetItem* item
  *     Column of click
  */
 void
-GroupAndNameHierarchyViewController::treeItemClicked(QTreeWidgetItem* item, int column)
+GroupAndNameHierarchyViewController::treeItemClicked(QTreeWidgetItem* /*item*/, int /*column*/)
 {
 }

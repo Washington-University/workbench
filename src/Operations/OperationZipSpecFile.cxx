@@ -106,7 +106,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
                   skipMissing);
 }
 
-void OperationZipSpecFile::createZipFile(ProgressObject* myProgObj,
+void OperationZipSpecFile::createZipFile(ProgressObject* /*myProgObj*/,
                                          const AString& inputSpecFileName,
                                          const AString& specFileName,
                                          const AString& outputSubDirectory,
