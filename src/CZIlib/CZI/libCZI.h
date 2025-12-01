@@ -394,6 +394,18 @@ namespace libCZI
 		{
 			PyramidLayerInfo	layerInfo;	///< This identifies the pyramid-layer.
 			int					count;		///< The number of sub-blocks which are present in the pyramid-layer.
+            
+            /*
+             * Fix "Your comparator is not a valid strict-weak ordering" assertion failure.
+             */
+            bool operator==(const PyramidLayerStatistics& rhs) const {
+                if ((layerInfo.minificationFactor == rhs.layerInfo.minificationFactor)
+                    && (layerInfo.pyramidLayerNo == rhs.layerInfo.pyramidLayerNo)
+                    && (count == rhs.count)) {
+                    return true;
+                }
+                return false;
+            }
 		};
 
 		/// A map with key "scene-index" and value "list of subblock-counts per pyramid-layer".

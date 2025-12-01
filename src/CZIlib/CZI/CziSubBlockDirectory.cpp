@@ -344,6 +344,14 @@ void CCziSubBlockDirectory::SortPyramidStatistics()
 	{
 		std::sort(v.second.begin(), v.second.end(), [](const PyramidStatistics::PyramidLayerStatistics& a, const PyramidStatistics::PyramidLayerStatistics& b)->bool
 		{
+            /*
+             * Fix "Your comparator is not a valid strict-weak ordering" assertion failure.
+             * Also add operator=() to PyramidLayerStatistics
+             */
+            if (a == b) {
+                return false;
+            }
+            
 			// layer0 always "goes first"
 			if (a.layerInfo.IsLayer0())
 			{
