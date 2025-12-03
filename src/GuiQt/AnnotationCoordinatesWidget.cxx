@@ -49,6 +49,7 @@
 #include "CaretAssert.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlaySet.h"
+#include "CziImageFile.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowContent.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
@@ -558,7 +559,18 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                                                 
                         if (mediaOverlaySet != NULL) {
                             const MediaFile* mediaFile = mediaOverlaySet->getBottomMostMediaFile();
-                            if (mediaFile != NULL) {
+                            const CziImageFile* cziImageFile(mediaFile->castToCziImageFile());
+                            if (cziImageFile != NULL) {
+                                const QRectF rect(cziImageFile->getLogicalBoundsRect());
+                                xMin = rect.left();
+                                yMin = rect.bottom();
+                                xMax = rect.right();
+                                yMax = rect.top();
+                                if (yMin > yMax) {
+                                    std::swap(yMin, yMax);
+                                }
+                            }
+                            else if (mediaFile != NULL) {
                                 xMin = 0;
                                 xMax = mediaFile->getWidth() - 1;
                                 yMin = 0;
