@@ -25,10 +25,14 @@
 #include "CaretObject.h"
 #undef __CARET_OBJECT_DECLARE_H__
 
-#include "CaretOMP.h"
+#include "CaretMutex.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
+
+//TSC: openmp critical sections can't nest even across object files (without names, which were not supported until later)
+//so, let's do it right with a CaretObject-purpose global mutex
+CaretMutex __caret_obj_global_mutex;
 
 /**
  * Constructor.
@@ -60,8 +64,8 @@ CaretObject::~CaretObject()
      * If zero, then the object has already been deleted.
      */
     uint64_t numDeleted;
-#pragma omp critical
     {
+        CaretMutexLocker locked(&__caret_obj_global_mutex);
         numDeleted = CaretObject::allocatedObjects.erase(this);
     }
     if (numDeleted <= 0) {
@@ -86,8 +90,8 @@ CaretObject::initializeMembersCaretObject()
 #ifndef NDEBUG
     SystemBacktrace myBacktrace;
     SystemUtilities::getBackTrace(myBacktrace);
-#pragma omp critical
     {
+        CaretMutexLocker locked(&__caret_obj_global_mutex);
         CaretObject::allocatedObjects.insert(
                 std::make_pair(this,
                                 myBacktrace));
