@@ -50,9 +50,12 @@ OperationParameters* OperationSurfaceGeodesicDistanceAllToAll::getParameters()
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(3, "-roi", "only output distances for vertices inside an ROI");
     roiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
+    roiOpt->createOptionalParameter(2, "-col-only", "only restrict the along-column dimension with the ROI, output entire-surface rows");
     
     OptionalParameter* limitOpt = ret->createOptionalParameter(4, "-limit", "stop at a specified distance");
     limitOpt->addDoubleParameter(1, "limit-mm", "distance in mm to stop at");
+    OptionalParameter* backgroundOpt = limitOpt->createOptionalParameter(2, "-background", "specify a value to set beyond-distance vertices to");
+    backgroundOpt->addDoubleParameter(1, "value", "the value to use (default -1)");
     
     OptionalParameter* corrAreaOpt = ret->createOptionalParameter(5, "-corrected-areas", "vertex areas to use to correct the distances on a group-average surface");
     corrAreaOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
@@ -61,8 +64,8 @@ OperationParameters* OperationSurfaceGeodesicDistanceAllToAll::getParameters()
 
     ret->setHelpText(
         AString("Computes geodesic distance from every vertex to every vertex, outputting a single-hemisphere dconn file.  ") +
-        "If you are only interested in a few vertices, see -surface-geodesic-distance.  " +
-        "When -limit is specified, any vertex beyond the limit is assigned the value -1.\n\n" +
+        "If you are only interested in a few vertices, consider -surface-geodesic-distance.  " +
+        "When -limit is specified, any vertex beyond the limit is assigned the value -1, unless -background is specified.\n\n" +
         "The -roi option makes the output file smaller by not outputting distances to or from vertices outside the ROI, but paths are still allowed to go outside the ROI when finding distances to other vertices.\n\n" +
         "The -corrected-areas option should be used when the input is a group average surface - group average surfaces have " +
         "significantly less surface area than individual surfaces do, and therefore distances measured on them would be smaller than measuring them on individual surfaces.  " +
@@ -79,18 +82,26 @@ void OperationSurfaceGeodesicDistanceAllToAll::useParameters(OperationParameters
     CiftiFile* ciftiOut = myParams->getOutputCifti(2);
     const float* roiData = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(3);
+    bool colOnly = false;
     if (roiOpt->m_present)
     {
         MetricFile* roiMetric = roiOpt->getMetric(1);
         if (roiMetric->getNumberOfNodes() != mySurf->getNumberOfNodes()) throw OperationException("corrected vertex areas metric does not match surface number of vertices");
         roiData = roiMetric->getValuePointerForColumn(0);
+        colOnly = roiOpt->getOptionalParameter(2)->m_present;
     }
     float distLimit = -1.0f;
+    float backgroundVal = -1.0f;
     OptionalParameter* limitOpt = myParams->getOptionalParameter(4);
     if (limitOpt->m_present)
     {
         distLimit = limitOpt->getDouble(1);
         if (!(distLimit > 0.0f)) throw OperationException("<limit-mm> must be positive");
+        OptionalParameter* backgroundOpt = limitOpt->getOptionalParameter(2);
+        if (backgroundOpt->m_present)
+        {
+            backgroundVal = backgroundOpt->getDouble(1);
+        }
     }
     CaretPointer<GeodesicHelperBase> myBase;
     OptionalParameter* corrAreaOpt = myParams->getOptionalParameter(5);
@@ -101,15 +112,21 @@ void OperationSurfaceGeodesicDistanceAllToAll::useParameters(OperationParameters
         myBase.grabNew(new GeodesicHelperBase(mySurf, corrAreas->getValuePointerForColumn(0)));
     }
     bool naive = myParams->getOptionalParameter(6)->m_present;
-    CiftiBrainModelsMap myMap;
+    CiftiBrainModelsMap rowMap, colMap;
     StructureEnum::Enum structure = mySurf->getStructure();
-    myMap.addSurfaceModel(mySurf->getNumberOfNodes(), structure, roiData);
-    int64_t mapLength = myMap.getLength();
-    vector<CiftiBrainModelsMap::SurfaceMap> surfMap = myMap.getSurfaceMap(structure);
+    colMap.addSurfaceModel(mySurf->getNumberOfNodes(), structure, roiData);
+    if (colOnly)
+    {
+        rowMap.addSurfaceModel(mySurf->getNumberOfNodes(), structure);
+    } else {
+        rowMap = colMap;
+    }
+    int64_t rowLength = rowMap.getLength(), colLength = colMap.getLength();
+    vector<CiftiBrainModelsMap::SurfaceMap> surfRowMap = rowMap.getSurfaceMap(structure), surfColMap = colMap.getSurfaceMap(structure);
     CiftiXML myXML;
     myXML.setNumberOfDimensions(2);
-    myXML.setMap(CiftiXML::ALONG_ROW, myMap);
-    myXML.setMap(CiftiXML::ALONG_COLUMN, myMap);
+    myXML.setMap(CiftiXML::ALONG_ROW, rowMap);
+    myXML.setMap(CiftiXML::ALONG_COLUMN, colMap);
     ciftiOut->setCiftiXML(myXML);
 #pragma omp CARET_PAR
     {
@@ -121,23 +138,23 @@ void OperationSurfaceGeodesicDistanceAllToAll::useParameters(OperationParameters
             privHelper = mySurf->getGeodesicHelper();
         }
 #pragma omp CARET_FOR schedule(dynamic)
-        for (int64_t i = 0; i < mapLength; ++i)
+        for (int64_t i = 0; i < colLength; ++i)
         {
-            vector<float> outRow(mapLength, -1.0f), outDists;
+            vector<float> outRow(rowLength, backgroundVal), outDists;
             vector<int32_t> outNodes;
             if (distLimit > 0.0f)
             {
-                privHelper->getNodesToGeoDist(surfMap[i].m_surfaceNode, distLimit, outNodes, outDists, !naive);
+                privHelper->getNodesToGeoDist(surfColMap[i].m_surfaceNode, distLimit, outNodes, outDists, !naive);
                 for (int j = 0; j < int(outNodes.size()); ++j)
                 {
-                    int64_t index = myMap.getIndexForNode(outNodes[j], structure);//-1 if outside ROI
+                    int64_t index = rowMap.getIndexForNode(outNodes[j], structure);//-1 if outside ROI
                     if (index >= 0) outRow[index] = outDists[j];
                 }
             } else {
-                privHelper->getGeoFromNode(surfMap[i].m_surfaceNode, outDists, !naive);
-                for (int64_t j = 0; j < mapLength; ++j)
+                privHelper->getGeoFromNode(surfColMap[i].m_surfaceNode, outDists, !naive);
+                for (int64_t j = 0; j < rowLength; ++j)
                 {
-                    outRow[j] = outDists[surfMap[j].m_surfaceNode];
+                    outRow[j] = outDists[surfRowMap[j].m_surfaceNode];
                 }
             }
 #pragma omp critical
