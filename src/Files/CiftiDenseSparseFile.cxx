@@ -907,7 +907,7 @@ CiftiDenseSparseFile::readFile(const AString& filename)
         if (numDims >= 2) {
             m_fileNumberOfRows = ciftiXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
             m_fileNumberOfColumns = ciftiXML.getDimensionLength(CiftiXML::ALONG_ROW);
-            if ((m_fileNumberOfRows * m_fileNumberOfColumns) <= 0) {
+            if (m_fileNumberOfRows <= 0 || m_fileNumberOfColumns <= 0) {
                 throw DataFileException("File dimensions invalid.  Rows="
                                         + AString::number(m_fileNumberOfRows)
                                         + ", Cols="
