@@ -20,6 +20,8 @@
 
 #include "OperationProbtrackXDotConvert.h"
 #include "OperationException.h"
+
+#include "CaretCommandGlobalOptions.h"
 #include "CaretLogger.h"
 #include "CaretPointer.h"
 #include "CaretSparseFile.h"
@@ -284,6 +286,7 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     } else {
         myCiftiOut.setCiftiXML(myXML);
         myCiftiOut.setWritingFile(outFileName);
+        caret_global_command_options.applyOptions(&myCiftiOut);
     }
     int64_t cur = 0, end = (int64_t)dotFileContents.size();
     vector<float> scratchRow(rowSize, 0.0f);

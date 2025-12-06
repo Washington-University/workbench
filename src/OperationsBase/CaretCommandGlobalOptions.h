@@ -25,6 +25,9 @@
 
 #include <cstdint>
 
+#include "CiftiFile.h"
+#include "VolumeFile.h"
+
 namespace caret {
 
     struct CommandGlobalOptions
@@ -36,6 +39,26 @@ namespace caret {
         bool m_volumeScale = false, m_ciftiScale = false;
         float m_volumeMin = -1.0f, m_volumeMax = -1.0f;//these values won't get used, but don't leave them uninitialized
         float m_ciftiMin = -1.0f, m_ciftiMax = -1.0f;
+        
+        void applyOptions(CiftiFile* output)
+        {
+            if (m_ciftiScale)
+            {
+                output->setWritingDataTypeAndScaling(m_ciftiDType, m_ciftiMin, m_ciftiMax);
+            } else {
+                output->setWritingDataTypeNoScaling(m_ciftiDType);
+            }
+        }
+        
+        void applyOptions(VolumeFile* output)
+        {
+            if (m_volumeScale)
+            {
+                output->setWritingDataTypeAndScaling(m_volumeDType, m_volumeMin, m_volumeMax);
+            } else {
+                output->setWritingDataTypeNoScaling(m_volumeDType);
+            }
+        }
     };
 
     extern CommandGlobalOptions caret_global_command_options;
