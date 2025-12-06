@@ -21,8 +21,10 @@
 #include "OperationConvertMatrix4ToMatrix2.h"
 #include "OperationException.h"
 
-#include "CiftiFile.h"
+#include "CaretCommandGlobalOptions.h"
+#include "CaretPointer.h"
 #include "CaretSparseFile.h"
+#include "CiftiFile.h"
 
 using namespace caret;
 using namespace std;
@@ -42,15 +44,17 @@ OperationParameters* OperationConvertMatrix4ToMatrix2::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addStringParameter(1, "matrix4-wbsparse", "a wbsparse matrix4 file");
     
-    ret->addCiftiOutputParameter(2, "counts-out", "the total fiber counts, as a cifti file");
+    ret->addStringParameter(2, "counts-out", "output - the total fiber counts");//HACK: fake the output formatting
+    
+    ret->createOptionalParameter(5, "-wbsparse", "write all outputs as .wbsparse files, not cifti");
     
     OptionalParameter* distanceOpt = ret->createOptionalParameter(3, "-distances", "output average trajectory distance");
-    distanceOpt->addCiftiOutputParameter(1, "distance-out", "the distances, as a cifti file");
+    distanceOpt->addStringParameter(1, "distance-out", "the distances");
     
     OptionalParameter* fibersOpt = ret->createOptionalParameter(4, "-individual-fibers", "output files for each fiber direction");
-    fibersOpt->addCiftiOutputParameter(1, "fiber-1", "output file for first fiber");
-    fibersOpt->addCiftiOutputParameter(2, "fiber-2", "output file for second fiber");
-    fibersOpt->addCiftiOutputParameter(3, "fiber-3", "output file for third fiber");
+    fibersOpt->addStringParameter(1, "fiber-1", "output - output file for first fiber");
+    fibersOpt->addStringParameter(2, "fiber-2", "output - output file for second fiber");
+    fibersOpt->addStringParameter(3, "fiber-3", "output - output file for third fiber");
     
     ret->setHelpText(
         AString("This command makes a cifti file from the fiber counts in a matrix4 wbsparse file, and optionally a second cifti file from the distances.  ") +
@@ -63,30 +67,61 @@ void OperationConvertMatrix4ToMatrix2::useParameters(OperationParameters* myPara
 {
     LevelProgress myProgress(myProgObj);
     AString matrix4Name = myParams->getString(1);
-    CiftiFile* myCountsOut = myParams->getOutputCifti(2);
-    CiftiFile* myDistOut = NULL;
+    AString myCountsOutName = myParams->getString(2);
+    AString myDistOutName;
+    bool writeDist = false, writeFibers = false;
     OptionalParameter* distanceOpt = myParams->getOptionalParameter(3);
     if (distanceOpt->m_present)
     {
-        myDistOut = distanceOpt->getOutputCifti(1);
+        myDistOutName = distanceOpt->getString(1);
+        writeDist = true;
     }
-    CiftiFile* fiber1 = NULL, *fiber2 = NULL, *fiber3 = NULL;
+    AString fiber1Name, fiber2Name, fiber3Name;
     OptionalParameter* fibersOpt = myParams->getOptionalParameter(4);
     if (fibersOpt->m_present)
     {
-        fiber1 = fibersOpt->getOutputCifti(1);
-        fiber2 = fibersOpt->getOutputCifti(2);
-        fiber3 = fibersOpt->getOutputCifti(3);
+        fiber1Name = fibersOpt->getString(1);
+        fiber2Name = fibersOpt->getString(2);
+        fiber3Name = fibersOpt->getString(3);
+        writeFibers = true;
     }
+    bool wbsparseOut = myParams->getOptionalParameter(5)->m_present;
     CaretSparseFile matrix4(matrix4Name);
     const CiftiXML& myXML = matrix4.getCiftiXML();
-    myCountsOut->setCiftiXML(myXML);
-    if (myDistOut != NULL) myDistOut->setCiftiXML(myXML);
-    if (fiber1 != NULL)
+    CiftiFile myCountsOutCifti, myDistOutCifti, fiber1Cifti, fiber2Cifti, fiber3Cifti;
+    CaretPointer<CaretSparseFileWriter> myCountsOutSparse, myDistOutSparse, fiber1Sparse, fiber2Sparse, fiber3Sparse;
+    if (wbsparseOut)
     {
-        fiber1->setCiftiXML(myXML);
-        fiber2->setCiftiXML(myXML);
-        fiber3->setCiftiXML(myXML);
+        myCountsOutSparse.grabNew(new CaretSparseFileWriter(myCountsOutName, myXML, CaretSparseFile::Float32));
+        if (writeDist) myDistOutSparse.grabNew(new CaretSparseFileWriter(myDistOutName, myXML, CaretSparseFile::Float32));
+        if (writeFibers)
+        {
+            fiber1Sparse.grabNew(new CaretSparseFileWriter(fiber1Name, myXML, CaretSparseFile::Float32));
+            fiber2Sparse.grabNew(new CaretSparseFileWriter(fiber2Name, myXML, CaretSparseFile::Float32));
+            fiber3Sparse.grabNew(new CaretSparseFileWriter(fiber3Name, myXML, CaretSparseFile::Float32));
+        }
+    } else {
+        myCountsOutCifti.setCiftiXML(myXML);
+        myCountsOutCifti.setWritingFile(myCountsOutName);
+        caret_global_command_options.applyOptions(&myCountsOutCifti);
+        if (writeDist)
+        {
+            myDistOutCifti.setCiftiXML(myXML);
+            myDistOutCifti.setWritingFile(myDistOutName);
+            caret_global_command_options.applyOptions(&myDistOutCifti);
+        }
+        if (writeFibers)
+        {
+            fiber1Cifti.setCiftiXML(myXML);
+            fiber1Cifti.setWritingFile(fiber1Name);
+            caret_global_command_options.applyOptions(&fiber1Cifti);
+            fiber2Cifti.setCiftiXML(myXML);
+            fiber2Cifti.setWritingFile(fiber2Name);
+            caret_global_command_options.applyOptions(&fiber2Cifti);
+            fiber3Cifti.setCiftiXML(myXML);
+            fiber3Cifti.setWritingFile(fiber3Name);
+            caret_global_command_options.applyOptions(&fiber3Cifti);
+        }
     }
     int rowSize = myXML.getDimensionLength(CiftiXML::ALONG_ROW), numRows = myXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
     for (int i = 0; i < numRows; ++i)
@@ -100,7 +135,7 @@ void OperationConvertMatrix4ToMatrix2::useParameters(OperationParameters* myPara
         for (int j = 0; j < numIndices; ++j)
         {
             scratchRow[indices[j]] = fibers[j].totalCount;
-            if (fiber1 != NULL)
+            if (writeFibers)
             {
                 CaretAssert(fibers[j].fiberFractions.size() == 3);
                 scratchFiber1[indices[j]] = fibers[j].totalCount * fibers[j].fiberFractions[0];
@@ -108,20 +143,37 @@ void OperationConvertMatrix4ToMatrix2::useParameters(OperationParameters* myPara
                 scratchFiber3[indices[j]] = fibers[j].totalCount * fibers[j].fiberFractions[2];
             }
         }
-        myCountsOut->setRow(scratchRow.data(), i);
-        if (fiber1 != NULL)
+        if (wbsparseOut)
         {
-            fiber1->setRow(scratchFiber1.data(), i);
-            fiber2->setRow(scratchFiber2.data(), i);
-            fiber3->setRow(scratchFiber3.data(), i);
+            myCountsOutSparse->writeRow(i, scratchRow.data());
+        } else {
+            myCountsOutCifti.setRow(scratchRow.data(), i);
         }
-        if (myDistOut != NULL)
+        if (writeFibers)
+        {
+            if (wbsparseOut)
+            {
+                fiber1Sparse->writeRow(i, scratchFiber1.data());
+                fiber2Sparse->writeRow(i, scratchFiber2.data());
+                fiber3Sparse->writeRow(i, scratchFiber3.data());
+            } else {
+                fiber1Cifti.setRow(scratchFiber1.data(), i);
+                fiber2Cifti.setRow(scratchFiber2.data(), i);
+                fiber3Cifti.setRow(scratchFiber3.data(), i);
+            }
+        }
+        if (writeDist)
         {
             for (int j = 0; j < numIndices; ++j)
             {
                 scratchRow[indices[j]] = fibers[j].distance;
             }
-            myDistOut->setRow(scratchRow.data(), i);
+            if (wbsparseOut)
+            {
+                myDistOutSparse->writeRow(i, scratchRow.data());
+            } else {
+                myDistOutCifti.setRow(scratchRow.data(), i);
+            }
         }
     }
 }
