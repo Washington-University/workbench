@@ -5588,6 +5588,24 @@ Brain::getAllAnnotationFilesExcludingSceneAnnotationFile(std::vector<AnnotationF
 }
 
 /**
+ * @return All NON-empty CZI annotation files
+ */
+std::vector<AnnotationFile*>
+Brain::getAllCziAnnotationFiles() const
+{
+    std::vector<AnnotationFile*> annotationFilesOut;
+    std::vector<CziImageFile*> cziFiles(getAllCziImageFiles());
+    for (CziImageFile* cf : cziFiles) {
+        AnnotationFile* af(cf->getAnnotationFile());
+        if (af != NULL) {
+            if ( ! af->isEmpty()) {
+                annotationFilesOut.push_back(af);
+            }
+        }
+    }
+    return annotationFilesOut;
+}
+/**
  * @return The annotation file associated with the current scene.
  */
 AnnotationFile*

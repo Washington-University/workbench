@@ -27,6 +27,7 @@
 
 #include <QRectF>
 
+#include "AnnotationFile.h"
 #include "BrainConstants.h"
 #include "CziImage.h"
 #include "CziImageResolutionChangeModeEnum.h"
@@ -180,7 +181,8 @@ namespace caret {
                                           std::shared_ptr<CziNonLinearTransform>& toStereotaxicNonLinearTransform,
                                           std::shared_ptr<CziNonLinearTransform>& fromStereotaxicNonLinearTransform) override;
         
-
+        AnnotationFile* getAnnotationFile();
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -466,6 +468,10 @@ namespace caret {
         mutable bool m_imagePlaneInvalid = false;
         
         int32_t m_maximumImageDimension = 2048;
+        
+        AString m_metadataXmlText;
+        
+        std::unique_ptr<AnnotationFile> m_annotationFile;
         
         static const int32_t s_allFramesIndex;
         

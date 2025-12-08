@@ -171,7 +171,7 @@ namespace caret {
         
         void finishRestorationOfScene();
         
-        int32_t getRowIndexFromSurfaceVertex(const StructureEnum::Enum surfaceStrucure,
+        int64_t getRowIndexFromSurfaceVertex(const StructureEnum::Enum surfaceStrucure,
                                              const int32_t surfaceNumberOfNodes,
                                              const int32_t nodeIndex) const;
 
@@ -235,7 +235,7 @@ namespace caret {
     private:
         bool loadRowsForAveraging(const std::vector<int64_t>& rowIndices);
         
-        FunctionResult loadDataForRowIndexPrivate(const int32_t rowIndex,
+        FunctionResult loadDataForRowIndexPrivate(const int64_t rowIndex,
                                                   std::vector<float>& dataOut) const;
         
         bool getThresholdData(const CaretMappableDataFile* threshMapFile,
@@ -279,9 +279,9 @@ namespace caret {
         
         bool m_rgbaValidFlag = false;
         
-        int32_t m_fileNumberOfRows = 0;
+        int64_t m_fileNumberOfRows = 0;
         
-        int32_t m_fileNumberOfColumns = 0;
+        int64_t m_fileNumberOfColumns = 0;
         
         bool m_enabledAsLayerFlag = true;
         

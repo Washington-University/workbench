@@ -1196,7 +1196,7 @@ CiftiDenseSparseFile::getBrainordinateFromRowIndex(const int64_t rowIndex,
  * @param nodeIndex
  *    The node index
  */
-int32_t
+int64_t
 CiftiDenseSparseFile::getRowIndexFromSurfaceVertex(const StructureEnum::Enum surfaceStrucure,
                                                    const int32_t surfaceNumberOfNodes,
                                                    const int32_t nodeIndex) const
@@ -1462,7 +1462,7 @@ CiftiDenseSparseFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndice
     std::vector<float> rowDataSum(rowLength, 0.0);
     std::vector<float> rowData(rowLength, 0.0);
     
-    for (int32_t rowIndex : rowIndices) {
+    for (int64_t rowIndex : rowIndices) {
         if (rowIndex > 0) {
             const FunctionResult loadRowResult(loadDataForRowIndexPrivate(rowIndex,
                                                                           rowData));
@@ -1659,7 +1659,7 @@ CiftiDenseSparseFile::loadDataForColumnIndex(const int64_t /*columnIndex*/)
  *    Function result with ok/error and error message
  */
 FunctionResult
-CiftiDenseSparseFile::loadDataForRowIndexPrivate(const int32_t rowIndex,
+CiftiDenseSparseFile::loadDataForRowIndexPrivate(const int64_t rowIndex,
                                                  std::vector<float>& dataOut) const
 {
     if ((rowIndex < 0)

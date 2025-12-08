@@ -55,6 +55,7 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
+#include "CziImageFile.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "DisplayPropertiesSamples.h"
@@ -974,6 +975,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
         case DrawingDataType::ANNOTATIONS:
             if (drawAnnotationsFromFilesFlag) {
                 m_inputs->m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+                
+                std::vector<AnnotationFile*> cziAnnFiles(m_inputs->m_brain->getAllCziAnnotationFiles());
+                for (AnnotationFile* af : cziAnnFiles) {
+                    allAnnotationFiles.push_back(af);
+                }
             }
             break;
         case DrawingDataType::INVALID:
@@ -3615,6 +3621,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     
     const float majorAxis     = ((oval->getWidth()  / 100.0f) * (m_modelSpaceViewport[2] / 2.0f));
     const float minorAxis     = ((oval->getHeight() / 100.0f) * (m_modelSpaceViewport[3] / 2.0f));
+    
     const float rotationAngle = oval->getRotationAngle();
     
     if (oval->getLineWidthPercentage() <= 0.0) {

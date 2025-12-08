@@ -73,6 +73,8 @@ namespace caret {
         
         int32_t indexNotOf(const QChar& ch) const;
         
+        bool isNotEmpty() const;
+        
         void appendWithNewLine(const AString& str);
         
         int64_t countMatchingCharactersFromEnd(const AString& rhs) const;

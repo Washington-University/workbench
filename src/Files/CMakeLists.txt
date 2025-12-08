@@ -109,6 +109,7 @@ ControlPointFile.h
 CziDistanceFile.h
 CziImage.h
 CziImageFile.h
+CziImageFileMetaDataXmlReader.h
 CziImageLoaderBase.h
 CziImageLoaderMultiResolution.h
 CziImageResolutionChangeModeEnum.h
@@ -308,6 +309,7 @@ ControlPointFile.cxx
 CziDistanceFile.cxx
 CziImage.cxx
 CziImageFile.cxx
+CziImageFileMetaDataXmlReader.cxx
 CziImageLoaderBase.cxx
 CziImageLoaderMultiResolution.cxx
 CziImageResolutionChangeModeEnum.cxx

@@ -167,6 +167,8 @@ namespace caret {
         
         const AnnotationFile* getSceneAnnotationFile() const;
         
+        std::vector<AnnotationFile*> getAllCziAnnotationFiles() const;
+        
         void getAnnotationTextSubstitutionFiles(std::vector<AnnotationTextSubstitutionFile*>& annSubFilesOut) const;
         
         const std::vector<CziImageFile*> getAllCziImageFiles() const;

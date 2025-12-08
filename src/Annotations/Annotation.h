@@ -267,6 +267,8 @@ namespace caret {
         
         AString getNameForGraphicsDrawing() const;
         
+        void setCziName(const AString& cziName);
+        
         void replaceWithCopyOfAnnotation(const Annotation* annotation);
         
         QString getShortDescriptiveString() const;
@@ -571,6 +573,8 @@ namespace caret {
         float m_lineWidthPercentage = -1.0f;
         
         AString m_name;
+        
+        AString m_cziName;
         
         /*
          * Shared pointer is used because a related pair of retrospective

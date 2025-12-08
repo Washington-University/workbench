@@ -30,12 +30,14 @@
 #include <QImage>
 #include <QImageWriter>
 
+#include "AnnotationFile.h"
 #include "BackgroundAndForegroundColors.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CziImage.h"
+#include "CziImageFileMetaDataXmlReader.h"
 #include "CziImageLoaderMultiResolution.h"
 #include "CziUtilities.h"
 #include "DataFileContentInformation.h"
@@ -151,6 +153,7 @@ CziImageFile::resetPrivate()
     }
     
     resetMatrices();
+    m_annotationFile.reset();
 }
 
 /**
@@ -429,6 +432,20 @@ CziImageFile::readFile(const AString& filename)
             return;
         }
         
+        std::cout << "XML" << std::endl;
+//        std::cout << m_metadataXmlText << std::endl;
+        
+        CziImageFileMetaDataXmlReader xmlReader;
+        FunctionResultValue<AnnotationFile*> result
+        = xmlReader.readXmlFromString(this,
+                                      m_metadataXmlText);
+        if (result.isOk()) {
+            m_annotationFile.reset(result.getValue());
+        }
+        else {
+            CaretLogSevere(result.getErrorMessage());
+        }
+
         /*
          * File is now open
          */
@@ -483,6 +500,8 @@ CziImageFile::readMetaData()
                 
                 m_displaySettings = docInfo->GetDisplaySettings();
             }
+            
+            m_metadataXmlText = metadata->GetXml();
         }
     }
 }
@@ -2678,6 +2697,15 @@ CziImageFile::setTransformMatrices(const Matrix4x4& scaledToPlaneMatrix,
         }
     }
 
+}
+
+/**
+ * @return Annotation file containing annotations from this file MAY BE NULL !
+ */
+AnnotationFile*
+CziImageFile::getAnnotationFile()
+{
+    return m_annotationFile.get();
 }
 
 /**

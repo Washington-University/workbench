@@ -931,6 +931,15 @@ AString::indexNotOf(const QChar& ch) const
 }
 
 /**
+ * @returns True if the string contains characters (opposite of isEmpty()).
+ */
+bool
+AString::isNotEmpty() const
+{
+    return ( ! isEmpty());
+}
+
+/**
  * Return a 'C' char array containing the value
  * of the string.  This method is necessary since
  * on an instance of Ubuntu Linux, an invalid ASCII

@@ -177,6 +177,7 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
      */
     m_uniqueKey = -1;
     m_name = "";
+    m_cziName = obj.m_cziName;
     //setUniqueKey(m_uniqueKey); calling this will cause a crash since we could be in copy constructor and subclass has not been constructed
     
     /*
@@ -2236,6 +2237,10 @@ Annotation::getName() const
             break;
     }
 
+    if (m_cziName.isNotEmpty()) {
+        nameOut.append(" CZI=" + m_cziName);
+    }
+    
     return nameOut;
 }
 
@@ -2305,6 +2310,18 @@ Annotation::getNameForGraphicsDrawing() const
     
     return nameOut;
 }
+
+/**
+ * Set the CZI name for annotations imported from CZI files
+ * @param cziName
+ *    Name from CZI
+ */
+void
+Annotation::setCziName(const AString& cziName)
+{
+    m_cziName = cziName;
+}
+
 
 /**
  * Called by text annotation to reset the name
