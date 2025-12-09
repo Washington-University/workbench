@@ -43,10 +43,8 @@ OperationParameters* OperationConvertMatrix4ToMatrix2::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addStringParameter(1, "matrix4-wbsparse", "a wbsparse matrix4 file");
-    
+    ret->addStringParameter(5, "format", "WBSPARSE or CIFTI, to set the type of output files - WBSPARSE produces smaller files but has less compatibility");
     ret->addStringParameter(2, "counts-out", "output - the total fiber counts");//HACK: fake the output formatting
-    
-    ret->createOptionalParameter(5, "-wbsparse", "write all outputs as .wbsparse files, not cifti");
     
     OptionalParameter* distanceOpt = ret->createOptionalParameter(3, "-distances", "output average trajectory distance");
     distanceOpt->addStringParameter(1, "distance-out", "the distances");
@@ -67,6 +65,7 @@ void OperationConvertMatrix4ToMatrix2::useParameters(OperationParameters* myPara
 {
     LevelProgress myProgress(myProgObj);
     AString matrix4Name = myParams->getString(1);
+    AString outFormatName = myParams->getString(5);
     AString myCountsOutName = myParams->getString(2);
     AString myDistOutName;
     bool writeDist = false, writeFibers = false;
@@ -85,7 +84,13 @@ void OperationConvertMatrix4ToMatrix2::useParameters(OperationParameters* myPara
         fiber3Name = fibersOpt->getString(3);
         writeFibers = true;
     }
-    bool wbsparseOut = myParams->getOptionalParameter(5)->m_present;
+    bool wbsparseOut = false;
+    if (outFormatName == "WBSPARSE")
+    {
+        wbsparseOut = true;
+    } else {
+        if (outFormatName != "CIFTI") throw OperationException("unknown format specifier '" + outFormatName + "', use WBSPARSE or CIFTI");
+    }
     CaretSparseFile matrix4(matrix4Name);
     const CiftiXML& myXML = matrix4.getCiftiXML();
     CiftiFile myCountsOutCifti, myDistOutCifti, fiber1Cifti, fiber2Cifti, fiber3Cifti;

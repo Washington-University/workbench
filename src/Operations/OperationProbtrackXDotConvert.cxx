@@ -63,9 +63,8 @@ OperationParameters* OperationProbtrackXDotConvert::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addStringParameter(1, "dot-file", "input .dot file");
+    ret->addStringParameter(11, "format", "WBSPARSE or CIFTI, to set the type of output files - WBSPARSE produces smaller files but has less compatibility");
     ret->addStringParameter(2, "file-out", "output - output cifti or wbsparse file"); //HACK: fake the output formatting
-    
-    ret->createOptionalParameter(11, "-wbsparse", "write output as a .wbsparse file, not cifti");
     
     OptionalParameter* rowVoxelOpt = ret->createOptionalParameter(3, "-row-voxels", "the output mapping along a row will be voxels");
     rowVoxelOpt->addStringParameter(1, "voxel-list-file", "a text file containing IJK indices for the voxels used");
@@ -113,6 +112,7 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
 {
     LevelProgress myProgress(myProgObj);
     AString dotFileName = myParams->getString(1);
+    AString outFormatName = myParams->getString(11);
     AString outFileName = myParams->getString(2);
     OptionalParameter* rowVoxelOpt = myParams->getOptionalParameter(3);
     OptionalParameter* rowSurfaceOpt = myParams->getOptionalParameter(4);
@@ -122,7 +122,13 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     OptionalParameter* colCiftiOpt = myParams->getOptionalParameter(10);
     bool transpose = myParams->getOptionalParameter(7)->m_present;
     bool halfMatrix = myParams->getOptionalParameter(8)->m_present;
-    bool outIsSparse = myParams->getOptionalParameter(11)->m_present;
+    bool outIsSparse = false;
+    if (outFormatName == "WBSPARSE")
+    {
+        outIsSparse = true;
+    } else {
+        if (outFormatName != "CIFTI") throw OperationException("unknown format specifier '" + outFormatName + "', use WBSPARSE or CIFTI");
+    }
     int numRowOpts = 0, numColOpts = 0;
     if (rowVoxelOpt->m_present) ++numRowOpts;
     if (rowSurfaceOpt->m_present) ++numRowOpts;
