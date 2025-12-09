@@ -41,6 +41,7 @@ namespace caret {
 
     class Brain;
     class BrowserTabContent;
+    class CiftiDenseSparseFile;
     class CiftiMappableDataFile;
     class Matrix4x4;
     class ModelVolume;
@@ -88,6 +89,7 @@ namespace caret {
                 INVALID,
                 CIFTI_LABEL,
                 CIFTI_PALETTE,
+                SPARSE_PALETTE,
                 VOLUME_LABEL,
                 VOLUME_PALETTE,
                 VOLUME_RGB,
@@ -163,6 +165,8 @@ namespace caret {
             
             CiftiMappableDataFile* m_ciftiMappableFile = NULL;
             
+            CiftiDenseSparseFile* m_denseSparseFile = NULL;
+            
             VolumeFile* m_volumeFile = NULL;
             
             const VolumeFile* m_modulationVolumeFile = NULL;
@@ -174,6 +178,8 @@ namespace caret {
             CiftiMappableDataFile* m_thresholdCiftiMappableFile = NULL;
             
             VolumeFile* m_thresholdVolumeFile = NULL;
+            
+            CiftiDenseSparseFile* m_thresholdDenseSparseFile = NULL;
             
             PaletteColorMapping* m_thresholdPaletteColorMapping = NULL;
             

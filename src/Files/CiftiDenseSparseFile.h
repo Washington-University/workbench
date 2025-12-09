@@ -23,6 +23,7 @@
 
 #include <memory>
 
+#include "BoundingBox.h"
 #include "BrainConstants.h"
 #include "CaretMappableDataFile.h"
 #include "CaretSparseFile.h"
@@ -30,14 +31,21 @@
 #include "DisplayGroupEnum.h"
 #include "FunctionResult.h"
 #include "SceneClassAssistant.h"
+#include "VolumeMappableInterface.h"
 #include "VoxelIJK.h"
 
 namespace caret {
     
+    class CiftiBrainModelsMap;
     class ConnectivityDataLoaded;
     class CiftiBrainordinateScalarFile;
-    
-    class CiftiDenseSparseFile : public CaretMappableDataFile, public CiftiFileDynamicLoadingInterface {
+    class GraphicsPrimitiveV3fC4f;
+    class VolumeGraphicsPrimitiveManager;
+
+    class CiftiDenseSparseFile :
+    public CaretMappableDataFile,
+    public CiftiFileDynamicLoadingInterface,
+    public VolumeMappableInterface {
         
     public:
         CiftiDenseSparseFile();
@@ -175,6 +183,8 @@ namespace caret {
                                              const int32_t surfaceNumberOfNodes,
                                              const int32_t nodeIndex) const;
 
+        int64_t getRowIndexFromVolumeXYZ(const Vector3D& xyz) const;
+        
         virtual bool getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                          const StructureEnum::Enum structure,
                                                          const int nodeIndex,
@@ -183,10 +193,14 @@ namespace caret {
                                                          const int32_t digitsRightOfDecimal,
                                                          AString& textOut) const override;
         
-        bool supportsWriting() const;
+        virtual bool getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
+                                                         const float xyz[3],
+                                                         const AString& dataValueSeparator,
+                                                         const int32_t digitsRightOfDecimal,
+                                                         int64_t ijkOut[3],
+                                                         AString& textOut) const override;
         
-//        CiftiBrainordinateScalarFile* newCiftiScalarFileFromLoadedRowData(const AString& destinationDirectory,
-//                                                                          AString& errorMessageOut) const;
+        bool supportsWriting() const;
         
         void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
@@ -219,6 +233,142 @@ namespace caret {
         bool getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
                                                              const int64_t surfaceNumberOfNodes,
                                                              std::vector<int64_t>& dataIndicesForNodes) const;
+
+        virtual CaretMappableDataFile* castToVolumeMappableDataFile() override;
+        
+        virtual const CaretMappableDataFile* castToVolumeMappableDataFile() const override;
+        
+        virtual void getDimensions(int64_t& dimOut1,
+                                   int64_t& dimOut2,
+                                   int64_t& dimOut3,
+                                   int64_t& dimTimeOut,
+                                   int64_t& numComponents) const override;
+        
+        virtual void getDimensions(std::vector<int64_t>& dimsOut) const override;
+        
+        virtual const int64_t& getNumberOfComponents() const override;
+        
+        virtual float getVoxelValue(const float* coordinateIn,
+                                    bool* validOut = NULL,
+                                    const int64_t mapIndex = 0,
+                                    const int64_t component = 0) const override;
+        
+        virtual float getVoxelValue(const float coordinateX,
+                                    const float coordinateY,
+                                    const float coordinateZ,
+                                    bool* validOut = NULL,
+                                    const int64_t mapIndex = 0,
+                                    const int64_t component = 0) const override;
+        
+        virtual void indexToSpace(const float& indexIn1,
+                                  const float& indexIn2,
+                                  const float& indexIn3,
+                                  float& coordOut1,
+                                  float& coordOut2,
+                                  float& coordOut3) const override;
+        
+        virtual void indexToSpace(const float& indexIn1,
+                                  const float& indexIn2,
+                                  const float& indexIn3,
+                                  float* coordOut) const override;
+                
+        virtual void indexToSpace(const int64_t* indexIn,
+                                  float* coordOut) const override;
+        
+        Vector3D indexToSpace(const int64_t ijk[3]) const;
+        
+        virtual void enclosingVoxel(const float& coordIn1,
+                                    const float& coordIn2,
+                                    const float& coordIn3,
+                                    int64_t& indexOut1,
+                                    int64_t& indexOut2,
+                                    int64_t& indexOut3) const override;
+        
+        virtual void enclosingVoxel(const float* coordIn,
+                                    int64_t* indexOut) const override;
+        
+        virtual bool indexValid(const int64_t& indexIn1,
+                                const int64_t& indexIn2,
+                                const int64_t& indexIn3,
+                                const int64_t brickIndex = 0,
+                                const int64_t component = 0) const override;
+        
+        virtual bool indexValid(const int64_t* indexIn,
+                                const int64_t brickIndex = 0,
+                                const int64_t component = 0) const override;
+        
+        virtual void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const override;
+        
+        virtual void getNonZeroVoxelCoordinateBoundingBox(const int32_t mapIndex,
+                                                          BoundingBox& boundingBoxOut) const override;
+        
+        virtual int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                                    const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                    const int64_t sliceIndex,
+                                                    const TabDrawingInfo& tabDrawingInfo,
+                                                    uint8_t* rgbaOut) const override;
+        
+        virtual int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                                    const int64_t firstVoxelIJK[3],
+                                                    const int64_t rowStepIJK[3],
+                                                    const int64_t columnStepIJK[3],
+                                                    const int64_t numberOfRows,
+                                                    const int64_t numberOfColumns,
+                                                    const TabDrawingInfo& tabDrawingInfo,
+                                                    uint8_t* rgbaOut) const override;
+        
+        virtual int64_t getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
+                                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                       const int64_t sliceIndex,
+                                                       const int64_t firstCornerVoxelIndex[3],
+                                                       const int64_t lastCornerVoxelIndex[3],
+                                                       const int64_t voxelCountIJK[3],
+                                                       const TabDrawingInfo& tabDrawingInfo,
+                                                       uint8_t* rgbaOut) const override;
+        
+        virtual void getVoxelColorInMap(const int64_t indexIn1,
+                                        const int64_t indexIn2,
+                                        const int64_t indexIn3,
+                                        const int64_t brickIndex,
+                                        const TabDrawingInfo& tabDrawingInfo,
+                                        uint8_t rgbaOut[4]) const override;
+        
+        virtual void getVoxelColorInMap(const int64_t indexIn1,
+                                        const int64_t indexIn2,
+                                        const int64_t indexIn3,
+                                        const int64_t tabIndex,
+                                        uint8_t rgbaOut[4]) const override;
+        
+        virtual GraphicsPrimitiveV3fT2f* getSingleSliceVolumeDrawingPrimitive(const int32_t mapIndex,
+                                                                              const TabDrawingInfo& tabDrawingInfo) const override;
+        
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
+                                                                                const TabDrawingInfo& tabDrawingInfo) const override;
+        
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
+                                                                              const TabDrawingInfo& tabDrawingInfo) const override;
+        
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
+                                                                            const TabDrawingInfo& tabDrawingInfo) const override;
+        
+        virtual GraphicsPrimitive* getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
+                                                                          const TabDrawingInfo& tabDrawingInfo,
+                                                                          const MediaFile* mediaFile,
+                                                                          const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                          const float volumeSliceThickness,
+                                                                          AString& errorMessageOut) const override;
+        
+        virtual std::vector<GraphicsPrimitive*> getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
+                                                                                       const TabDrawingInfo& tabDrawingInfo,
+                                                                                       const HistologySlice* histologySlice,
+                                                                                       const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                                       const float volumeSliceThickness,
+                                                                                       AString& errorMessageOut) const override;
+        
+        virtual const VolumeSpace& getVolumeSpace() const override;
+        
+        const CiftiBrainModelsMap* getBrainordinateMapping() const;
+        
     private:
         CiftiDenseSparseFile(const CiftiDenseSparseFile&);
         
@@ -275,7 +425,7 @@ namespace caret {
         
         std::vector<float> m_loadedRowData;
         
-        std::vector<float> m_rgba;
+        std::vector<uint8_t> m_rgba;
         
         bool m_rgbaValidFlag = false;
         
@@ -285,6 +435,18 @@ namespace caret {
         
         bool m_enabledAsLayerFlag = true;
         
+        mutable BoundingBox m_boundingBox;
+        
+        mutable bool m_boundingBoxValidFlag = false;
+        
+        /** Dimensions for mapping to brainordinates */
+        std::vector<int64_t> m_volumeMappingDimensions;
+        
+        /** used by function that returns volume space when no data is loaded or no volume data is available */
+        VolumeSpace m_dummyVolumeSpace;
+        
+        std::unique_ptr<VolumeGraphicsPrimitiveManager> m_graphicsPrimitiveManager;
+
         // ADD_NEW_MEMBERS_HERE
         
     };

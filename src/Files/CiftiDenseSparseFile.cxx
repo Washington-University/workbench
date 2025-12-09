@@ -28,6 +28,7 @@
 #include "CiftiDenseSparseFile.h"
 #undef __CIFTI_DENSE_SPARSE_FILE_DECLARE__
 
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretSparseFile.h"
@@ -41,11 +42,14 @@
 #include "FileInformation.h"
 #include "FastStatistics.h"
 #include "GiftiMetaData.h"
+#include "GraphicsPrimitiveV3fT2f.h"
 #include "Histogram.h"
 #include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "TabDrawingInfo.h"
+#include "VolumeGraphicsPrimitiveManager.h"
 
 using namespace caret;
 
@@ -83,6 +87,10 @@ CiftiDenseSparseFile::CiftiDenseSparseFile()
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded.get());
+    
+    m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
+
+    clearPrivate();
 }
 
 /**
@@ -118,6 +126,15 @@ CiftiDenseSparseFile::clearPrivate()
     m_loadedDataDescriptionForFileCopy.clear();
     m_loadedDataDescriptionForMapName.clear();
     m_rgbaValidFlag = false;
+    
+    m_volumeMappingDimensions.resize(5);
+    std::fill(m_volumeMappingDimensions.begin(),
+              m_volumeMappingDimensions.end(),
+              0);
+    
+    m_boundingBox.resetZeros();
+    m_boundingBoxValidFlag = false;
+    m_graphicsPrimitiveManager->clear();
 }
 
 
@@ -231,6 +248,7 @@ void
 CiftiDenseSparseFile::invalidateColoringInAllMaps()
 {
     m_rgbaValidFlag = false;
+    m_graphicsPrimitiveManager->clear();
 }
 
 /**
@@ -289,15 +307,20 @@ CiftiDenseSparseFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
         CaretAssertArrayIndex(surfaceRGBAOut, (surfaceNumberOfNodes * 4), iNode4);
         
         if (dataIndex >= 0) {
-            CaretAssert(dataIndex < int64_t(m_loadedRowData.size()));
+//            CaretAssert(dataIndex < int64_t(m_loadedRowData.size()));
+//            
+//            const int64_t data4 = dataIndex * 4;
+//            CaretAssertArrayIndex(m_rgba, int64_t(m_loadedRowData.size() * 4), dataIndex * 4);
+            CaretAssert(dataIndex < static_cast<int64_t>(m_loadedRowData.size()));
             
             const int64_t data4 = dataIndex * 4;
-            CaretAssertArrayIndex(m_rgba, int64_t(m_loadedRowData.size() * 4), dataIndex * 4);
+            CaretAssertArrayIndex(m_rgba, static_cast<int64_t>(m_loadedRowData.size() * 4), dataIndex*4);
+            CaretAssertVectorIndex(m_rgba, data4 + 3);
             
-            surfaceRGBAOut[iNode4]   = m_rgba[data4];
-            surfaceRGBAOut[iNode4+1] = m_rgba[data4+1];
-            surfaceRGBAOut[iNode4+2] = m_rgba[data4+2];
-            surfaceRGBAOut[iNode4+3] = m_rgba[data4+3];
+            surfaceRGBAOut[iNode4]   = static_cast<float>(m_rgba[data4])   * 255.0;
+            surfaceRGBAOut[iNode4+1] = static_cast<float>(m_rgba[data4+1]) * 255.0;
+            surfaceRGBAOut[iNode4+2] = static_cast<float>(m_rgba[data4+2]) * 255.0;
+            surfaceRGBAOut[iNode4+3] = static_cast<float>(m_rgba[data4+3]) * 255.0;
             
             dataValuesOut[iNode] = m_loadedRowData[dataIndex];
             
@@ -718,60 +741,75 @@ CiftiDenseSparseFile::isMapColoringValid(const int32_t /*mapIndex*/) const
  *     Output containing data for thresholding a map in this file.
  */
 bool
-CiftiDenseSparseFile::getThresholdData(const CaretMappableDataFile* /*threshMapFile*/,
-                                       const int32_t /*threshMapIndex*/,
-                                       std::vector<float>& /*thresholdDataOut*/) const
+CiftiDenseSparseFile::getThresholdData(const CaretMappableDataFile* threshMapFile,
+                                       const int32_t threshMapIndex,
+                                       std::vector<float>& thresholdDataOut) const
 {
-//    CaretAssert(threshMapFile);
-//    CaretAssert(threshMapIndex >= 0);
-//    
-//    thresholdDataOut.resize(m_loadedRowData.size());
-//    
-//    switch (getBrainordinateMappingMatch(threshMapFile)) {
-//        case BrainordinateMappingMatch::EQUAL:
-//            threshMapFile->getM
-//            threshMapFile->getMapData(threshMapIndex,
-//                                              thresholdDataOut);
-//            break;
-//        case BrainordinateMappingMatch::NO:
-//            CaretAssert(0); /* should never happen */
-//            break;
-//        case BrainordinateMappingMatch::SUBSET:
-//        {
-//            /*
-//             * Since this file is a "subset" of the other file, will need to
-//             * data using the structures in each file.
-//             */
-//            std::vector<float> thresholdingFileMapData;
-//            threshMapFile->getMapData(threshMapIndex, thresholdingFileMapData);
-//            
-//            const CiftiBrainModelsMap* threshBrainMap = thresholdCiftiMapFile->getBrainordinateMapping();
-//            CaretAssert(threshBrainMap);
-//            const CiftiBrainModelsMap* dataBrainMap = getBrainordinateMapping();
-//            CaretAssert(dataBrainMap);
-//            
-//            const std::vector<CiftiBrainModelsMap::ModelInfo>& dataModelsMap   = dataBrainMap->getModelInfo();
-//            const std::vector<CiftiBrainModelsMap::ModelInfo>& threshModelsMap = threshBrainMap->getModelInfo();
-//            for (const auto& dataModelsInfo : dataModelsMap) {
-//                const StructureEnum::Enum structure = dataModelsInfo.m_structure;
-//                for (const auto& threshModelsInfo : threshModelsMap) {
-//                    if (structure == threshModelsInfo.m_structure) {
-//                        CaretAssert(dataModelsInfo.m_indexCount == threshModelsInfo.m_indexCount);
-//                        CaretAssertVectorIndex(thresholdingFileMapData, (threshModelsInfo.m_indexStart + threshModelsInfo.m_indexCount) - 1);
-//                        CaretAssertVectorIndex(thresholdDataOut, (dataModelsInfo.m_indexStart + dataModelsInfo.m_indexCount) - 1);
-//                        std::copy_n(&thresholdingFileMapData[threshModelsInfo.m_indexStart],
-//                                    threshModelsInfo.m_indexCount,
-//                                    &thresholdDataOut[dataModelsInfo.m_indexStart]);
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//            break;
-//    }
-//    
-//    return true;
-    return false;
+    CaretAssert(threshMapFile);
+    CaretAssert(threshMapIndex >= 0);
+    const CiftiDenseSparseFile* thresholdDenseSparseFile = dynamic_cast<const CiftiDenseSparseFile*>(threshMapFile);
+    CaretAssert(thresholdDenseSparseFile);
+    if (thresholdDenseSparseFile == NULL) {
+        return false;
+    }
+    
+    thresholdDataOut.resize(m_loadedRowData.size());
+    
+    switch (getBrainordinateMappingMatch(threshMapFile)) {
+        case BrainordinateMappingMatch::EQUAL:
+            thresholdDataOut = thresholdDenseSparseFile->getLoadedRowData();
+            break;
+        case BrainordinateMappingMatch::NO:
+            CaretAssert(0); /* should never happen */
+            break;
+        case BrainordinateMappingMatch::SUBSET:
+        {
+            /*
+             * Since this file is a "subset" of the other file, will need to
+             * data using the structures in each file.
+             */
+            std::vector<float> thresholdingFileMapData(thresholdDenseSparseFile->getLoadedRowData());
+            
+            const CiftiBrainModelsMap* threshBrainMap = thresholdDenseSparseFile->getBrainordinateMapping();
+            CaretAssert(threshBrainMap);
+            const CiftiBrainModelsMap* dataBrainMap = getBrainordinateMapping();
+            CaretAssert(dataBrainMap);
+            
+            const std::vector<CiftiBrainModelsMap::ModelInfo>& dataModelsMap   = dataBrainMap->getModelInfo();
+            const std::vector<CiftiBrainModelsMap::ModelInfo>& threshModelsMap = threshBrainMap->getModelInfo();
+            for (const auto& dataModelsInfo : dataModelsMap) {
+                const StructureEnum::Enum structure = dataModelsInfo.m_structure;
+                for (const auto& threshModelsInfo : threshModelsMap) {
+                    if (structure == threshModelsInfo.m_structure) {
+                        CaretAssert(dataModelsInfo.m_indexCount == threshModelsInfo.m_indexCount);
+                        CaretAssertVectorIndex(thresholdingFileMapData, (threshModelsInfo.m_indexStart + threshModelsInfo.m_indexCount) - 1);
+                        CaretAssertVectorIndex(thresholdDataOut, (dataModelsInfo.m_indexStart + dataModelsInfo.m_indexCount) - 1);
+                        std::copy_n(&thresholdingFileMapData[threshModelsInfo.m_indexStart],
+                                    threshModelsInfo.m_indexCount,
+                                    &thresholdDataOut[dataModelsInfo.m_indexStart]);
+                        break;
+                    }
+                }
+            }
+        }
+            break;
+    }
+    
+    return true;
+}
+
+/**
+ * @return Pointer to mapping of data to brainordinates.
+ *         Will be NULL if data does not map to brainordinates.
+ */
+const CiftiBrainModelsMap*
+CiftiDenseSparseFile::getBrainordinateMapping() const
+{
+    if (m_sparseFile == NULL) {
+        return NULL;
+    }
+    const CiftiXML& ciftiXML(m_sparseFile->getCiftiXML());
+    return &ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
 }
 
 /**
@@ -881,6 +919,8 @@ CiftiDenseSparseFile::updateScalarColoringForMap(const int32_t mapIndex)
     else {
         CaretAssert(0);
     }
+    
+    m_graphicsPrimitiveManager->clear();
 }
 
 /**
@@ -924,6 +964,22 @@ CiftiDenseSparseFile::readFile(const AString& filename)
         m_fileMetadata.reset(new GiftiMetaData(*ciftiXML.getFileMetaData()));
         m_loadedRowData.resize(m_fileNumberOfColumns);
         m_rgba.resize(m_fileNumberOfColumns * 4);
+        
+        const CiftiBrainModelsMap& alongRowMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+        if (alongRowMap.hasVolumeData()) {
+            CaretAssert(m_volumeMappingDimensions.size() == 5);
+            CaretAssertVectorIndex(m_volumeMappingDimensions, 4);
+            
+            const VolumeSpace& volSpace = alongRowMap.getVolumeSpace();
+            const int64_t* dims(volSpace.getDims());
+            m_volumeMappingDimensions[0] = dims[0];
+            m_volumeMappingDimensions[1] = dims[1];
+            m_volumeMappingDimensions[2] = dims[2];
+            m_volumeMappingDimensions[3] = 1;  /* time */
+            m_volumeMappingDimensions[4] = 1;  /* components */
+
+        }
+
         clearLoadedData();
 
         clearModified();
@@ -991,83 +1047,6 @@ CiftiDenseSparseFile::getMappingSurfaceNumberOfNodes(const StructureEnum::Enum s
     return numCiftiNodes;
 }
 
-///**
-// * Create a new cifti scalar data file from the loaded data of this file.
-// *
-// * @param errorMessageOut
-// *    Error message if creation of new fiber trajectory file failed.
-// * @param 
-// *    Pointer to new file that was created or NULL if creation failed.
-// */
-//CiftiBrainordinateScalarFile*
-//CiftiDenseSparseFile::newCiftiScalarFileFromLoadedRowData(const AString& destinationDirectory,
-//                                                                  AString& errorMessageOut) const
-//{
-//    errorMessageOut = "";
-//    
-////    const int64_t numTraj = static_cast<int64_t>(m_fiberOrientationTrajectories.size());
-////    if (numTraj <= 0) {
-////        errorMessageOut = "No data is loaded so cannot create file.";
-////        return NULL;
-////    }
-//    
-//    CiftiBrainordinateScalarFile* newFile = NULL;
-//    try {
-//        newFile = new CiftiBrainordinateScalarFile();
-//        AString rowInfo = "";
-//        if (m_loadedDataDescriptionForFileCopy.isEmpty() == false) {
-//            rowInfo = ("_"
-//                       + m_loadedDataDescriptionForFileCopy);
-//        }
-//        
-//        
-//        /*
-//         * May need to convert a remote path to a local path
-//         */
-//        FileInformation initialFileNameInfo(getFileName());
-//        const AString scalarFileName = initialFileNameInfo.getAsLocalAbsoluteFilePath(destinationDirectory,
-//                                                                                      getDataFileType());
-//        
-//        /*
-//         * Create name of scalar file with row/column information
-//         */
-//        FileInformation scalarFileInfo(scalarFileName);
-//        AString thePath, theName, theExtension;
-//        scalarFileInfo.getFileComponents(thePath,
-//                                         theName,
-//                                         theExtension);
-//        theName.append(rowInfo);
-//        const AString newFileName = FileInformation::assembleFileComponents(thePath,
-//                                                                            theName,
-//                                                                            theExtension);
-//        
-//        
-//        
-//        
-//        
-//        const AString tempFileName = (QDir::tempPath()
-//                                      + "/"
-//                                      + newFile->getFileNameNoPath());
-//        std::cout << "Filename: " << qPrintable(tempFileName) << std::endl;
-//        
-//        writeLoadedDataToFile(tempFileName);
-//        
-//        newFile->readFile(tempFileName);
-//        newFile->setFileName(newFileName);
-//        newFile->setModified();
-//        return newFile;
-//    }
-//    catch (const DataFileException& dfe) {
-//        if (newFile != NULL) {
-//            delete newFile;
-//        }
-//        errorMessageOut = dfe.whatString();
-//        return NULL;
-//    }
-//
-//    return NULL;
-//}
-
 /**
  * Write the loaded data to a file.
  *
@@ -1081,7 +1060,6 @@ CiftiDenseSparseFile::writeLoadedDataToFile(const AString& /*filename*/) const
 {
     throw DataFileException("Writing not supported.");
 }
-
 
 /**
  * Clear the loaded data
@@ -1221,6 +1199,25 @@ CiftiDenseSparseFile::getRowIndexFromSurfaceVertex(const StructureEnum::Enum sur
 }
 
 /**
+ * @return The row index index of the voxel at the given XYZ
+ */
+int64_t
+CiftiDenseSparseFile::getRowIndexFromVolumeXYZ(const Vector3D& xyz) const
+{
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& colMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if ( ! colMap.hasVolumeData()) {
+        return -1;
+    }
+    const VolumeSpace& colSpace = colMap.getVolumeSpace();
+    int64_t ijk[3];
+    colSpace.enclosingVoxel(xyz, ijk);
+    const int64_t rowIndex = colMap.getIndexForVoxel(ijk);
+
+    return rowIndex;
+}
+
+/**
  * Get the identification information for a surface node in the given maps.
  *
  * @param mapIndices
@@ -1237,6 +1234,8 @@ CiftiDenseSparseFile::getRowIndexFromSurfaceVertex(const StructureEnum::Enum sur
  *    Digits right of decimal for real data
  * @param textOut
  *    Output containing identification information.
+ * @return
+ *    True if identification data is valid
  */
 bool
 CiftiDenseSparseFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& /*mapIndices*/,
@@ -1285,6 +1284,58 @@ CiftiDenseSparseFile::getSurfaceNodeIdentificationForMaps(const std::vector<int3
     return validID;
 }
 
+/**
+ * Get the identification information for a surface node in the given maps.
+ *
+ * @param mapIndices
+ *    Indices of maps for which identification information is requested.
+ * @param xyz
+ *    XYZ location in volume
+ * @param dataValueSeparator
+ *    Separator between multiple data values
+ * @param digitsRightOfDecimal
+ *    Digits right of decimal for real data
+ * @param ijkOut
+ *    Output with IJK corresponding to input XYZ
+ * @param textOut
+ *    Output containing identification information.
+ * @return
+ *    True if identification data is valid
+ */
+bool
+CiftiDenseSparseFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& /*mapIndices*/,
+                                                          const float xyz[3],
+                                                          const AString& /*dataValueSeparator*/,
+                                                          const int32_t digitsRightOfDecimal,
+                                                          int64_t ijkOut[3],
+                                                          AString& textOut) const
+{
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& alongRowMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+    if ( ! alongRowMap.hasVolumeData()) {
+        return false;
+    }
+    const VolumeSpace& volSpace(alongRowMap.getVolumeSpace());
+    Vector3D ijkFloat;
+    volSpace.spaceToIndex(xyz, ijkFloat);
+    ijkOut[0] = static_cast<int64_t>(ijkFloat[0]);
+    ijkOut[1] = static_cast<int64_t>(ijkFloat[1]);
+    ijkOut[2] = static_cast<int64_t>(ijkFloat[2]);
+    
+    bool validFlag(false);
+
+    if (volSpace.indexValid(ijkOut)) {
+        const int64_t dataOffset(alongRowMap.getIndexForVoxel(ijkOut));
+        if (dataOffset >= 0) {
+            CaretAssertVectorIndex(m_loadedRowData, dataOffset);
+            const float value = m_loadedRowData[dataOffset];
+            textOut = AString::number(value, 'f', digitsRightOfDecimal);
+            validFlag = true;
+        }
+    }
+    
+    return validFlag;
+}
 
 /**
  * Load connectivity data for the surface's node.
@@ -2028,15 +2079,19 @@ CiftiDenseSparseFile::addToDataFileContentInformation(DataFileContentInformation
         CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,
                                                                        ciftiXML);
     }
-    
-
 }
 
+/**
+ * @return True if this file has CIFTI XML
+ */
 bool CiftiDenseSparseFile::hasCiftiXML() const
 {
     return true;
 }
 
+/**
+ * @return the CIFTI XML
+ */
 const CiftiXML CiftiDenseSparseFile::getCiftiXML() const
 {
     if (m_sparseFile)
@@ -2097,3 +2152,974 @@ CiftiDenseSparseFile::setEnabledAsLayer(const bool enabled)
     m_enabledAsLayerFlag = enabled;
 }
 
+
+
+
+/**
+ * @return Instance cast to a Volume Mappable CaretMappableDataFile
+ */
+CaretMappableDataFile*
+CiftiDenseSparseFile::castToVolumeMappableDataFile()
+{
+    return this;
+}
+
+/**
+ * @return Instance cast to a Volume Mappable CaretMappableDataFile (const method)
+ */
+const CaretMappableDataFile*
+CiftiDenseSparseFile::castToVolumeMappableDataFile() const
+{
+    return this;
+}
+
+/**
+ * Get the dimensions of the volume.
+ *
+ * @param dimOut1
+ *     First dimension (i) out.
+ * @param dimOut2
+ *     Second dimension (j) out.
+ * @param dimOut3
+ *     Third dimension (k) out.
+ * @param dimTimeOut
+ *     Time dimensions out (number of maps)
+ * @param numComponents
+ *     Number of components per voxel.
+ */
+void
+CiftiDenseSparseFile::getDimensions(int64_t& dimOut1,
+                           int64_t& dimOut2,
+                           int64_t& dimOut3,
+                           int64_t& dimTimeOut,
+                           int64_t& numComponents) const
+{
+    CaretAssert(m_volumeMappingDimensions.size() == 5);
+    CaretAssertVectorIndex(m_volumeMappingDimensions, 4);
+    dimOut1       = m_volumeMappingDimensions[0];
+    dimOut2       = m_volumeMappingDimensions[1];
+    dimOut3       = m_volumeMappingDimensions[2];
+    dimTimeOut    = m_volumeMappingDimensions[3];
+    numComponents = m_volumeMappingDimensions[4];
+}
+
+/**
+ * Get the dimensions of the volume.
+ *
+ * @param dimsOut
+ *     Will contain 5 elements: (0) X-dimension, (1) Y-dimension
+ * (2) Z-dimension, (3) time, (4) components.
+ */
+void
+CiftiDenseSparseFile::getDimensions(std::vector<int64_t>& dimsOut) const
+{
+    CaretAssert(m_volumeMappingDimensions.size() == 5);
+    dimsOut = m_volumeMappingDimensions;
+}
+
+/**
+ * @return The number of componenents per voxel.
+ */
+const int64_t&
+CiftiDenseSparseFile::getNumberOfComponents() const
+{
+    CaretAssert(m_volumeMappingDimensions.size() == 5);
+    CaretAssertVectorIndex(m_volumeMappingDimensions, 4);
+    return m_volumeMappingDimensions[4];
+}
+
+/**
+ * Get the value of the voxel containing the given coordinate.
+ *
+ * @param coordinateIn
+ *    The 3D coordinate
+ * @param validOut
+ *    If not NULL, will indicate if the coordinate (and hence the
+ *    returned value) is valid.
+ * @param mapIndex
+ *    Index of map.
+ * @param component
+ *    Voxel component.
+ * @return
+ *    Value of voxel containing the given coordinate.
+ */
+float
+CiftiDenseSparseFile::getVoxelValue(const float* coordinateIn,
+                                    bool* validOut,
+                                    const int64_t /*mapIndex*/,
+                                    const int64_t /*component*/) const
+{
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& alongRowMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+    if ( ! alongRowMap.hasVolumeData()) {
+        return 0;
+    }
+    const VolumeSpace& volSpace(alongRowMap.getVolumeSpace());
+    Vector3D ijkFloat;
+    volSpace.spaceToIndex(coordinateIn, ijkFloat);
+    const int64_t ijk[3] {
+        static_cast<int64_t>(ijkFloat[0]),
+        static_cast<int64_t>(ijkFloat[1]),
+        static_cast<int64_t>(ijkFloat[2])
+    };
+
+    float valueOut(0);
+    if (validOut != NULL) {
+        *validOut = false;
+    }
+    if (volSpace.indexValid(ijk)) {
+        const int64_t dataOffset(alongRowMap.getIndexForVoxel(ijk));
+        if (dataOffset >= 0) {
+            CaretAssertVectorIndex(m_loadedRowData, dataOffset);
+            valueOut = m_loadedRowData[dataOffset];
+            if (validOut != NULL) {
+                *validOut = true;
+            }
+        }
+    }
+    return valueOut;
+}
+
+/**
+ * Get the value of the voxel containing the given coordinate.
+ *
+ * @param coordinateX
+ *    The X coordinate
+ * @param coordinateY
+ *    The Y coordinate
+ * @param coordinateZ
+ *    The Z coordinate
+ * @param validOut
+ *    If not NULL, will indicate if the coordinate (and hence the
+ *    returned value) is valid.
+ * @param mapIndex
+ *    Index of map.
+ * @param component
+ *    Voxel component.
+ * @return
+ *    Value of voxel containing the given coordinate.
+ */
+float
+CiftiDenseSparseFile::getVoxelValue(const float coordinateX,
+                            const float coordinateY,
+                            const float coordinateZ,
+                            bool* validOut,
+                            const int64_t mapIndex,
+                            const int64_t component) const
+{
+    const Vector3D xyz(coordinateX,
+                       coordinateY,
+                       coordinateZ);
+    return getVoxelValue(xyz,
+                         validOut,
+                         mapIndex,
+                         component);
+}
+
+/**
+ * Convert an index to space (coordinates).
+ *
+ * @param indexIn1
+ *     First dimension (i).
+ * @param indexIn2
+ *     Second dimension (j).
+ * @param indexIn3
+ *     Third dimension (k).
+ * @param coordOut1
+ *     Output first (x) coordinate.
+ * @param coordOut2
+ *     Output first (y) coordinate.
+ * @param coordOut3
+ *     Output first (z) coordinate.
+ */
+void
+CiftiDenseSparseFile::indexToSpace(const float& indexIn1,
+                          const float& indexIn2,
+                          const float& indexIn3,
+                          float& coordOut1,
+                          float& coordOut2,
+                          float& coordOut3) const
+{
+    coordOut1 = 0.0;
+    coordOut2 = 0.0;
+    coordOut3 = 0.0;
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& alongRowMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+    if ( ! alongRowMap.hasVolumeData()) {
+        return;
+    }
+    const VolumeSpace& volSpace = alongRowMap.getVolumeSpace();
+    volSpace.indexToSpace(indexIn1, indexIn2, indexIn3, coordOut1, coordOut2, coordOut3);
+}
+
+/**
+ * Convert an index to space (coordinates).
+ *
+ * @param indexIn1
+ *     First dimension (i).
+ * @param indexIn2
+ *     Second dimension (j).
+ * @param indexIn3
+ *     Third dimension (k).
+ * @param coordOut
+ *     Output XYZ coordinates.
+ */
+void
+CiftiDenseSparseFile::indexToSpace(const float& indexIn1,
+                          const float& indexIn2,
+                          const float& indexIn3,
+                          float* coordOut) const
+{
+    indexToSpace(indexIn1,
+                 indexIn2,
+                 indexIn3,
+                 coordOut[0],
+                 coordOut[1],
+                 coordOut[2]);
+}
+
+/**
+ * Convert an index to space (coordinates).
+ *
+ * @param indexIn
+ *     IJK indices
+ * @param coordOut
+ *     Output XYZ coordinates.
+ */
+void
+CiftiDenseSparseFile::indexToSpace(const int64_t* indexIn,
+                          float* coordOut) const
+{
+    indexToSpace(indexIn[0],
+                 indexIn[1],
+                 indexIn[2],
+                 coordOut[0],
+                 coordOut[1],
+                 coordOut[2]);
+}
+
+/**
+ * Convert an index to space (coordinates).
+ *
+ * @param indexIn1
+ *     First dimension (i).
+ * @param indexIn2
+ *     Second dimension (j).
+ * @param indexIn3
+ *     Third dimension (k).
+ * @return
+ *     Output XYZ coordinates.
+ */
+Vector3D
+CiftiDenseSparseFile::indexToSpace(const int64_t ijk[3]) const
+{
+    
+    Vector3D xyz;
+    indexToSpace(ijk,
+                 xyz);
+    
+    return xyz;
+}
+
+/**
+ * Convert a coordinate to indices.  Note that output indices
+ * MAY NOT BE WITHIN THE VALID VOXEL DIMENSIONS.
+ *
+ * @param coordIn1
+ *     First (x) input coordinate.
+ * @param coordIn2
+ *     Second (y) input coordinate.
+ * @param coordIn3
+ *     Third (z) input coordinate.
+ * @param indexOut1
+ *     First output index (i).
+ * @param indexOut2
+ *     First output index (j).
+ * @param indexOut3
+ *     First output index (k).
+ */
+void
+CiftiDenseSparseFile::enclosingVoxel(const float& coordIn1,
+                            const float& coordIn2,
+                            const float& coordIn3,
+                            int64_t& indexOut1,
+                            int64_t& indexOut2,
+                            int64_t& indexOut3) const
+{
+    indexOut1 = 0;
+    indexOut2 = 0;
+    indexOut3 = 0;
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& alongRowMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+    if ( ! alongRowMap.hasVolumeData()) {
+        return;
+    }
+    const VolumeSpace& volSpace = alongRowMap.getVolumeSpace();
+    volSpace.enclosingVoxel(coordIn1, coordIn2, coordIn3,
+                            indexOut1, indexOut2, indexOut3);
+}
+
+/**
+ * Convert a coordinate to indices.  Note that output indices
+ * MAY NOT BE WITHIN THE VALID VOXEL DIMENSIONS.
+ *
+ * @param coordIn1
+ *     First (x) input coordinate.
+ * @param coordIn2
+ *     Second (y) input coordinate.
+ */
+void
+CiftiDenseSparseFile::enclosingVoxel(const float* coordIn,
+                            int64_t* indexOut) const
+{
+    enclosingVoxel(coordIn[0], coordIn[1], coordIn[2],
+                   indexOut[0], indexOut[1], indexOut[2]);
+}
+
+/**
+ * Determine in the given voxel indices are valid (within the volume).
+ *
+ * @param indexIn1
+ *     First dimension (i).
+ * @param indexIn2
+ *     Second dimension (j).
+ * @param indexIn3
+ *     Third dimension (k).
+ * @param coordOut1
+ *     Output first (x) coordinate.
+ * @param brickIndex
+ *     Time/map index (default 0).
+ * @param component
+ *     Voxel component (default 0).
+ */
+bool
+CiftiDenseSparseFile::indexValid(const int64_t& indexIn1,
+                        const int64_t& indexIn2,
+                        const int64_t& indexIn3,
+                        const int64_t brickIndex,
+                        const int64_t component) const
+{
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& alongRowMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+    if ( ! alongRowMap.hasVolumeData()) {
+        return false;
+    }
+    const VolumeSpace& volSpace = alongRowMap.getVolumeSpace();
+    if (brickIndex != 0) {
+        return false;
+    }
+    if (component != 0) {
+        return false;
+    }
+    return volSpace.indexValid(indexIn1, indexIn2, indexIn3);
+}
+
+/**
+ * Determine in the given voxel indices are valid (within the volume).
+ *
+ * @param indexIn
+ *     IJK
+ * @param brickIndex
+ *     Time/map index (default 0).
+ * @param component
+ *     Voxel component (default 0).
+ */
+bool
+CiftiDenseSparseFile::indexValid(const int64_t* indexIn,
+                        const int64_t brickIndex,
+                        const int64_t component) const
+{
+    return indexValid(indexIn[0], indexIn[1], indexIn[2],
+                      brickIndex, component);
+}
+
+/**
+ * Get a bounding box for the voxel coordinate ranges.
+ *
+ * @param boundingBoxOut
+ *    The output bounding box.
+ */
+void
+CiftiDenseSparseFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
+{
+    if ( ! m_boundingBoxValidFlag) {
+        const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+        const CiftiBrainModelsMap& alongRowMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+        if (alongRowMap.hasVolumeData()) {
+            const std::vector<CiftiBrainModelsMap::VolumeMap>& volMap(alongRowMap.getFullVolumeMap());
+            
+            m_boundingBox.resetForUpdate();
+            for (auto& vm : volMap) {
+                m_boundingBox.update(indexToSpace(vm.m_ijk));
+            }
+        }
+        else {
+            m_boundingBox.resetZeros();
+        }
+        
+        m_boundingBoxValidFlag = true;
+    }
+    
+    boundingBoxOut = m_boundingBox;
+}
+
+/**
+ * Get a bounding box containing the non-zero voxel coordinate ranges
+ * @param mapIndex
+ *    Index of map
+ * @param boundingBoxOut
+ *    Output containing coordinate range of non-zero voxels
+ */
+void
+CiftiDenseSparseFile::getNonZeroVoxelCoordinateBoundingBox(const int32_t /*mapIndex*/,
+                                                  BoundingBox& boundingBoxOut) const
+{
+    /*
+     * File only contains voxels with data so use the bounding box
+     */
+    getVoxelSpaceBoundingBox(boundingBoxOut);
+}
+
+/**
+ * Get the voxel colors for a slice in the map.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param slicePlane
+ *    The slice plane.
+ * @param sliceIndex
+ *    Index of the slice.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
+ * @param rgbaOut
+ *    Output containing the rgba values (must have been allocated
+ *    by caller to sufficient count of elements in the slice).
+ * @return
+ *    Number of voxels with alpha greater than zero
+ */
+int64_t
+CiftiDenseSparseFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                            const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                            const int64_t sliceIndex,
+                                            const TabDrawingInfo& tabDrawingInfo,
+                                            uint8_t* rgbaOut) const
+{
+    int64_t firstVoxelIJK[3] { 0, 0, 0 };
+    int64_t rowStepIJK[3] { 0, 0, 0 };
+    int64_t columnStepIJK[3] { 0, 0, 0 };
+    int64_t numberOfRows(0);
+    int64_t numberOfColumns(0);
+    
+    int64_t dimI(0), dimJ(0), dimK(0), dimTime(0), dimComp(0);
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+    
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            firstVoxelIJK[0] = 0;
+            firstVoxelIJK[1] = 0;
+            firstVoxelIJK[2] = sliceIndex;
+            rowStepIJK[0]    = 0;
+            rowStepIJK[1]    = 1;
+            rowStepIJK[2]    = 0;
+            columnStepIJK[0] = 1;
+            columnStepIJK[1] = 0;
+            columnStepIJK[2] = 0;
+            numberOfRows     = dimJ;
+            numberOfColumns  = dimI;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            firstVoxelIJK[0] = 0;
+            firstVoxelIJK[1] = sliceIndex;
+            firstVoxelIJK[2] = 0;
+            rowStepIJK[0]    = 0;
+            rowStepIJK[1]    = 0;
+            rowStepIJK[2]    = 1;
+            columnStepIJK[0] = 1;
+            columnStepIJK[1] = 0;
+            columnStepIJK[2] = 0;
+            numberOfRows     = dimK;
+            numberOfColumns  = dimI;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            firstVoxelIJK[0] = sliceIndex;
+            firstVoxelIJK[1] = dimJ - 1;
+            firstVoxelIJK[2] = 0;
+            rowStepIJK[0]    = 0;
+            rowStepIJK[1]    = 0;
+            rowStepIJK[2]    = 1;
+            columnStepIJK[0] = 0;
+            columnStepIJK[1] = -1;
+            columnStepIJK[2] = 0;
+            numberOfRows     = dimK;
+            numberOfColumns  = dimJ;
+            break;
+    }
+
+    return getVoxelColorsForSliceInMap(mapIndex,
+                                       firstVoxelIJK,
+                                       rowStepIJK,
+                                       columnStepIJK,
+                                       numberOfRows,
+                                       numberOfColumns,
+                                       tabDrawingInfo,
+                                       rgbaOut);
+}
+
+/**
+ * Get voxel coloring for a set of voxels.
+ *
+ * @param mapIndex
+ *     Index of map.
+ * @param firstVoxelIJK
+ *    IJK Indices of first voxel
+ * @param rowStepIJK
+ *    IJK Step for moving to next row.
+ * @param columnStepIJK
+ *    IJK Step for moving to next column.
+ * @param numberOfRows
+ *    Number of rows.
+ * @param numberOfColumns
+ *    Number of columns.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
+ * @param rgbaOut
+ *    RGBA color components out.
+ * @return
+ *    Number of voxels with alpha greater than zero
+ */
+int64_t
+CiftiDenseSparseFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                            const int64_t firstVoxelIJK[3],
+                                            const int64_t rowStepIJK[3],
+                                            const int64_t columnStepIJK[3],
+                                            const int64_t numberOfRows,
+                                            const int64_t numberOfColumns,
+                                            const TabDrawingInfo& /*tabDrawingInfo*/,
+                                            uint8_t* rgbaOut) const
+{
+    if ( ! isMapColoringValid(mapIndex)) {
+        CiftiDenseSparseFile* nonConstThis(const_cast<CiftiDenseSparseFile*>(this));
+        CaretAssert(nonConstThis);
+        nonConstThis->updateScalarColoringForMap(mapIndex);
+    }
+    const int64_t mapRgbaCount(m_rgba.size());
+    
+    
+    /*
+     * RGBA size will be zero if no data has been loaded for a CIFTI
+     * matrix type file (user clicking brainordinate).
+     */
+    if (mapRgbaCount <= 0) {
+        return 0;
+    }
+    
+    /*
+     * Zero out the RGBA output
+     */
+    const int64_t numSliceVoxels(numberOfRows * numberOfColumns);
+    const int64_t numSliceRGBA(numSliceVoxels * 4);
+    std::fill(&rgbaOut[0], &rgbaOut[numSliceRGBA], 0);
+    
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& alongRowMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+    if ( ! alongRowMap.hasVolumeData()) {
+        return 0;
+    }
+    const VolumeSpace& volSpace(alongRowMap.getVolumeSpace());
+
+    int64_t rowIJK[3] = { firstVoxelIJK[0], firstVoxelIJK[1], firstVoxelIJK[2] };
+    int64_t rgbaOutIndex4 = 0;
+    
+    int64_t validVoxelCount = 0;
+    
+    for (int32_t iRow = 0; iRow < numberOfRows; iRow++) {
+        int64_t ijk[3] = { rowIJK[0], rowIJK[1], rowIJK[2] };
+        
+        for (int32_t iCol = 0; iCol < numberOfColumns; iCol++) {
+            if (volSpace.indexValid(ijk)) {
+                const int64_t dataOffset(alongRowMap.getIndexForVoxel(ijk));
+                if (dataOffset >= 0) {
+                    const int64_t rgbaOffset(dataOffset * 4);
+                    CaretAssertVectorIndex(m_rgba, rgbaOffset + 3);
+                    const uint8_t alpha(m_rgba[rgbaOffset + 3]);
+                    if (alpha > 0) {
+                        rgbaOut[rgbaOutIndex4]   = m_rgba[rgbaOffset];
+                        rgbaOut[rgbaOutIndex4+1] = m_rgba[rgbaOffset+1];
+                        rgbaOut[rgbaOutIndex4+2] = m_rgba[rgbaOffset+2];
+                        rgbaOut[rgbaOutIndex4+3] = alpha;
+                        validVoxelCount++;
+                        
+                        if ((m_rgba[rgbaOffset] > 0)
+                            || (m_rgba[rgbaOffset+1] > 0)
+                            || (m_rgba[rgbaOffset+2] > 0)) {
+                            const Vector3D xyz(volSpace.indexToSpace(ijk));
+                            std::cout << "XYZ: " << xyz.toString() << std::endl;
+                            std::cout << "   Voxel valid IJK: " << ijk[0] << ", " << ijk[1] << ", " << ijk[2] << std::endl;
+                            std::cout << "   RGBA: " << AString::fromNumbers(&rgbaOut[rgbaOutIndex4], 4) << std::endl;
+                        }
+                    }
+                }
+            }
+            rgbaOutIndex4 += 4;
+            
+            ijk[0] += columnStepIJK[0];
+            ijk[1] += columnStepIJK[1];
+            ijk[2] += columnStepIJK[2];
+        }
+        
+        rowIJK[0] += rowStepIJK[0];
+        rowIJK[1] += rowStepIJK[1];
+        rowIJK[2] += rowStepIJK[2];
+    }
+    
+    return validVoxelCount;
+}
+
+/**
+ * Get the voxel colors for a sub slice in the map.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param slicePlane
+ *    The slice plane.
+ * @param sliceIndex
+ *    Index of the slice.
+ * @param firstCornerVoxelIndex
+ *    Indices of voxel for first corner of sub-slice (inclusive).
+ * @param lastCornerVoxelIndex
+ *    Indices of voxel for last corner of sub-slice (inclusive).
+ * @param voxelCountIJK
+ *    Voxel counts for each axis.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
+ * @param rgbaOut
+ *    Output containing the rgba values (must have been allocated
+ *    by caller to sufficient count of elements in the slice).
+ * @return
+ *    Number of voxels with alpha greater than zero
+ */
+int64_t
+CiftiDenseSparseFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
+                                               const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                               const int64_t /*sliceIndex*/,
+                                               const int64_t firstCornerVoxelIndex[3],
+                                               const int64_t lastCornerVoxelIndex[3],
+                                               const int64_t voxelCountIJK[3],
+                                               const TabDrawingInfo& tabDrawingInfo,
+                                               uint8_t* rgbaOut) const
+{
+    int64_t firstVoxelIJK[3] { 0, 0, 0 };
+    int64_t rowStepIJK[3] { 0, 0, 0 };
+    int64_t columnStepIJK[3] { 0, 0, 0 };
+    int64_t numberOfRows(0);
+    int64_t numberOfColumns(0);
+    
+    int64_t dimI(0), dimJ(0), dimK(0), dimTime(0), dimComp(0);
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+    
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            firstVoxelIJK[0] = firstCornerVoxelIndex[0];
+            firstVoxelIJK[1] = firstCornerVoxelIndex[1];
+            firstVoxelIJK[2] = firstCornerVoxelIndex[2];
+            rowStepIJK[0]    = 0;
+            rowStepIJK[1]    = ((lastCornerVoxelIndex[1] > firstCornerVoxelIndex[1])
+                                ? 1 : -1);
+            rowStepIJK[2]    = 0;
+            columnStepIJK[0] = ((lastCornerVoxelIndex[0] > firstCornerVoxelIndex[0])
+                                ? 1 : -1);
+            columnStepIJK[1] = 0;
+            columnStepIJK[2] = 0;
+            numberOfRows     = voxelCountIJK[1];
+            numberOfColumns  = voxelCountIJK[0];
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            firstVoxelIJK[0] = firstCornerVoxelIndex[0];
+            firstVoxelIJK[1] = firstCornerVoxelIndex[1];
+            firstVoxelIJK[2] = firstCornerVoxelIndex[2];
+            rowStepIJK[0]    = 0;
+            rowStepIJK[1]    = 0;
+            rowStepIJK[2]    = ((lastCornerVoxelIndex[2] > firstCornerVoxelIndex[2])
+                                ? 1 : -1);
+            columnStepIJK[0] = ((lastCornerVoxelIndex[0] > firstCornerVoxelIndex[0])
+                                ? 1 : -1);
+            columnStepIJK[1] = 0;
+            columnStepIJK[2] = 0;
+            numberOfRows     = voxelCountIJK[2];
+            numberOfColumns  = voxelCountIJK[0];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            firstVoxelIJK[0] = firstCornerVoxelIndex[0];
+            firstVoxelIJK[1] = firstCornerVoxelIndex[1];
+            firstVoxelIJK[2] = firstCornerVoxelIndex[2];
+            rowStepIJK[0]    = 0;
+            rowStepIJK[1]    = 0;
+            rowStepIJK[2]    = ((lastCornerVoxelIndex[2] > firstCornerVoxelIndex[2])
+                                ? 1 : -1);
+            columnStepIJK[0] = 0;
+            columnStepIJK[1] = ((lastCornerVoxelIndex[1] > firstCornerVoxelIndex[1])
+                                ? 1 : -1); 
+            columnStepIJK[2] = 0;
+            numberOfRows     = voxelCountIJK[2];
+            numberOfColumns  = voxelCountIJK[1];
+            break;
+    }
+    
+    return getVoxelColorsForSliceInMap(mapIndex,
+                                       firstVoxelIJK,
+                                       rowStepIJK,
+                                       columnStepIJK,
+                                       numberOfRows,
+                                       numberOfColumns,
+                                       tabDrawingInfo,
+                                       rgbaOut);
+}
+
+/**
+ * Get the voxel coloring for the voxel at the given indices.
+ *
+ * @param indexIn1
+ *     First dimension (i).
+ * @param indexIn2
+ *     Second dimension (j).
+ * @param indexIn3
+ *     Third dimension (k).
+ * @param brickIndex
+ *     Time/map index.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
+ * @param rgbaOut
+ *     Output containing RGBA values for voxel at the given indices.
+ */
+void
+CiftiDenseSparseFile::getVoxelColorInMap(const int64_t indexIn1,
+                                const int64_t indexIn2,
+                                const int64_t indexIn3,
+                                const int64_t /*brickIndex*/,
+                                const TabDrawingInfo& tabDrawingInfo,
+                                uint8_t rgbaOut[4]) const
+{
+    return getVoxelColorInMap(indexIn1,
+                              indexIn2,
+                              indexIn3,
+                              tabDrawingInfo.getTabIndex(),
+                              rgbaOut);
+}
+
+/**
+ * Get the voxel coloring for the voxel at the given indices.
+ *
+ * @param indexIn1
+ *     First dimension (i).
+ * @param indexIn2
+ *     Second dimension (j).
+ * @param indexIn3
+ *     Third dimension (k).
+ * @param brickIndex
+ *     Time/map index.
+ * @param rgbaOut
+ *     Output containing RGBA values for voxel at the given indices.
+ */
+void
+CiftiDenseSparseFile::getVoxelColorInMap(const int64_t indexIn1,
+                                const int64_t indexIn2,
+                                const int64_t indexIn3,
+                                const int64_t /*tabIndex*/,
+                                uint8_t rgbaOut[4]) const
+{
+    const int32_t mapIndex(0);
+    if (isMapColoringValid(mapIndex)) {
+        CiftiDenseSparseFile* nonConstThis(const_cast<CiftiDenseSparseFile*>(this));
+        CaretAssert(nonConstThis);
+        nonConstThis->updateScalarColoringForMap(mapIndex);
+    }
+    const int64_t mapRgbaCount(m_rgba.size());
+    
+    
+    /*
+     * RGBA size will be zero if no data has been loaded for a CIFTI
+     * matrix type file (user clicking brainordinate).
+     */
+    if (mapRgbaCount <= 0) {
+        return;
+    }
+    
+    /*
+     * Zero out the RGBA output
+     */
+    std::fill(&rgbaOut[0], &rgbaOut[4], 0);
+    
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& alongRowMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+    if ( ! alongRowMap.hasVolumeData()) {
+        return;
+    }
+    const VolumeSpace& volSpace(alongRowMap.getVolumeSpace());
+    
+    int64_t ijk[3] = { indexIn1, indexIn2, indexIn3 };
+    if (volSpace.indexValid(ijk)) {
+        const int64_t dataOffset(alongRowMap.getIndexForVoxel(ijk));
+        if (dataOffset >= 0) {
+            const int64_t rgbaOffset(dataOffset * 4);
+            CaretAssertVectorIndex(m_rgba, rgbaOffset + 3);
+            const uint8_t alpha(m_rgba[rgbaOffset + 3]);
+            if (alpha > 0) {
+                rgbaOut[0]   = m_rgba[rgbaOffset];
+                rgbaOut[1] = m_rgba[rgbaOffset+1];
+                rgbaOut[2] = m_rgba[rgbaOffset+2];
+                rgbaOut[3] = alpha;
+            }
+        }
+    }
+}
+
+GraphicsPrimitiveV3fT2f*
+CiftiDenseSparseFile::getSingleSliceVolumeDrawingPrimitive(const int32_t/* mapIndex*/,
+                                                           const TabDrawingInfo& /*tabDrawingInfo*/) const
+{
+    CaretLogSevere("Single slice volume not supported for CIFTI Dense Sparse files");
+    return NULL;
+}
+
+/**
+ * Get the graphics primitive for drawing this volume using a TRIANGLES STRIP graphics primitive
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
+ * @return
+ *    Graphics primitive or NULL if unable to draw
+ */
+GraphicsPrimitiveV3fT3f*
+CiftiDenseSparseFile::getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
+                                                                        const TabDrawingInfo& tabDrawingInfo) const
+{
+    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLE_STRIP,
+                                                                       mapIndex,
+                                                                       tabDrawingInfo);
+}
+
+/**
+ * Get the graphics primitive for drawing this volume using a TRIANGLES FAN graphics primitive
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
+ * @return
+ *    Graphics primitive or NULL if unable to draw
+ */
+GraphicsPrimitiveV3fT3f*
+CiftiDenseSparseFile::getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
+                                                                      const TabDrawingInfo& tabDrawingInfo) const
+{
+    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLE_FAN,
+                                                                       mapIndex,
+                                                                       tabDrawingInfo);
+}
+
+/**
+ * Get the graphics primitive for drawing this volume using a TRIANGLES graphics primitive
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
+ * @return
+ *    Graphics primitive or NULL if unable to draw
+ */
+GraphicsPrimitiveV3fT3f*
+CiftiDenseSparseFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
+                                                                    const TabDrawingInfo& tabDrawingInfo) const
+{
+    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLES,
+                                                                       mapIndex,
+                                                                       tabDrawingInfo);
+}
+
+/**
+ * Create a graphics primitive for showing part of volume that intersects with an image from histology
+ * @param mapIndex
+ *    Index of the map.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
+ * @param mediaFile
+ *    The medial file for drawing histology
+ * @param volumeMappingMode
+ *    The volume to image mapping mode
+ * @param volumeSliceThickness
+ *    The volume slice thickness for mapping volume to image
+ * @param errorMessageOut
+ *    Ouput with error message
+ * @return
+ *    Primitive for drawing intersection or NULL if failure
+ */
+GraphicsPrimitive*
+CiftiDenseSparseFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
+                                                                  const TabDrawingInfo& tabDrawingInfo,
+                                                                  const MediaFile* mediaFile,
+                                                                  const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                  const float volumeSliceThickness,
+                                                                  AString& errorMessageOut) const
+{
+    return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimitiveForMap(mediaFile,
+                                                                                  mapIndex,
+                                                                                  tabDrawingInfo,
+                                                                                  volumeMappingMode,
+                                                                                  volumeSliceThickness,
+                                                                                  errorMessageOut);
+}
+
+/**
+ * Create a graphics primitive for showing part of volume that intersects with an image from histology
+ * @param mapIndex
+ *    Index of the map.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
+ * @param histologySlice
+ *    The histology slice being drawn
+ * @param volumeMappingMode
+ *    The volume to image mapping mode
+ * @param volumeSliceThickness
+ *    The volume slice thickness for mapping volume to image
+ * @param errorMessageOut
+ *    Ouput with error message
+ * @return
+ *    Primitive for drawing intersection or NULL if failure
+ */
+std::vector<GraphicsPrimitive*>
+CiftiDenseSparseFile::getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
+                                                                               const TabDrawingInfo& tabDrawingInfo,
+                                                                               const HistologySlice* histologySlice,
+                                                                               const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                               const float volumeSliceThickness,
+                                                                               AString& errorMessageOut) const
+{
+    return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimitiveForMap(histologySlice,
+                                                                                  mapIndex,
+                                                                                  tabDrawingInfo,
+                                                                                  volumeMappingMode,
+                                                                                  volumeSliceThickness,
+                                                                                  errorMessageOut);
+}
+
+/**
+ * Get the volume space object, so we have access to all functions associated with volume spaces
+ */
+const VolumeSpace&
+CiftiDenseSparseFile::getVolumeSpace() const
+{
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& alongRowMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+    if ( ! alongRowMap.hasVolumeData()) {
+        return m_dummyVolumeSpace;
+    }
+    return alongRowMap.getVolumeSpace();
+}

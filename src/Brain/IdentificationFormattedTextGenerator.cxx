@@ -783,8 +783,10 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
     if (volumeInterfaceFile != NULL) {
         const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volumeInterfaceFile);
         const CiftiMappableDataFile* ciftiFile = dynamic_cast<const CiftiMappableDataFile*>(volumeInterfaceFile);
+        const CiftiDenseSparseFile* denseSparseFile(dynamic_cast<const CiftiDenseSparseFile*>(volumeInterfaceFile));
         CaretAssert((volumeFile != NULL)
-                    || (ciftiFile != NULL));
+                    || (ciftiFile != NULL)
+                    || (denseSparseFile != NULL));
 
         int64_t vfI, vfJ, vfK;
         volumeInterfaceFile->enclosingVoxel(x, y, z,
@@ -851,7 +853,6 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                         }
                     }
                     else if (ciftiFile != NULL) {
-
                     }
                 }
 
@@ -969,6 +970,51 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                             scalarHtmlTableBuilder.addRow(m_noDataText,
                                                           ciftiFile->getFileNameNoPath());
                         }
+                    }
+                }
+            }
+            else if (denseSparseFile != NULL) {
+                AString textValue;
+                int64_t voxelIJK[3];
+                const QString separator("<br>");
+                if (denseSparseFile->getVolumeVoxelIdentificationForMaps(mapIndices,
+                                                                    xyz,
+                                                                    separator,
+                                                                    s_dataValueDigitsRightOfDecimal,
+                                                                    voxelIJK,
+                                                                    textValue)) {
+                    AString typeIJKText = (DataFileTypeEnum::toOverlayTypeName(denseSparseFile->getDataFileType())
+                                           + " "
+                                           + "IJK ("
+                                           + AString::number(voxelIJK[0])
+                                           + ", "
+                                           + AString::number(voxelIJK[1])
+                                           + ", "
+                                           + AString::number(voxelIJK[2])
+                                           + ")  ");
+                    AString scalarText;
+                    if (denseSparseFile->isMappedWithPalette()) {
+                        scalarText = textValue;
+                    }
+                    if ( ! scalarText.isEmpty()) {
+                        AString rowColumnIndex;
+                        const int64_t rowIndex(denseSparseFile->getRowIndexFromVolumeXYZ(xyz));
+                        if (rowIndex >= 0) {
+                            rowColumnIndex = ("Row "
+                                              + AString::number(rowIndex
+                                                                + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+                        }
+                        scalarHtmlTableBuilder.addRow(scalarText,
+                                                      denseSparseFile->getFileNameNoPath(),
+                                                      rowColumnIndex);
+                    }
+                }
+                else {
+                    /* no data */
+                    AString labelText;
+                    if (denseSparseFile->isMappedWithPalette()) {
+                        scalarHtmlTableBuilder.addRow(m_noDataText,
+                                                      denseSparseFile->getFileNameNoPath());
                     }
                 }
             }

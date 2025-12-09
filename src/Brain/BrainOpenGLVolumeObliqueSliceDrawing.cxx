@@ -44,6 +44,7 @@
 #include "CaretPreferenceDataValue.h"
 #include "CaretPreferences.h"
 #include "CiftiMappableDataFile.h"
+#include "CiftiDenseSparseFile.h"
 #include "DataFileColorModulateSelector.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesLabels.h"
@@ -2854,6 +2855,8 @@ m_bottomLayerFlag(bottomLayerFlag)
     m_volumeFile = const_cast<VolumeFile*>(volumeFileConst);
     const CiftiMappableDataFile* ciftiMappableFileConst = dynamic_cast<const CiftiMappableDataFile*>(volumeInterface);
     m_ciftiMappableFile = const_cast<CiftiMappableDataFile*>(ciftiMappableFileConst);
+    const CiftiDenseSparseFile* denseSparseFileConst(dynamic_cast<const CiftiDenseSparseFile*>(volumeInterface));
+    m_denseSparseFile = const_cast<CiftiDenseSparseFile*>(denseSparseFileConst);
     
     if (m_volumeFile != NULL) {
         const DataFileColorModulateSelector* modSel(m_volumeFile->getMapColorModulateFileSelector(m_mapIndex));
@@ -2885,6 +2888,9 @@ m_bottomLayerFlag(bottomLayerFlag)
         }
         else if (m_ciftiMappableFile != NULL) {
             m_dataValueType = DataValueType::CIFTI_PALETTE;
+        }
+        else if (m_denseSparseFile != NULL) {
+            m_dataValueType = DataValueType::SPARSE_PALETTE;
         }
         else {
             CaretAssert(0);
@@ -2934,6 +2940,7 @@ m_bottomLayerFlag(bottomLayerFlag)
             break;
         case DataValueType::CIFTI_LABEL:
         case DataValueType::CIFTI_PALETTE:
+        case DataValueType::SPARSE_PALETTE:
         case DataValueType::VOLUME_LABEL:
         case DataValueType::VOLUME_PALETTE:
             break;
@@ -3021,6 +3028,43 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::setThresholdFileAndMap()
             }
         }
             break;
+        case DataValueType::SPARSE_PALETTE:
+        {
+            const PaletteColorMapping* pcm = m_denseSparseFile->getMapPaletteColorMapping(m_mapIndex);
+            CaretAssert(pcm);
+            switch (pcm->getThresholdType()) {
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+                    m_thresholdDenseSparseFile = m_denseSparseFile;
+                    m_thresholdMapIndex   = m_mapIndex;
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+                {
+                    CaretMappableDataFileAndMapSelectionModel* selector = m_denseSparseFile->getMapThresholdFileSelectionModel(m_mapIndex);
+                    m_thresholdDenseSparseFile = dynamic_cast<CiftiDenseSparseFile*>(selector->getSelectedFile());
+                    if (m_thresholdDenseSparseFile != NULL) {
+                        m_thresholdMapIndex = selector->getSelectedMapIndex();
+                    }
+                }
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+                    CaretAssert(0);
+                    break;
+            }
+            if (m_thresholdDenseSparseFile != NULL) {
+                if ((m_thresholdMapIndex >= 0)
+                    && (m_thresholdMapIndex < m_thresholdDenseSparseFile->getNumberOfMaps())) {
+                    m_thresholdPaletteColorMapping = m_thresholdDenseSparseFile->getMapPaletteColorMapping(m_thresholdMapIndex);
+                }
+                else {
+                    m_thresholdDenseSparseFile = NULL;
+                    m_thresholdMapIndex = -1;
+                }
+            }
+        }
+            break;
         case DataValueType::VOLUME_LABEL:
             break;
         case DataValueType::VOLUME_PALETTE:
@@ -3071,6 +3115,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::setThresholdFileAndMap()
     if (m_thresholdMapIndex < 0) {
         m_thresholdCiftiMappableFile = NULL;
         m_thresholdVolumeFile = NULL;
+        m_thresholdDenseSparseFile = NULL;
         m_thresholdPaletteColorMapping = NULL;
     }
     
@@ -3096,6 +3141,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
             break;
         case DataValueType::CIFTI_LABEL:
         case DataValueType::CIFTI_PALETTE:
+        case DataValueType::SPARSE_PALETTE:
         case DataValueType::VOLUME_LABEL:
         case DataValueType::VOLUME_PALETTE:
             /*
@@ -3171,6 +3217,28 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
                                                           &m_thresholdData[0],
                                                           m_data.size(),
                                                           &m_rgba[0]);
+        }
+            break;
+        case DataValueType::SPARSE_PALETTE:
+        {
+            CaretAssert(m_denseSparseFile);
+            PaletteColorMapping* pcm = m_denseSparseFile->getMapPaletteColorMapping(m_mapIndex);
+            CaretAssert(pcm);
+            const FastStatistics* stats = m_denseSparseFile->getMapFastStatistics(m_mapIndex);
+            CaretAssert(stats);
+            CaretAssert(m_data.size() == m_thresholdData.size());
+            
+            PaletteColorMapping* threshPcm = ((m_thresholdPaletteColorMapping != NULL)
+                                              ? m_thresholdPaletteColorMapping
+                                              : pcm);
+            NodeAndVoxelColoring::colorScalarsWithPalette(stats,
+                                                          pcm,
+                                                          &m_data[0],
+                                                          threshPcm,
+                                                          &m_thresholdData[0],
+                                                          m_data.size(),
+                                                          &m_rgba[0]);
+            showZerosFlag = pcm->isDisplayZeroDataFlag();
         }
             break;
         case DataValueType::VOLUME_LABEL:
@@ -3319,6 +3387,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::addOutlines()
             CaretAssert(m_ciftiMappableFile);
             paletteColorMapping = m_ciftiMappableFile->getMapPaletteColorMapping(m_mapIndex);
             break;
+        case DataValueType::SPARSE_PALETTE:
+            CaretAssert(m_denseSparseFile);
+            paletteColorMapping = m_denseSparseFile->getMapPaletteColorMapping(m_mapIndex);
+            break;
         case DataValueType::VOLUME_LABEL:
             CaretAssert(m_volumeFile);
             labelDrawingProperties = m_volumeFile->getLabelDrawingProperties();
@@ -3384,6 +3456,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
         case DataValueType::CIFTI_LABEL:
         case DataValueType::CIFTI_PALETTE:
             needCiftiMapDataFlag = true;
+            break;
+        case DataValueType::SPARSE_PALETTE:
             break;
         case DataValueType::VOLUME_LABEL:
         case DataValueType::VOLUME_PALETTE:
@@ -3471,6 +3545,71 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
                             thresholdValue = thresholdCiftiFileMapData[thresholdVoxelOffset];
                             thresholdValueValidFlag = true;
                         }
+                    }
+                }
+                    break;
+                case DataValueType::SPARSE_PALETTE:
+                {
+                    CaretAssert(m_denseSparseFile);
+                    values[0] = m_denseSparseFile->getVoxelValue(voxelCenter,
+                                                                 &valueValidFlag,
+                                                                 m_mapIndex,
+                                                                 0);
+                    bool allowMaskingFlag(false);
+                    switch (s_voxelInterpolationType) {
+                        case VoxelInterpolationTypeEnum::CUBIC:
+                            allowMaskingFlag = true;
+                            break;
+                        case VoxelInterpolationTypeEnum::TRILINEAR:
+                            break;
+                        case VoxelInterpolationTypeEnum::ENCLOSING_VOXEL:
+                            break;
+                    }
+                    
+                    if (allowMaskingFlag
+                        && valueValidFlag
+                        && (values[0] != 0.0f)) {
+                        /*
+                         * Apply masking to oblique voxels (WB-750).
+                         * In some instances, CUBIC interpolation may result in a voxel
+                         * receiving a very small value (0.000000000000000210882405) and
+                         * this will cause the slice drawing to look very unusual.  Masking
+                         * is used to prevent this from occurring.
+                         *
+                         */
+                        bool maskValidFlag = false;
+                        float maskValue = 0.0f;
+                        const int32_t componentIndex(0);
+                        switch (maskingType) {
+                            case VolumeSliceInterpolationEdgeEffectsMaskingEnum::OFF:
+                                maskValidFlag = false;
+                                break;
+                            case VolumeSliceInterpolationEdgeEffectsMaskingEnum::LOOSE:
+                                maskValue = m_denseSparseFile->getVoxelValue(voxelCenter,
+                                                                             &maskValidFlag,
+                                                                             m_mapIndex,
+                                                                             componentIndex);
+                                break;
+                            case VolumeSliceInterpolationEdgeEffectsMaskingEnum::TIGHT:
+                                maskValue = m_denseSparseFile->getVoxelValue(voxelCenter,
+                                                                             &maskValidFlag,
+                                                                             m_mapIndex,
+                                                                             componentIndex);
+                                break;
+                        }
+                        
+                        if (maskValidFlag
+                            && (maskValue == 0.0f)) {
+                            values[0] = 0.0f;
+                            valueValidFlag = false;
+                        }
+                    }
+                    
+                    if (m_thresholdVolumeFile != NULL) {
+                        thresholdValue = m_thresholdDenseSparseFile->getVoxelValue(voxelCenter,
+                                                                              &thresholdValueValidFlag,
+                                                                              m_thresholdMapIndex,
+                                                                              0);
                     }
                 }
                     break;
@@ -3616,6 +3755,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
                     break;
                 case DataValueType::CIFTI_LABEL:
                 case DataValueType::CIFTI_PALETTE:
+                case DataValueType::SPARSE_PALETTE:
                 case DataValueType::VOLUME_LABEL:
                 case DataValueType::VOLUME_PALETTE:
                     m_data.push_back(values[0]);
