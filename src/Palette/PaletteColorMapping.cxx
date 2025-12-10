@@ -2248,13 +2248,17 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
     const int32_t numberOfPosValues = static_cast<int32_t>(positiveValues.size());
     std::vector<AString> positiveValuesText(numberOfPosValues);
     
+    const float* negPtr(negativeValues.empty() ? NULL : &negativeValues[0]);
+    const float* posPtr(positiveValues.empty() ? NULL : &positiveValues[0]);
+    AString* negTextPtr(negativeValuesText.empty() ? NULL : &negativeValuesText[0]);
+    AString* posTextPtr(positiveValuesText.empty() ? NULL : &positiveValuesText[0]);
     NumericTextFormatting::formatValueRangeNegPos(numericFormatModeForTextFormatting,
                                                   precisionDigitsForTextFormatting,
-                                                  &negativeValues[0],
-                                                  &negativeValuesText[0],
+                                                  negPtr,
+                                                  negTextPtr,
                                                   numberOfNegValues,
-                                                  &positiveValues[0],
-                                                  &positiveValuesText[0],
+                                                  posPtr,
+                                                  posTextPtr,
                                                   numberOfPosValues);
     
     CaretAssert(negativeValues.size() == negativeValuesText.size());
