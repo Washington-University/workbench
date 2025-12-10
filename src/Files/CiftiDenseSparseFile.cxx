@@ -307,14 +307,9 @@ CiftiDenseSparseFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
         CaretAssertArrayIndex(surfaceRGBAOut, (surfaceNumberOfNodes * 4), iNode4);
         
         if (dataIndex >= 0) {
-//            CaretAssert(dataIndex < int64_t(m_loadedRowData.size()));
-//            
-//            const int64_t data4 = dataIndex * 4;
-//            CaretAssertArrayIndex(m_rgba, int64_t(m_loadedRowData.size() * 4), dataIndex * 4);
             CaretAssert(dataIndex < static_cast<int64_t>(m_loadedRowData.size()));
             
             const int64_t data4 = dataIndex * 4;
-            CaretAssertArrayIndex(m_rgba, static_cast<int64_t>(m_loadedRowData.size() * 4), dataIndex*4);
             CaretAssertVectorIndex(m_rgba, data4 + 3);
             
             surfaceRGBAOut[iNode4]   = static_cast<float>(m_rgba[data4])   * 255.0;
@@ -2033,51 +2028,8 @@ CiftiDenseSparseFile::addToDataFileContentInformation(DataFileContentInformation
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     
     if (m_sparseFile != NULL) {
-        const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
-        const CiftiBrainModelsMap& colMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
-        
-        //ciftiXML.getVoxelInfoInDataFileContentInformation(CiftiXML::ALONG_COLUMN,
-        //                                                  dataFileInformation);
-        
-        if (colMap.hasVolumeData()) {
-            VolumeSpace volumeSpace = colMap.getVolumeSpace();//TSC: copied/reimplemented from CiftiXML Old - I don't think it belongs in CiftiXML or CiftiBrainModelsMap
-            const int64_t* dims = volumeSpace.getDims();
-            dataFileInformation.addNameAndValue("Dimensions", AString::fromNumbers(dims, 3, ","));
-            VolumeSpace::OrientTypes orientation[3];
-            float spacing[3];
-            float origin[3];
-            volumeSpace.getOrientAndSpacingForPlumb(orientation, spacing, origin);
-            dataFileInformation.addNameAndValue("Spacing", AString::fromNumbers(spacing, 3, ","));
-            dataFileInformation.addNameAndValue("Origin", AString::fromNumbers(origin, 3, ","));
-            
-            const std::vector<std::vector<float> >& sform = volumeSpace.getSform();
-            for (uint32_t i = 0; i < sform.size(); i++) {
-                dataFileInformation.addNameAndValue(("sform row "
-                                                     + AString::number(i)),
-                                                    AString::fromNumbers(sform[i], ","));
-            }
-            std::vector<StructureEnum::Enum> volStructs = colMap.getVolumeStructureList();
-            for (int i = 0; i < (int)volStructs.size(); ++i)
-            {
-                std::vector<CiftiBrainModelsMap::VolumeMap> voxels = colMap.getVolumeStructureMap(volStructs[i]);
-                for (int j = 0; j < (int)voxels.size(); ++j)
-                {
-                    float xyz[3];
-                    volumeSpace.indexToSpace(voxels[i].m_ijk, xyz);
-                    const AString msg = ("ijk=("
-                                         + AString::fromNumbers(voxels[j].m_ijk, 3, ", ")
-                                         + "), xyz=("
-                                         + AString::fromNumbers(xyz, 3, ", ")
-                                         + "), row="
-                                         + AString::number(voxels[j].m_ciftiIndex)
-                                         + "  ");//TSC: huh?
-                    dataFileInformation.addNameAndValue(StructureEnum::toGuiName(volStructs[i]), msg);//TSC: huh?
-                }
-            }
-        }
-
         CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,
-                                                                       ciftiXML);
+                                                                       m_sparseFile->getCiftiXML());
     }
 }
 
@@ -2751,15 +2703,6 @@ CiftiDenseSparseFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                         rgbaOut[rgbaOutIndex4+2] = m_rgba[rgbaOffset+2];
                         rgbaOut[rgbaOutIndex4+3] = alpha;
                         validVoxelCount++;
-                        
-                        if ((m_rgba[rgbaOffset] > 0)
-                            || (m_rgba[rgbaOffset+1] > 0)
-                            || (m_rgba[rgbaOffset+2] > 0)) {
-                            const Vector3D xyz(volSpace.indexToSpace(ijk));
-                            std::cout << "XYZ: " << xyz.toString() << std::endl;
-                            std::cout << "   Voxel valid IJK: " << ijk[0] << ", " << ijk[1] << ", " << ijk[2] << std::endl;
-                            std::cout << "   RGBA: " << AString::fromNumbers(&rgbaOut[rgbaOutIndex4], 4) << std::endl;
-                        }
                     }
                 }
             }
