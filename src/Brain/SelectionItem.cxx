@@ -365,4 +365,14 @@ SelectionItem::isOtherScreenDepthCloserToViewer(const double otherScreenDepth) c
     return false;
 }
 
+/**
+ * @return Information about brainordinate for this selection item.
+ * Not all subclasses support this function in which case an empty string is returned.
+ */
+AString
+SelectionItem::getBrainordinateInformation() const
+{
+    return "";
+}
+
 

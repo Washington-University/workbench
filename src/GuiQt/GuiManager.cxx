@@ -3407,9 +3407,11 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 try {
                     triedToLoadSurfaceODemandData = true;
                     
+                    const CaretMappableDataFile* loadForThisFileOnly(NULL); /* load data for any file */
                     ciftiConnectivityManager->loadDataForSurfaceNode(brain,
                                                                      surface,
                                                                      nodeIndex,
+                                                                     loadForThisFileOnly,
                                                                      ciftiLoadingInfo,
                                                                      ciftiLoadingInfoTableBuilder);
                     

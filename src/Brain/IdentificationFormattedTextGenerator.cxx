@@ -713,6 +713,9 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                                                                            const Brain* brain,
                                                                            const SelectionItemVoxel* idVolumeVoxel) const
 {
+    CaretAssert(mapFile);
+    CaretAssert(idVolumeVoxel);
+
     if (idVolumeVoxel->isValid() == false) {
         return;
     }
@@ -872,7 +875,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                 }
                 else if (volumeFile->isMappedWithPalette()) {
                     scalarHtmlTableBuilder.addRow(text,
-                                                  filename,
+                                                  (filename + " " + idVolumeVoxel->getBrainordinateInformation()),
                                                   "");
                 }
                 else if (volumeFile->isMappedWithRGBA()) {
@@ -955,7 +958,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                                 }
                             }
                             scalarHtmlTableBuilder.addRow(scalarText,
-                                                          ciftiFile->getFileNameNoPath(),
+                                                          (ciftiFile->getFileNameNoPath() + " " + idVolumeVoxel->getBrainordinateInformation()),
                                                           rowColumnIndex);
                         }
                     }
@@ -968,7 +971,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                         }
                         if (ciftiFile->isMappedWithPalette()) {
                             scalarHtmlTableBuilder.addRow(m_noDataText,
-                                                          ciftiFile->getFileNameNoPath());
+                                                          (ciftiFile->getFileNameNoPath() + " " + idVolumeVoxel->getBrainordinateInformation()));
                         }
                     }
                 }
@@ -1005,7 +1008,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                                                                 + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                         }
                         scalarHtmlTableBuilder.addRow(scalarText,
-                                                      denseSparseFile->getFileNameNoPath(),
+                                                      (denseSparseFile->getFileNameNoPath() + " " + idVolumeVoxel->getBrainordinateInformation()),
                                                       rowColumnIndex);
                     }
                 }
@@ -1014,7 +1017,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                     AString labelText;
                     if (denseSparseFile->isMappedWithPalette()) {
                         scalarHtmlTableBuilder.addRow(m_noDataText,
-                                                      denseSparseFile->getFileNameNoPath());
+                                                      (denseSparseFile->getFileNameNoPath() + " " + idVolumeVoxel->getBrainordinateInformation()));
                     }
                 }
             }
@@ -1030,7 +1033,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
             }
             if (mapFile->isMappedWithPalette()) {
                 scalarHtmlTableBuilder.addRow(m_noDataText,
-                                              mapFile->getFileNameNoPath());
+                                              (mapFile->getFileNameNoPath() + " " + idVolumeVoxel->getBrainordinateInformation()));
             }
         }
     }
@@ -1188,9 +1191,12 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                                                                             const Brain* /*brain*/,
                                                                             const SelectionItemSurfaceNode* idSurfaceNode) const
 {
+    CaretAssert(mapFile);
     const Surface* surface = idSurfaceNode->getSurface();
     const int32_t nodeNumber = idSurfaceNode->getNodeNumber();
-    
+    const AString filenameAndBrainordinateText(mapFile->getFileNameNoPath()
+                                               + " "
+                                               + idSurfaceNode->getBrainordinateInformation());
     if ((surface != NULL)
         && (nodeNumber >= 0)) {
         LabelFile* labelFile(NULL);
@@ -1283,7 +1289,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 }
                 if ( ! scalarText.isEmpty()) {
                     scalarHtmlTableBuilder.addRow(scalarText,
-                                                  cmdf->getFileNameNoPath(),
+                                                  filenameAndBrainordinateText,
                                                   rowColumnIndex);
                 }
             }
@@ -1294,7 +1300,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 }
                 if (cmdf->isMappedWithPalette()) {
                     scalarHtmlTableBuilder.addRow(m_noDataText,
-                                                  cmdf->getFileNameNoPath());
+                                                  filenameAndBrainordinateText);
                 }
             }
         }
@@ -1368,7 +1374,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 }
                 if ( ! scalarText.isEmpty()) {
                     scalarHtmlTableBuilder.addRow(scalarText,
-                                                  cdsf->getFileNameNoPath(),
+                                                  filenameAndBrainordinateText,
                                                   rowColumnIndex);
                 }
             }
@@ -1379,7 +1385,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 }
                 if (cdsf->isMappedWithPalette()) {
                     scalarHtmlTableBuilder.addRow(m_noDataText,
-                                                  cdsf->getFileNameNoPath());
+                                                  filenameAndBrainordinateText);
                 }
             }
         }
@@ -1416,7 +1422,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 text.append(dataValueToText(metricFile->getValue(nodeNumber, mapIndex)));
             }
             scalarHtmlTableBuilder.addRow(text,
-                                          metricFile->getFileNameNoPath(),
+                                          filenameAndBrainordinateText,
                                           "");
         }
         if (metricDynConnFile != NULL) {
@@ -1433,7 +1439,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                         text += (" " + dataValueToText(metricDynConnFile->getValue(nodeNumber, mapIndex)));
                     }
                     scalarHtmlTableBuilder.addRow(text,
-                                                  metricDynConnFile->getFileNameNoPath(),
+                                                  filenameAndBrainordinateText,
                                                   "");
                 }
             }

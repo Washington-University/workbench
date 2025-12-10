@@ -268,6 +268,19 @@ SelectionItemVoxel::toString() const
     return text;
 }
 
+/**
+ * @return Information about brainordinate for this selection item.
+ * Not all subclasses support this function in which case an empty string is returned.
+ */
+AString
+SelectionItemVoxel::getBrainordinateInformation() const
+{
+    if (isValid()) {
+        return ("Voxel: "
+                + AString::fromNumbers(m_voxelIJK.m_ijk, 3));
+    }
+    return "";
+}
 
 
 

@@ -202,3 +202,23 @@ SelectionItemSurfaceNode::toString() const
     text += "Contralateral: " + AString::fromBool(m_contralateralFlag) + "\n";
     return text;
 }
+
+/**
+ * @return Information about brainordinate for this selection item.
+ * Not all subclasses support this function in which case an empty string is returned.
+ */
+AString
+SelectionItemSurfaceNode::getBrainordinateInformation() const
+{
+    if (isValid()) {
+        if (m_surface != NULL) {
+            AString txt(StructureEnum::toGuiName(m_surface->getStructure())
+                        + " Vertex: "
+                        + AString::number(m_nodeNumber));
+            return txt;
+        }
+    }
+    return "";
+}
+
+

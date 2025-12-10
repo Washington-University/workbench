@@ -257,6 +257,9 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromConnectivityMatrixFil
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndex
  *    Index of the surface node.
+ * @param loadDataOnlyForThisFileIfNotNULL
+ *    If this is not NULL, only load data for this file.  This is used when data is not found for a voxel
+ *    and there is attempt to load data for the surface node nearest the voxel.
  * @param rowColumnInformationOut
  *    Appends one string for each row/column loaded
  * @return
@@ -266,9 +269,15 @@ bool
 CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                                                const SurfaceFile* surfaceFile,
                                                                const int32_t nodeIndex,
+                                                               const CaretMappableDataFile* loadDataOnlyForThisFileIfNotNULL,
                                                                std::vector<AString>& rowColumnInformationOut,
                                                                HtmlTableBuilder& htmlTableBuilder)
 {
+    CaretAssert(surfaceFile);
+    const AString structureAndVertexInfo(+ " "
+                                         + StructureEnum::toGuiName(surfaceFile->getStructure())
+                                         + " Vertex: "
+                                         + AString::number(nodeIndex));
     std::vector<CiftiFileDynamicLoadingInterface*> ciftiMatrixFiles;
     getDisplayedConnectivityMatrixFiles(brain,
                                         ciftiMatrixFiles);
@@ -281,8 +290,12 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
         CiftiFileDynamicLoadingInterface* cmf = *iter;
         CaretMappableDataFile* mapFile(dynamic_cast<CaretMappableDataFile*>(cmf));
         CaretAssert(mapFile);
-        if (mapFile->isEmpty() == false) {
-
+        if (loadDataOnlyForThisFileIfNotNULL != NULL) {
+            if (mapFile != loadDataOnlyForThisFileIfNotNULL) {
+                continue;
+            }
+        }
+        if ( ! mapFile->isEmpty()) {
             const int32_t mapIndex = 0;
             int64_t rowIndex = -1;
             int64_t columnIndex = -1;
@@ -305,7 +318,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                                   + ", row index="
                                                   + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                         mapFile->getFileNameNoPath());
+                                         (mapFile->getFileNameNoPath() + structureAndVertexInfo));
             }
             else if (columnIndex >= 0) {
                 /*
@@ -317,7 +330,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                                   + ", column index="
                                                   + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 htmlTableBuilder.addRow(("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                         mapFile->getFileNameNoPath());
+                                         (mapFile->getFileNameNoPath() + structureAndVertexInfo));
             }
         }
     }
@@ -391,6 +404,8 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                                      std::vector<AString>& rowColumnInformationOut,
                                                                      HtmlTableBuilder& htmlTableBuilder)
 {
+    const AString voxelInfo(" Voxel: "
+                            + AString::fromNumbers(xyz, 3, ","));
     std::vector<CiftiFileDynamicLoadingInterface*> ciftiMatrixFiles;
     getDisplayedConnectivityMatrixFiles(brain,
                                         ciftiMatrixFiles);
@@ -423,7 +438,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                   + ", row index="
                                                   + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                         mapFile->getFileNameNoPath());
+                                         (mapFile->getFileNameNoPath() + voxelInfo));
             }
             else if (columnIndex >= 0) {
                 /*
@@ -435,7 +450,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                   + ", column index="
                                                   + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 htmlTableBuilder.addRow(("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                         mapFile->getFileNameNoPath());
+                                         (mapFile->getFileNameNoPath() + voxelInfo));
             }
             else {
                 /*
@@ -454,6 +469,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                     const bool dataValidFlag = loadDataForSurfaceNode(brain,
                                                                       nodeInfo.getSurfaceFile(),
                                                                       nodeInfo.getNodeIndex(),
+                                                                      mapFile, /* only try loading data for this file */
                                                                       rowColumnInformationOut,
                                                                       htmlTableBuilder);
                     if (dataValidFlag) {

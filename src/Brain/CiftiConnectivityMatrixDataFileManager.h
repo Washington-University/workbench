@@ -28,6 +28,7 @@
 namespace caret {
 
     class Brain;
+    class CaretMappableDataFile;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiFileDynamicLoadingInterface;
     class HtmlTableBuilder;
@@ -45,6 +46,7 @@ namespace caret {
         bool loadDataForSurfaceNode(Brain* brain,
                                     const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex,
+                                    const CaretMappableDataFile* loadDataOnlyForThisFileIfNotNULL,
                                     std::vector<AString>& rowColumnInformationOut,
                                     HtmlTableBuilder& htmlTableBuilder);
         

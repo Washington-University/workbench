@@ -59,6 +59,8 @@ namespace caret {
         
         virtual AString toString() const;
 
+        virtual AString getBrainordinateInformation() const override;
+        
     private:
         void copyHelperSelectionItemSurfaceNode(const SelectionItemSurfaceNode& idItem);
         

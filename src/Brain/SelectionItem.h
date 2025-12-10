@@ -82,6 +82,8 @@ namespace caret {
         
         virtual void reset();
         
+        virtual AString getBrainordinateInformation() const;
+        
     private:
     public:
         virtual AString toString() const;

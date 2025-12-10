@@ -65,6 +65,8 @@ namespace caret {
         
         virtual AString toString() const;
 
+        virtual AString getBrainordinateInformation() const override;
+        
     protected:
         SelectionItemVoxel(const SelectionItemDataTypeEnum::Enum itemDataType);
         
