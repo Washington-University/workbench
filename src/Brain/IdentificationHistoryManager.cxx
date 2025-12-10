@@ -233,7 +233,7 @@ IdentificationHistoryManager::restoreFromScene(const SceneAttributes* sceneAttri
                                      sceneClass);    
     
     const int32_t numChildren = sceneClass->getNumberOfObjects();
-    for (int32_t i = 0; i < numChildren; i++) {
+    for (int32_t i = (numChildren - 1); i >= 0; --i) {
         const SceneObject* so = sceneClass->getObjectAtIndex(i);
         if (so->getName() == "historyRecord") {
             const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
