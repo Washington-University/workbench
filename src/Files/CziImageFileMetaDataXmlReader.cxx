@@ -23,7 +23,6 @@
 #include "CziImageFileMetaDataXmlReader.h"
 #undef __CZI_IMAGE_FILE_META_DATA_XML_READER_DECLARE__
 
-#include <QStringView>
 #include <QXmlStreamReader>
 
 #include "AnnotationCoordinate.h"
