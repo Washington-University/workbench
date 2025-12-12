@@ -85,6 +85,16 @@ CziImageFileMetaDataXmlReader::readXmlFromString(CziImageFile* cziImageFile,
     m_imageLogicalY = cziImageFile->getLogicalBoundsRect().y();
     m_imageWidth  = cziImageFile->getLogicalBoundsRect().width();
     m_imageHeight = cziImageFile->getLogicalBoundsRect().height();
+    if ((m_imageWidth < 1)
+        || (m_imageHeight < 1)) {
+        const QString errorMessage("Image size invalid.  Width="
+                                   + AString::number(m_imageWidth)
+                                   + ", Height="
+                                   + AString::number(m_imageHeight));
+        return FunctionResultValue<AnnotationFile*>(NULL,
+                                                    errorMessage,
+                                                    false);
+    }
     
     m_annotationFile.reset(new AnnotationFile());
     
@@ -1096,10 +1106,12 @@ CziImageFileMetaDataXmlReader::xyPositionToXYZ(const AString& xyPositionText)
                        numbers);
     
     if (numbers.size() == 2) {
+        CaretAssertVectorIndex(numbers, 1);
         xyz[0] = numbers[0];
         xyz[1] = numbers[1];
     }
     else if (numbers.size() == 3) {
+        CaretAssertVectorIndex(numbers, 2);
         xyz[0] = numbers[0];
         xyz[1] = numbers[1];
         xyz[2] = numbers[2];
