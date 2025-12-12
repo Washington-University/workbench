@@ -312,10 +312,10 @@ CiftiDenseSparseFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
             const int64_t data4 = dataIndex * 4;
             CaretAssertVectorIndex(m_rgba, data4 + 3);
             
-            surfaceRGBAOut[iNode4]   = static_cast<float>(m_rgba[data4])   * 255.0;
-            surfaceRGBAOut[iNode4+1] = static_cast<float>(m_rgba[data4+1]) * 255.0;
-            surfaceRGBAOut[iNode4+2] = static_cast<float>(m_rgba[data4+2]) * 255.0;
-            surfaceRGBAOut[iNode4+3] = static_cast<float>(m_rgba[data4+3]) * 255.0;
+            surfaceRGBAOut[iNode4]   = static_cast<float>(m_rgba[data4])   / 255.0;
+            surfaceRGBAOut[iNode4+1] = static_cast<float>(m_rgba[data4+1]) / 255.0;
+            surfaceRGBAOut[iNode4+2] = static_cast<float>(m_rgba[data4+2]) / 255.0;
+            surfaceRGBAOut[iNode4+3] = static_cast<float>(m_rgba[data4+3]) / 255.0;
             
             dataValuesOut[iNode] = m_loadedRowData[dataIndex];
             
