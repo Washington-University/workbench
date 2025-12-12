@@ -432,18 +432,19 @@ CziImageFile::readFile(const AString& filename)
             return;
         }
         
-        std::cout << "XML" << std::endl;
-//        std::cout << m_metadataXmlText << std::endl;
-        
-        CziImageFileMetaDataXmlReader xmlReader;
-        FunctionResultValue<AnnotationFile*> result
-        = xmlReader.readXmlFromString(this,
-                                      m_metadataXmlText);
-        if (result.isOk()) {
-            m_annotationFile.reset(result.getValue());
-        }
-        else {
-            CaretLogSevere(result.getErrorMessage());
+        const bool parseXmlForAnnotationsFlag(false);
+        if (parseXmlForAnnotationsFlag) {
+            std::cout << "XML" << std::endl;
+            CziImageFileMetaDataXmlReader xmlReader;
+            FunctionResultValue<AnnotationFile*> result
+            = xmlReader.readXmlFromString(this,
+                                          m_metadataXmlText);
+            if (result.isOk()) {
+                m_annotationFile.reset(result.getValue());
+            }
+            else {
+                CaretLogSevere(result.getErrorMessage());
+            }
         }
 
         /*
