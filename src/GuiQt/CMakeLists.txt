@@ -224,6 +224,7 @@ ELSE()
 	PreferencesDevelopOptionsWidget.h
         PreferencesDialog.h
 	PreferencesDisplayWidget.h
+	PreferencesGeneralWidget.h
         PreferencesImageWidget.h
 	PreferencesRecentFilesWidget.h
         ProgressReportingDialog.h
@@ -563,6 +564,7 @@ PlotPanner.h
 PreferencesDevelopOptionsWidget.h
 PreferencesDialog.h
 PreferencesDisplayWidget.h
+PreferencesGeneralWidget.h
 PreferencesImageWidget.h
 PreferencesRecentFilesWidget.h
 ProgressReportingDialog.h
@@ -923,6 +925,7 @@ PlotPanner.cxx
 PreferencesDevelopOptionsWidget.cxx
 PreferencesDialog.cxx
 PreferencesDisplayWidget.cxx
+PreferencesGeneralWidget.cxx
 PreferencesImageWidget.cxx
 PreferencesRecentFilesWidget.cxx
 ProgressReportingDialog.cxx
@@ -1068,6 +1071,8 @@ ZipSpecFileDialog.cxx
 #
 IF (APPLE)
    LIST(APPEND SOURCE_FILES
+        MacDarkTheme.h
+	MacDarkTheme.mm
         macos.h
         macos.mm)
 ENDIF()

@@ -144,6 +144,7 @@ FileInformation.h
 FileOpenFromOpSysTypeEnum.h
 FloatMatrix.h
 FunctionResult.h
+GuiDarkLightThemeModeEnum.h
 HemisphereEnum.h
 Histogram.h
 HtmlStringBuilder.h
@@ -319,6 +320,7 @@ FileAdapter.cxx
 FileInformation.cxx
 FileOpenFromOpSysTypeEnum.cxx
 FloatMatrix.cxx
+GuiDarkLightThemeModeEnum.cxx
 HemisphereEnum.cxx
 Histogram.cxx
 HtmlStringBuilder.cxx

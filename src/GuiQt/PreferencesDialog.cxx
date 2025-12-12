@@ -53,6 +53,7 @@
 #include "OpenGLDrawingMethodEnum.h"
 #include "PreferencesDevelopOptionsWidget.h"
 #include "PreferencesDisplayWidget.h"
+#include "PreferencesGeneralWidget.h"
 #include "PreferencesImageWidget.h"
 #include "PreferencesRecentFilesWidget.h"
 #include "SessionManager.h"
@@ -105,12 +106,16 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     
     m_displayWidget = new PreferencesDisplayWidget();
     
+    m_generalOptionsWidget = new PreferencesGeneralWidget();
+    
     m_imageOptionsWidget = new PreferencesImageWidget();
     
     /*
      * Create the tab widget and all tab content
      */
     QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->setTabEnabled(tabWidget->addTab(m_generalOptionsWidget,
+                                    "General"), false);
     tabWidget->addTab(createColorsWidget(),
                       "Colors");
     tabWidget->addTab(m_developOptionsWidget,
@@ -1215,6 +1220,7 @@ PreferencesDialog::updateDialog()
     updateIdentificationWidget(prefs);
     updateOpenGLWidget(prefs);
     updateVolumeWidget(prefs);
+    m_generalOptionsWidget->updateContent(prefs);
     m_imageOptionsWidget->updateContent(prefs);
     m_developOptionsWidget->updateContent(prefs);
     m_displayWidget->updateContent(prefs);
