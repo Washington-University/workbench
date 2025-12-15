@@ -310,22 +310,22 @@ CziImageFileMetaDataXmlReader::readShapeArrow(const AString& shapeTagName,
         
         switch (m_reader->tokenType()) {
             case QXmlStreamReader::StartElement:
-                if (m_reader->name() == "Stroke") {
+                if (m_reader->name() == QLatin1String("Stroke")) {
                     strokeText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "StrokeThickness") {
+                else if (m_reader->name() == QLatin1String("StrokeThickness")) {
                     strokeThicknessText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "X1") {
+                else if (m_reader->name() == QLatin1String("X1")) {
                     x1Text = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "X2") {
+                else if (m_reader->name() == QLatin1String("X2")) {
                     x2Text = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Y1") {
+                else if (m_reader->name() == QLatin1String("Y1")) {
                     y1Text = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Y2") {
+                else if (m_reader->name() == QLatin1String("Y2")) {
                     y2Text = m_reader->readElementText().trimmed();
                 }
                 break;
@@ -422,13 +422,13 @@ CziImageFileMetaDataXmlReader::readShapeCircle(const AString& shapeTagName,
         
         switch (m_reader->tokenType()) {
             case QXmlStreamReader::StartElement:
-                if (m_reader->name() == "CenterX") {
+                if (m_reader->name() == QLatin1String("CenterX")) {
                     centerXText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "CenterY") {
+                else if (m_reader->name() == QLatin1String("CenterY")) {
                     centerYText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Radius") {
+                else if (m_reader->name() == QLatin1String("Radius")) {
                     radiusText = m_reader->readElementText().trimmed();
                 }
                 break;
@@ -502,16 +502,16 @@ CziImageFileMetaDataXmlReader::readShapeEllipse(const AString& shapeTagName,
         
         switch (m_reader->tokenType()) {
             case QXmlStreamReader::StartElement:
-                if (m_reader->name() == "CenterX") {
+                if (m_reader->name() == QLatin1String("CenterX")) {
                     centerXText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "CenterY") {
+                else if (m_reader->name() == QLatin1String("CenterY")) {
                     centerYText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "RadiusX") {
+                else if (m_reader->name() == QLatin1String("RadiusX")) {
                     radiusXText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "RadiusY") {
+                else if (m_reader->name() == QLatin1String("RadiusY")) {
                     radiusYText = m_reader->readElementText().trimmed();
                 }
                 break;
@@ -589,22 +589,22 @@ CziImageFileMetaDataXmlReader::readShapeLine(const AString& shapeTagName,
         
         switch (m_reader->tokenType()) {
             case QXmlStreamReader::StartElement:
-                if (m_reader->name() == "Stroke") {
+                if (m_reader->name() == QLatin1String("Stroke") ){
                     strokeText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "StrokeThickness") {
+                else if (m_reader->name() == QLatin1String("StrokeThickness")) {
                     strokeThicknessText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "X1") {
+                else if (m_reader->name() == QLatin1String("X1")) {
                     x1Text = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "X2") {
+                else if (m_reader->name() == QLatin1String("X2")) {
                     x2Text = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Y1") {
+                else if (m_reader->name() == QLatin1String("Y1")) {
                     y1Text = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Y2") {
+                else if (m_reader->name() == QLatin1String("Y2")) {
                     y2Text = m_reader->readElementText().trimmed();
                 }
                 break;
@@ -677,16 +677,16 @@ CziImageFileMetaDataXmlReader::readShapeMarker(const AString& shapeTagName,
         
         switch (m_reader->tokenType()) {
             case QXmlStreamReader::StartElement:
-                if (m_reader->name() == "Stroke") {
+                if (m_reader->name() == QLatin1String("Stroke")) {
                     strokeText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "StrokeThickness") {
+                else if (m_reader->name() == QLatin1String("StrokeThickness")) {
                     strokeThicknessText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Position") {
+                else if (m_reader->name() == QLatin1String("Position")) {
                     positionText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "RenderedSize") {
+                else if (m_reader->name() == QLatin1String("RenderedSize")) {
                     renderedSizeText = m_reader->readElementText().trimmed();
                 }
                 break;
@@ -768,16 +768,16 @@ CziImageFileMetaDataXmlReader::readShapeRectangle(const AString& shapeTagName,
         
         switch (m_reader->tokenType()) {
             case QXmlStreamReader::StartElement:
-                if (m_reader->name() == "Left") {
+                if (m_reader->name() == QLatin1String("Left")) {
                     leftText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Top") {
+                else if (m_reader->name() == QLatin1String("Top")) {
                     topText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Width") {
+                else if (m_reader->name() == QLatin1String("Width")) {
                     widthText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Height") {
+                else if (m_reader->name() == QLatin1String("Height")) {
                     heightText = m_reader->readElementText().trimmed();
                 }
                 break;
@@ -881,22 +881,22 @@ CziImageFileMetaDataXmlReader::readShapeScaleBar(const AString& shapeTagName,
         
         switch (m_reader->tokenType()) {
             case QXmlStreamReader::StartElement:
-                if (m_reader->name() == "Orientation") {
+                if (m_reader->name() == QLatin1String("Orientation")) {
                     orientationText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Text") {
+                else if (m_reader->name() == QLatin1String("Text")) {
                     textText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "X1") {
+                else if (m_reader->name() == QLatin1String("X1")) {
                     x1Text = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "X2") {
+                else if (m_reader->name() == QLatin1String("X2")) {
                     x2Text = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Y1") {
+                else if (m_reader->name() == QLatin1String("Y1")) {
                     y1Text = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Y2") {
+                else if (m_reader->name() == QLatin1String("Y2")) {
                     y2Text = m_reader->readElementText().trimmed();
                 }
                 break;
@@ -986,22 +986,22 @@ CziImageFileMetaDataXmlReader::readShapeTextBox(const AString& shapeTagName,
         
         switch (m_reader->tokenType()) {
             case QXmlStreamReader::StartElement:
-                if (m_reader->name() == "Rotation") {
+                if (m_reader->name() == QLatin1String("Rotation")) {
                     rotationText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Foreground") {
+                else if (m_reader->name() == QLatin1String("Foreground")) {
                     foregroundText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "FontSize") {
+                else if (m_reader->name() == QLatin1String("FontSize")) {
                     fontSizeText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Text") {
+                else if (m_reader->name() == QLatin1String("Text")) {
                     text = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "Position") {
+                else if (m_reader->name() == QLatin1String("Position")) {
                     positionText = m_reader->readElementText().trimmed();
                 }
-                else if (m_reader->name() == "RenderedSize") {
+                else if (m_reader->name() == QLatin1String("RenderedSize")) {
                     renderedSizeText = m_reader->readElementText().trimmed();
                 }
                 break;
