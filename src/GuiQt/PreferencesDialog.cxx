@@ -114,8 +114,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
      * Create the tab widget and all tab content
      */
     QTabWidget* tabWidget = new QTabWidget();
-    tabWidget->setTabEnabled(tabWidget->addTab(m_generalOptionsWidget,
-                                    "General"), false);
+    tabWidget->addTab(m_generalOptionsWidget,
+                      "General");
     tabWidget->addTab(createColorsWidget(),
                       "Colors");
     tabWidget->addTab(m_developOptionsWidget,

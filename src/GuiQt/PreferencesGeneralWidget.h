@@ -55,7 +55,7 @@ namespace caret {
         
         
     private slots:
-        void graphicsTextureMinificationFilterEnumComboBoxItemActivated();
+        void darkLightThemeModeEnumComboBoxItemActivated();
 
     private:
         void updateGraphicsAndUserInterface();
@@ -63,7 +63,7 @@ namespace caret {
         /* DO NOT delete */
         CaretPreferences* m_preferences = NULL;
         
-        EnumComboBoxTemplate* m_graphicsTextureMinificationFilterEnumComboBox = NULL;
+        EnumComboBoxTemplate* m_darkLightThemeModeEnumComboBox = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

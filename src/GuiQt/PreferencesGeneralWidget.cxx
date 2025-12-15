@@ -42,11 +42,16 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "GuiDarkLightThemeModeEnum.h"
 #include "ImageFile.h"
 #include "PreferencesDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
+
+#ifdef CARET_OS_MACOSX
+#include "MacDarkTheme.h"
+#endif
 
 using namespace caret;
 
@@ -67,31 +72,30 @@ PreferencesGeneralWidget::PreferencesGeneralWidget(QWidget* parent)
     /*
      * Image texture minification filter
      */
-    m_graphicsTextureMinificationFilterEnumComboBox = new EnumComboBoxTemplate(this);
-    m_graphicsTextureMinificationFilterEnumComboBox->setup<GraphicsTextureMinificationFilterEnum,GraphicsTextureMinificationFilterEnum::Enum>();
-    QObject::connect(m_graphicsTextureMinificationFilterEnumComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &PreferencesGeneralWidget::graphicsTextureMinificationFilterEnumComboBoxItemActivated);
-    WuQtUtilities::setWordWrappedToolTip(m_graphicsTextureMinificationFilterEnumComboBox->getWidget(),
-                                         GraphicsTextureMinificationFilterEnum::toToolTip());
-    QLabel* minFilterLabel = PreferencesDialog::addWidgetToLayout(gridLayout,
-                                                                  "Image Minification Filter (Zoomed Out)",
-                                                                  m_graphicsTextureMinificationFilterEnumComboBox->getWidget());
-    WuQtUtilities::setWordWrappedToolTip(minFilterLabel,
-                                         GraphicsTextureMinificationFilterEnum::toToolTip());
-
-
-    QLabel* noteLabel = new QLabel("Note: Image Magnification/Minification Filters are NOT saved in the user's preferences.  "
-                                   "Therefore, any desired changes to these selections must be made each time "
-                                   "the application is started.");
-    noteLabel->setWordWrap(true);
+    m_darkLightThemeModeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_darkLightThemeModeEnumComboBox->setup<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
+    QObject::connect(m_darkLightThemeModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &PreferencesGeneralWidget::darkLightThemeModeEnumComboBoxItemActivated);
+    //    WuQtUtilities::setWordWrappedToolTip(m_darkLightThemeModeEnumComboBox->getWidget(),
+    //                                         GuiDarkLightThemeModeEnum::toToolTip());
+    /*QLabel* darkLightThemeLabel =*/ PreferencesDialog::addWidgetToLayout(gridLayout,
+                                                                       "Appearance",
+                                                                       m_darkLightThemeModeEnumComboBox->getWidget());
+    //    WuQtUtilities::setWordWrappedToolTip(darkLightThemeLabel,
+    //                                         GuiDarkLightThemeModeEnum::toToolTip());
+    
     
     /*
      * Layouts
      */
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(gridLayout);
-    layout->addWidget(noteLabel);
     layout->addStretch();
+    
+#ifdef CARET_OS_MACOSX
+#else
+    setEnabled(false);
+#endif
 }
 
 /**
@@ -112,18 +116,32 @@ PreferencesGeneralWidget::updateContent(CaretPreferences* caretPreferences)
     m_preferences = caretPreferences;
     CaretAssert(m_preferences);
 
-    const GraphicsTextureMinificationFilterEnum::Enum minFilter  = BrainOpenGLMediaDrawing::getTextureMinificationFilter();
-    m_graphicsTextureMinificationFilterEnumComboBox->setSelectedItem<GraphicsTextureMinificationFilterEnum,GraphicsTextureMinificationFilterEnum::Enum>(minFilter);
+//    const GuiDarkLightThemeModeEnum::Enum minFilter  = BrainOpenGLMediaDrawing::getTextureMinificationFilter();
+//    m_darkLightThemeModeEnumComboBox->setSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>(minFilter);
 }
 
 /**
  * Called when graphics minification filter changed
  */
 void
-PreferencesGeneralWidget::graphicsTextureMinificationFilterEnumComboBoxItemActivated()
+PreferencesGeneralWidget::darkLightThemeModeEnumComboBoxItemActivated()
 {
-    const GraphicsTextureMinificationFilterEnum::Enum minFilter = m_graphicsTextureMinificationFilterEnumComboBox->getSelectedItem<GraphicsTextureMinificationFilterEnum,GraphicsTextureMinificationFilterEnum::Enum>();
-    BrainOpenGLMediaDrawing::setTextureMinificationFilter(minFilter);
+    const GuiDarkLightThemeModeEnum::Enum darkLightModeEnum = m_darkLightThemeModeEnumComboBox->getSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
+//    BrainOpenGLMediaDrawing::setTextureMinificationFilter(minFilter);
+    
+#ifdef CARET_OS_MACOSX
+    switch (darkLightModeEnum) {
+        case GuiDarkLightThemeModeEnum::SYSTEM:
+            macSetToAutoTheme();
+            break;
+        case GuiDarkLightThemeModeEnum::DARK:
+            macSetToDarkTheme();
+            break;
+        case GuiDarkLightThemeModeEnum::LIGHT:
+            macSetToLightTheme();
+            break;
+    }
+#endif
     updateGraphicsAndUserInterface();
 }
 
