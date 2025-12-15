@@ -23,6 +23,7 @@
 
 #include <set>
 
+#include <QTreeWidgetItem>  /* Needed for Qt 6.2.9 */
 #include <QWidget>
 
 #include "ContextSensitiveMenuItemsEnum.h"
@@ -31,7 +32,6 @@
 #include "SceneableInterface.h"
 
 class QCheckBox;
-class QTreeWidgetItem;
 
 namespace caret {
     class AnnotationPolyhedron;
