@@ -432,7 +432,7 @@ CziImageFile::readFile(const AString& filename)
             return;
         }
         
-        const bool parseXmlForAnnotationsFlag(false);
+        const bool parseXmlForAnnotationsFlag(true);
         if (parseXmlForAnnotationsFlag) {
             std::cout << "XML" << std::endl;
             CziImageFileMetaDataXmlReader xmlReader;

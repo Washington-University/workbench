@@ -128,9 +128,6 @@ CziImageFileMetaDataXmlReader::readXmlFromString(CziImageFile* cziImageFile,
         CaretLogSevere(txt);
     }
 
-    if ( ! m_annotationFile->isEmpty()) {
-        m_annotationFile->writeFile("/Users/john/caret_data/czi_boundaries/ann.wb_annot");
-    }
     /*
      * Note that an empty annotation file is not an error
      */
