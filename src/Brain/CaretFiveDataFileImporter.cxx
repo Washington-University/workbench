@@ -633,15 +633,15 @@ CaretFiveDataFileImporter::convertCellOrFociFile(const CaretFiveFileTypeEnum::En
                     while ( ( ! xml.atEnd())
                            && ( ! xml.hasError())) {
                         if (xml.isStartElement()) {
-                            if (xml.name() == "FileHeader") {
-                                FunctionResult result(readXmlFileHeader(xml, 
+                            if (xml.name() == QLatin1String("FileHeader")) {
+                                FunctionResult result(readXmlFileHeader(xml,
                                                                         fociFile.get()));
                                 if (result.isError()) {
                                     return error("Unsupported file type for reading cell/foci: "
                                                  + file.fileName());
                                 }
                             }
-                            else if (xml.name() == "CellData") {
+                            else if (xml.name() == QLatin1String("CellData")) {
                                 FunctionResult result(readXmlCellOrFocus(xml,
                                                                          fociFile.get()));
                                 if (result.isError()) {
@@ -649,7 +649,7 @@ CaretFiveDataFileImporter::convertCellOrFociFile(const CaretFiveFileTypeEnum::En
                                                  + file.fileName());
                                 }
                             }
-                            else if (xml.name() == "CellStudyInfo") {
+                            else if (xml.name() == QLatin1String("CellStudyInfo")) {
                                 /* Ignore this content */
                                 xml.skipCurrentElement();
                             }
@@ -781,7 +781,7 @@ CaretFiveDataFileImporter::convertCellOrFociProjectionFile(const CaretFiveFileTy
                 while ( ( ! xml.atEnd())
                        && ( ! xml.hasError())) {
                     if (xml.isStartElement()) {
-                        if (xml.name() == "FileHeader") {
+                        if (xml.name() == QLatin1String("FileHeader")) {
                             FunctionResult result(readXmlFileHeader(xml,
                                                                     fociFile.get()));
                             if (result.isError()) {
@@ -789,7 +789,7 @@ CaretFiveDataFileImporter::convertCellOrFociProjectionFile(const CaretFiveFileTy
                                              + file.fileName());
                             }
                         }
-                        else if (xml.name() == "CellProjection") {
+                        else if (xml.name() == QLatin1String("CellProjection")) {
                             FunctionResult result(readXmlCellOrFocusProjection(xml,
                                                                                fociFile.get()));
                             if (result.isError()) {
@@ -797,7 +797,7 @@ CaretFiveDataFileImporter::convertCellOrFociProjectionFile(const CaretFiveFileTy
                                              + file.fileName());
                             }
                         }
-                        else if (xml.name() == "CellStudyInfo") {
+                        else if (xml.name() == QLatin1String("CellStudyInfo")) {
                             /* Ignore this content */
                             xml.skipCurrentElement();
                         }
@@ -915,13 +915,13 @@ CaretFiveDataFileImporter::readColorFileIntoLabelFile(const CaretFiveFileTypeEnu
                 while ( ( ! xml.atEnd())
                        && ( ! xml.hasError())) {
                     if (xml.isStartElement()) {
-                        if (xml.name() == "FileHeader") {
+                        if (xml.name() == QLatin1String("FileHeader")) {
                             /*
                              * No metadata for a lable table so skip header
                              */
                             xml.skipCurrentElement();
                         }
-                        else if (xml.name() == "Color") {
+                        else if (xml.name() == QLatin1String("Color")) {
                             FunctionResult result(readXmlColor(xml,
                                                                labelTable));
                             if (result.isError()) {
@@ -1024,13 +1024,13 @@ CaretFiveDataFileImporter::readColorFile(const AString& filename,
                 while ( ( ! xml.atEnd())
                        && ( ! xml.hasError())) {
                     if (xml.isStartElement()) {
-                        if (xml.name() == "FileHeader") {
+                        if (xml.name() == QLatin1String("FileHeader")) {
                             /*
                              * No metadata for a lable table so skip header
                              */
                             xml.skipCurrentElement();
                         }
-                        else if (xml.name() == "Color") {
+                        else if (xml.name() == QLatin1String("Color")) {
                             FunctionResult result(readXmlColor(xml,
                                                                labelTable));
                             if (result.isError()) {
@@ -1405,7 +1405,7 @@ CaretFiveDataFileImporter::convertSpecFile(const FileEncoding fileEncoding,
             QXmlStreamReader xml(&file);
             
             if (xml.readNextStartElement()) {
-                if (xml.name() == "CaretSpecFile") {
+                if (xml.name() == QLatin1String("CaretSpecFile")) {
                     return error("The Spec File appears to be a Workbench format spec file (not a Caret5 spec file).");
                 }
             }
@@ -1579,13 +1579,13 @@ CaretFiveDataFileImporter::readXmlFileHeader(QXmlStreamReader& xml,
            && ( ! xml.hasError())
            && ( ! doneFlag) ) {
         if (xml.isStartElement()) {
-            if (xml.name() == "Element") {
+            if (xml.name() == QLatin1String("Element")) {
             }
-            else if (xml.name() == "Name") {
+            else if (xml.name() == QLatin1String("Name")) {
                 nameText  = xml.readElementText();
                 valueText = "";
             }
-            else if (xml.name() == "Value") {
+            else if (xml.name() == QLatin1String("Value")) {
                 valueText = xml.readElementText();
                 if ( ! nameText.isEmpty()) {
                     caretDataFile->getFileMetaData()->set(nameText,
@@ -1597,7 +1597,7 @@ CaretFiveDataFileImporter::readXmlFileHeader(QXmlStreamReader& xml,
             }
         }
         else if (xml.isEndElement()) {
-            if (xml.name() == "FileHeader") {
+            if (xml.name() == QLatin1String("FileHeader")) {
                 doneFlag = true;
             }
         }
@@ -1638,13 +1638,13 @@ CaretFiveDataFileImporter::readXmlCellOrFocus(QXmlStreamReader& xml,
            && ( ! xml.hasError())
            && ( ! doneFlag) ) {
         if (xml.isStartElement()) {
-            if (xml.name() == "CellData") {
+            if (xml.name() == QLatin1String("CellData")) {
                 focus.reset(new Focus());
             }
-            else if (xml.name() == "className") {
+            else if (xml.name() == QLatin1String("className")) {
                 focus->setClassName(xml.readElementText());
             }
-            else if (xml.name() == "xyz") {
+            else if (xml.name() == QLatin1String("xyz")) {
                 std::vector<float> xyz;
                 AString::toNumbers(xml.readElementText(), xyz);
                 if (xyz.size() == 3) {
@@ -1655,29 +1655,29 @@ CaretFiveDataFileImporter::readXmlCellOrFocus(QXmlStreamReader& xml,
                     xml.raiseError("XYZ does not have 3 elements");
                 }
             }
-            else if (xml.name() == "name") {
+            else if (xml.name() == QLatin1String("name")) {
                 focus->setName(xml.readElementText());
             }
-            else if (xml.name() == "comment") {
+            else if (xml.name() == QLatin1String("comment")) {
                 focus->setComment(xml.readElementText());
             }
-            else if (xml.name() == "structure") {
+            else if (xml.name() == QLatin1String("structure")) {
                 StructureEnum::Enum structure = StructureEnum::INVALID;
                 const AString structureName(xml.readElementText().toLower());
-                if (structureName == "right") {
+                if (structureName == QLatin1String("right")) {
                     structure = StructureEnum::CORTEX_RIGHT;
                 }
-                else if (structureName == "left") {
+                else if (structureName == QLatin1String("left")) {
                     structure = StructureEnum::CORTEX_LEFT;
                 }
-                else if (structureName == "cerebellum") {
+                else if (structureName == QLatin1String("cerebellum")) {
                     structure = StructureEnum::CEREBELLUM;
                 }
                 focus->getProjection(0)->setStructure(structure);
             }
         }
         else if (xml.isEndElement()) {
-            if (xml.name() == "CellData") {
+            if (xml.name() == QLatin1String("CellData")) {
                 doneFlag = true;
                 if (focus) {
                     fociFile->addFocus(focus.release());
@@ -1745,13 +1745,13 @@ CaretFiveDataFileImporter::readXmlCellOrFocusProjection(QXmlStreamReader& xml,
            && ( ! xml.hasError())
            && ( ! doneFlag) ) {
         if (xml.isStartElement()) {
-            if (xml.name() == "CellProjection") {
+            if (xml.name() == QLatin1String("CellProjection")) {
                 focus.reset(new Focus());
             }
-            else if (xml.name() == "className") {
+            else if (xml.name() == QLatin1String("className")) {
                 focus->setClassName(xml.readElementText());
             }
-            else if (xml.name() == "xyz") {
+            else if (xml.name() == QLatin1String("xyz")) {
                 std::vector<float> xyz;
                 AString::toNumbers(xml.readElementText(), xyz);
                 if (xyz.size() == 3) {
@@ -1762,29 +1762,29 @@ CaretFiveDataFileImporter::readXmlCellOrFocusProjection(QXmlStreamReader& xml,
                     xml.raiseError("XYZ does not have 3 elements");
                 }
             }
-            else if (xml.name() == "name") {
+            else if (xml.name() == QLatin1String("name")) {
                 focus->setName(xml.readElementText());
             }
-            else if (xml.name() == "comment") {
+            else if (xml.name() == QLatin1String("comment")) {
                 focus->setComment(xml.readElementText());
             }
-            else if (xml.name() == "structure") {
+            else if (xml.name() == QLatin1String("structure")) {
                 const AString structureName(xml.readElementText().toLower());
-                if (structureName == "right") {
+                if (structureName == QLatin1String("right")) {
                     structure = StructureEnum::CORTEX_RIGHT;
                 }
-                else if (structureName == "left") {
+                else if (structureName == QLatin1String("left")) {
                     structure = StructureEnum::CORTEX_LEFT;
                 }
-                else if (structureName == "cerebellum") {
+                else if (structureName == QLatin1String("cerebellum")) {
                     structure = StructureEnum::CEREBELLUM;
                 }
             }
-            else if (xml.name() == "signedDistanceAboveSurface") {
+            else if (xml.name() == QLatin1String("signedDistanceAboveSurface")) {
                 const AString text(xml.readElementText());
                 signedDistanceAboveSurface = text.toFloat();
             }
-            else if (xml.name() == "projectionType") {
+            else if (xml.name() == QLatin1String("projectionType")) {
                 const AString  projText(xml.readElementText().toLower());
                 if (projText == "inside") {
                     projType = ProjType::INSIDE;
@@ -1798,61 +1798,61 @@ CaretFiveDataFileImporter::readXmlCellOrFocusProjection(QXmlStreamReader& xml,
                                 + projText));
                 }
             }
-            else if (xml.name() == "closestTileVertices") {
+            else if (xml.name() == QLatin1String("closestTileVertices")) {
                 const AString text(xml.readElementText());
                 AString::toNumbers(text, baryClosestTileVertices);
             }
-            else if (xml.name() == "closestTileAreas") {
+            else if (xml.name() == QLatin1String("closestTileAreas")) {
                 const AString text(xml.readElementText());
                 AString::toNumbers(text, baryClosestTileAreas);
             }
-            else if (xml.name() == "cdistance") {
+            else if (xml.name() == QLatin1String("cdistance")) {
                 const AString text(xml.readElementText());
                 AString::toNumbers(text, baryCdistance);
             }
-            else if (xml.name() == "dR") {
+            else if (xml.name() == QLatin1String("dR")) {
                 const AString text(xml.readElementText());
                 veDR = text.toFloat();
             }
-            else if (xml.name() == "triFiducial") {
+            else if (xml.name() == QLatin1String("triFiducial")) {
                 const AString text(xml.readElementText());
                 AString::toNumbers(text, veTriFiducial);
             }
-            else if (xml.name() == "thetaR") {
+            else if (xml.name() == QLatin1String("thetaR")) {
                 const AString text(xml.readElementText());
                 veThetaR = text.toFloat();
             }
-            else if (xml.name() == "phiR") {
+            else if (xml.name() == QLatin1String("phiR")) {
                 const AString text(xml.readElementText());
                 vePhiR = text.toFloat();
             }
-            else if (xml.name() == "triVertices") {
+            else if (xml.name() == QLatin1String("triVertices")) {
                 const AString text(xml.readElementText());
                 AString::toNumbers(text, veTriVertices);
             }
-            else if (xml.name() == "vertex") {
+            else if (xml.name() == QLatin1String("vertex")) {
                 const AString text(xml.readElementText());
                 AString::toNumbers(text, veVertex);
             }
-            else if (xml.name() == "vertexFiducial") {
+            else if (xml.name() == QLatin1String("vertexFiducial")) {
                 const AString text(xml.readElementText());
                 AString::toNumbers(text, veVertexFiducial);
             }
-            else if (xml.name() == "posFiducial") {
+            else if (xml.name() == QLatin1String("posFiducial")) {
                 const AString text(xml.readElementText());
                 AString::toNumbers(text, vePosFiducial);
             }
-            else if (xml.name() == "fracRI") {
+            else if (xml.name() == QLatin1String("fracRI")) {
                 const AString text(xml.readElementText());
                 veFracRI = text.toFloat();
             }
-            else if (xml.name() == "fracRJ") {
+            else if (xml.name() == QLatin1String("fracRJ")) {
                 const AString text(xml.readElementText());
                 veFracRJ = text.toFloat();
             }
         }
         else if (xml.isEndElement()) {
-            if (xml.name() == "CellProjection") {
+            if (xml.name() == QLatin1String("CellProjection")) {
                 doneFlag = true;
                 if (focus) {
                     validFocusFlag = true;
@@ -2000,24 +2000,24 @@ CaretFiveDataFileImporter::readXmlColor(QXmlStreamReader& xml,
            && ( ! xml.hasError())
            && ( ! doneFlag) ) {
         if (xml.isStartElement()) {
-            if (xml.name() == "name") {
+            if (xml.name() == QLatin1String("name")) {
                 labelName = xml.readElementText();
             }
-            else if (xml.name() == "red") {
+            else if (xml.name() == QLatin1String("red")) {
                 labelRgba[0] = xml.readElementText().toInt();
             }
-            else if (xml.name() == "green") {
+            else if (xml.name() == QLatin1String("green")) {
                 labelRgba[1] = xml.readElementText().toInt();
             }
-            else if (xml.name() == "blue") {
+            else if (xml.name() == QLatin1String("blue")) {
                 labelRgba[2] = xml.readElementText().toInt();
             }
-            else if (xml.name() == "alpha") {
+            else if (xml.name() == QLatin1String("alpha")) {
                 labelRgba[3] = xml.readElementText().toInt();
             }
         }
         else if (xml.isEndElement()) {
-            if (xml.name() == "Color") {
+            if (xml.name() == QLatin1String("Color")) {
                 doneFlag = true;
                 labelTable->addLabel(labelName,
                                      labelRgba[0],
