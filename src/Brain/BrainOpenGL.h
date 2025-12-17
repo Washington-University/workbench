@@ -156,7 +156,7 @@ namespace caret {
         
         static bool testForVersionOfOpenGLSupported(const AString& versionOfOpenGL);
         
-        static AString getOpenGLVersion();
+        static AString getRunTimeOpenGLVersion();
         
         static void testForOpenGLError(const AString& message);
         
@@ -236,6 +236,8 @@ namespace caret {
         
         
     protected:
+        static AString getOpenGLVersion();
+        
         /**
          * Draw models in their respective viewports.
          *

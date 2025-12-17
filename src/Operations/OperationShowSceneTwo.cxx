@@ -383,6 +383,67 @@ OperationShowSceneTwo::useParameters(OperationParameters* /*myParams*/,
     throw OperationException(OperationShowScene::getCommandNotAvailableMessage(OperationShowSceneTwo::getCommandSwitch()));
 }
 #else // HAVE_OSMESA
+
+/*
+ * @return the Runtime version of OpenGL.
+ * To get the version, OpenGL must be have been initialized
+ * so create an mesa context.
+ */
+AString
+OperationShowSceneTwo::getOpenGLVersion()
+{
+    
+    AString versionOut("Failed to determine OpenGL version");
+    
+    /*
+     * Default to the first renderer
+     */
+    std::vector<std::unique_ptr<OffScreenSceneRendererBase>> allOffScreenRenderers(getOffScreenRenderers());
+    if (allOffScreenRenderers.empty()) {
+        throw OperationException("No offscreen renderers are available");
+    }
+    CaretAssertVectorIndex(allOffScreenRenderers, 0);
+    OffScreenSceneRendererBase* offscreenRenderer(allOffScreenRenderers[0].get());
+    
+    if ( ! offscreenRenderer) {
+        versionOut = "No offscreen renderer is selected";
+    }
+    else if ( ! offscreenRenderer->isAvailable()) {
+        versionOut = (offscreenRenderer->getSwitchName() + " is not available on this system.");
+    }
+    else {
+        
+    }
+
+    int32_t imageWidth(100);
+    int32_t imageHeight(100);
+    CaretAssert(imageWidth > 0);
+    CaretAssert(imageHeight > 0);
+    
+    /*
+     * Allocate image buffer
+     */
+    const int32_t imageBufferSize = imageWidth * imageHeight * 4 * sizeof(unsigned char);
+    unsigned char* imageBuffer = new unsigned char[imageBufferSize];
+    if (imageBuffer == 0) {
+        throw OperationException("Allocating image buffer size="
+                                 + QString::number(imageBufferSize)
+                                 + " failed.");
+    }
+        
+    if ( ! offscreenRenderer->initialize(imageWidth,
+                                         imageHeight)) {
+        versionOut = offscreenRenderer->getErrorMessage();
+    }
+    
+    std::unique_ptr<BrainOpenGL> brainOpenGL;
+    brainOpenGL.reset(createBrainOpenGL());
+    
+    versionOut = BrainOpenGL::getRunTimeOpenGLVersion();
+
+    return versionOut;
+}
+
 void
 OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                   ProgressObject* myProgObj)
@@ -696,6 +757,8 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         std::cout << sceneCaptureSettings->getSettingsAsText(windowIndices,
                                                         windowWidths,
                                                         windowHeights) << std::endl;
+        std::cout << "OpenGL Version: " << OperationShowSceneTwo::getOpenGLVersion() << std::endl;
+        std::cout << std::endl;
         return;
     }
     

@@ -708,6 +708,15 @@ BrainOpenGL::getOpenGLMajorMinorVersions(const AString& versionString,
 }
 
 /**
+ * @retrurn The version of OpenGL found when OpenGL was initialized
+ */
+AString
+BrainOpenGL::getRunTimeOpenGLVersion()
+{
+    return s_runtimeLibraryVersionOfOpenGL;
+}
+
+/**
  * Initialize the drawing mode using the most optimal drawing given
  * the compile time and run time constraints.
  */

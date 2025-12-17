@@ -91,6 +91,8 @@ namespace caret {
             const bool m_doNotUseSceneColorsFlag;
         };
         
+        static AString getOpenGLVersion();
+        
         static BrainOpenGLFixedPipeline* createBrainOpenGL();
         
         static void applyMapYoking(const MapYokingGroupEnum::Enum mapYokingGroup,
