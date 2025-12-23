@@ -28,6 +28,8 @@
 
 class QComboBox;
 
+#include "GuiDarkLightThemeModeEnum.h"
+
 namespace caret {
     class CaretPreferences;
     class EnumComboBoxTemplate;

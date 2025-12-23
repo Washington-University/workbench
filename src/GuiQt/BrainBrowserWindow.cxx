@@ -903,6 +903,12 @@ BrainBrowserWindow::changeEvent(QEvent *event)
             }
         }
     }
+    else if (event->type() == QEvent::PaletteChange) {
+        /*
+         * Gets called when dark/light them changes but does not appear
+         * that anything needs to be done.
+         */
+    }
     
     m_restoringSceneNoSaveWindowCompontentStatusFlag = false;
     

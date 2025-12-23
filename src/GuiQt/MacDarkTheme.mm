@@ -19,6 +19,11 @@
  */
 /*LICENSE_END*/
 
+
+/*
+ * Code from https://successfulsoftware.net/2021/03/31/how-to-add-a-dark-theme-to-your-qt-application/
+ */
+
 #include "MacDarkTheme.h"
 
 #import <Cocoa/Cocoa.h>

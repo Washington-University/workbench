@@ -33,7 +33,6 @@
 #include <QGridLayout>
 #include <QLabel>
 
-#include "BrainOpenGLMediaDrawing.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
@@ -42,23 +41,12 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
-#include "GuiDarkLightThemeModeEnum.h"
-#include "ImageFile.h"
+#include "GuiManager.h"
 #include "PreferencesDialog.h"
-#include "WuQMessageBox.h"
-#include "WuQTrueFalseComboBox.h"
+#include "SessionManager.h"
 #include "WuQtUtilities.h"
 
-#ifdef CARET_OS_MACOSX
-#include "MacDarkTheme.h"
-#endif
-
 using namespace caret;
-
-//Add GuiDarkLightThemeModeEnum.h and call functions in MacDarkTheme.h
-//to test and see if it works
-//Create a dark theme class that calls o/s specific functions with an "isSupported" method.
-//Linux dark theme???
 
 /**
  * Constructor.
@@ -76,23 +64,27 @@ PreferencesGeneralWidget::PreferencesGeneralWidget(QWidget* parent)
     m_darkLightThemeModeEnumComboBox->setup<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
     QObject::connect(m_darkLightThemeModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &PreferencesGeneralWidget::darkLightThemeModeEnumComboBoxItemActivated);
-    //    WuQtUtilities::setWordWrappedToolTip(m_darkLightThemeModeEnumComboBox->getWidget(),
-    //                                         GuiDarkLightThemeModeEnum::toToolTip());
-    /*QLabel* darkLightThemeLabel =*/ PreferencesDialog::addWidgetToLayout(gridLayout,
-                                                                       "Appearance",
-                                                                       m_darkLightThemeModeEnumComboBox->getWidget());
-    //    WuQtUtilities::setWordWrappedToolTip(darkLightThemeLabel,
-    //                                         GuiDarkLightThemeModeEnum::toToolTip());
-    
+    PreferencesDialog::addWidgetToLayout(gridLayout,
+                                         "Appearance",
+                                         m_darkLightThemeModeEnumComboBox->getWidget());
+
+    const AString msg("When the appearance is changed, some toolbar buttons in open windows "
+                      "may not correctly change to the correct colors.  This can be fixed by "
+                      "opening a new window and closing the existing window or restarting "
+                      "wb_view.");
+    QLabel* msgLabel(new QLabel(msg));
+    msgLabel->setWordWrap(true);
     
     /*
      * Layouts
      */
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(gridLayout);
+    layout->addWidget(msgLabel);
     layout->addStretch();
     
 #ifdef CARET_OS_MACOSX
+    setEnabled(true);
 #else
     setEnabled(false);
 #endif
@@ -115,9 +107,9 @@ PreferencesGeneralWidget::updateContent(CaretPreferences* caretPreferences)
 {
     m_preferences = caretPreferences;
     CaretAssert(m_preferences);
-
-//    const GuiDarkLightThemeModeEnum::Enum minFilter  = BrainOpenGLMediaDrawing::getTextureMinificationFilter();
-//    m_darkLightThemeModeEnumComboBox->setSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>(minFilter);
+    
+    const GuiDarkLightThemeModeEnum::Enum darkLightMode  = GuiManager::getCurrentDarkLightTheme();
+    m_darkLightThemeModeEnumComboBox->setSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>(darkLightMode);
 }
 
 /**
@@ -126,23 +118,13 @@ PreferencesGeneralWidget::updateContent(CaretPreferences* caretPreferences)
 void
 PreferencesGeneralWidget::darkLightThemeModeEnumComboBoxItemActivated()
 {
-    const GuiDarkLightThemeModeEnum::Enum darkLightModeEnum = m_darkLightThemeModeEnumComboBox->getSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
-//    BrainOpenGLMediaDrawing::setTextureMinificationFilter(minFilter);
+    CaretAssert(m_preferences);
+
+    const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode = m_darkLightThemeModeEnumComboBox->getSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
     
-#ifdef CARET_OS_MACOSX
-    switch (darkLightModeEnum) {
-        case GuiDarkLightThemeModeEnum::SYSTEM:
-            macSetToAutoTheme();
-            break;
-        case GuiDarkLightThemeModeEnum::DARK:
-            macSetToDarkTheme();
-            break;
-        case GuiDarkLightThemeModeEnum::LIGHT:
-            macSetToLightTheme();
-            break;
-    }
-#endif
-    updateGraphicsAndUserInterface();
+    GuiManager::applyDarkLightTheme(darkLightThemeMode);
+    
+    m_preferences->setDarkLightThemMode(darkLightThemeMode);
 }
 
 /**

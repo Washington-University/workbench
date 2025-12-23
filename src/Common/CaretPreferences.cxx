@@ -113,6 +113,12 @@ CaretPreferences::CaretPreferences()
                                                                         0.0));
     m_preferenceStoredInSceneDataValues.push_back(m_volumeSurfaceOutlineSeparation.get());
     
+    m_darkLightThemeMode.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                            "darkLightThemeMode",
+                                                            CaretPreferenceDataValue::DataType::STRING,
+                                                            CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                            GuiDarkLightThemeModeEnum::toName(GuiDarkLightThemeModeEnum::SYSTEM)));
+    
     m_identificationStereotaxicDistance.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                                 "m_identificationStereotaxicDistance",
                                                                                 CaretPreferenceDataValue::DataType::FLOAT,
@@ -3734,4 +3740,29 @@ CaretPreferences::getObsoleteMostRecentScenes(std::vector<RecentSceneInfoContain
             recentSceneInfoOut.push_back(rsic);
         }
     }
+}
+
+/**
+ * @return The dark light them mode
+ */
+GuiDarkLightThemeModeEnum::Enum
+CaretPreferences::getDarkLightThemeMode() const
+{
+    QString stringValue(m_darkLightThemeMode->getValue().toString());
+    bool validFlag(false);
+    const GuiDarkLightThemeModeEnum::Enum enumValue =
+       GuiDarkLightThemeModeEnum::fromName(stringValue, &validFlag);
+    return enumValue;
+}
+
+/**
+ * Set the dark light theme mode
+ * @param darkLightThemeMode
+ *    New value for dark light them mode
+ */
+void
+CaretPreferences::setDarkLightThemMode(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+{
+    const QString stringValue = GuiDarkLightThemeModeEnum::toName(darkLightThemeMode);
+    m_darkLightThemeMode->setValue(stringValue);
 }

@@ -113,6 +113,7 @@
 #include "PaletteColorMappingEditorDialog.h"
 #include "PaletteEditorDialog.h"
 #include "PreferencesDialog.h"
+#include "PreferencesGeneralWidget.h"
 #include "SamplesFile.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
@@ -149,6 +150,10 @@
 #include "WuQMacroWidgetTypeEnum.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+
+#ifdef CARET_OS_MACOSX
+#include "MacDarkTheme.h"
+#endif
 
 using namespace caret;
 
@@ -706,6 +711,13 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
                                   AString& errorMessageOut)
 {
     errorMessageOut.clear();
+    
+    if (getNumberOfOpenBrainBrowserWindows() <= 0) {
+        /*
+         * Set dark/light them before first window is created
+         */
+        GuiManager::applyCurrentDarkLightTheme();
+    }
     
     /*
      * If no tabs can be created, do not create a new window.
@@ -4293,3 +4305,60 @@ GuiManager::toolTipHyperlinkClicked(const QString& hyperlink)
                        + hyperlink);
     }
 }
+
+/**
+ * Apply the given dark / light theme mode
+ * @param darkLightThemeMode
+ *   New theme
+ */
+void
+GuiManager::applyDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+{
+#ifdef CARET_OS_MACOSX
+    switch (darkLightThemeMode) {
+        case GuiDarkLightThemeModeEnum::SYSTEM:
+            macSetToAutoTheme();
+            break;
+        case GuiDarkLightThemeModeEnum::DARK:
+            macSetToDarkTheme();
+            break;
+        case GuiDarkLightThemeModeEnum::LIGHT:
+            macSetToLightTheme();
+            break;
+    }
+#endif
+}
+
+/**
+ * Apply the currtent dark / light theme.  This is called when Workbench is started.
+ */
+void
+GuiManager::applyCurrentDarkLightTheme()
+{
+    CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
+    GuiManager::applyDarkLightTheme(prefs->getDarkLightThemeMode());
+}
+
+/**
+ * If the current dark/light mode them is system, apply it
+ */
+void
+GuiManager::applySystemDarkLightTheme()
+{
+    const GuiDarkLightThemeModeEnum::Enum darkLightTheme(getCurrentDarkLightTheme());
+    if (darkLightTheme == GuiDarkLightThemeModeEnum::SYSTEM){
+//        applyDarkLightTheme(<#const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode#>)
+    }
+}
+
+/**
+ * @return The current dark/light theme
+ */
+GuiDarkLightThemeModeEnum::Enum
+GuiManager::getCurrentDarkLightTheme()
+{
+    CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
+    return prefs->getDarkLightThemeMode();
+}
+
+

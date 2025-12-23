@@ -33,6 +33,7 @@
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "GlobalShortcutEnum.h"
+#include "GuiDarkLightThemeModeEnum.h"
 #include "SceneableInterface.h"
 
 class QAction;
@@ -103,6 +104,14 @@ namespace caret {
                                            QWidget* parent);
         
         static std::vector<std::unique_ptr<InfoItem>> getScreensInfo();
+
+        static void applyCurrentDarkLightTheme();
+        
+        static void applyDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
+        
+        static void applySystemDarkLightTheme();
+
+        static GuiDarkLightThemeModeEnum::Enum getCurrentDarkLightTheme();
 
         Brain* getBrain() const;
         
