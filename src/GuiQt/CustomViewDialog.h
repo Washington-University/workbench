@@ -165,8 +165,6 @@ namespace caret {
         int64_t createScaledInt(const double value,
                                 const int32_t decimals) const;
         
-        QWidget* m_copyWidget;
-        
         QDoubleSpinBox* m_xPanDoubleSpinBox;
         
         QDoubleSpinBox* m_yPanDoubleSpinBox;
@@ -220,6 +218,10 @@ namespace caret {
         QPushButton* m_deleteCustomViewPushButton;
         
         QPushButton* m_viewTransformPushButton;
+        
+        QPushButton* m_copyToCustomViewPushButton;
+        
+        QPushButton* m_copyToTransformPushButton;
         
         WuQListWidget* m_customViewListWidget;
         

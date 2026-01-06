@@ -89,7 +89,7 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
      */
     QWidget* customViewWidget = createCustomViewWidget();
     QWidget* transformWidget = createTransformsWidget();
-    m_copyWidget = createCopyWidget();
+    QWidget* copyWidget = createCopyWidget();
     
     /*
      * Layout for dialog
@@ -98,7 +98,7 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
     QHBoxLayout* layout = new QHBoxLayout(widget);
     layout->setSpacing(layout->spacing() / 2);
     layout->addWidget(transformWidget, 0, Qt::AlignVCenter);
-    layout->addWidget(m_copyWidget, 0, Qt::AlignVCenter);
+    layout->addWidget(copyWidget, 0, Qt::AlignVCenter);
     layout->addWidget(customViewWidget, 0, Qt::AlignVCenter);
     setCentralWidget(widget,
                      WuQDialog::SCROLL_AREA_NEVER);
@@ -265,7 +265,8 @@ CustomViewDialog::loadCustomViewListWidget(const AString& selectedName)
     }
     
     const bool haveViews = (numViews > 0);
-    m_copyWidget->setEnabled(haveViews);
+    m_copyToCustomViewPushButton->setEnabled(haveViews);
+    m_copyToTransformPushButton->setEnabled(haveViews);
     
     const bool haveSelectedView = (getSelectedCustomViewName().isEmpty() == false);
     m_deleteCustomViewPushButton->setEnabled(haveSelectedView);
@@ -277,27 +278,27 @@ CustomViewDialog::loadCustomViewListWidget(const AString& selectedName)
 QWidget*
 CustomViewDialog::createCopyWidget()
 {
-    QPushButton* copyToCustomViewPushButton = new QPushButton("Copy -->");
-    WuQtUtilities::setWordWrappedToolTip(copyToCustomViewPushButton,
+    m_copyToCustomViewPushButton = new QPushButton("Copy -->");
+    WuQtUtilities::setWordWrappedToolTip(m_copyToCustomViewPushButton,
                                          "Copy the Transform's values into the selected Custom Orientation.");
-    QObject::connect(copyToCustomViewPushButton, SIGNAL(clicked()),
+    QObject::connect(m_copyToCustomViewPushButton, SIGNAL(clicked()),
                      this, SLOT(copyToCustomViewPushButtonClicked()));
     
-    QPushButton* copyToTransformPushButton = new QPushButton("<-- Load");
-    WuQtUtilities::setWordWrappedToolTip(copyToTransformPushButton,
+    m_copyToTransformPushButton = new QPushButton("<-- Load");
+    WuQtUtilities::setWordWrappedToolTip(m_copyToTransformPushButton,
                                          "Load the Custom Orientation's transform values into the Transform.");
-    QObject::connect(copyToTransformPushButton, SIGNAL(clicked()),
+    QObject::connect(m_copyToTransformPushButton, SIGNAL(clicked()),
                      this, SLOT(copyToTransformPushButtonClicked()));
     
-    m_viewTransformPushButton = new QPushButton("--> View...");
+    m_viewTransformPushButton = new QPushButton("View\nTransform...");
     m_viewTransformPushButton->setToolTip("View the transformation values");
     QObject::connect(m_viewTransformPushButton, &QPushButton::clicked,
                      this, &CustomViewDialog::viewTransformPushButtonClicked);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(copyToCustomViewPushButton);
-    layout->addWidget(copyToTransformPushButton);
+    layout->addWidget(m_copyToCustomViewPushButton);
+    layout->addWidget(m_copyToTransformPushButton);
     layout->addSpacing(20);
     layout->addWidget(m_viewTransformPushButton);
     

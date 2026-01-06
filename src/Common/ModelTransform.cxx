@@ -554,7 +554,19 @@ ModelTransform::getAsPrettyString(Matrix4x4Interface& matrixForCalculations,
     s.appendWithNewLine("MPR Three Rotation Angles: "
                         + AString::fromNumbers(this->mprThreeRotationAngles, 3));
     s.appendWithNewLine(" ");
-        
+    
+    matrixForCalculations.identity();
+    matrixForCalculations.setRotation(this->mprThreeRotationAngles[0],
+                                      this->mprThreeRotationAngles[1],
+                                      this->mprThreeRotationAngles[2]);
+    float mprThreeElements[4][4];
+    matrixForCalculations.getMatrix(mprThreeElements);
+    s.appendWithNewLine("MPR Three Rotation Matrix:");
+    for (int32_t i = 0; i < 4; i++) {
+        s.appendWithNewLine(AString::fromNumbers(mprThreeElements[i], 4));
+    }
+    s.appendWithNewLine(" ");
+
     s.appendWithNewLine("MPR Three Single Slice Rotation Angle: "
                         + AString::number(this->mprThreeSingleSliceRotationAngle));
     s.appendWithNewLine(" ");
@@ -566,7 +578,7 @@ ModelTransform::getAsPrettyString(Matrix4x4Interface& matrixForCalculations,
                         + AString::fromNumbers(rotXYZ, 3));
     s.appendWithNewLine(" " );
 
-    s.appendWithNewLine("Flat Rotation:");
+    s.appendWithNewLine("Flat Rotation Matrix:");
     for (int32_t i = 0; i < 4; i++) {
         s.appendWithNewLine(AString::fromNumbers(this->flatRotation[i], 4));
     }

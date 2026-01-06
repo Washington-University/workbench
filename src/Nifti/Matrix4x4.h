@@ -60,7 +60,7 @@ private:
     void initializeMembersMatrix4x4();
     
 public:
-    void identity();
+    virtual void identity() override;
 
     void getTranslation(float translatationOut[3]) const;
 
@@ -111,7 +111,7 @@ public:
 
     void setRotation(const double rotationX,
                      const double rotationY,
-                     const double rotationZ);
+                     const double rotationZ) override;
     
     void premultiply(const Matrix4x4& tm);
 
@@ -139,7 +139,7 @@ public:
 
     virtual void setMatrix(const float m[4][4]) override;
     
-    void getMatrix(float m[4][4]) const;
+    virtual void getMatrix(float m[4][4]) const override;
     
     void setMatrix(const Matrix4x4& cm);
 
