@@ -75,16 +75,16 @@ OperationParameters* OperationCiftiResampleDconnMemory::getParameters()
     surfDilateExpOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (area / (distance ^ n)) as the weighting function (default 6)");
     surfDilateWeightedOpt->createOptionalParameter(2, "-legacy-cutoff", "use v1.3.2 logic for the kernel cutoff");
     
-    OptionalParameter* affineOpt = ret->createOptionalParameter(11, "-affine", "use an affine transformation on the volume components");
-    affineOpt->addStringParameter(1, "affine-file", "the affine file to use");
-    OptionalParameter* flirtOpt = affineOpt->createOptionalParameter(2, "-flirt", "MUST be used if affine is a flirt affine");
-    flirtOpt->addStringParameter(1, "source-volume", "the source volume used when generating the affine");
-    flirtOpt->addStringParameter(2, "target-volume", "the target volume used when generating the affine");
+    ParameterComponent* affineOpt = ret->createRepeatableParameter(11, "-affine", "add an affine transformation for the volume components");
+        affineOpt->addStringParameter(1, "affine-file", "the affine file to use");
+        OptionalParameter* flirtOpt = affineOpt->createOptionalParameter(2, "-flirt", "MUST be used if affine is a flirt affine");
+            flirtOpt->addStringParameter(1, "source-volume", "the source volume used when generating the affine");
+            flirtOpt->addStringParameter(2, "target-volume", "the target volume used when generating the affine");
     
-    OptionalParameter* warpfieldOpt = ret->createOptionalParameter(12, "-warpfield", "use a warpfield on the volume components");
-    warpfieldOpt->addStringParameter(1, "warpfield", "the warpfield to use");
-    OptionalParameter* fnirtOpt = warpfieldOpt->createOptionalParameter(2, "-fnirt", "MUST be used if using a fnirt warpfield");
-    fnirtOpt->addStringParameter(1, "source-volume", "the source volume used when generating the warpfield");
+    ParameterComponent* warpfieldOpt = ret->createRepeatableParameter(12, "-warpfield", "add a warpfield for the volume components");
+        warpfieldOpt->addStringParameter(1, "warpfield", "the warpfield to use");
+        OptionalParameter* fnirtOpt = warpfieldOpt->createOptionalParameter(2, "-fnirt", "MUST be used if using a fnirt warpfield");
+            fnirtOpt->addStringParameter(1, "source-volume", "the source volume used when generating the warpfield");
     
     OptionalParameter* leftSpheresOpt = ret->createOptionalParameter(13, "-left-spheres", "specify spheres for left surface resampling");
     leftSpheresOpt->addSurfaceParameter(1, "current-sphere", "a sphere with the same mesh as the current left surface");
@@ -163,7 +163,7 @@ void OperationCiftiResampleDconnMemory::useParameters(OperationParameters* myPar
         throw OperationException("invalid surface resampling method name");
     }
     AString myVolMethodString = myParams->getString(6);
-    VolumeFile::InterpType myVolMethod = VolumeFile::CUBIC;
+    VolumeFile::InterpType myVolMethod = VolumeFile::TRILINEAR; //don't need LABEL suport yet, CiftiResample doesn't support 3D
     if (myVolMethodString == "CUBIC")
     {
         myVolMethod = VolumeFile::CUBIC;
@@ -250,29 +250,44 @@ void OperationCiftiResampleDconnMemory::useParameters(OperationParameters* myPar
             surfLegacyCutoff = surfDilateWeightedOpt->getOptionalParameter(2)->m_present;
         }
     }
-    OptionalParameter* affineOpt = myParams->getOptionalParameter(11);
-    OptionalParameter* warpfieldOpt = myParams->getOptionalParameter(12);
-    if (affineOpt->m_present && warpfieldOpt->m_present) throw OperationException("you cannot specify both -affine and -warpfield");
-    AffineFile myAffine;
-    WarpfieldFile myWarpfield;
-    if (affineOpt->m_present)
-    {
-        OptionalParameter* flirtOpt = affineOpt->getOptionalParameter(2);
-        if (flirtOpt->m_present)
+    auto& affInstances = myParams->getRepeatableParameterInstances(11);
+    auto& warpInstances = myParams->getRepeatableParameterInstances(12);
+    XfmStack myStack;
+    auto xfmOrder = myParams->getRepeatableOrder();//helper for some ugly code to resolve relative order of repeatable options
+    vector<WarpfieldFile> warpStorage(warpInstances.size());//need to keep these in scope until after the algorithm completes
+    for (auto iter = xfmOrder.rbegin(); iter != xfmOrder.rend(); ++iter)//because this is volume resampling, we need to transform target coords into source coords
+    {//so, reverse the transform order and invert affines (warpfields are harder to invert, so they work differently for surfaces)
+        switch (iter->key)
         {
-            myAffine.readFlirt(affineOpt->getString(1), flirtOpt->getString(1), flirtOpt->getString(2));
-        } else {
-            myAffine.readWorld(affineOpt->getString(1));
-        }
-    }
-    if (warpfieldOpt->m_present)
-    {
-        OptionalParameter* fnirtOpt = warpfieldOpt->getOptionalParameter(2);
-        if (fnirtOpt->m_present)
-        {
-            myWarpfield.readFnirt(warpfieldOpt->getString(1), fnirtOpt->getString(1));
-        } else {
-            myWarpfield.readWorld(warpfieldOpt->getString(1));
+            case 11:
+            {
+                OptionalParameter* flirtOpt = affInstances[iter->index]->getOptionalParameter(2);
+                AffineFile myAff;
+                if (flirtOpt->m_present)
+                {
+                    myAff.readFlirt(affInstances[iter->index]->getString(1), flirtOpt->getString(1), flirtOpt->getString(2));
+                } else {
+                    myAff.readWorld(affInstances[iter->index]->getString(1));
+                }
+                myStack.push_back(CaretPointer<XfmBase>(new AffineXfm(myAff.getMatrix().inverse())));//invert it
+                break;
+            }
+            case 12:
+            {
+                OptionalParameter* fnirtOpt = warpInstances[iter->index]->getOptionalParameter(2);
+                WarpfieldFile& myWarp = warpStorage[iter->index];
+                if (fnirtOpt->m_present)
+                {
+                    myWarp.readFnirt(warpInstances[iter->index]->getString(1), fnirtOpt->getString(1));
+                } else {
+                    myWarp.readWorld(warpInstances[iter->index]->getString(1));
+                }
+                myStack.push_back(CaretPointer<XfmBase>(new WarpfieldXfm(myWarp.getWarpfield())));//DON'T invert, internal warpfield convention is already inverse
+                break;
+            }
+            default:
+                CaretAssert(false);
+                throw OperationException("internal error, tell the developers what you just tried to do");
         }
     }
     SurfaceFile* curLeftSphere = NULL, *newLeftSphere = NULL;
@@ -404,28 +419,14 @@ void OperationCiftiResampleDconnMemory::useParameters(OperationParameters* myPar
     }
     CiftiFile tempCifti;
     //TSC: resampling along column first causes it to hit peak memory usage earlier
-    if (warpfieldOpt->m_present)
-    {
-        AlgorithmCiftiResample(myProgObj, myCiftiIn, CiftiXML::ALONG_COLUMN, myTemplate, templateDir, mySurfMethod, myVolMethod, &tempCifti, surfLargest, voldilatemm, surfdilatemm, myWarpfield.getWarpfield(),
-                               curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
-                               curRightSphere, newRightSphere, curRightAreas, newRightAreas,
-                               curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas,
-                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent, volLegacyCutoff, surfLegacyCutoff);
-        AlgorithmCiftiResample(myProgObj, &tempCifti, CiftiXML::ALONG_ROW, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myWarpfield.getWarpfield(),
-                               curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
-                               curRightSphere, newRightSphere, curRightAreas, newRightAreas,
-                               curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas,
-                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent, volLegacyCutoff, surfLegacyCutoff);
-    } else {//rely on AffineFile() being the identity transform for if neither option is specified
-        AlgorithmCiftiResample(myProgObj, myCiftiIn, CiftiXML::ALONG_COLUMN, myTemplate, templateDir, mySurfMethod, myVolMethod, &tempCifti, surfLargest, voldilatemm, surfdilatemm, myAffine.getMatrix(),
-                               curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
-                               curRightSphere, newRightSphere, curRightAreas, newRightAreas,
-                               curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas,
-                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent, volLegacyCutoff, surfLegacyCutoff);
-        AlgorithmCiftiResample(myProgObj, &tempCifti, CiftiXML::ALONG_ROW, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myAffine.getMatrix(),
-                               curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
-                               curRightSphere, newRightSphere, curRightAreas, newRightAreas,
-                               curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas,
-                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent, volLegacyCutoff, surfLegacyCutoff);
-    }
+    AlgorithmCiftiResample(myProgObj, myCiftiIn, CiftiXML::ALONG_COLUMN, myTemplate, templateDir, mySurfMethod, myVolMethod, &tempCifti, surfLargest, voldilatemm, surfdilatemm, myStack,
+                            curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
+                            curRightSphere, newRightSphere, curRightAreas, newRightAreas,
+                            curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas,
+                            volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent, volLegacyCutoff, surfLegacyCutoff);
+    AlgorithmCiftiResample(myProgObj, &tempCifti, CiftiXML::ALONG_ROW, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myStack,
+                            curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
+                            curRightSphere, newRightSphere, curRightAreas, newRightAreas,
+                            curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas,
+                            volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent, volLegacyCutoff, surfLegacyCutoff);
 }
