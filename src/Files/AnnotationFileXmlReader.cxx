@@ -27,12 +27,14 @@
 #include "AnnotationFileXmlReader.h"
 #undef __ANNOTATION_FILE_XML_READER_DECLARE__
 
+#include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
 #include "AnnotationGroup.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
+#include "AnnotationMarker.h"
 #include "AnnotationOval.h"
 #include "AnnotationPolygon.h"
 #include "AnnotationPolyLine.h"
@@ -1165,7 +1167,7 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
             }
         }
         else if (elementName == ELEMENT_ARROW) {
-            CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            CaretPointer<AnnotationArrow> annotation(new AnnotationArrow(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoCoordinateAnnotation(annotationFile,
                                         ELEMENT_ARROW,
                                         annotation);
@@ -1193,7 +1195,7 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_MARKER) {
-            CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            CaretPointer<AnnotationMarker> annotation(new AnnotationMarker(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readOneCoordinateAnnotation(annotationFile,
                                         ELEMENT_MARKER,
                                         annotation);

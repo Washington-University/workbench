@@ -463,7 +463,6 @@ AnnotationOneCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
             break;
         case AnnotationTypeEnum::MARKER:
             allowsMovingFlag = true;
-            allowsCornerResizingFlag = true;
             break;
         case AnnotationTypeEnum::OVAL:
             allowsMovingFlag   = true;
