@@ -832,6 +832,7 @@ DisplayGroupAndTabItemViewController::scrollTreeViewToFindItem()
             || (m_findItemsCurrentIndex >= numFindItems)) {
             m_findItemsCurrentIndex = 0;
         }
+        
         CaretAssertVectorIndex(m_findItems, m_findItemsCurrentIndex);
         const QTreeWidgetItem* item(m_findItems[m_findItemsCurrentIndex]);
         CaretAssert(item);

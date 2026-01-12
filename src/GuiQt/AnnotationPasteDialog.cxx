@@ -607,6 +607,8 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const UserInputModeEnum::Enum use
          */
         for (auto& ann : annotationsPasted) {
             switch (ann->getType()) {
+                case AnnotationTypeEnum::ARROW:
+                    break;
                 case AnnotationTypeEnum::BOX:
                     break;
                 case AnnotationTypeEnum::BROWSER_TAB:
@@ -618,6 +620,8 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const UserInputModeEnum::Enum use
                 case AnnotationTypeEnum::IMAGE:
                     break;
                 case AnnotationTypeEnum::LINE:
+                    break;
+                case AnnotationTypeEnum::MARKER:
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
@@ -806,6 +810,8 @@ AnnotationPasteDialog::pasteAnnotationInSpace(const UserInputModeEnum::Enum user
         undoCommand->setModePasteAnnotation(annotationFile,
                                             annotation);
         switch (annotation->getType()) {
+            case AnnotationTypeEnum::ARROW:
+                break;
             case AnnotationTypeEnum::BOX:
                 break;
             case AnnotationTypeEnum::BROWSER_TAB:
@@ -817,6 +823,8 @@ AnnotationPasteDialog::pasteAnnotationInSpace(const UserInputModeEnum::Enum user
             case AnnotationTypeEnum::IMAGE:
                 break;
             case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::MARKER:
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;

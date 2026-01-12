@@ -27,12 +27,14 @@
 #include "AnnotationFileXmlWriter.h"
 #undef __ANNOTATION_FILE_XML_WRITER_DECLARE__
 
+#include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
 #include "AnnotationGroup.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
+#include "AnnotationMarker.h"
 #include "AnnotationOval.h"
 #include "AnnotationPolyhedron.h"
 #include "AnnotationPolygon.h"
@@ -269,6 +271,9 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
         CaretAssert(annotation);
         
         switch (annotation->getType()) {
+            case AnnotationTypeEnum::ARROW:
+                writeArrow(dynamic_cast<const AnnotationArrow*>(annotation));
+                break;
             case AnnotationTypeEnum::BOX:
                 writeBox(dynamic_cast<const AnnotationBox*>(annotation));
                 break;
@@ -283,6 +288,9 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
                 break;
             case AnnotationTypeEnum::LINE:
                 writeLine(dynamic_cast<const AnnotationLine*>(annotation));
+                break;
+            case AnnotationTypeEnum::MARKER:
+                writeMarker(dynamic_cast<const AnnotationMarker*>(annotation));
                 break;
             case AnnotationTypeEnum::OVAL:
                 writeOval(dynamic_cast<const AnnotationOval*>(annotation));
@@ -307,6 +315,22 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
         
     m_stream->writeEndElement();
 }
+
+/**
+ * Write the given annotation arrow in XML.
+ *
+ * @param arrow
+ *     The annotation arrow.
+ */
+void
+AnnotationFileXmlWriter::writeArrow(const AnnotationArrow* arrow)
+{
+    CaretAssert(arrow);
+    
+    writeTwoCoordinateShapeAnnotation(arrow,
+                                      ELEMENT_ARROW);
+}
+
 
 /**
  * Write the given annotation box in XML.
@@ -389,6 +413,21 @@ AnnotationFileXmlWriter::writeLine(const AnnotationLine* line)
     
     writeTwoCoordinateShapeAnnotation(line,
                                   ELEMENT_LINE);
+}
+
+/**
+ * Write the given annotation marker in XML.
+ *
+ * @param marker
+ *     The annotation marker.
+ */
+void
+AnnotationFileXmlWriter::writeMarker(const AnnotationMarker* marker)
+{
+    CaretAssert(marker);
+    
+    writeOneCoordinateShapeAnnotation(marker,
+                                      ELEMENT_MARKER);
 }
 
 /**

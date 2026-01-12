@@ -133,7 +133,10 @@ AnnotationOneCoordinateShape::initializeMembersAnnotationOneCoordinateShape()
             break;
     }
     
-    
+    if (getType() == AnnotationTypeEnum::MARKER) {
+        m_width  = 5.0;
+        m_height = 5.0;
+    }
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
@@ -432,6 +435,8 @@ AnnotationOneCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
     bool allowsRotationFlag       = false;
     
     switch (getType()) {
+        case AnnotationTypeEnum::ARROW:
+            break;
         case AnnotationTypeEnum::BOX:
             allowsMovingFlag   = true;
             allowsCornerResizingFlag = true;
@@ -455,6 +460,10 @@ AnnotationOneCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
             allowsRotationFlag = true;
             break;
         case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::MARKER:
+            allowsMovingFlag = true;
+            allowsCornerResizingFlag = true;
             break;
         case AnnotationTypeEnum::OVAL:
             allowsMovingFlag   = true;
@@ -1519,6 +1528,8 @@ AnnotationOneCoordinateShape::applySpatialModificationTabOrWindowSpace(const Ann
     
     bool validCoordinatesFlag = false;
     bool validRotationFlag    = false;
+
+    const bool markerFlag(getType() == AnnotationTypeEnum::MARKER);
     
     /*
      * When a resize handle is moved, update the corners of the shape
@@ -1664,42 +1675,45 @@ AnnotationOneCoordinateShape::applySpatialModificationTabOrWindowSpace(const Ann
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
-        {
-            /*
-             * Top right is now at the mouse XY
-             */
-            topRightXYZ[0] = spatialModification.m_mouseX;
-            topRightXYZ[1] = spatialModification.m_mouseY;
-            
-            /*
-             * Unit vector from updated top right to bottom left
-             */
-            float topRightToBottomLeftUnitVector[3];
-            MathFunctions::createUnitVector(topRightXYZ, bottomLeftXYZ, topRightToBottomLeftUnitVector);
-            
-            /*
-             * We have a right triangle where:
-             *    The hypotnuse is from bottom left corner to new top right corner
-             *    A right angle is at top left corner
-             */
-            const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
-                                                             bottomLeftXYZ,
-                                                             topRightXYZ);
-            const float angle = (M_PI / 2.0) - oppositeAngle;
-            const float hypotnuseLength = MathFunctions::distance3D(topRightXYZ,
-                                                                    bottomLeftXYZ);
-            
-            const float newWidth  = std::cos(angle) * hypotnuseLength;
-            const float newHeight = std::sin(angle) * hypotnuseLength;
-            
-            topLeftXYZ[0] = topRightXYZ[0] - leftToRightUnitVector[0] * newWidth;
-            topLeftXYZ[1] = topRightXYZ[1] - leftToRightUnitVector[1] * newWidth;
-            
-            bottomRightXYZ[0] = topRightXYZ[0] - bottomToTopUnitVector[0] * newHeight;
-            bottomRightXYZ[1] = topRightXYZ[1] - bottomToTopUnitVector[1] * newHeight;
-            
-            validCoordinatesFlag = true;
-        }
+            if (markerFlag) {
+                
+            }
+            else {
+                /*
+                 * Top right is now at the mouse XY
+                 */
+                topRightXYZ[0] = spatialModification.m_mouseX;
+                topRightXYZ[1] = spatialModification.m_mouseY;
+                
+                /*
+                 * Unit vector from updated top right to bottom left
+                 */
+                float topRightToBottomLeftUnitVector[3];
+                MathFunctions::createUnitVector(topRightXYZ, bottomLeftXYZ, topRightToBottomLeftUnitVector);
+                
+                /*
+                 * We have a right triangle where:
+                 *    The hypotnuse is from bottom left corner to new top right corner
+                 *    A right angle is at top left corner
+                 */
+                const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
+                                                                 bottomLeftXYZ,
+                                                                 topRightXYZ);
+                const float angle = (M_PI / 2.0) - oppositeAngle;
+                const float hypotnuseLength = MathFunctions::distance3D(topRightXYZ,
+                                                                        bottomLeftXYZ);
+                
+                const float newWidth  = std::cos(angle) * hypotnuseLength;
+                const float newHeight = std::sin(angle) * hypotnuseLength;
+                
+                topLeftXYZ[0] = topRightXYZ[0] - leftToRightUnitVector[0] * newWidth;
+                topLeftXYZ[1] = topRightXYZ[1] - leftToRightUnitVector[1] * newWidth;
+                
+                bottomRightXYZ[0] = topRightXYZ[0] - bottomToTopUnitVector[0] * newHeight;
+                bottomRightXYZ[1] = topRightXYZ[1] - bottomToTopUnitVector[1] * newHeight;
+                
+                validCoordinatesFlag = true;
+            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
             CaretAssert(0);

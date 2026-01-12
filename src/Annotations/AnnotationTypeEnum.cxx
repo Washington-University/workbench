@@ -106,6 +106,10 @@ AnnotationTypeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(AnnotationTypeEnum(ARROW,
+                                          "ARROW",
+                                          "Arrow"));
+    
     enumData.push_back(AnnotationTypeEnum(BOX,
                                           "BOX",
                                           "Box"));
@@ -125,6 +129,10 @@ AnnotationTypeEnum::initialize()
     enumData.push_back(AnnotationTypeEnum(LINE,
                                           "LINE",
                                           "Line"));
+    
+    enumData.push_back(AnnotationTypeEnum(MARKER,
+                                          "MARKER",
+                                          "Marker"));
     
     enumData.push_back(AnnotationTypeEnum(OVAL,
                                           "OVAL",

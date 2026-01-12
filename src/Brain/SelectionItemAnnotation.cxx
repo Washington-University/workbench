@@ -179,6 +179,9 @@ SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
     if (annotation != NULL) {
         bool validateFlag(false);
         switch (annotation->getType()) {
+            case AnnotationTypeEnum::ARROW:
+                validateFlag = true;
+                break;
             case AnnotationTypeEnum::BOX:
                 validateFlag = true;
                 break;
@@ -190,6 +193,9 @@ SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
                 validateFlag = true;
                 break;
             case AnnotationTypeEnum::LINE:
+                validateFlag = true;
+                break;
+            case AnnotationTypeEnum::MARKER:
                 validateFlag = true;
                 break;
             case AnnotationTypeEnum::OVAL:

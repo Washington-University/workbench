@@ -2507,9 +2507,11 @@ SpecFileManagementDialog::copyMoveFileContent(QWidget* parent,
         }
     }
     
+    DataFileContentCopyMoveDialog::Options options;
     DataFileContentCopyMoveDialog copyMoveDialog(m_parentBrainBrowserWindow->getBrowserWindowIndex(),
                                                  copyMoveInterfaceFile,
                                                  copyMoveDestinationFiles,
+                                                 options,
                                                  parent);
     copyMoveDialog.exec();
 

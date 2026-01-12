@@ -203,6 +203,9 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             
             Mode mode(Mode::MODE_SELECT);
             switch (annType) {
+                case AnnotationTypeEnum::ARROW:
+                    mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
+                    break;
                 case AnnotationTypeEnum::BOX:
                     mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
                     break;
@@ -216,6 +219,9 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                     mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
                    break;
                 case AnnotationTypeEnum::LINE:
+                    mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
+                    break;
+                case AnnotationTypeEnum::MARKER:
                     mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
                     break;
                 case AnnotationTypeEnum::OVAL:
@@ -1109,6 +1115,8 @@ UserInputModeAnnotations::getCursor() const
                                 CaretAssertVectorIndex(selectedAnns, 0);
                                 if (m_annotationUnderMouse == selectedAnns[0]) {
                                     switch (m_annotationUnderMouse->getType()) {
+                                        case AnnotationTypeEnum::ARROW:
+                                            break;
                                         case AnnotationTypeEnum::BOX:
                                             break;
                                         case AnnotationTypeEnum::BROWSER_TAB:
@@ -1118,6 +1126,8 @@ UserInputModeAnnotations::getCursor() const
                                         case AnnotationTypeEnum::IMAGE:
                                             break;
                                         case AnnotationTypeEnum::LINE:
+                                            break;
+                                        case AnnotationTypeEnum::MARKER:
                                             break;
                                         case AnnotationTypeEnum::OVAL:
                                             break;
@@ -2557,6 +2567,8 @@ UserInputModeAnnotations::getSelectedPolyTypeAnnotation() const
         CaretAssertVectorIndex(selectedAnnotations, 0);
         Annotation* selectedAnn(selectedAnnotations[0]);
         switch (selectedAnn->getType()) {
+            case AnnotationTypeEnum::ARROW:
+                break;
             case AnnotationTypeEnum::BOX:
                 break;
             case AnnotationTypeEnum::BROWSER_TAB:
@@ -2566,6 +2578,8 @@ UserInputModeAnnotations::getSelectedPolyTypeAnnotation() const
             case AnnotationTypeEnum::IMAGE:
                 break;
             case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::MARKER:
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
@@ -2602,6 +2616,8 @@ UserInputModeAnnotations::isOnePolyTypeAnnotationSelected(const std::vector<Anno
         CaretAssert(ann);
         if (ann->isSelectedForEditing(getBrowserWindowIndex())) {
             switch (ann->getType()) {
+                case AnnotationTypeEnum::ARROW:
+                    break;
                 case AnnotationTypeEnum::BOX:
                     break;
                 case AnnotationTypeEnum::BROWSER_TAB:
@@ -2611,6 +2627,8 @@ UserInputModeAnnotations::isOnePolyTypeAnnotationSelected(const std::vector<Anno
                 case AnnotationTypeEnum::IMAGE:
                     break;
                 case AnnotationTypeEnum::LINE:
+                    break;
+                case AnnotationTypeEnum::MARKER:
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
@@ -3334,6 +3352,9 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
                 if (annotation != NULL) {
                     bool createAnnFlag(false);
                     switch (annotation->getType()) {
+                        case AnnotationTypeEnum::ARROW:
+                            createAnnFlag = true;
+                            break;
                         case AnnotationTypeEnum::BOX:
                             createAnnFlag = true;
                             break;
@@ -3344,6 +3365,9 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
                         case AnnotationTypeEnum::IMAGE:
                             break;
                         case AnnotationTypeEnum::LINE:
+                            createAnnFlag = true;
+                            break;
+                        case AnnotationTypeEnum::MARKER:
                             createAnnFlag = true;
                             break;
                         case AnnotationTypeEnum::OVAL:
@@ -4214,6 +4238,8 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
             else {
                 AString typeName = AnnotationTypeEnum::toGuiName(firstAnnotation->getType());
                 switch (firstAnnotation->getType()) {
+                    case AnnotationTypeEnum::ARROW:
+                        break;
                     case AnnotationTypeEnum::BOX:
                         break;
                     case AnnotationTypeEnum::BROWSER_TAB:
@@ -4223,6 +4249,8 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
                     case AnnotationTypeEnum::IMAGE:
                         break;
                     case AnnotationTypeEnum::LINE:
+                        break;
+                    case AnnotationTypeEnum::MARKER:
                         break;
                     case AnnotationTypeEnum::OVAL:
                         break;

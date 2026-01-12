@@ -589,6 +589,8 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
         
         int32_t numCoords(selectedAnnotation->getNumberOfCoordinates());
         switch (selectedAnnotation->getType()) {
+            case AnnotationTypeEnum::ARROW:
+                break;
             case AnnotationTypeEnum::BOX:
                 break;
             case AnnotationTypeEnum::BROWSER_TAB:
@@ -598,6 +600,8 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
             case AnnotationTypeEnum::IMAGE:
                 break;
             case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::MARKER:
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;

@@ -31,6 +31,7 @@ ADD_LIBRARY(Annotations
 Annotation.h
 AnnotationAlignmentEnum.h
 AnnotationAndFile.h
+AnnotationArrow.h
 AnnotationAttributesDefaultTypeEnum.h
 AnnotationBox.h
 AnnotationBrowserTab.h
@@ -50,6 +51,7 @@ AnnotationGroupTypeEnum.h
 AnnotationGroupingModeEnum.h
 AnnotationImage.h
 AnnotationLine.h
+AnnotationMarker.h
 AnnotationMultiCoordinateShape.h
 AnnotationMultiPairedCoordinateShape.h
 AnnotationOneCoordinateShape.h
@@ -98,6 +100,7 @@ HistologySpaceKey.h
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
 AnnotationAndFile.cxx
+AnnotationArrow.cxx
 AnnotationAttributesDefaultTypeEnum.cxx
 AnnotationBox.cxx
 AnnotationBrowserTab.cxx
@@ -116,6 +119,7 @@ AnnotationGroupTypeEnum.cxx
 AnnotationGroupingModeEnum.cxx
 AnnotationImage.cxx
 AnnotationLine.cxx
+AnnotationMarker.cxx
 AnnotationMultiCoordinateShape.cxx
 AnnotationMultiPairedCoordinateShape.cxx
 AnnotationOneCoordinateShape.cxx

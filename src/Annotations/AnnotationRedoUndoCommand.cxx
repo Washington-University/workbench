@@ -2456,6 +2456,8 @@ AnnotationRedoUndoCommand::setModeTextCharacters(const AString& text,
         
         AnnotationText* redoAnnotation = NULL;
         switch (annotation->getType()) {
+            case AnnotationTypeEnum::ARROW:
+                break;
             case AnnotationTypeEnum::BOX:
                 break;
             case AnnotationTypeEnum::BROWSER_TAB:
@@ -2465,6 +2467,8 @@ AnnotationRedoUndoCommand::setModeTextCharacters(const AString& text,
             case AnnotationTypeEnum::IMAGE:
                 break;
             case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::MARKER:
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;

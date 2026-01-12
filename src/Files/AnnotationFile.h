@@ -43,6 +43,7 @@ namespace caret {
     class Annotation;
     class AnnotationGroup;
     class AnnotationPolyhedron;
+    class CziImageFile;
     class DataFileEditorModel;
     class DisplayGroupAndTabItemHelper;
     class HistologySpaceKey;
@@ -103,6 +104,10 @@ namespace caret {
 
         AnnotationFile& operator=(const AnnotationFile& obj);
 
+        const CziImageFile* getParentCziImageFile() const;
+        
+        void setParentCziImageFile(const CziImageFile* cziImageFile);
+        
         virtual bool isEmpty() const override;
 
         virtual void clear();
@@ -193,6 +198,8 @@ namespace caret {
         
         void addAnnotationCopiedFromAnotherFile(const Annotation* annotation);
         
+        AString toString() const override;
+        
     protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
@@ -268,6 +275,8 @@ namespace caret {
                                                         const AString& linkedIdentifier);
         
         void updateSpacerAnnotationsAfterTileTabsModification(const EventTileTabsGridConfigurationModification* modEvent);
+        
+        const CziImageFile* m_parentCziImageFile = NULL;
         
         const AnnotationFileSubType m_fileSubType;
         

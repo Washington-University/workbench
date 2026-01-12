@@ -267,6 +267,8 @@ namespace caret {
         
         AString getNameForGraphicsDrawing() const;
         
+        AString getCziName() const;
+        
         void setCziName(const AString& cziName);
         
         void replaceWithCopyOfAnnotation(const Annotation* annotation);
@@ -433,7 +435,7 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
-        virtual AString toString() const;
+        virtual AString toString() const override;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);

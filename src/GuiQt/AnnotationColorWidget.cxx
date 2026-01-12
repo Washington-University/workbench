@@ -588,6 +588,9 @@ AnnotationColorWidget::isBothColorsSetToNoneAllowed(QWidget* widget,
             const Annotation* ann = *iter;
             CaretAssert(ann);
             switch (ann->getType()) {
+                case AnnotationTypeEnum::ARROW:
+                    allowBothColorsNoneFlag = false;
+                    break;
                 case AnnotationTypeEnum::BOX:
                     allowBothColorsNoneFlag = false;
                     break;
@@ -598,6 +601,9 @@ AnnotationColorWidget::isBothColorsSetToNoneAllowed(QWidget* widget,
                 case AnnotationTypeEnum::IMAGE:
                     break;
                 case AnnotationTypeEnum::LINE:
+                    allowBothColorsNoneFlag = false;
+                    break;
+                case AnnotationTypeEnum::MARKER:
                     allowBothColorsNoneFlag = false;
                     break;
                 case AnnotationTypeEnum::OVAL:

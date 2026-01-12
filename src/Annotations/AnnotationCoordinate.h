@@ -134,6 +134,7 @@ namespace caret {
         
         static void setUserDefaultSurfaceOffsetLength(const float surfaceOffsetLength);
           
+        
 // If there will be sub-classes of this class that need to save
 // and restore data from scenes, these pure virtual methods can
 // be uncommented to force their implemetation by sub-classes.

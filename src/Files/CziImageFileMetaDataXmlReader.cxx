@@ -25,10 +25,12 @@
 
 #include <QXmlStreamReader>
 
+#include "AnnotationArrow.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationBox.h"
 #include "AnnotationFile.h"
 #include "AnnotationLine.h"
+#include "AnnotationMarker.h"
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPolyLine.h"
@@ -76,8 +78,6 @@ FunctionResultValue<AnnotationFile*>
 CziImageFileMetaDataXmlReader::readXmlFromString(CziImageFile* cziImageFile,
                                                  const AString& xmlText)
 {
-    //std::cout << xmlText << std::endl << std::endl;
-    
     CaretAssert(cziImageFile);
     m_cziImageFileNameNoPath = cziImageFile->getFileNameNoPath();
     
@@ -190,8 +190,7 @@ CziImageFileMetaDataXmlReader::parseXML()
                 }
                 else {
                     if (state == State::ELEMENTS) {
-                        AString idName;
-                        m_reader->attributes().value("Id");
+                        const AString idName = m_reader->attributes().value("Id").toString();
                         readShape(m_reader->name().toString(),
                                   idName);
                     }
@@ -254,6 +253,10 @@ CziImageFileMetaDataXmlReader::readShape(const AString& shapeTagName,
     else if (shapeTagName == "Ellipse") {
         readShapeEllipse(shapeTagName,
                          idName);
+    }
+    else if (shapeTagName == "Events") {
+        readShapeEvents(shapeTagName,
+                        idName);
     }
     else if (shapeTagName == "Line") {
         readShapeLine(shapeTagName,
@@ -356,42 +359,17 @@ CziImageFileMetaDataXmlReader::readShapeArrow(const AString& shapeTagName,
                           y2Text.toFloat(),
                           0.0);
         
-        /*
-         * Create arrowhead.  Since we are in a 2D
-         * plane, we can flip the first two components
-         * of the normal vector and negate one of them
-         * to get a perpendicular vector for creating
-         * the arrow heads.
-         */
-        const Vector3D normalVector((p2 - p1).normal());
-        const Vector3D perpVector(-normalVector[1],
-                                  normalVector[0],
-                                  0.0);
-        const float arrowLength((p2 - p1).length());
-        const float headLength(arrowLength * 0.25);
-        const Vector3D rightLeftOffset(perpVector * headLength);
-        const Vector3D toTailOffset(normalVector * headLength);
-        const Vector3D headOne(p2
-                               + rightLeftOffset
-                               - toTailOffset);
-        const Vector3D headTwo(p2
-                               - rightLeftOffset
-                               - toTailOffset);
-
-        Annotation* ann(Annotation::newAnnotationOfType(AnnotationTypeEnum::POLYLINE,
+        Annotation* ann(Annotation::newAnnotationOfType(AnnotationTypeEnum::ARROW,
                                                         AnnotationAttributesDefaultTypeEnum::USER));
-        AnnotationPolyLine* polyLine(dynamic_cast<AnnotationPolyLine*>(ann));
-        CaretAssert(polyLine);
-        polyLine->setCziName("Arrow_" + idName);
-        polyLine->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
-        polyLine->setCustomLineColor(rgba.data());
-        polyLine->setLineColor(CaretColorEnum::CUSTOM);
-        polyLine->setLineWidthPercentage(lineWidth);
-        addPolyLineCoordinate(polyLine, p1);
-        addPolyLineCoordinate(polyLine, p2);
-        addPolyLineCoordinate(polyLine, headOne);
-        addPolyLineCoordinate(polyLine, p2);
-        addPolyLineCoordinate(polyLine, headTwo);
+        AnnotationArrow* arrow(dynamic_cast<AnnotationArrow*>(ann));
+        CaretAssert(arrow);
+        arrow->setCziName("Arrow_" + idName);
+        arrow->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
+        arrow->setCustomLineColor(rgba.data());
+        arrow->setLineColor(CaretColorEnum::CUSTOM);
+        arrow->setLineWidthPercentage(lineWidth);
+        arrow->getStartCoordinate()->setXYZ(p2);
+        arrow->getEndCoordinate()->setXYZ(p1);
 
         addAnnotation(ann);
     }
@@ -562,6 +540,84 @@ CziImageFileMetaDataXmlReader::readShapeEllipse(const AString& shapeTagName,
 }
 
 /**
+ * Read an events shape
+ * @param shapeTagName
+ *    Name of shape's tag
+ * @param idName
+ *    Value of ID attribute
+ */
+void
+CziImageFileMetaDataXmlReader::readShapeEvents(const AString& shapeTagName,
+                                               const AString& idName)
+{
+    bool endElementFoundFlag(false);
+    
+    AString foregroundText;
+    AString strokeText;
+    AString pointsText;
+    while ( ( ! m_reader->atEnd())
+           && ( ! endElementFoundFlag)) {
+        m_reader->readNext();
+        
+        switch (m_reader->tokenType()) {
+            case QXmlStreamReader::StartElement:
+                if (m_reader->name() == QLatin1String("Foreground")) {
+                    foregroundText = m_reader->readElementText().trimmed();
+                }
+                else if (m_reader->name() == QLatin1String("Stroke")) {
+                    strokeText = m_reader->readElementText().trimmed();
+                }
+                else if (m_reader->name() == QLatin1String("Points")) {
+                    pointsText = m_reader->readElementText().trimmed();
+                }
+                break;
+            case QXmlStreamReader::EndElement:
+                if (m_reader->name() == shapeTagName) {
+                    endElementFoundFlag = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    
+    if (foregroundText.isEmpty()
+        && strokeText.isEmpty()) {
+        foregroundText = "#FF0000FF";
+    }
+    else {
+        if (strokeText.isNotEmpty()) {
+            foregroundText = strokeText;
+        }
+    }
+    if (foregroundText.isNotEmpty()
+        && pointsText.isNotEmpty()) {
+        const std::array<uint8_t, 4> rgba(colorToRgba(strokeText));
+        const float lineWidth(0.5);
+        const float pctHeight(2.5);
+        const std::vector<Vector3D> xyz(pointsToXYZ(pointsText));
+        
+        for (const Vector3D& v : xyz) {
+            
+            Annotation* ann(Annotation::newAnnotationOfType(AnnotationTypeEnum::MARKER,
+                                                            AnnotationAttributesDefaultTypeEnum::USER));
+            AnnotationMarker* marker(dynamic_cast<AnnotationMarker*>(ann));
+            CaretAssert(marker);
+            marker->setCziName("Event_" + idName);
+            marker->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
+            marker->setCustomLineColor(rgba.data());
+            marker->setLineColor(CaretColorEnum::CUSTOM);
+            marker->setLineWidthPercentage(lineWidth);
+            marker->setWidth(pctHeight);
+            marker->setHeight(pctHeight);
+            marker->getCoordinate()->setXYZ(v);
+            
+            addAnnotation(ann);
+        }
+    }
+}
+
+/**
  * Read a line
  * @param shapeTagName
  *    Name of shape's tag
@@ -707,36 +763,31 @@ CziImageFileMetaDataXmlReader::readShapeMarker(const AString& shapeTagName,
         if (lineWidth < 0.5) {
             lineWidth = 0.5;
         }
-        const Vector3D xyz(xyPositionToXYZ(positionText));
         const Vector3D renderedSize(xyPositionToXYZ(renderedSizeText));
         
         float pctHeight(renderedSize[1]);
         if ((m_imageWidth > 0)
             && (m_imageHeight > 0)) {
-            pctHeight = (renderedSize[1]
-                         * static_cast<float>(m_imageHeight));
+            pctHeight = (renderedSize[1] * 100.0);
         }
-        
-        /* Origin is top left */
-        const Vector3D tl(xyz + Vector3D(-pctHeight, -pctHeight, 0.0));
-        const Vector3D tr(xyz + Vector3D( pctHeight, -pctHeight, 0.0));
-        const Vector3D br(xyz + Vector3D( pctHeight,  pctHeight, 0.0));
-        const Vector3D bl(xyz + Vector3D(-pctHeight,  pctHeight, 0.0));
+        const float minPct(2.5);
+        if (pctHeight < minPct) {
+            pctHeight = minPct;
+        }
+        const Vector3D xyz(xyPositionToXYZ(positionText));
 
-        Annotation* ann(Annotation::newAnnotationOfType(AnnotationTypeEnum::POLYLINE,
+        Annotation* ann(Annotation::newAnnotationOfType(AnnotationTypeEnum::MARKER,
                                                         AnnotationAttributesDefaultTypeEnum::USER));
-        AnnotationPolyLine* polyLine(dynamic_cast<AnnotationPolyLine*>(ann));
-        CaretAssert(polyLine);
-        polyLine->setCziName("Marker_" + idName);
-        polyLine->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
-        polyLine->setCustomLineColor(rgba.data());
-        polyLine->setLineColor(CaretColorEnum::CUSTOM);
-        polyLine->setLineWidthPercentage(lineWidth);
-        addPolyLineCoordinate(polyLine, tl);
-        addPolyLineCoordinate(polyLine, br);
-        addPolyLineCoordinate(polyLine, xyz);
-        addPolyLineCoordinate(polyLine, tr);
-        addPolyLineCoordinate(polyLine, bl);
+        AnnotationMarker* marker(dynamic_cast<AnnotationMarker*>(ann));
+        CaretAssert(marker);
+        marker->setCziName("Marker_" + idName);
+        marker->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
+        marker->setCustomLineColor(rgba.data());
+        marker->setLineColor(CaretColorEnum::CUSTOM);
+        marker->setLineWidthPercentage(lineWidth);
+        marker->setWidth(pctHeight);
+        marker->setHeight(pctHeight);
+        marker->getCoordinate()->setXYZ(xyz);
         
         addAnnotation(ann);
     }
@@ -797,8 +848,6 @@ CziImageFileMetaDataXmlReader::readShapeRectangle(const AString& shapeTagName,
         const float top(topText.toFloat());
         const float width(widthText.toFloat());
         const float height(heightText.toFloat());
-        const float right(left + width);
-        const float bottom(top + height);
         const float centerX(left + (width * 0.5));
         const float centerY(top + (height * 0.5));
         
@@ -944,8 +993,6 @@ CziImageFileMetaDataXmlReader::readShapeScaleBar(const AString& shapeTagName,
         CaretAssert(polyLine);
         polyLine->setCziName("ScaleBar" + idName);
         polyLine->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
-//        polyLine->setCustomLineColor(rgba.data());
-//        polyLine->setLineColor(CaretColorEnum::CUSTOM);
         polyLine->setLineWidthPercentage(0.5);
         addPolyLineCoordinate(polyLine, p1 + tickOffsetOne);
         addPolyLineCoordinate(polyLine, p1 + tickOffsetTwo);
@@ -1032,6 +1079,11 @@ CziImageFileMetaDataXmlReader::readShapeTextBox(const AString& shapeTagName,
             percentageHeight *= 100.0;
             CaretAssert((percentageHeight >= 0.0)
                         && (percentageHeight <= 100.0));
+            
+            const float minPct(2.0);
+            if (percentageHeight < minPct) {
+                percentageHeight = minPct;
+            }
         }
         
         Annotation* ann(Annotation::newAnnotationOfType(AnnotationTypeEnum::TEXT,
@@ -1120,6 +1172,32 @@ CziImageFileMetaDataXmlReader::xyPositionToXYZ(const AString& xyPositionText)
     
     return xyz;
 }
+
+/**
+ * Convert a 'points' string to a vector of Vector3D instances
+ * @param pointsText
+ *    The text containing one or more points
+ * @return
+ */
+std::vector<Vector3D>
+CziImageFileMetaDataXmlReader::pointsToXYZ(const AString& pointsText)
+{
+    std::vector<Vector3D> xyzOut;
+    
+    /*
+     * Points text is in form:
+     * <Points>11191.6671726004, 17144.6114758967 10060.0804104662,15893.9103177484</Points>
+     */
+    QStringList indivPointText(pointsText.split(" ",
+                                                Qt::SkipEmptyParts));
+    const int32_t numIndivPoints(indivPointText.size());
+    for (int32_t i = 0; i < numIndivPoints; i++) {
+        xyzOut.push_back(xyPositionToXYZ(indivPointText[i]));
+    }
+    
+    return xyzOut;
+}
+
 
 /**
  * Add an annotation to the annotation file

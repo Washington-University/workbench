@@ -1164,6 +1164,13 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
                                                         + " into a HistologyKey"));
             }
         }
+        else if (elementName == ELEMENT_ARROW) {
+            CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readTwoCoordinateAnnotation(annotationFile,
+                                        ELEMENT_ARROW,
+                                        annotation);
+            annotations.push_back(annotation.releasePointer());
+        }
         else if (elementName == ELEMENT_BOX) {
             CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readOneCoordinateAnnotation(annotationFile,
@@ -1183,6 +1190,13 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
             readTwoCoordinateAnnotation(annotationFile,
                                         ELEMENT_LINE,
                                          annotation);
+            annotations.push_back(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_MARKER) {
+            CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_MARKER,
+                                        annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_OVAL) {

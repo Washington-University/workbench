@@ -42,6 +42,7 @@
 namespace caret {
 
     class Annotation;
+    class AnnotationArrow;
     class AnnotationBox;
     class AnnotationBrowserTab;
     class AnnotationColorBar;
@@ -49,6 +50,7 @@ namespace caret {
     class AnnotationFile;
     class AnnotationImage;
     class AnnotationLine;
+    class AnnotationMarker;
     class AnnotationMultiCoordinateShape;
     class AnnotationMultiPairedCoordinateShape;
     class AnnotationTwoCoordinateShape;
@@ -297,6 +299,15 @@ namespace caret {
         void drawColorBar(AnnotationFile* annotationFile,
                           AnnotationColorBar* colorBar);
         
+        bool drawArrow(AnnotationFile* annotationFile,
+                       AnnotationArrow* arrow,
+                       const Surface* surfaceDisplayed);
+        
+        bool drawArrowSurfaceTangentOffset(AnnotationFile* annotationFile,
+                                           AnnotationArrow* arrow,
+                                           const Surface* surfaceDisplayed,
+                                           const float surfaceExtentZ);
+        
         bool drawBox(AnnotationFile* annotationFile,
                      AnnotationBox* box,
                        const Surface* surfaceDisplayed);
@@ -326,6 +337,15 @@ namespace caret {
                                           AnnotationLine* line,
                                           const Surface* surfaceDisplayed,
                                           const float surfaceExtentZ);
+        
+        bool drawMarker(AnnotationFile* annotationFile,
+                        AnnotationMarker* marker,
+                        const Surface* surfaceDisplayed);
+        
+        bool drawMarkerSurfaceTangentOffset(AnnotationFile* annotationFile,
+                                            AnnotationMarker* marker,
+                                            const float surfaceExtentZ,
+                                            const float vertexXYZ[3]);
         
         bool drawOval(AnnotationFile* annotationFile,
                       AnnotationOval* oval,

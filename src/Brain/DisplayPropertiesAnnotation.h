@@ -47,6 +47,10 @@ namespace caret {
         
         void setDisplayAnnotations(const bool status);
         
+        bool isDisplayCziAnnotations() const;
+        
+        void setDisplayCziAnnotations(const bool status);
+        
         bool isDisplayTextAnnotations() const;
         
         void setDisplayTextAnnotations(const bool status);
@@ -92,6 +96,8 @@ namespace caret {
         Brain* m_parentBrain;
         
         bool m_displayAnnotations;
+        
+        bool m_displayCziAnnotations;
         
         bool m_displayTextAnnotations;
         

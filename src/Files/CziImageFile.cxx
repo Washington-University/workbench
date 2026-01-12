@@ -88,6 +88,8 @@ CziImageFile::CziImageFile()
     resetPrivate();
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_sceneAssistant->add("m_annotationFileDisplayed",
+                          &m_annotationFileDisplayed);
 
     /* NEED THIS AFTER Tile Tabs have been modified */
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_CLOSE);
@@ -154,6 +156,7 @@ CziImageFile::resetPrivate()
     
     resetMatrices();
     m_annotationFile.reset();
+    m_annotationFileDisplayed = true;
 }
 
 /**
@@ -446,6 +449,14 @@ CziImageFile::readFile(const AString& filename)
                                               m_metadataXmlText);
                 if (result.isOk()) {
                     m_annotationFile.reset(result.getValue());
+                    m_annotationFile->setParentCziImageFile(this);
+                    
+                    const bool printFileContentFlag(false);
+                    if (printFileContentFlag) {
+                        std::cout << "Start---" << m_annotationFile->getFileNameNoPath() << std::endl;
+                        std::cout << m_annotationFile->toString() << std::endl;
+                        std::cout << "End---" << m_annotationFile->getFileNameNoPath() << std::endl;
+                    }
                 }
                 else {
                     CaretLogSevere(result.getErrorMessage());
@@ -2713,6 +2724,35 @@ AnnotationFile*
 CziImageFile::getAnnotationFile()
 {
     return m_annotationFile.get();
+}
+
+/**
+ * @return Annotation file containing annotations from this file MAY BE NULL !
+ */
+const AnnotationFile*
+CziImageFile::getAnnotationFile() const
+{
+    return m_annotationFile.get();
+}
+
+/**
+ * @return True if the annotation file is displayed
+ */
+bool
+CziImageFile::isAnnotationFileDisplayed() const
+{
+    return m_annotationFileDisplayed;
+}
+
+/**
+ * Set the annotation file displayed status
+ * @param status
+ *    New status
+ */
+void
+CziImageFile::setAnnotationFileDisplayed(const bool status)
+{
+    m_annotationFileDisplayed = status;
 }
 
 /**

@@ -185,6 +185,8 @@ namespace caret {
         
         static const QString ELEMENT_LINE;
         
+        static const QString ELEMENT_MARKER;
+        
         static const QString ELEMENT_OVAL;
         
         static const QString ELEMENT_PERCENT_SIZE_TEXT;
@@ -344,6 +346,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64 = "imageRgbaBytesInBase64";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_LINE = "line";
+    
+    const QString AnnotationFileXmlFormatBase::ELEMENT_MARKER = "marker";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_OVAL = "oval";
     

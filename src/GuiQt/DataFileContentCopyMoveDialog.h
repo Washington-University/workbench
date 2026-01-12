@@ -38,9 +38,34 @@ namespace caret {
         Q_OBJECT
 
     public:
+        /**
+         * Options for dialog.
+         */
+        class Options {
+        public:
+            Options() { }
+            
+            /**
+             * Set input file is CZI annotations
+             */
+            void setCziAnnotationFile(const bool status) {
+                m_cziAnnotationFileFlag = status;
+            }
+            
+            /**
+             * @return True if input file is CZI annotations
+             */
+            bool isCziAnnotationFile() const {
+                return m_cziAnnotationFileFlag;
+            }
+        private:
+            bool m_cziAnnotationFileFlag = false;
+        };
+        
         DataFileContentCopyMoveDialog(const int32_t windowIndex,
                                       DataFileContentCopyMoveInterface* sourceDataFileInterface,
                                       std::vector<DataFileContentCopyMoveInterface*>& dataFilesInterface,
+                                      const Options& options,
                                       QWidget* parent);
         
         virtual ~DataFileContentCopyMoveDialog();
@@ -72,6 +97,8 @@ namespace caret {
         
         std::vector<DataFileContentCopyMoveInterface*> m_destinationDataFileInterfaces;
         
+        const Options& m_options;
+        
         QButtonGroup* m_destinationButtonGroup;
         
         QLabel* m_newDestinationFileNameLabel;
@@ -85,6 +112,10 @@ namespace caret {
         QCheckBox* m_closeSourceFileCheckBox;
         
         QCheckBox* m_copySelectedAnnotationsOnlyCheckBox;
+        
+        AString m_cziImageFileName;
+        
+        AString m_cziAnnotationFileName;
         
         // ADD_NEW_MEMBERS_HERE
 

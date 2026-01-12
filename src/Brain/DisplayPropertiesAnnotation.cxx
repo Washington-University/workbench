@@ -57,6 +57,9 @@ m_parentBrain(parentBrain)
     m_sceneAssistant->add("m_displayAnnotations",
                           &m_displayAnnotations);
     
+    m_sceneAssistant->add("m_displayCziAnnotations",
+                          &m_displayCziAnnotations);
+    
     m_sceneAssistant->add("m_displayTextAnnotations",
                           &m_displayTextAnnotations);
     
@@ -156,6 +159,7 @@ void
 DisplayPropertiesAnnotation::resetPrivate()
 {
     m_displayAnnotations = true;
+    m_displayCziAnnotations = false;
     m_displayTextAnnotations = true;
     m_textSizeSmallSurfaceCorrectionsEnabled = false;
     
@@ -193,6 +197,27 @@ bool
 DisplayPropertiesAnnotation::isDisplayAnnotations() const
 {
     return m_displayAnnotations;
+}
+
+/**
+ * Set the display status for annotations in CZI image files
+ *
+ * @param status
+ *     New display status.
+ */
+void
+DisplayPropertiesAnnotation::setDisplayCziAnnotations(const bool status)
+{
+    m_displayCziAnnotations = status;
+}
+
+/**
+ * @return Status for displaying annotations in CZI image files
+ */
+bool
+DisplayPropertiesAnnotation::isDisplayCziAnnotations() const
+{
+    return m_displayCziAnnotations;
 }
 
 /**

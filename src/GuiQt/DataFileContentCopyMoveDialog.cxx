@@ -33,9 +33,11 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AnnotationFile.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretFileDialog.h"
+#include "CziImageFile.h"
 #include "DataFile.h"
 #include "DataFileContentCopyMoveInterface.h"
 #include "DataFileContentCopyMoveParameters.h"
@@ -65,20 +67,44 @@ using namespace caret;
  *    The source data file (copy from file)
  * @param destinationDataFileInterfaces
  *    Files to which data may be moved.
+ * @param options
+ *    Options for the dialog
  * @param parent
  *    Optional parent for this dialog.
  */
 DataFileContentCopyMoveDialog::DataFileContentCopyMoveDialog(const int32_t windowIndex,
                                                              DataFileContentCopyMoveInterface* sourceDataFileInterface,
                                                              std::vector<DataFileContentCopyMoveInterface*>& destinationDataFileInterfaces,
+                                                             const Options& options,
                                                              QWidget* parent)
 : WuQDialogModal("Copy/Move Data File Content",
                  parent),
 m_windowIndex(windowIndex),
 m_sourceDataFileInterface(sourceDataFileInterface),
+m_options(options),
 m_newDestinatonFileButtonGroupIndex(-1)
 {
     CaretAssert(m_sourceDataFileInterface);
+    
+    /*
+     * Annotations may come from a CZI image file
+     */
+    const DataFile* df(m_sourceDataFileInterface->getAsDataFile());
+    CaretAssert(df);
+    AString filename(df->getFileNameNoPath());
+    if (m_options.isCziAnnotationFile()) {
+        const AnnotationFile* annFile(dynamic_cast<const AnnotationFile*>(df));
+        if (annFile != NULL) {
+            const CziImageFile* cziFile(annFile->getParentCziImageFile());
+            if (cziFile != NULL) {
+                m_cziImageFileName = cziFile->getFileNameNoPath();
+                if (m_cziImageFileName.isNotEmpty()) {
+                    m_cziAnnotationFileName = FileInformation::replaceExtension(m_cziImageFileName,
+                                                                                DataFileTypeEnum::toFileExtension(DataFileTypeEnum::ANNOTATION));
+                }
+            }
+        }
+    }
     
     /*
      * Copy pointers to destination files but ignore the source file
@@ -92,11 +118,14 @@ m_newDestinatonFileButtonGroupIndex(-1)
         }
     }
     
+    QWidget* optionsWidget(createOptionsWidget());
+    optionsWidget->setVisible( ! options.isCziAnnotationFile());
+    
     QWidget* dialogWidget = new QWidget;
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
     dialogLayout->addWidget(createSourceWidget());
     dialogLayout->addWidget(createDestinationWidget());
-    dialogLayout->addWidget(createOptionsWidget());
+    dialogLayout->addWidget(optionsWidget);
     
     setCentralWidget(dialogWidget,
                      WuQDialog::SCROLL_AREA_AS_NEEDED);
@@ -115,8 +144,14 @@ DataFileContentCopyMoveDialog::~DataFileContentCopyMoveDialog()
 QWidget*
 DataFileContentCopyMoveDialog::createSourceWidget()
 {
-    QLabel* sourceFileLabel = new QLabel(m_sourceDataFileInterface->getAsDataFile()->getFileNameNoPath());
-    
+    const DataFile* df(m_sourceDataFileInterface->getAsDataFile());
+    CaretAssert(df);
+    AString filename(df->getFileNameNoPath());
+    if (m_cziImageFileName.isNotEmpty()) {
+        filename = m_cziImageFileName;
+    }
+
+    QLabel* sourceFileLabel = new QLabel(filename);
     QGroupBox* groupBox = new QGroupBox("Source File");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->addWidget(sourceFileLabel);
@@ -200,27 +235,22 @@ DataFileContentCopyMoveDialog::createDestinationWidget()
 
     
     QGroupBox* groupBox = new QGroupBox("Destination File");
-    QGridLayout* layout = new QGridLayout(groupBox);
-    layout->setColumnStretch(0, 0);
-    layout->setColumnStretch(1, 0);
-    layout->setColumnStretch(2, 0);
-    layout->setColumnStretch(3, 100);
+    QVBoxLayout* layout = new QVBoxLayout(groupBox);
     
     QListIterator<QAbstractButton*> buttonIter(m_destinationButtonGroup->buttons());
     while (buttonIter.hasNext()) {
-        const int row = layout->rowCount();
         QAbstractButton* button = buttonIter.next();
         if (button == m_newDestinationFileRadioButton) {
-            layout->addWidget(button,
-                              row, 0);
-            layout->addWidget(newDestinationFileToolButton,
-                              row, 1);
-            layout->addWidget(m_newDestinationFileNameLabel,
-                              row, 2, Qt::AlignLeft);
+            QHBoxLayout* newFileLayout(new QHBoxLayout());
+            newFileLayout->setContentsMargins(0, 0, 0, 0);
+            newFileLayout->addWidget(button);
+            newFileLayout->addWidget(newDestinationFileToolButton);
+            newFileLayout->addWidget(m_newDestinationFileNameLabel);
+            newFileLayout->addStretch();
+            layout->addLayout(newFileLayout);
         }
         else {
-            layout->addWidget(button,
-                              row, 0, 1, 3, Qt::AlignLeft);
+            layout->addWidget(button, 0, Qt::AlignLeft);
         }
     }
     
@@ -235,14 +265,27 @@ DataFileContentCopyMoveDialog::newDestinationFileToolButtonClicked()
 {
     const CaretDataFile* caretDataFile = dynamic_cast<const CaretDataFile*>(m_sourceDataFileInterface);
     CaretAssert(caretDataFile);
-    const QString fileName = CaretFileDialog::getSaveFileNameDialog(caretDataFile->getDataFileType(),
-                                                                    this,
-                                                                    "Choose New File");
-    if ( ! fileName.isEmpty()) {
-        m_newDestinationFileName = fileName;
-        FileInformation fileInfo(fileName);
-        m_newDestinationFileNameLabel->setText(fileInfo.getFileName());
-        m_newDestinationFileRadioButton->setChecked(true);
+    AString filename;
+    if (m_cziAnnotationFileName.isNotEmpty()) {
+        filename = m_cziAnnotationFileName;
+    }
+    
+    CaretFileDialog fd(CaretFileDialog::Mode::MODE_SAVE,
+                       this,
+                       "Choose New File",
+                       QString(),
+                       DataFileTypeEnum::toQFileDialogFilterForWriting(DataFileTypeEnum::ANNOTATION));
+    if (filename.isNotEmpty()) {
+        fd.selectFile(filename);
+    }
+    if (fd.exec() == CaretFileDialog::Accepted) {
+        QStringList selectedFileList(fd.selectedFiles());
+        if ( ! selectedFileList.isEmpty()) {
+            m_newDestinationFileName = selectedFileList.at(0);
+            FileInformation fileInfo(m_newDestinationFileName);
+            m_newDestinationFileNameLabel->setText(fileInfo.getFileName());
+            m_newDestinationFileRadioButton->setChecked(true);
+        }
     }
 }
 
@@ -300,10 +343,12 @@ DataFileContentCopyMoveDialog::okButtonClicked()
             }
         }
         
-        if (m_closeSourceFileCheckBox->isChecked()) {
-            CaretDataFile* sourceCaretFile = dynamic_cast<CaretDataFile*>(m_sourceDataFileInterface);
-            CaretAssert(sourceCaretFile);
-            EventManager::get()->sendEvent(EventDataFileDelete(sourceCaretFile).getPointer());
+        if ( ! m_options.isCziAnnotationFile()) {
+            if (m_closeSourceFileCheckBox->isChecked()) {
+                CaretDataFile* sourceCaretFile = dynamic_cast<CaretDataFile*>(m_sourceDataFileInterface);
+                CaretAssert(sourceCaretFile);
+                EventManager::get()->sendEvent(EventDataFileDelete(sourceCaretFile).getPointer());
+            }
         }
     }
     catch (const DataFileException& dfe) {

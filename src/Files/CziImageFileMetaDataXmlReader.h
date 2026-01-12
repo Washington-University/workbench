@@ -72,6 +72,9 @@ namespace caret {
         void readShapeEllipse(const AString& shapeTagName,
                              const AString& idName);
         
+        void readShapeEvents(const AString& shapeTagName,
+                             const AString& idName);
+        
         void readShapeLine(const AString& shapeTagName,
                            const AString& idName);
         
@@ -93,6 +96,8 @@ namespace caret {
         static std::array<uint8_t, 4> colorToRgba(const AString& colorText);
         
         static Vector3D xyPositionToXYZ(const AString& xyPositionText);
+        
+        static std::vector<Vector3D> pointsToXYZ(const AString& pointsText);
         
         std::unique_ptr<QXmlStreamReader> m_reader;
         

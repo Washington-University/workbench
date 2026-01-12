@@ -28,6 +28,7 @@
 #include <QTabWidget>
 #include <QTimer>
 
+#include "AnnotationCziFileSelectionViewController.h"
 #include "AnnotationFile.h"
 #include "AnnotationSelectionViewController.h"
 #include "AnnotationTextSubstitutionLayerSetViewController.h"
@@ -46,6 +47,7 @@
 #include "ChartableMatrixInterface.h"
 #include "ChartToolBoxViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"
+#include "CziImageFile.h"
 #include "DeveloperFlagsEnum.h"
 #include "DynConnViewController.h"
 #include "EventBrowserWindowDrawingContent.h"
@@ -154,6 +156,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     m_annotationTabWidget               = NULL;
     m_annotationViewController          = NULL;
+    m_annotationCziFileSelectionViewController = NULL;
     m_annotationTextSubstitutionLayerSetViewController = NULL;
     m_borderSelectionViewController     = NULL;
     m_chartOverlaySetViewController     = NULL;
@@ -244,10 +247,14 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_annotationViewController = new AnnotationSelectionViewController(browserWindowIndex,
                                                                            objectNamePrefix,
                                                                            this);
+        m_annotationCziFileSelectionViewController = new AnnotationCziFileSelectionViewController(browserWindowIndex,
+                                                                                                  objectNamePrefix,
+                                                                                                  this);
         m_annotationTextSubstitutionLayerSetViewController = new AnnotationTextSubstitutionLayerSetViewController(objectNamePrefix,
                                                                                                                   this);
         m_annotationTabWidget = new QTabWidget();
         m_annotationTabWidget->addTab(m_annotationViewController, "Annotations");
+        m_annotationTabWidget->addTab(m_annotationCziFileSelectionViewController, "CZI Annotations");
         m_annotationTabWidget->addTab(m_annotationTextSubstitutionLayerSetViewController, "Substitutions");
         m_annotationTabWidget->setObjectName(objectNamePrefix
                                              + ":AnnotationTab");
@@ -605,6 +612,10 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_annotationViewController->saveToScene(sceneAttributes,
                                                                      "m_annotationViewController"));
     }
+    if (m_annotationCziFileSelectionViewController != NULL) {
+        sceneClass->addClass(m_annotationCziFileSelectionViewController->saveToScene(sceneAttributes,
+                                                                                     "m_annotationCziFileSelectionViewController"));
+    }
     if (m_annotationTextSubstitutionLayerSetViewController != NULL) {
         sceneClass->addClass(m_annotationTextSubstitutionLayerSetViewController->saveToScene(sceneAttributes,
                                                                                      "m_annotationTextSubstitutionLayerSetViewController"));
@@ -718,6 +729,9 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
     if (m_annotationViewController != NULL) {
         m_annotationViewController->restoreFromScene(sceneAttributes,
                                                      sceneClass->getClass("m_annotationViewController"));
+    }
+    if (m_annotationCziFileSelectionViewController != NULL) {
+        m_annotationCziFileSelectionViewController->restoreFromScene(sceneAttributes, sceneClass->getClass("m_annotationCziFileSelectionViewController"));
     }
     if (m_annotationTextSubstitutionLayerSetViewController != NULL) {
         m_annotationTextSubstitutionLayerSetViewController->restoreFromScene(sceneAttributes, sceneClass->getClass("m_annotationTextSubstitutionLayerSetViewController"));
@@ -833,17 +847,18 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * Determine types of data this is loaded
          */
         bool haveAnnotation = ( ! brain->getSceneAnnotationFile()->isEmpty());
-        bool haveAnnSub     = false;
-        bool haveBorders    = false;
-        bool haveConnFiles  = false;
-        bool haveCziImages  = false;
-        bool haveFibers     = false;
-        bool haveFoci       = false;
-        bool haveImages     = false;
-        bool haveLabels     = false;
-        bool haveSamples    = false;
-        bool haveSurfaces   = false;
-        bool haveVolumes    = false;
+        bool haveAnnSub        = false;
+        bool haveBorders       = false;
+        bool haveCziAnnotation = false;
+        bool haveConnFiles     = false;
+        bool haveCziImages     = false;
+        bool haveFibers        = false;
+        bool haveFoci          = false;
+        bool haveImages        = false;
+        bool haveLabels        = false;
+        bool haveSamples       = false;
+        bool haveSurfaces      = false;
+        bool haveVolumes       = false;
         
         std::vector<CaretDataFile*> allDataFiles;
         brain->getAllDataFiles(allDataFiles);
@@ -851,6 +866,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
              iter != allDataFiles.end();
              iter++) {
             const CaretDataFile* caretDataFile = *iter;
+            CaretAssert(caretDataFile);
             
             const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
             switch (dataFileType) {
@@ -910,7 +926,17 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                     break;
                 case DataFileTypeEnum::CZI_IMAGE_FILE:
+                {
                     haveCziImages = true;
+                    const CziImageFile* cziFile(caretDataFile->castToCziImageFile());
+                    CaretAssert(cziFile);
+                    const AnnotationFile* cziAnnFile(cziFile->getAnnotationFile());
+                    if (cziAnnFile != NULL) {
+                        if ( ! cziFile->isEmpty()) {
+                            haveCziAnnotation = true;
+                        }
+                    }
+                }
                     break;
                 case DataFileTypeEnum::FOCI:
                     haveFoci = true;
@@ -1094,6 +1120,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         
         if (m_annotationTabIndex >= 0) m_tabWidget->setTabEnabled(m_annotationTabIndex, (haveAnnotation
+                                                                                         || haveCziAnnotation
                                                                                          || haveAnnSub));
         if (m_borderTabIndex >= 0) m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
         if (m_fiberOrientationTabIndex >= 0) m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
@@ -1113,6 +1140,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
             for (int32_t iTab = 0; iTab < numTabs; iTab++) {
                 if (m_annotationTabWidget->widget(iTab) == m_annotationViewController) {
                     m_annotationTabWidget->setTabEnabled(iTab, haveAnnotation);
+                }
+                else if (m_annotationTabWidget->widget(iTab) == m_annotationCziFileSelectionViewController) {
+                    m_annotationTabWidget->setTabEnabled(iTab, haveCziAnnotation);
                 }
                 else if (m_annotationTabWidget->widget(iTab) == m_annotationTextSubstitutionLayerSetViewController) {
                     m_annotationTabWidget->setTabEnabled(iTab, haveAnnSub);

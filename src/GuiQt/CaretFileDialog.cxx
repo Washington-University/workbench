@@ -234,6 +234,15 @@ CaretFileDialog::initializeCaretFileDialog()
     }
     
     setHistory(historyList);
+    
+    switch (m_mode) {
+        case Mode::MODE_OPEN:
+            setAcceptMode(CaretFileDialog::AcceptOpen);
+            break;
+        case Mode::MODE_SAVE:
+            setAcceptMode(CaretFileDialog::AcceptSave);
+            break;
+    }
 }
 
 /**

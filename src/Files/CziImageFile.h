@@ -27,7 +27,6 @@
 
 #include <QRectF>
 
-#include "AnnotationFile.h"
 #include "BrainConstants.h"
 #include "CziImage.h"
 #include "CziImageResolutionChangeModeEnum.h"
@@ -52,6 +51,7 @@ class QImage;
 
 namespace caret {
 
+    class AnnotationFile;
     class CziImage;
     class CziImageLoaderBase;
     class CziImageLoaderMultiResolution;
@@ -182,6 +182,12 @@ namespace caret {
                                           std::shared_ptr<CziNonLinearTransform>& fromStereotaxicNonLinearTransform) override;
         
         AnnotationFile* getAnnotationFile();
+        
+        const AnnotationFile* getAnnotationFile() const;
+        
+        bool isAnnotationFileDisplayed() const;
+        
+        void setAnnotationFileDisplayed(const bool status);
         
         // ADD_NEW_METHODS_HERE
 
@@ -472,6 +478,8 @@ namespace caret {
         AString m_metadataXmlText;
         
         std::unique_ptr<AnnotationFile> m_annotationFile;
+        
+        bool m_annotationFileDisplayed = true;
         
         static const int32_t s_allFramesIndex;
         

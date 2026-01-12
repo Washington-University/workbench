@@ -63,6 +63,7 @@ ELSE()
         AnnotationCoordinateSpaceWidget.h
         AnnotationCoordinatesWidget.h
         AnnotationCreateDialog.h
+	AnnotationCziFileSelectionViewController.h
         AnnotationDeleteWidget.h
         AnnotationFontWidget.h
         AnnotationFormatWidget.h
@@ -354,6 +355,7 @@ AnnotationCoordinateInformation.h
 AnnotationCoordinateSpaceWidget.h
 AnnotationCoordinatesWidget.h
 AnnotationCreateDialog.h
+AnnotationCziFileSelectionViewController.h
 AnnotationDeleteWidget.h
 AnnotationFontWidget.h
 AnnotationFormatWidget.h
@@ -716,6 +718,7 @@ AnnotationCoordinateInformation.cxx
 AnnotationCoordinateSpaceWidget.cxx
 AnnotationCoordinatesWidget.cxx
 AnnotationCreateDialog.cxx
+AnnotationCziFileSelectionViewController.cxx
 AnnotationDeleteWidget.cxx
 AnnotationFontWidget.cxx
 AnnotationFormatWidget.cxx

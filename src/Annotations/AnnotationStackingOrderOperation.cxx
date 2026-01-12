@@ -232,9 +232,11 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
                         break;
                 }
                 break;
+            case AnnotationTypeEnum::ARROW:
             case AnnotationTypeEnum::BOX:
             case AnnotationTypeEnum::IMAGE:
             case AnnotationTypeEnum::LINE:
+            case AnnotationTypeEnum::MARKER:
             case AnnotationTypeEnum::OVAL:
             case AnnotationTypeEnum::POLYHEDRON:
             case AnnotationTypeEnum::POLYGON:
@@ -373,9 +375,11 @@ AnnotationStackingOrderOperation::preOrderAnnotations(std::vector<OrderInfo>& an
             case AnnotationTypeEnum::COLOR_BAR:
             case AnnotationTypeEnum::SCALE_BAR:
                 break;
+            case AnnotationTypeEnum::ARROW:
             case AnnotationTypeEnum::BOX:
             case AnnotationTypeEnum::IMAGE:
             case AnnotationTypeEnum::LINE:
+            case AnnotationTypeEnum::MARKER:
             case AnnotationTypeEnum::OVAL:
             case AnnotationTypeEnum::POLYHEDRON:
             case AnnotationTypeEnum::POLYGON:

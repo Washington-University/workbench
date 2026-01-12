@@ -1,0 +1,233 @@
+
+/*LICENSE_START*/
+/*
+ *  Copyright (C) 2015 Washington University School of Medicine
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+/*LICENSE_END*/
+
+#define __ANNOTATION_ARROW_DECLARE__
+#include "AnnotationArrow.h"
+#undef __ANNOTATION_ARROW_DECLARE__
+
+#include "CaretAssert.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
+
+using namespace caret;
+
+
+    
+/**
+ * \class caret::AnnotationArrow 
+ * \brief An annotation arrow.
+ * \ingroup Annotations
+ */
+
+/**
+ * Constructor.
+ *
+ * @param attributeDefaultType
+ *    Type for attribute defaults
+ */
+AnnotationArrow::AnnotationArrow(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: AnnotationTwoCoordinateShape(AnnotationTypeEnum::ARROW,
+                                attributeDefaultType)
+{
+    initializeMembersAnnotationArrow();
+}
+
+/**
+ * Destructor.
+ */
+AnnotationArrow::~AnnotationArrow()
+{
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+AnnotationArrow::AnnotationArrow(const AnnotationArrow& obj)
+: AnnotationTwoCoordinateShape(obj)
+{
+    this->initializeMembersAnnotationArrow();
+    this->copyHelperAnnotationArrow(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+AnnotationArrow&
+AnnotationArrow::operator=(const AnnotationArrow& obj)
+{
+    if (this != &obj) {
+        AnnotationTwoCoordinateShape::operator=(obj);
+        this->copyHelperAnnotationArrow(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+AnnotationArrow::copyHelperAnnotationArrow(const AnnotationArrow& obj)
+{
+    m_displayEndArrow   = obj.m_displayEndArrow;
+    m_displayStartArrow = obj.m_displayStartArrow;
+}
+
+/**
+ * Initialize a new instance of this class.
+ */
+void
+AnnotationArrow::initializeMembersAnnotationArrow()
+{
+    switch (m_attributeDefaultType) {
+        case AnnotationAttributesDefaultTypeEnum::NORMAL:
+            m_displayStartArrow = false;
+            m_displayEndArrow   = false;
+            break;
+        case AnnotationAttributesDefaultTypeEnum::USER:
+            m_displayStartArrow = s_userDefaultDisplayStartArrow;
+            m_displayEndArrow   = s_userDefaultDisplayEndArrow;
+            break;
+    }
+    
+    
+    m_sceneAssistant.grabNew(new SceneClassAssistant());
+    if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
+    }
+}
+
+/**
+ * @return Is the arrow at the line's start coordinate displayed?
+ */
+bool
+AnnotationArrow::isDisplayStartArrow() const
+{
+    return m_displayStartArrow;
+}
+
+/**
+ * Set the display status of the arrow at the line's start coordinate.
+ *
+ * @param displayArrow
+ *     New status.
+ */
+void
+AnnotationArrow::setDisplayStartArrow(const bool displayArrow)
+{
+    m_displayStartArrow = displayArrow;
+}
+
+/**
+ * @return Is the arrow at the line's start coordinate displayed?
+ */
+bool
+AnnotationArrow::isDisplayEndArrow() const
+{
+    return m_displayEndArrow;
+}
+
+/**
+ * Set the display status of the arrow at the line's start coordinate.
+ *
+ * @param displayArrow
+ *     New status.
+ */
+void
+AnnotationArrow::setDisplayEndArrow(const bool displayArrow)
+{
+    m_displayEndArrow = displayArrow;
+}
+
+/**
+ * Save subclass data to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.  Will always
+ *     be valid (non-NULL).
+ */
+void
+AnnotationArrow::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                            SceneClass* sceneClass)
+{
+    AnnotationTwoCoordinateShape::saveSubClassDataToScene(sceneAttributes,
+                                                           sceneClass);
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+}
+
+/**
+ * Restore file data from the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+AnnotationArrow::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                 const SceneClass* sceneClass)
+{
+    AnnotationTwoCoordinateShape::restoreSubClassDataFromScene(sceneAttributes,
+                                                  sceneClass);
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+}
+
+/**
+ * Set the default value for start arrow enabled.
+ *
+ * @param displayArrow
+ *     Default for newly created arrow annotations.
+ */
+void AnnotationArrow::setUserDefaultDisplayStartArrow(const bool displayArrow)
+{
+    s_userDefaultDisplayStartArrow = displayArrow;
+}
+
+/**
+ * Set the default value for end arrow enabled.
+ *
+ * @param displayArrow
+ *     Default for newly created arrow annotations.
+ */
+void AnnotationArrow::setUserDefaultDisplayEndArrow(const bool displayArrow)
+{
+    s_userDefaultDisplayEndArrow = displayArrow;
+}
+
+
+

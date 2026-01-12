@@ -23,6 +23,7 @@
 #include "Annotation.h"
 #undef __ANNOTATION_DECLARE__
 
+#include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationBrowserTab.h"
 #include "AnnotationColorBar.h"
@@ -30,6 +31,7 @@
 #include "AnnotationGroup.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
+#include "AnnotationMarker.h"
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
@@ -197,6 +199,13 @@ Annotation::clone() const
     Annotation* myClone = NULL;
     
     switch (getType()) {
+        case AnnotationTypeEnum::ARROW:
+        {
+            const AnnotationArrow* arrow = dynamic_cast<const AnnotationArrow*>(this);
+            CaretAssert(arrow);
+            myClone = new AnnotationArrow(*arrow);
+        }
+            break;
         case AnnotationTypeEnum::BOX:
         {
             const AnnotationBox* box = dynamic_cast<const AnnotationBox*>(this);
@@ -230,6 +239,13 @@ Annotation::clone() const
             const AnnotationLine* line = dynamic_cast<const AnnotationLine*>(this);
             CaretAssert(line);
             myClone = new AnnotationLine(*line);
+        }
+            break;
+        case AnnotationTypeEnum::MARKER:
+        {
+            const AnnotationMarker* marker = dynamic_cast<const AnnotationMarker*>(this);
+            CaretAssert(marker);
+            myClone = new AnnotationMarker(*marker);
         }
             break;
         case AnnotationTypeEnum::OVAL:
@@ -427,6 +443,9 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
     Annotation* annotation = NULL;
     
     switch (annotationType) {
+        case AnnotationTypeEnum::ARROW:
+            annotation = new AnnotationArrow(attributeDefaultType);
+            break;
         case AnnotationTypeEnum::BOX:
             annotation = new AnnotationBox(attributeDefaultType);
             break;
@@ -441,6 +460,9 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
             break;
         case AnnotationTypeEnum::LINE:
             annotation = new AnnotationLine(attributeDefaultType);
+            break;
+        case AnnotationTypeEnum::MARKER:
+            annotation = new AnnotationMarker(attributeDefaultType);
             break;
         case AnnotationTypeEnum::OVAL:
             annotation = new AnnotationOval(attributeDefaultType);
@@ -517,6 +539,8 @@ Annotation::initializeAnnotationMembers()
             m_colorLine = CaretColorEnum::WHITE;
             
             switch (m_type) {
+                case AnnotationTypeEnum::ARROW:
+                    break;
                 case AnnotationTypeEnum::BOX:
                     break;
                 case AnnotationTypeEnum::BROWSER_TAB:
@@ -528,6 +552,8 @@ Annotation::initializeAnnotationMembers()
                 case AnnotationTypeEnum::IMAGE:
                     break;
                 case AnnotationTypeEnum::LINE:
+                    break;
+                case AnnotationTypeEnum::MARKER:
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
@@ -578,6 +604,11 @@ Annotation::initializeAnnotationMembers()
                                            && (m_colorBackground == CaretColorEnum::NONE));
             const CaretColorEnum::Enum defaultColor = CaretColorEnum::RED;
             switch (m_type) {
+                case AnnotationTypeEnum::ARROW:
+                    if (m_colorLine == CaretColorEnum::NONE) {
+                        m_colorLine = defaultColor;
+                    }
+                    break;
                 case AnnotationTypeEnum::BOX:
                     if (lineBackNoneFlag) {
                         m_colorBackground = defaultColor;
@@ -591,6 +622,11 @@ Annotation::initializeAnnotationMembers()
                 case AnnotationTypeEnum::IMAGE:
                     break;
                 case AnnotationTypeEnum::LINE:
+                    if (m_colorLine == CaretColorEnum::NONE) {
+                        m_colorLine = defaultColor;
+                    }
+                    break;
+                case AnnotationTypeEnum::MARKER:
                     if (m_colorLine == CaretColorEnum::NONE) {
                         m_colorLine = defaultColor;
                     }
@@ -646,6 +682,9 @@ Annotation::initializeAnnotationMembers()
      */
     bool disallowLineColorNoneFlag = false;
     switch (m_type) {
+        case AnnotationTypeEnum::ARROW:
+            disallowLineColorNoneFlag = true;
+            break;
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
@@ -657,6 +696,9 @@ Annotation::initializeAnnotationMembers()
         case AnnotationTypeEnum::IMAGE:
             break;
         case AnnotationTypeEnum::LINE:
+            disallowLineColorNoneFlag = true;
+            break;
+        case AnnotationTypeEnum::MARKER:
             disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::OVAL:
@@ -779,6 +821,8 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
 {
     AString typeName = AnnotationTypeEnum::toGuiName(m_type);
     switch (m_type) {
+        case AnnotationTypeEnum::ARROW:
+            break;
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
@@ -788,6 +832,8 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
         case AnnotationTypeEnum::IMAGE:
             break;
         case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::MARKER:
             break;
         case AnnotationTypeEnum::OVAL:
             break;
@@ -1377,15 +1423,30 @@ AString
 Annotation::toString() const
 {
     AString msg("Annotation type="
-                      + AnnotationTypeEnum::toName(m_type));
+                + AnnotationTypeEnum::toName(m_type));
+    
+    if (getCziName().isNotEmpty()) {
+        msg += (" CZI="
+                + getCziName());
+    }
     
     msg += (" space="
             + AnnotationCoordinateSpaceEnum::toGuiName(getCoordinateSpace()));
     
     const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(this);
     if (textAnn != NULL) {
-        msg += (" text=" + textAnn->getText());
+        msg += (" text=" + textAnn->getText()
+                + " height="
+                + AString::number(textAnn->getFontPercentViewportSize()));
     }
+    msg += "\n";
+    
+    const int32_t numCoords(getNumberOfCoordinates());
+    for (int32_t i = 0; i < numCoords; i++) {
+        const AnnotationCoordinate* ac(getCoordinate(i));
+        msg += ("   " + ac->toStringForCoordinateSpace(getCoordinateSpace()) + "\n");
+    }
+    
     return msg;
 }
 
@@ -1809,6 +1870,9 @@ Annotation::initializeProperties()
     bool textFlag = false;
     bool textBackgroundFlag = false;
     switch (m_type) {
+        case AnnotationTypeEnum::ARROW:
+            fillColorFlag = false;
+            break;
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
@@ -1824,6 +1888,9 @@ Annotation::initializeProperties()
         case AnnotationTypeEnum::LINE:
             fillColorFlag = false;
             lineArrowsFlag = true;
+            break;
+        case AnnotationTypeEnum::MARKER:
+            fillColorFlag = false;
             break;
         case AnnotationTypeEnum::OVAL:
             break;
@@ -2195,6 +2262,8 @@ Annotation::getName() const
     AString nameOut(m_name);
     
     switch (m_type) {
+        case AnnotationTypeEnum::ARROW:
+            break;
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
@@ -2204,6 +2273,8 @@ Annotation::getName() const
         case AnnotationTypeEnum::IMAGE:
             break;
         case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::MARKER:
             break;
         case AnnotationTypeEnum::OVAL:
             break;
@@ -2253,6 +2324,8 @@ Annotation::getNameForGraphicsDrawing() const
     AString nameOut(m_name);
     
     switch (m_type) {
+        case AnnotationTypeEnum::ARROW:
+            break;
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
@@ -2262,6 +2335,8 @@ Annotation::getNameForGraphicsDrawing() const
         case AnnotationTypeEnum::IMAGE:
             break;
         case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::MARKER:
             break;
         case AnnotationTypeEnum::OVAL:
             break;
@@ -2312,6 +2387,15 @@ Annotation::getNameForGraphicsDrawing() const
 }
 
 /**
+ * @return The CZI name for annotations imported from CZI files
+ */
+AString
+Annotation::getCziName() const
+{
+    return m_cziName;
+}
+
+/**
  * Set the CZI name for annotations imported from CZI files
  * @param cziName
  *    Name from CZI
@@ -2333,6 +2417,8 @@ Annotation::textAnnotationResetName()
 {
     AString suffixName;
     switch (m_type) {
+        case AnnotationTypeEnum::ARROW:
+            break;
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
@@ -2342,6 +2428,8 @@ Annotation::textAnnotationResetName()
         case AnnotationTypeEnum::IMAGE:
             break;
         case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::MARKER:
             break;
         case AnnotationTypeEnum::OVAL:
             break;

@@ -167,11 +167,15 @@ AnnotationInsertNewWidget::createAnnotationsWidgets()
      * Shape buttons
      */
     m_shapeActionGroup = new QActionGroup(this);
+    QToolButton* shapeArrowToolButton    = createShapeToolButton(AnnotationTypeEnum::ARROW,
+                                                                 m_shapeActionGroup);
     QToolButton* shapeBoxToolButton      = createShapeToolButton(AnnotationTypeEnum::BOX,
                                                                  m_shapeActionGroup);
     QToolButton* shapeImageToolButton    = createShapeToolButton(AnnotationTypeEnum::IMAGE,
                                                                  m_shapeActionGroup);
     QToolButton* shapeLineToolButton     = createShapeToolButton(AnnotationTypeEnum::LINE,
+                                                                 m_shapeActionGroup);
+    QToolButton* shapeMarkerToolButton   = createShapeToolButton(AnnotationTypeEnum::MARKER,
                                                                  m_shapeActionGroup);
     QToolButton* shapePolygonToolButton  = createShapeToolButton(AnnotationTypeEnum::POLYGON,
                                                                  m_shapeActionGroup);
@@ -249,129 +253,70 @@ AnnotationInsertNewWidget::createAnnotationsWidgets()
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     
-    const bool rowsLayoutFlag = true;
-    if (rowsLayoutFlag) {
-        QVBoxLayout* fileLayout = new QVBoxLayout();
-        fileLayout->addWidget(fileLabel, 0, Qt::AlignHCenter);
-        fileLayout->addWidget(fileSelectionToolButton, 0, Qt::AlignHCenter);
-        fileLayout->addStretch();
-        
-        QLabel* insertLabel = new QLabel("Insert New");
-        
-        const int32_t topColumnCount((spacerSpaceToolButton != NULL)
-                                     ? 9
-                                     : 8);
-        gridLayout->addWidget(insertLabel,
-                              0, 0, 1, topColumnCount,
-                              Qt::AlignHCenter);
-        
-        gridLayout->addLayout(fileLayout,
-                              1, 0, 3, 1,
-                              (Qt::AlignTop | Qt::AlignHCenter));
-        
-        gridLayout->setColumnMinimumWidth(1, 5);
-        
-        int32_t topColumn(2);
-        gridLayout->addWidget(spaceLabel,
-                              1, topColumn++, Qt::AlignLeft);
-        gridLayout->addWidget(chartSpaceToolButton,
-                              1, topColumn++);
-        gridLayout->addWidget(histologySpaceToolButton,
-                              1, topColumn++);
-        gridLayout->addWidget(mediaSpaceToolButton,
-                              1, topColumn++);
-        if (spacerSpaceToolButton != NULL) {
-            gridLayout->addWidget(spacerSpaceToolButton,
-                                  1, topColumn++);
-        }
-        gridLayout->addWidget(stereotaxicSpaceToolButton,
-                              1, topColumn++);
-        gridLayout->addWidget(surfaceSpaceToolButton,
-                              1, topColumn++);
-        gridLayout->addWidget(tabSpaceToolButton,
-                              1, topColumn++);
-        gridLayout->addWidget(windowSpaceToolButton,
-                              1, topColumn++);
-        
-        gridLayout->setRowMinimumHeight(2, 2);
-        
-        gridLayout->addWidget(typeLabel,
-                              3, 2, Qt::AlignLeft);
-        gridLayout->addWidget(shapeBoxToolButton,
-                              3, 3);
-        gridLayout->addWidget(shapeImageToolButton,
-                              3, 4);
-        gridLayout->addWidget(shapeLineToolButton,
-                              3, 5);
-        gridLayout->addWidget(shapePolygonToolButton,
-                              3, 6);
-        gridLayout->addWidget(shapePolyLineToolButton,
-                              3, 7);
-        gridLayout->addWidget(shapeOvalToolButton,
-                              3, 8);
-        gridLayout->addWidget(shapeTextToolButton,
-                              3, 9);
-    }
-    else {
-        QLabel* insertLabel = new QLabel("Insert New");
-        
-        gridLayout->addWidget(insertLabel,
-                              0, 0, 1, 8, Qt::AlignHCenter);
-        
-        gridLayout->addWidget(fileLabel,
-                              1, 0,
-                              Qt::AlignHCenter);
-        gridLayout->addWidget(fileSelectionToolButton,
-                              2, 0, 2, 1,
-                              (Qt::AlignTop | Qt::AlignHCenter));
-        
-        gridLayout->setColumnMinimumWidth(1, 15);
-        gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
-                              1, 1, 3, 1,
-                              Qt::AlignHCenter);
-        
-        gridLayout->addWidget(spaceLabel,
-                              1, 2, Qt::AlignLeft);
-        gridLayout->addWidget(chartSpaceToolButton,
-                              1, 3);
-        gridLayout->addWidget(histologySpaceToolButton,
-                              1, 4);
-        gridLayout->addWidget(mediaSpaceToolButton,
-                              1, 5);
+    QVBoxLayout* fileLayout = new QVBoxLayout();
+    fileLayout->addWidget(fileLabel, 0, Qt::AlignHCenter);
+    fileLayout->addWidget(fileSelectionToolButton, 0, Qt::AlignHCenter);
+    fileLayout->addStretch();
+    
+    QLabel* insertLabel = new QLabel("Insert New");
+    
+    const int32_t topColumnCount((spacerSpaceToolButton != NULL)
+                                 ? 9
+                                 : 8);
+    gridLayout->addWidget(insertLabel,
+                          0, 0, 1, topColumnCount,
+                          Qt::AlignHCenter);
+    
+    gridLayout->addLayout(fileLayout,
+                          1, 0, 3, 1,
+                          (Qt::AlignTop | Qt::AlignHCenter));
+    
+    gridLayout->setColumnMinimumWidth(1, 5);
+    
+    int32_t topColumn(2);
+    gridLayout->addWidget(spaceLabel,
+                          1, topColumn++, Qt::AlignLeft);
+    gridLayout->addWidget(chartSpaceToolButton,
+                          1, topColumn++);
+    gridLayout->addWidget(histologySpaceToolButton,
+                          1, topColumn++);
+    gridLayout->addWidget(mediaSpaceToolButton,
+                          1, topColumn++);
+    if (spacerSpaceToolButton != NULL) {
         gridLayout->addWidget(spacerSpaceToolButton,
-                              1, 6);
-        gridLayout->addWidget(stereotaxicSpaceToolButton,
-                              1, 7);
-        gridLayout->addWidget(surfaceSpaceToolButton,
-                              1, 8);
-        gridLayout->addWidget(tabSpaceToolButton,
-                              1, 9);
-        gridLayout->addWidget(windowSpaceToolButton,
-                              1, 10);
-        
-        QSpacerItem* rowSpaceItem = new QSpacerItem(5, 5,
-                                                    QSizePolicy::Fixed,
-                                                    QSizePolicy::Fixed);
-        gridLayout->addItem(rowSpaceItem,
-                            2, 3, 1, 7);
-        
-        gridLayout->addWidget(typeLabel,
-                              3, 2, Qt::AlignLeft);
-        gridLayout->addWidget(shapeBoxToolButton,
-                              3, 3);
-        gridLayout->addWidget(shapeImageToolButton,
-                              3, 4);
-        gridLayout->addWidget(shapeLineToolButton,
-                              3, 5);
-        gridLayout->addWidget(shapePolygonToolButton,
-                              3, 6);
-        gridLayout->addWidget(shapePolyLineToolButton,
-                              3, 7);
-        gridLayout->addWidget(shapeOvalToolButton,
-                              3, 8);
-        gridLayout->addWidget(shapeTextToolButton,
-                              3, 9);
+                              1, topColumn++);
     }
+    gridLayout->addWidget(stereotaxicSpaceToolButton,
+                          1, topColumn++);
+    gridLayout->addWidget(surfaceSpaceToolButton,
+                          1, topColumn++);
+    gridLayout->addWidget(tabSpaceToolButton,
+                          1, topColumn++);
+    gridLayout->addWidget(windowSpaceToolButton,
+                          1, topColumn++);
+    
+    gridLayout->setRowMinimumHeight(2, 2);
+    
+    gridLayout->addWidget(typeLabel,
+                          3, 2, Qt::AlignLeft);
+    gridLayout->addWidget(shapeArrowToolButton,
+                          3, 3);
+    gridLayout->addWidget(shapeBoxToolButton,
+                          3, 4);
+    gridLayout->addWidget(shapeImageToolButton,
+                          3, 5);
+    gridLayout->addWidget(shapeLineToolButton,
+                          3, 6);
+    gridLayout->addWidget(shapeMarkerToolButton,
+                          3, 7);
+    gridLayout->addWidget(shapePolygonToolButton,
+                          3, 8);
+    gridLayout->addWidget(shapePolyLineToolButton,
+                          3, 9);
+    gridLayout->addWidget(shapeOvalToolButton,
+                          3, 10);
+    gridLayout->addWidget(shapeTextToolButton,
+                              3, 11);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -697,6 +642,14 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
     AString clickText;
     AString dragText;
     switch (annotationType) {
+        case AnnotationTypeEnum::ARROW:
+            typeText = "Arrow Segment Annotation";
+            clickText = ("Click the mouse to create an arrow with a default size.  "
+                         "Change the arrow by moving its end points.");
+            dragText = ("Press and hold the left mouse button down at head end of the arrow.  "
+                        "While continuing to hold the mouse button down, drag the mouse to "
+                        "the tail end of the arrow and release the mouse button to create the arrow.");
+            break;
         case AnnotationTypeEnum::BOX:
             typeText = "Box Annotation";
             clickText = ("Click the mouse to create a box with a default size.  "
@@ -731,7 +684,14 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
             dragText = ("Press and hold the left mouse button down at one end of the line.  "
                         "While continuing to hold the mouse button down, drag the mouse to "
                         "the other end of the line and release the mouse button to create the line.");
-
+            break;
+        case AnnotationTypeEnum::MARKER:
+            typeText = "Marker Annotation";
+            clickText = ("Click the mouse to create a marker with a default size.  "
+                         "Change the marker by moving its corners.");
+            dragText = ("Press and hold the left mouse button down at a corner of the marker.  "
+                        "While continuing to hold the mouse button down, drag the mouse to "
+                        "an opposite corner of the marker and release the mouse button to create the marker.");
             break;
         case AnnotationTypeEnum::OVAL:
             typeText = "Oval Annotation";
@@ -946,6 +906,8 @@ AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
     = EventAnnotationCreateNewType::PolyhedronDrawingMode::ANNOTATION_DRAWING;
     
     switch (annShape) {
+        case AnnotationTypeEnum::ARROW:
+            break;
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
@@ -955,6 +917,8 @@ AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
         case AnnotationTypeEnum::IMAGE:
             break;
         case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::MARKER:
             break;
         case AnnotationTypeEnum::OVAL:
             break;
@@ -1041,6 +1005,11 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
      * NOTE: ORIGIN is in TOP LEFT corner of pixmap.
      */
     switch (annotationType) {
+        case AnnotationTypeEnum::ARROW:
+            painter->drawLine(2, height - 2, width - 2, 2);
+            painter->drawLine(width / 2, 2, width - 2, 2);
+            painter->drawLine(width - 2, 2, width - 2, height / 2);
+            break;
         case AnnotationTypeEnum::BOX:
             painter->drawRect(1, 1, width - 2, height - 2);
             break;
@@ -1095,7 +1064,11 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
         }
             break;
         case AnnotationTypeEnum::LINE:
-            painter->drawLine(1, height - 1, width - 1, 1);
+            painter->drawLine(2, height - 2, width - 2, 2);
+            break;
+        case AnnotationTypeEnum::MARKER:
+            painter->drawLine(2, height - 2, width - 2, 2);
+            painter->drawLine(2, 2, width - 2, height - 2);
             break;
         case AnnotationTypeEnum::OVAL:
             painter->drawEllipse(1, 1, width - 1, height - 1);

@@ -32,6 +32,7 @@ class QSplitter;
 class QTabWidget;
 
 namespace caret {
+    class AnnotationCziFileSelectionViewController;
     class AnnotationSelectionViewController;
     class AnnotationTextSubstitutionLayerSetViewController;
     class BorderSelectionViewController;
@@ -104,6 +105,8 @@ namespace caret {
         OverlaySetViewController* m_overlaySetViewController;
         
         AnnotationSelectionViewController* m_annotationViewController;
+        
+        AnnotationCziFileSelectionViewController* m_annotationCziFileSelectionViewController;
         
         AnnotationTextSubstitutionLayerSetViewController* m_annotationTextSubstitutionLayerSetViewController;
         

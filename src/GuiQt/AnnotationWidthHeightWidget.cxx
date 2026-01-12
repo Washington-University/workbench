@@ -180,6 +180,8 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationOneCoordinateSh
         bool includeFlag(true);
         
         switch (a2d->getType()) {
+            case AnnotationTypeEnum::ARROW:
+                break;
             case AnnotationTypeEnum::BOX:
                 break;
             case AnnotationTypeEnum::BROWSER_TAB:
@@ -189,6 +191,8 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationOneCoordinateSh
             case AnnotationTypeEnum::IMAGE:
                 break;
             case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::MARKER:
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;

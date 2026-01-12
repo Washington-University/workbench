@@ -792,6 +792,26 @@ AnnotationFile::receiveEvent(Event* event)
 }
 
 /**
+ * @return CZI image file for an annotation file that is in a CZI image file
+ */
+const CziImageFile*
+AnnotationFile::getParentCziImageFile() const
+{
+    return m_parentCziImageFile;
+}
+
+/**
+ * Set the parent CZI image file for an annotation file that is in a CZI image file
+ * @param cziImageFile
+ *    The parent CZI image file
+ */
+void
+AnnotationFile::setParentCziImageFile(const CziImageFile* cziImageFile)
+{
+    m_parentCziImageFile = cziImageFile;
+}
+
+/**
  * @return True if this file is empty, else false.
  */
 bool
@@ -3068,6 +3088,24 @@ AnnotationFile::importFromDataFileEditorModel(const DataFileEditorModel& dataFil
     }
     
     return FunctionResult::ok();
+}
+
+/**
+ * @return String displaying content of file
+ */
+AString
+AnnotationFile::toString() const
+{
+    AString txt;
+    
+    std::vector<Annotation*> annotations;
+    getAllAnnotations(annotations);
+    
+    for (Annotation* ann : annotations) {
+        txt.append(ann->toString());
+    }
+    
+    return txt;
 }
 
 

@@ -22,9 +22,6 @@
 /*LICENSE_END*/
 
 
-#include "CaretObject.h"
-
-
 /**
  * \class caret::DataFileContentCopyMoveInterface
  * \brief Interface for data file that can copy their content to other files of same type
@@ -36,7 +33,7 @@ namespace caret {
     class DataFile;
     class DataFileContentCopyMoveParameters;
     
-    class DataFileContentCopyMoveInterface : public CaretObject {
+    class DataFileContentCopyMoveInterface {
         
     public:
         DataFileContentCopyMoveInterface() { }

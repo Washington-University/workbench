@@ -35,6 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Arrow */
+        ARROW,
         /** Box */
         BOX,
         /** Browser Tab */
@@ -45,6 +47,8 @@ public:
         IMAGE,
         /** Line */
         LINE,
+        /** Marker */
+        MARKER,
         /** Oval */
         OVAL,
         /** Polyhedron (three dim polygon) */

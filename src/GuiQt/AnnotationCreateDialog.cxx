@@ -225,6 +225,8 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const UserInputModeE
     
     bool annotationNeedsDialogFlag = false;
     switch (annotationType) {
+        case AnnotationTypeEnum::ARROW:
+            break;
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
@@ -237,6 +239,8 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const UserInputModeE
             annotationNeedsDialogFlag = true;
             break;
         case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::MARKER:
             break;
         case AnnotationTypeEnum::OVAL:
             break;
@@ -421,6 +425,14 @@ AnnotationCreateDialog::createAnnotation(const UserInputModeEnum::Enum userInput
         }
         if (threeDimSpaceFlag) {
             switch (newAnnotationInfo.m_annotationType) {
+                case AnnotationTypeEnum::ARROW:
+                    delete newAnnotation;
+                    newAnnotation = NULL;
+                    errorMessageOut = ("A arrow annotation cannot be created from a mouse click in "
+                                       + AnnotationCoordinateSpaceEnum::toGuiName(annotationSpace)
+                                       + " coordinate space.   Hold the mouse down, drag the mouse, and then release the mouse.");
+                    return NULL;
+                    break;
                 case AnnotationTypeEnum::BOX:
                     break;
                 case AnnotationTypeEnum::BROWSER_TAB:
@@ -436,6 +448,8 @@ AnnotationCreateDialog::createAnnotation(const UserInputModeEnum::Enum userInput
                                        + AnnotationCoordinateSpaceEnum::toGuiName(annotationSpace)
                                        + " coordinate space.   Hold the mouse down, drag the mouse, and then release the mouse.");
                     return NULL;
+                    break;
+                case AnnotationTypeEnum::MARKER:
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
@@ -469,6 +483,8 @@ AnnotationCreateDialog::createAnnotation(const UserInputModeEnum::Enum userInput
         
         int32_t tabIndex(newAnnotationInfo.m_coordOneInfo.m_tabSpaceInfo.m_index);
         switch (newAnnotationInfo.m_annotationType) {
+            case AnnotationTypeEnum::ARROW:
+                break;
             case AnnotationTypeEnum::BOX:
                 break;
             case AnnotationTypeEnum::BROWSER_TAB:
@@ -478,6 +494,8 @@ AnnotationCreateDialog::createAnnotation(const UserInputModeEnum::Enum userInput
             case AnnotationTypeEnum::IMAGE:
                 break;
             case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::MARKER:
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
@@ -917,6 +935,8 @@ AnnotationCreateDialog::finishAnnotationCreation(const UserInputModeEnum::Enum u
                                          annotation);
     
     switch (annotation->getType()) {
+        case AnnotationTypeEnum::ARROW:
+            break;
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
@@ -927,6 +947,8 @@ AnnotationCreateDialog::finishAnnotationCreation(const UserInputModeEnum::Enum u
         case AnnotationTypeEnum::IMAGE:
             break;
         case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::MARKER:
             break;
         case AnnotationTypeEnum::OVAL:
             break;
@@ -1010,6 +1032,8 @@ m_annotationFile(annotationFile)
     bool multiCoordAnnFlag(false);
     bool multiPairedCoordAnnFlag(false);
     switch (annotationType) {
+        case AnnotationTypeEnum::ARROW:
+            break;
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
@@ -1019,6 +1043,8 @@ m_annotationFile(annotationFile)
         case AnnotationTypeEnum::IMAGE:
             break;
         case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::MARKER:
             break;
         case AnnotationTypeEnum::OVAL:
             break;
@@ -1130,6 +1156,9 @@ m_annotationFile(annotationFile)
          */
         bool addSecondCoordFlag = true;
         switch (annotationType) {
+            case AnnotationTypeEnum::ARROW:
+                addSecondCoordFlag = true;
+                break;
             case AnnotationTypeEnum::BOX:
                 break;
             case AnnotationTypeEnum::BROWSER_TAB:
@@ -1140,6 +1169,8 @@ m_annotationFile(annotationFile)
                 break;
             case AnnotationTypeEnum::LINE:
                 addSecondCoordFlag = true;
+                break;
+            case AnnotationTypeEnum::MARKER:
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
@@ -1201,6 +1232,9 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
         bool useAverageFlag      = false;
         bool useTextAligmentFlag = false;
         switch (m_annotationType) {
+            case AnnotationTypeEnum::ARROW:
+                useAverageFlag = false;
+                break;
             case AnnotationTypeEnum::BOX:
                 useAverageFlag = true;
                 break;
@@ -1211,6 +1245,9 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                 useAverageFlag = true;
                 break;
             case AnnotationTypeEnum::IMAGE:
+                useAverageFlag = true;
+                break;
+            case AnnotationTypeEnum::MARKER:
                 useAverageFlag = true;
                 break;
             case AnnotationTypeEnum::OVAL:
