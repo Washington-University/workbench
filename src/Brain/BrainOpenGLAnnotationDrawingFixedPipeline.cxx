@@ -975,22 +975,24 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
     std::vector<AnnotationFile*> allAnnotationFiles;
     switch (drawingDataType) {
         case DrawingDataType::ANNOTATIONS:
+        {
             if (drawAnnotationsFromFilesFlag) {
                 m_inputs->m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
-                
-                const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
-                if (dpa->isDisplayCziAnnotations()) {
-                    std::vector<AnnotationFile*> cziAnnFiles(m_inputs->m_brain->getAllCziAnnotationFiles());
-                    for (AnnotationFile* af : cziAnnFiles) {
-                        CaretAssert(af);
-                        const CziImageFile* cziImageFile(af->getParentCziImageFile());
-                        CaretAssert(cziImageFile);
-                        if (cziImageFile->isAnnotationFileDisplayed()) {
-                            allAnnotationFiles.push_back(af);
-                        }
+            }
+            
+            const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
+            if (dpa->isDisplayCziAnnotations()) {
+                std::vector<AnnotationFile*> cziAnnFiles(m_inputs->m_brain->getAllCziAnnotationFiles());
+                for (AnnotationFile* af : cziAnnFiles) {
+                    CaretAssert(af);
+                    const CziImageFile* cziImageFile(af->getParentCziImageFile());
+                    CaretAssert(cziImageFile);
+                    if (cziImageFile->isAnnotationFileDisplayed()) {
+                        allAnnotationFiles.push_back(af);
                     }
                 }
             }
+        }
             break;
         case DrawingDataType::INVALID:
             break;
