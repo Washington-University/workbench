@@ -1188,8 +1188,13 @@ CziImageFileMetaDataXmlReader::pointsToXYZ(const AString& pointsText)
      * Points text is in form:
      * <Points>11191.6671726004, 17144.6114758967 10060.0804104662,15893.9103177484</Points>
      */
-    QStringList indivPointText(pointsText.split(" ",
+#if QT_VERSION >= 0x060000
+   QStringList indivPointText(pointsText.split(" ",
                                                 Qt::SkipEmptyParts));
+#else
+    QStringList indivPointText(pointsText.split(" ",
+                                                QString::SkipEmptyParts));
+#endif
     const int32_t numIndivPoints(indivPointText.size());
     for (int32_t i = 0; i < numIndivPoints; i++) {
         xyzOut.push_back(xyPositionToXYZ(indivPointText[i]));
