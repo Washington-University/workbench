@@ -43,6 +43,7 @@
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
+#include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "SpacerTabContent.h"
@@ -696,6 +697,7 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
     
     SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     SelectionItemSurfaceNode*  surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
+    SelectionItemSurfaceTriangle* surfaceTriangleIdentification = idManager->getSurfaceTriangleIdentification();
     SelectionItemHistologyCoordinate* histologyPlaneID(idManager->getHistologyPlaneCoordinateIdentification());
     SelectionItemMediaLogicalCoordinate* mediaPixelID = idManager->getMediaLogicalCoordinateIdentification();
     SelectionItemMediaPlaneCoordinate* mediaPlaneID(idManager->getMediaPlaneCoordinateIdentification());
@@ -713,6 +715,27 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         surface->getNormalVector(surfaceNodeIdentification->getNodeNumber(),
                                  coordInfoOut.m_surfaceSpaceInfo.m_nodeNormalVector);
         coordInfoOut.m_surfaceSpaceInfo.m_validFlag     = true;
+    }
+    else if (surfaceTriangleIdentification->isValid()) {
+        /*
+         * Filtering in identification processing may turn on the selected node
+         * when there is a selected triangle in front of the selected node.
+         * Thus, use first node in the selected triangle as surface identification.
+         */
+        int32_t vertices[3] { -1, -1, -1 };
+        surfaceTriangleIdentification->getBarycentricVertices(vertices);
+        if (vertices[0] >= 0) {
+            const Surface* surface = surfaceTriangleIdentification->getSurface();
+            CaretAssert(surface);
+            coordInfoOut.m_surfaceSpaceInfo.m_numberOfNodes = surface->getNumberOfNodes();
+            coordInfoOut.m_surfaceSpaceInfo.m_structure     = surface->getStructure();
+            coordInfoOut.m_surfaceSpaceInfo.m_nodeIndex     = vertices[0];
+            coordInfoOut.m_surfaceSpaceInfo.m_nodeOffsetLength    = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
+            coordInfoOut.m_surfaceSpaceInfo.m_nodeVectorOffsetType    = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
+            surface->getNormalVector(vertices[0],
+                                     coordInfoOut.m_surfaceSpaceInfo.m_nodeNormalVector);
+            coordInfoOut.m_surfaceSpaceInfo.m_validFlag     = true;
+        }
     }
     else if (voxelID->isValid()) {
         voxelID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
