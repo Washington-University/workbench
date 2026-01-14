@@ -81,12 +81,17 @@ m_browserTabContent(browserTabContent)
     setCentralWidget(widget,
                      ScrollAreaStatus::SCROLL_AREA_NEVER);
     
+    int32_t numRows(5);
+    int32_t numCols(5);
     VolumeMappableInterface* vmi(browserTabContent->getOverlaySet()->getUnderlayVolume());
     if (vmi != NULL) {
         CaretDataFile* caretDataFile(vmi->castToVolumeMappableDataFile());
         if (caretDataFile != NULL) {
             m_volumeFileSelectionComboBox->setSelectedFile(caretDataFile);
         }
+        
+        numRows = browserTabContent->getVolumeMontageNumberOfRows();
+        numCols = browserTabContent->getVolumeMontageNumberOfColumns();
     }
     
     /*
@@ -95,9 +100,9 @@ m_browserTabContent(browserTabContent)
     histologyFileSelected(m_histologyFileSelectionComboBox->getSelectedFile());
     volumeFileSelected(m_volumeFileSelectionComboBox->getSelectedFile());
     QSignalBlocker rowsBlocker(m_montageInputRowsSpinBox);
-    m_montageInputRowsSpinBox->setValue(5);
+    m_montageInputRowsSpinBox->setValue(numRows);
     QSignalBlocker columnsBlocker(m_montageInputColumnsSpinBox);
-    m_montageInputColumnsSpinBox->setValue(5);
+    m_montageInputColumnsSpinBox->setValue(numCols);
     montageInputVolumeSliceAxisComboBoxValueChanged(m_montageInputVolumeSliceAxisComboBox->currentIndex());
     m_dialogCreationInProgressFlag = false;
     montageInputRowOrColumnValueChanged();
@@ -291,25 +296,37 @@ VolumeMontageSetupDialog::createHistologyWidget()
     
     QLabel* startLabel(new QLabel("Start:"));
     QLabel* endLabel(new QLabel("End:"));
-    QLabel* sliceIndexLabel(new QLabel("Slice Index"));
+    QLabel* sliceNumberLabel(new QLabel("Slice Number"));
     QLabel* coordinateLabel(new QLabel("Coordinate"));
+    QLabel* sliceNameLabel(new QLabel("Slice Name"));
 
-    m_histologyStartSliceIndexSpinBox = new QSpinBox();
-    m_histologyStartSliceIndexSpinBox->setMinimumWidth(s_minimumSpinBoxWidth);
-    QObject::connect(m_histologyStartSliceIndexSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                     this, &VolumeMontageSetupDialog::histologyStartSliceIndexSpinBoxValueChanged);
+    m_histologyStartSliceNumberSpinBox = new QSpinBox();
+    m_histologyStartSliceNumberSpinBox->setMinimumWidth(s_minimumSpinBoxWidth);
+    QObject::connect(m_histologyStartSliceNumberSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                     this, &VolumeMontageSetupDialog::histologyStartSliceNumberSpinBoxValueChanged);
 
-    m_histologyEndSliceIndexSpinBox = new QSpinBox();
-    m_histologyEndSliceIndexSpinBox->setMinimumWidth(s_minimumSpinBoxWidth);
-    QObject::connect(m_histologyEndSliceIndexSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                     this, &VolumeMontageSetupDialog::histologyEndSliceIndexSpinBoxValueChanged);
+    m_histologyEndSliceNumberSpinBox = new QSpinBox();
+    m_histologyEndSliceNumberSpinBox->setMinimumWidth(s_minimumSpinBoxWidth);
+    QObject::connect(m_histologyEndSliceNumberSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                     this, &VolumeMontageSetupDialog::histologyEndSliceNumberSpinBoxValueChanged);
+
+    m_histologyStartSliceNameComboBox = new QComboBox();
+    m_histologyStartSliceNameComboBox->setMinimumWidth(s_minimumSpinBoxWidth);
+    QObject::connect(m_histologyStartSliceNameComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+                     this, &VolumeMontageSetupDialog::histologyStartSliceNameComboBoxActivated);
+
+    m_histologyEndSliceNameComboBox = new QComboBox();
+    m_histologyEndSliceNameComboBox->setMinimumWidth(s_minimumSpinBoxWidth);
+    QObject::connect(m_histologyEndSliceNameComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+                     this, &VolumeMontageSetupDialog::histologyEndSliceNameComboBoxActivated);
 
     m_histologyStartSliceCoordinateLabel = new QLabel();
     m_histologyEndSliceCoordinateLabel   = new QLabel();
     
     const int32_t COL_LABEL(0);
-    const int32_t COL_INDEX(1);
-    const int32_t COL_COORD(2);
+    const int32_t COL_NUMBER(1);
+    const int32_t COL_NAME(2);
+    const int32_t COL_COORD(3);
     const int32_t STRETCH_NO(0);
     const int32_t STRETCH_YES(100);
     
@@ -319,27 +336,33 @@ VolumeMontageSetupDialog::createHistologyWidget()
     
     QWidget* widget(new QGroupBox("Histology File"));
     QGridLayout* layout(new QGridLayout(widget));
-    layout->setColumnStretch(3, STRETCH_YES);
+    layout->setColumnStretch(4, STRETCH_YES);
     int row(layout->rowCount());
     layout->addLayout(fileLayout,
-                      row, COL_LABEL, 1, 4);
+                      row, COL_LABEL, 1, 5);
     ++row;
-    layout->addWidget(sliceIndexLabel,
-                      row, COL_INDEX, Qt::AlignHCenter);
+    layout->addWidget(sliceNumberLabel,
+                      row, COL_NUMBER, Qt::AlignHCenter);
+    layout->addWidget(sliceNameLabel,
+                      row, COL_NAME, Qt::AlignHCenter);
     layout->addWidget(coordinateLabel,
                       row, COL_COORD, Qt::AlignHCenter);
     ++row;
     layout->addWidget(endLabel,
                       row, COL_LABEL);
-    layout->addWidget(m_histologyEndSliceIndexSpinBox,
-                      row, COL_INDEX);
+    layout->addWidget(m_histologyEndSliceNumberSpinBox,
+                      row, COL_NUMBER);
+    layout->addWidget(m_histologyEndSliceNameComboBox,
+                      row, COL_NAME);
     layout->addWidget(m_histologyEndSliceCoordinateLabel,
                       row, COL_COORD);
     ++row;
     layout->addWidget(startLabel,
                       row, COL_LABEL);
-    layout->addWidget(m_histologyStartSliceIndexSpinBox,
-                      row, COL_INDEX);
+    layout->addWidget(m_histologyStartSliceNumberSpinBox,
+                      row, COL_NUMBER);
+    layout->addWidget(m_histologyStartSliceNameComboBox,
+                      row, COL_NAME);
     layout->addWidget(m_histologyStartSliceCoordinateLabel,
                       row, COL_COORD);
     ++row;
@@ -502,39 +525,53 @@ VolumeMontageSetupDialog::montageInputRowOrColumnValueChanged()
 void
 VolumeMontageSetupDialog::histologyFileSelected(CaretDataFile* caretDataFile)
 {
+    m_histologyStartSliceNameComboBox->clear();
+    m_histologyEndSliceNameComboBox->clear();
     bool validFlag(false);
     if (caretDataFile != NULL) {
         HistologySlicesFile* hsf(caretDataFile->castToHistologySlicesFile());
         if (hsf != NULL) {
-            const int32_t lastSliceIndex(hsf->getNumberOfHistologySlices() - 1);
+            const int32_t lastSliceIndex(hsf->getNumberOfHistologySlices());
             if (lastSliceIndex >= 0) {
-                QSignalBlocker startBlocker(m_histologyStartSliceIndexSpinBox);
-                m_histologyStartSliceIndexSpinBox->setRange(0, lastSliceIndex);
-                m_histologyStartSliceIndexSpinBox->setValue(0);
-                histologyStartSliceIndexSpinBoxValueChanged(m_histologyStartSliceIndexSpinBox->value());
-                QSignalBlocker endBlocker(m_histologyEndSliceIndexSpinBox);
-                m_histologyEndSliceIndexSpinBox->setRange(0, lastSliceIndex);
-                m_histologyEndSliceIndexSpinBox->setValue(lastSliceIndex);
-                histologyEndSliceIndexSpinBoxValueChanged(m_histologyEndSliceIndexSpinBox->value());
+                /*
+                 * Load slice name combo boxes
+                 */
+                for (int32_t i = 0; i < lastSliceIndex; i++) {
+                    m_histologyStartSliceNameComboBox->addItem(hsf->getHistologySliceByIndex(i)->getSliceName());
+                    m_histologyEndSliceNameComboBox->addItem(hsf->getHistologySliceByIndex(i)->getSliceName());
+                }
+
+                /*
+                 * Load slice number spin boxes
+                 */
+                QSignalBlocker startBlocker(m_histologyStartSliceNumberSpinBox);
+                m_histologyStartSliceNumberSpinBox->setRange(1, lastSliceIndex);
+                m_histologyStartSliceNumberSpinBox->setValue(1);
+                histologyStartSliceNumberSpinBoxValueChanged(m_histologyStartSliceNumberSpinBox->value());
+                QSignalBlocker endBlocker(m_histologyEndSliceNumberSpinBox);
+                m_histologyEndSliceNumberSpinBox->setRange(1, lastSliceIndex);
+                m_histologyEndSliceNumberSpinBox->setValue(lastSliceIndex);
+                histologyEndSliceNumberSpinBoxValueChanged(m_histologyEndSliceNumberSpinBox->value());
+                
                 validFlag = true;
             }
         }
     }
-    m_histologyStartSliceIndexSpinBox->setEnabled(validFlag);
-    m_histologyEndSliceIndexSpinBox->setEnabled(validFlag);
+    m_histologyStartSliceNumberSpinBox->setEnabled(validFlag);
+    m_histologyEndSliceNumberSpinBox->setEnabled(validFlag);
     
     updateMontageOutputWidget();
 }
 
 /**
  * Called when value changed
- * @param value
+ * @param sliceNumber
  *    New value
  */
 void
-VolumeMontageSetupDialog::histologyStartSliceIndexSpinBoxValueChanged(int value)
+VolumeMontageSetupDialog::histologyStartSliceNumberSpinBoxValueChanged(int sliceNumber)
 {
-    FunctionResultValue<Vector3D> result(histologySliceIndexToCoordinate(value));
+    FunctionResultValue<Vector3D> result(histologySliceNumberToCoordinate(sliceNumber));
     if (result.isOk()) {
         m_histologyStartSliceCoordinateLabel->setText(result.getValue().toString());
     }
@@ -542,18 +579,21 @@ VolumeMontageSetupDialog::histologyStartSliceIndexSpinBoxValueChanged(int value)
         m_histologyStartSliceCoordinateLabel->setText("Invalid");
     }
     
+    m_histologyStartSliceNumberSpinBox->setValue(sliceNumber);
+    m_histologyStartSliceNameComboBox->setCurrentIndex(sliceNumber - 1);
+    
     updateMontageOutputWidget();
 }
 
 /**
  * Called when value changed
- * @param value
+ * @param sliceNumber
  *    New value
  */
 void
-VolumeMontageSetupDialog::histologyEndSliceIndexSpinBoxValueChanged(int value)
+VolumeMontageSetupDialog::histologyEndSliceNumberSpinBoxValueChanged(int sliceNumber)
 {
-    FunctionResultValue<Vector3D> result(histologySliceIndexToCoordinate(value));
+    FunctionResultValue<Vector3D> result(histologySliceNumberToCoordinate(sliceNumber));
     if (result.isOk()) {
         m_histologyEndSliceCoordinateLabel->setText(result.getValue().toString());
     }
@@ -561,18 +601,43 @@ VolumeMontageSetupDialog::histologyEndSliceIndexSpinBoxValueChanged(int value)
         m_histologyEndSliceCoordinateLabel->setText("Invalid");
     }
 
+    m_histologyEndSliceNumberSpinBox->setValue(sliceNumber);
+    m_histologyEndSliceNameComboBox->setCurrentIndex(sliceNumber - 1);
+    
     updateMontageOutputWidget();
 }
 
 /**
- * Convert a histology slice index to a coordinate
- * @param sliceIndex
- *   The slice index
+ * Called when histology start slice name is changed
+ * @param index
+ *    Index of name selected
+ */
+void
+VolumeMontageSetupDialog::histologyStartSliceNameComboBoxActivated(int index)
+{
+    histologyStartSliceNumberSpinBoxValueChanged(index + 1);
+}
+
+/**
+ * Called when histology end slice name is changed
+ * @param index
+ *    Index of name selected
+ */
+void
+VolumeMontageSetupDialog::histologyEndSliceNameComboBoxActivated(int index)
+{
+    histologyEndSliceNumberSpinBoxValueChanged(index + 1);
+}
+
+/**
+ * Convert a histology slice number to a coordinate
+ * @param sliceNumber
+ *   The slice number
  * @return
  *   The slice coordinate center
  */
 FunctionResultValue<Vector3D>
-VolumeMontageSetupDialog::histologySliceIndexToCoordinate(const int32_t sliceIndex) const
+VolumeMontageSetupDialog::histologySliceNumberToCoordinate(const int32_t sliceNumber) const
 {
     Vector3D xyz;
     bool validFlag(false);
@@ -580,7 +645,7 @@ VolumeMontageSetupDialog::histologySliceIndexToCoordinate(const int32_t sliceInd
     if (cdf != NULL) {
         HistologySlicesFile* hsi(dynamic_cast<HistologySlicesFile*>(cdf));
         if (hsi != NULL) {
-            const HistologySlice* slice(hsi->getHistologySliceByIndex(sliceIndex));
+            const HistologySlice* slice(hsi->getHistologySliceByIndex(sliceNumber - 1));
             if (slice != NULL) {
                 const BoundingBox boundingBox(slice->getStereotaxicXyzBoundingBox());
                 if (boundingBox.isValid()) {
@@ -600,8 +665,8 @@ VolumeMontageSetupDialog::histologySliceIndexToCoordinate(const int32_t sliceInd
 FunctionResultValue<Vector3D>
 VolumeMontageSetupDialog::getHistologySlicesNormalVector() const
 {
-    FunctionResultValue<Vector3D> resultStart(histologySliceIndexToCoordinate(m_histologyStartSliceIndexSpinBox->value()));
-    FunctionResultValue<Vector3D> resultEnd(histologySliceIndexToCoordinate(m_histologyEndSliceIndexSpinBox->value()));
+    FunctionResultValue<Vector3D> resultStart(histologySliceNumberToCoordinate(m_histologyStartSliceNumberSpinBox->value()));
+    FunctionResultValue<Vector3D> resultEnd(histologySliceNumberToCoordinate(m_histologyEndSliceNumberSpinBox->value()));
     Vector3D normalVector(0.0, 0.0, 1.0);
     AString msg;
     if (resultStart.isOk()
@@ -885,8 +950,8 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
     FunctionResultValue<Vector3D> resultStartCoord(Vector3D(), "", false);
     FunctionResultValue<Vector3D> resultEndCoord(Vector3D(), "", false);
     if (histologyFlag) {
-        resultStartCoord = histologySliceIndexToCoordinate(m_histologyStartSliceIndexSpinBox->value());
-        resultEndCoord   = histologySliceIndexToCoordinate(m_histologyEndSliceIndexSpinBox->value());
+        resultStartCoord = histologySliceNumberToCoordinate(m_histologyStartSliceNumberSpinBox->value());
+        resultEndCoord   = histologySliceNumberToCoordinate(m_histologyEndSliceNumberSpinBox->value());
         if (resultStartCoord.isOk()
             && resultEndCoord.isOk()) {
         }

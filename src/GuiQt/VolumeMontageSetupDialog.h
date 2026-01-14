@@ -63,9 +63,13 @@ namespace caret {
     private slots:
         void histologyFileSelected(CaretDataFile* caretDataFile);
         
-        void histologyStartSliceIndexSpinBoxValueChanged(int value);
+        void histologyStartSliceNumberSpinBoxValueChanged(int value);
         
-        void histologyEndSliceIndexSpinBoxValueChanged(int value);
+        void histologyEndSliceNumberSpinBoxValueChanged(int value);
+        
+        void histologyStartSliceNameComboBoxActivated(int index);
+        
+        void histologyEndSliceNameComboBoxActivated(int index);
         
         void volumeFileSelected(CaretDataFile* caretDataFile);
         
@@ -80,7 +84,7 @@ namespace caret {
         void montageInputColumnsValueChanged(int value);
         
     private:
-        FunctionResultValue<Vector3D> histologySliceIndexToCoordinate(const int32_t sliceIndex) const;
+        FunctionResultValue<Vector3D> histologySliceNumberToCoordinate(const int32_t sliceIndex) const;
         
         FunctionResultValue<Vector3D> volumeSliceIndexToCoordinate(const int32_t sliceIndex) const;
         
@@ -110,9 +114,13 @@ namespace caret {
         
         CaretDataFileSelectionComboBox* m_histologyFileSelectionComboBox = NULL;
         
-        QSpinBox* m_histologyStartSliceIndexSpinBox = NULL;
+        QComboBox* m_histologyStartSliceNameComboBox = NULL;
         
-        QSpinBox* m_histologyEndSliceIndexSpinBox = NULL;
+        QComboBox* m_histologyEndSliceNameComboBox = NULL;
+        
+        QSpinBox* m_histologyStartSliceNumberSpinBox = NULL;
+        
+        QSpinBox* m_histologyEndSliceNumberSpinBox = NULL;
         
         QLabel* m_histologyStartSliceCoordinateLabel = NULL;
         
