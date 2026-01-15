@@ -28,6 +28,7 @@
 #include "AnnotationColorBarNumericText.h"
 #include "AnnotationColorBarSection.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "SceneClassAssistant.h"
 
 using namespace caret;
@@ -738,12 +739,16 @@ AnnotationColorBar::restoreSubClassDataFromScene(const SceneAttributes* sceneAtt
      * color.
      */
     if (getTextColor() == getBackgroundColor()) {
+        AString msg("Colorbar text and background colors are the same when restoring scene.  ");
         if (getTextColor() == CaretColorEnum::BLACK) {
             setBackgroundColor(CaretColorEnum::WHITE);
+            msg.append("Background changed to white.");
         }
         else {
             setBackgroundColor(CaretColorEnum::BLACK);
+            msg.append("Background changed to black.");
         }
+        CaretLogSevere(msg);
     }
 }
 
