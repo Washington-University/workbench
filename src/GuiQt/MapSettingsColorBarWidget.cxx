@@ -436,6 +436,11 @@ MapSettingsColorBarWidget::updateColorBarAttributes()
         
         const PaletteColorBarValuesModeEnum::Enum valuesMode = m_paletteColorMapping->getColorBarValuesMode();
         switch (valuesMode) {
+            case PaletteColorBarValuesModeEnum::NONE:
+                numericForatComboBoxEnabled   = false;
+                precisionDigitsSpinBoxEnabled = false;
+                subdivisionsSpinBoxEnabled    = false;
+                break;
             case PaletteColorBarValuesModeEnum::DATA:
                 break;
             case PaletteColorBarValuesModeEnum::PERCENTILE:

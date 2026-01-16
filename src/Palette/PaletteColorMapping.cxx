@@ -2061,6 +2061,10 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      * Processing for Sign Only Mode
      */
     switch (this->colorBarValuesMode) {
+        case PaletteColorBarValuesModeEnum::NONE:
+            /* Show nothing */
+            return;
+            break;
         case PaletteColorBarValuesModeEnum::DATA:
             break;
         case PaletteColorBarValuesModeEnum::PERCENTILE:
@@ -2215,6 +2219,9 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      * Convert numeric values to percentiles
      */
     switch (this->colorBarValuesMode) {
+        case PaletteColorBarValuesModeEnum::NONE:
+            CaretAssert(0); /* Should never get here */
+            break;
         case PaletteColorBarValuesModeEnum::DATA:
             break;
         case PaletteColorBarValuesModeEnum::PERCENTILE:
@@ -2434,6 +2441,9 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      * Add percentage signs when percentile is selected
      */
     switch (this->colorBarValuesMode) {
+        case PaletteColorBarValuesModeEnum::NONE:
+            CaretAssert(0); /* Should never get here */
+            break;
         case PaletteColorBarValuesModeEnum::DATA:
             break;
         case PaletteColorBarValuesModeEnum::PERCENTILE:

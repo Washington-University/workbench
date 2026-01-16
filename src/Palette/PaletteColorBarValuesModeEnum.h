@@ -35,11 +35,13 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Show nothing */
+        NONE,
+        /** Show data values */
         DATA,
-        /** */
+        /** Show percentile values */
         PERCENTILE,
-        /** */
+        /** Show only postiive/negative sign */
         SIGN_ONLY
     };
 
@@ -71,6 +73,8 @@ private:
 
     static const PaletteColorBarValuesModeEnum* findData(const Enum enumValue);
 
+    static Enum getDefaultValue();
+    
     /** Holds all instance of enum values and associated metadata */
     static std::vector<PaletteColorBarValuesModeEnum> enumData;
 

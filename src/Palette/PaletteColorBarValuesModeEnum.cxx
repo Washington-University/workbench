@@ -106,7 +106,11 @@ PaletteColorBarValuesModeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(PaletteColorBarValuesModeEnum(DATA, 
+    enumData.push_back(PaletteColorBarValuesModeEnum(NONE,
+                                                     "NONE",
+                                                     "None"));
+    
+    enumData.push_back(PaletteColorBarValuesModeEnum(DATA,
                                     "DATA", 
                                     "Data"));
     
@@ -174,7 +178,7 @@ PaletteColorBarValuesModeEnum::fromName(const AString& name, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = PaletteColorBarValuesModeEnum::enumData[0].enumValue;
+    Enum enumValue = PaletteColorBarValuesModeEnum::getDefaultValue();
     
     for (std::vector<PaletteColorBarValuesModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -227,7 +231,7 @@ PaletteColorBarValuesModeEnum::fromGuiName(const AString& guiName, bool* isValid
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = PaletteColorBarValuesModeEnum::enumData[0].enumValue;
+    Enum enumValue = PaletteColorBarValuesModeEnum::getDefaultValue();
     
     for (std::vector<PaletteColorBarValuesModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -280,7 +284,7 @@ PaletteColorBarValuesModeEnum::fromIntegerCode(const int32_t integerCode, bool* 
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = PaletteColorBarValuesModeEnum::enumData[0].enumValue;
+    Enum enumValue = PaletteColorBarValuesModeEnum::getDefaultValue();
     
     for (std::vector<PaletteColorBarValuesModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -374,4 +378,14 @@ PaletteColorBarValuesModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames,
         std::sort(allGuiNames.begin(), allGuiNames.end());
     }
 }
+
+/**
+ * @return The default value for this enumerated type
+ */
+PaletteColorBarValuesModeEnum::Enum
+PaletteColorBarValuesModeEnum::getDefaultValue()
+{
+    return DATA;
+}
+
 
