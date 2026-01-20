@@ -4361,4 +4361,28 @@ GuiManager::getCurrentDarkLightTheme()
     return prefs->getDarkLightThemeMode();
 }
 
+/**
+ * @return True if current O/S is macOS and current theme is dark
+ * else return true if theme selected on Preferences General is dark.
+ */
+bool
+GuiManager::isCurrentActiveThemeDark()
+{
+#ifdef CARET_OS_MACOSX
+    return macIsInDarkTheme();
+#else
+    switch (getCurrentDarkLightTheme()) {
+        case GuiDarkLightThemeModeEnum::SYSTEM:
+            break;
+        case GuiDarkLightThemeModeEnum::DARK:
+            return true;
+            break;
+        case GuiDarkLightThemeModeEnum::LIGHT:
+            break;
+    }
+    return false;
+#endif
+}
+
+
 

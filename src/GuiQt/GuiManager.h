@@ -113,6 +113,8 @@ namespace caret {
 
         static GuiDarkLightThemeModeEnum::Enum getCurrentDarkLightTheme();
 
+        static bool isCurrentActiveThemeDark();
+        
         Brain* getBrain() const;
         
         int32_t getNumberOfOpenBrainBrowserWindows() const;
