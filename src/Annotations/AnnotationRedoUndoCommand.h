@@ -86,6 +86,10 @@ namespace caret {
         void setModeCoordinateTwo(const AnnotationCoordinate& coordinate,
                                   const std::vector<Annotation*>& annotations);
         
+        void setModeCoordinate(const int32_t coordinateIndex,
+                               const AnnotationCoordinate& coordinate,
+                               const std::vector<Annotation*>& annotations);
+        
         void setModeCoordinateMulti(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates,
                                     const std::vector<Annotation*>& annotations);
         
@@ -326,6 +330,8 @@ namespace caret {
                                const std::vector<Annotation*>& annotations);
         
         AnnotationRedoUndoCommandModeEnum::Enum m_mode;
+        
+        int32_t m_coordinateIndex = -1;
         
         mutable std::vector<AnnotationMemento*> m_annotationMementos;
         

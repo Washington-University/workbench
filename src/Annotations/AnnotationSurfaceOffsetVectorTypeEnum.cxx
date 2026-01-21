@@ -111,17 +111,17 @@ AnnotationSurfaceOffsetVectorTypeEnum::initialize()
 
     enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(CENTROID_THRU_VERTEX,
                                                              "CENTROID_THRU_VERTEX",
-                                                             "C",
+                                                             "Centroid",
                                                              "Centroid Thru Vertex"));
     
     enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(SURFACE_NORMAL,
                                                              "SURFACE_NORMAL",
-                                                             "N",
+                                                             "Normal",
                                                              "Surface Normal"));
     
     enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(TANGENT,
                                                              "TANGENT",
-                                                             "T",
+                                                             "Tangent",
                                                              "Tangent"));
 }
 

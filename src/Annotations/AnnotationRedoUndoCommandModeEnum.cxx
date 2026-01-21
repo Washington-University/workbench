@@ -130,9 +130,13 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                      "COLOR_FOREGROUND",
                                                      "Color - Foreground"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(COORDINATE,
+                                                         "COORDINATE",
+                                                         "Coordinate"));
+
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(COORDINATE_ONE,
-                                                     "COORDINATE_ONE",
-                                                     "Coordinate One"));
+                                                         "COORDINATE_ONE",
+                                                         "Coordinate One"));
     
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(COORDINATE_TWO,
                                                      "COORDINATE_TWO",

@@ -24,8 +24,10 @@
 
 #include <QWidget>
 
+#include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationWidgetParentEnum.h"
+#include "StructureEnum.h"
 #include "UserInputModeEnum.h"
 
 class QDoubleSpinBox;
@@ -58,33 +60,37 @@ namespace caret {
         void updateContent(Annotation* annotation);
         
     private slots:
-        void valueChangedCoordinateOne();
+        void coordNumberSpinBoxValueChanged(int coordNumber);
         
-        void valueChangedCoordinateTwo();
+        void coordinateSpinBoxValueChanged(double value);
         
-        void surfaceOffsetLengthValueOneChanged(double);
+        void valueChangedCoordinate();
         
-        void surfaceOffsetLengthValueTwoChanged(double);
+        void surfaceVertexOffsetLengthValueChanged(double);
         
-        void surfaceOffsetVectorTypeChanged();
+        void surfaceVertexOffsetVectorTypeChanged();
+        
+        void surfaceVertexIndexValueChanged(int);
+        
+        void surfaceVertexStructureValueChanged(const StructureEnum::Enum structure);
         
     private:
         AnnotationCoordinatesWidget(const AnnotationCoordinatesWidget&);
 
         AnnotationCoordinatesWidget& operator=(const AnnotationCoordinatesWidget&);
         
-        AnnotationCoordinate* getCoordinate(const int32_t coordinateIndex);
+        QWidget* createCoordinateWidgetXYZ();
         
-        QDoubleSpinBox* createCoordinateSpinBox(const int32_t coordinateIndex,
-                                                const QString& axisCharacter,
+        QWidget* createCoordinateWidgetSurface();
+        
+        AnnotationCoordinate* getSelectedCoordinate();
+        
+        AnnotationCoordinate* getFirstCoordinate();
+        
+        QDoubleSpinBox* createCoordinateSpinBox(const QString& axisCharacter,
                                                 const int32_t xyzIndex);
         
-        void createCoordinateWidgets(const int32_t coordinateIndex);
-        
-        void updateCoordinate(const int32_t coordinateIndex,
-                              const AnnotationCoordinate* coordinate);
-        
-        void valueChangedCoordinate(const int32_t coordinateIndex);
+        void updateCoordinate();
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -94,29 +100,33 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
+        QSpinBox* m_coordNumberSpinBox;
+        
         QStackedLayout* m_stackedLayout;
         
-        QWidget* m_surfaceWidget;
+        QWidget* m_coordSurfaceWidget;
         
-        QWidget* m_coordinateWidget;
+        QWidget* m_coordXyzWidget;
         
         StructureEnumComboBox* m_surfaceStructureComboBox;
         
-        QSpinBox* m_surfaceNodeIndexSpinBox[2];
+        QSpinBox* m_surfaceNodeIndexSpinBox;
         
         EnumComboBoxTemplate* m_surfaceOffsetVectorTypeComboBox;
         
-        QDoubleSpinBox* m_surfaceOffsetLengthSpinBox[2];
+        QDoubleSpinBox* m_surfaceOffsetLengthSpinBox;
         
-        QDoubleSpinBox* m_xCoordSpinBox[2];
+        QDoubleSpinBox* m_xCoordSpinBox;
         
-        QDoubleSpinBox* m_yCoordSpinBox[2];
+        QDoubleSpinBox* m_yCoordSpinBox;
         
         QLabel* m_zCoordLabel;
         
-        QDoubleSpinBox* m_zCoordSpinBox[2];
+        QDoubleSpinBox* m_zCoordSpinBox;
 
-        Annotation* m_annotation;
+        Annotation* m_annotation = NULL;
+        
+        Annotation* m_previousAnnotation = NULL;
         
         AString m_plusButtonToolTipText;
         

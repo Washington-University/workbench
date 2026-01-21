@@ -173,6 +173,17 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             }
         }
             break;
+        case AnnotationRedoUndoCommandModeEnum::COORDINATE:
+        {
+            CaretAssert(m_coordinateIndex >= 0);
+            CaretAssert(m_coordinateIndex < annotation->getNumberOfCoordinates());
+            CaretAssert(m_coordinateIndex < annotationValue->getNumberOfCoordinates());
+            
+            AnnotationCoordinate* coordDest = annotation->getCoordinate(m_coordinateIndex);
+            const AnnotationCoordinate* coordFrom = annotationValue->getCoordinate(m_coordinateIndex);
+            *coordDest = *coordFrom;
+        }
+            break;
         case AnnotationRedoUndoCommandModeEnum::COORDINATE_ONE:
         {
             AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
@@ -1207,7 +1218,7 @@ AnnotationRedoUndoCommand::setModeCoordinateOne(const AnnotationCoordinate& coor
                                                 const std::vector<Annotation*>& annotations)
 {
     m_mode = AnnotationRedoUndoCommandModeEnum::COORDINATE_ONE;
-    setDescription("Coordinate");
+    setDescription("Coordinate One");
     
     for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
          iter != annotations.end();
@@ -1259,7 +1270,7 @@ AnnotationRedoUndoCommand::setModeCoordinateOneAndTwo(const AnnotationCoordinate
                                                       const std::vector<Annotation*> annotations)
 {
     m_mode = AnnotationRedoUndoCommandModeEnum::COORDINATE_ONE_AND_TWO;
-    setDescription("Coordinate");
+    setDescription("Coordinate One and Two");
     
     for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
          iter != annotations.end();
@@ -1349,7 +1360,7 @@ AnnotationRedoUndoCommand::setModeCoordinateTwo(const AnnotationCoordinate& coor
                                                 const std::vector<Annotation*>& annotations)
 {
     m_mode = AnnotationRedoUndoCommandModeEnum::COORDINATE_TWO;
-    setDescription("Coordinate");
+    setDescription("Coordinate Two");
     
     for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
          iter != annotations.end();
@@ -1380,6 +1391,48 @@ AnnotationRedoUndoCommand::setModeCoordinateTwo(const AnnotationCoordinate& coor
         }
     }
 }
+
+/**
+ * Set them mode to second coordinate and create the redo/undo instances.
+ *
+ * @param coordinate
+ *     New value of the coordinate.
+ * @param annotations
+ *     Annotations that receive this new coordinate.
+ */
+void
+AnnotationRedoUndoCommand::setModeCoordinate(const int32_t coordinateIndex,
+                                             const AnnotationCoordinate& coordinate,
+                                             const std::vector<Annotation*>& annotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::COORDINATE;
+    m_coordinateIndex = coordinateIndex;
+    setDescription("Coordinate");
+    
+    for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
+         iter != annotations.end();
+         iter++) {
+        Annotation* annotation = *iter;
+        CaretAssert(annotation);
+        
+        Annotation* redoAnnotation = annotation->clone();
+        AnnotationCoordinate* redoCoordinate(redoAnnotation->getCoordinate(coordinateIndex));
+
+        if (redoCoordinate != NULL) {
+            *redoCoordinate = coordinate;
+            
+            Annotation* undoAnnotation = annotation->clone();
+            AnnotationMemento* am = new AnnotationMemento(annotation,
+                                                          redoAnnotation,
+                                                          undoAnnotation);
+            m_annotationMementos.push_back(am);
+        }
+        else {
+            delete redoAnnotation;
+        }
+    }
+}
+
 
 /**
  * Set them mode to second coordinate and create the redo/undo instances.
