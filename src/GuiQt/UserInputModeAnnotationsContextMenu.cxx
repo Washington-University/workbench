@@ -382,6 +382,10 @@ m_newAnnotationCreatedByContextMenu(NULL)
     /*
      * Duplicate tab space annotation
      */
+    QAction* duplicateToAllAction(createDuplicateTabSpaceAnnotationToAllTabsAction());
+    if (duplicateToAllAction != NULL) {
+        addAction(duplicateToAllAction);
+    }
     QMenu* duplicateMenu = createDuplicateTabSpaceAnnotationMenu();
     if (duplicateMenu != NULL) {
         addMenu(duplicateMenu);
@@ -846,35 +850,60 @@ UserInputModeAnnotationsContextMenu::createTurnOnInDisplayGroupMenu()
 }
 
 /**
+ * @return Action for duplicating tab space annotation to all tabs.
+ * May be NULL.
+ */
+QAction*
+UserInputModeAnnotationsContextMenu::createDuplicateTabSpaceAnnotationToAllTabsAction()
+{
+    QAction* action(new QAction("Duplicate One Annotation to All Tabs"));
+    action->setEnabled(false);
+    
+    if ( ! m_tabSpaceFileAndAnnotations.empty()) {
+        EventBrowserTabGetAll tabIndicesEvent;
+        EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+        const std::vector<BrowserTabContent*> allTabs = tabIndicesEvent.getAllBrowserTabs();
+        
+        if (allTabs.size() > 1) {
+            action->setEnabled(true);
+            QObject::connect(action, &QAction::triggered,
+                             this, &UserInputModeAnnotationsContextMenu::duplicateAnnotationToAllTabsSelected);
+        }
+    }
+    
+    return action;
+}
+
+/**
  * @return New menu for duplicating a tab annotation.
  *         NULL is returned if no other tabs.
  */
 QMenu*
 UserInputModeAnnotationsContextMenu::createDuplicateTabSpaceAnnotationMenu()
 {
-    if (m_tabSpaceFileAndAnnotations.empty()) {
-        return NULL;
-    }
-    
-    EventBrowserTabGetAll tabIndicesEvent;
-    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
-    const std::vector<BrowserTabContent*> allTabs = tabIndicesEvent.getAllBrowserTabs();
-    
-    if (allTabs.size() < 1) {
-        return NULL;
-    }
-    
-    QMenu* menu = new QMenu("Duplicate to Tab");
-    QObject::connect(menu, SIGNAL(triggered(QAction*)),
-                     this, SLOT(duplicateAnnotationSelected(QAction*)));
-    
-    CaretAssertVectorIndex(m_tabSpaceFileAndAnnotations, 0);
-    CaretAssert(m_tabSpaceFileAndAnnotations[0].second->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB);
-    const int32_t tabIndex = m_tabSpaceFileAndAnnotations[0].second->getTabIndex();
-    for (BrowserTabContent* tabContent : allTabs) {
-        if (tabContent->getTabNumber() != tabIndex) {
-            QAction* action = menu->addAction(tabContent->getTabName());
-            action->setData((int)tabContent->getTabNumber());
+    QMenu* menu = new QMenu("Duplicate One Annotation to Tab");
+    menu->setEnabled(false);
+
+    if ( ! m_tabSpaceFileAndAnnotations.empty()) {
+        EventBrowserTabGetAll tabIndicesEvent;
+        EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+        const std::vector<BrowserTabContent*> allTabs = tabIndicesEvent.getAllBrowserTabs();
+        
+        if (allTabs.size() > 1) {
+            menu->setEnabled(true);
+            
+            QObject::connect(menu, SIGNAL(triggered(QAction*)),
+                             this, SLOT(duplicateAnnotationToTabSelected(QAction*)));
+            
+            CaretAssertVectorIndex(m_tabSpaceFileAndAnnotations, 0);
+            CaretAssert(m_tabSpaceFileAndAnnotations[0].second->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB);
+            const int32_t tabIndex = m_tabSpaceFileAndAnnotations[0].second->getTabIndex();
+            for (BrowserTabContent* tabContent : allTabs) {
+                if (tabContent->getTabNumber() != tabIndex) {
+                    QAction* action = menu->addAction(tabContent->getTabName());
+                    action->setData((int)tabContent->getTabNumber());
+                }
+            }
         }
     }
 
@@ -882,13 +911,119 @@ UserInputModeAnnotationsContextMenu::createDuplicateTabSpaceAnnotationMenu()
 }
 
 /**
- * Gets called when a selection is made from Duplicate Tab Annotation menu
+ * Called to duplicate annotation to all tabs
+ */
+void
+UserInputModeAnnotationsContextMenu::duplicateAnnotationToAllTabsSelected()
+{
+    EventBrowserTabGetAll tabIndicesEvent;
+    EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+    const std::vector<BrowserTabContent*> allTabs = tabIndicesEvent.getAllBrowserTabs();
+    
+    std::vector<int32_t> tabIndices;
+    for (const BrowserTabContent* btc : allTabs) {
+        CaretAssert(btc);
+        const int32_t tabIndex(btc->getTabNumber());
+        tabIndices.push_back(tabIndex);
+    }
+    
+    CaretAssert( ! tabIndices.empty());
+    duplicateSelectedAnnotationsToTabIndices(tabIndices);
+}
+
+/**
+ * Called to duplicate selected annotations to the given tab indices
+ * @param tabIndices
+ *    The tab indices
+ */
+void
+UserInputModeAnnotationsContextMenu::duplicateSelectedAnnotationsToTabIndices(const std::vector<int32_t>& tabIndices)
+{
+    CaretAssert(m_tabSpaceFileAndAnnotations.size() > 0);
+    
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode());
+    
+    std::vector<AnnotationAndFile> fileAnnCopies;
+    for (int32_t tabIndex : tabIndices) {
+        for (const auto& tabAnn : m_tabSpaceFileAndAnnotations) {
+            if (tabIndex != tabAnn.second->getTabIndex()) {
+                Annotation* annCopy = tabAnn.second->clone();
+                annCopy->setTabIndex(tabIndex);
+                
+                switch (m_userInputModeAnnotations->getUserInputMode()) {
+                    case UserInputModeEnum::Enum::ANNOTATIONS:
+                    {
+                        DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+                        dpa->updateForNewAnnotation(m_annotation);
+                    }
+                        break;
+                    case UserInputModeEnum::Enum::BORDERS:
+                        break;
+                    case UserInputModeEnum::Enum::FOCI:
+                        break;
+                    case UserInputModeEnum::Enum::IMAGE:
+                        break;
+                    case UserInputModeEnum::Enum::INVALID:
+                        break;
+                    case UserInputModeEnum::Enum::SAMPLES_EDITING:
+                    {
+                        DisplayPropertiesSamples* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSamples();
+                        dps->updateForNewSample(m_annotation);
+                    }
+                        break;
+                    case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+                        break;
+                    case UserInputModeEnum::Enum::VIEW:
+                        break;
+                    case UserInputModeEnum::Enum::VOLUME_EDIT:
+                        break;
+                }
+                
+                fileAnnCopies.emplace_back(annCopy,
+                                           tabAnn.first,
+                                           tabAnn.second->getAnnotationGroupKey());
+            }
+        }
+    }
+    
+    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    undoCommand->setModeDuplicateAnnotations(fileAnnCopies);
+    AString errorMessage;
+    if ( ! annotationManager->applyCommand(undoCommand,
+                                           errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+    
+    bool firstTimeFlag(true);
+    for (auto& annCopy : fileAnnCopies) {
+        if (firstTimeFlag) {
+            firstTimeFlag = false;
+            annotationManager->selectAnnotationForEditing(m_mouseEvent.getBrowserWindowIndex(),
+                                                          AnnotationManager::SELECTION_MODE_SINGLE,
+                                                          false, /* shift key down */
+                                                          annCopy.getAnnotation());
+        }
+        else {
+            annotationManager->selectAnnotationForEditing(m_mouseEvent.getBrowserWindowIndex(),
+                                                          AnnotationManager::SELECTION_MODE_EXTENDED,
+                                                          true, /* shift key down */
+                                                          annCopy.getAnnotation());
+        }
+    }
+    
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
+/**
+ * Gets called when a selection is made from Duplicate To Tab Annotation menu
  *
  * @param action
  *     Action selected from Duplicate menu
  */
 void
-UserInputModeAnnotationsContextMenu::duplicateAnnotationSelected(QAction* action)
+UserInputModeAnnotationsContextMenu::duplicateAnnotationToTabSelected(QAction* action)
 {
     CaretAssert(action);
     CaretAssert(m_tabSpaceFileAndAnnotations.size() > 0);

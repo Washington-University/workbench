@@ -98,8 +98,10 @@ namespace caret {
         
         void applyGroupingUngroup();
         
-        void duplicateAnnotationSelected(QAction*);
+        void duplicateAnnotationToTabSelected(QAction*);
                 
+        void duplicateAnnotationToAllTabsSelected();
+        
         void insertPolylineCoordinate();
         
         void removePolylineCoordinateSelected();
@@ -123,7 +125,11 @@ namespace caret {
         
         QMenu* createTurnOnInDisplayGroupMenu();
         
+        QAction* createDuplicateTabSpaceAnnotationToAllTabsAction();
+        
         QMenu* createDuplicateTabSpaceAnnotationMenu();
+        
+        void duplicateSelectedAnnotationsToTabIndices(const std::vector<int32_t>& tabIndices);
         
         void processAnnotationOrderOperation(const AnnotationStackingOrderTypeEnum::Enum orderType);
         
