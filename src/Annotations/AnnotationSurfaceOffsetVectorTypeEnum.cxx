@@ -123,6 +123,11 @@ AnnotationSurfaceOffsetVectorTypeEnum::initialize()
                                                              "TANGENT",
                                                              "Tangent",
                                                              "Tangent"));
+    
+    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(TEXT_CONNECTED_TO_LINE,
+                                                             "TEXT_CONNECTED_TO_LINE",
+                                                             "Text->Line",
+                                                             "Text Connected to Line"));
 }
 
 /**

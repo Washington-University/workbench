@@ -186,9 +186,16 @@ AnnotationCoordinatesWidget::createCoordinateWidgetXYZ()
 QWidget*
 AnnotationCoordinatesWidget::createCoordinateWidgetSurface()
 {
-    QLabel* vertexLabel(new QLabel("Vertex:"));
-    QLabel* offsetLabel(new QLabel("Offset:"));
+    QLabel* vertexLabel(new QLabel("Vertex"));
+    QLabel* offsetLabel(new QLabel("Offset"));
+    QLabel* angleRadiusLabel(new QLabel("Angle/Radius"));
     
+    QFont font(vertexLabel->font());
+    font.setPointSizeF(font.pointSizeF() * 0.8);
+    vertexLabel->setFont(font);
+    offsetLabel->setFont(font);
+    angleRadiusLabel->setFont(font);
+
     m_surfaceStructureComboBox = new StructureEnumComboBox(this);
     m_surfaceStructureComboBox->listOnlyValidStructures();
     m_surfaceStructureComboBox->getWidget()->setToolTip("Select surface structure");
@@ -201,34 +208,71 @@ AnnotationCoordinatesWidget::createCoordinateWidgetSurface()
     m_surfaceNodeIndexSpinBox->setToolTip("Select surface vertex");
     QObject::connect(m_surfaceNodeIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &AnnotationCoordinatesWidget::surfaceVertexIndexValueChanged);
+    
+    const AString lengthTT("<html>"
+                           "Distance from vertex to annotation:<br>"
+                           "Centroid   - Distance (mm) from vertex to annotation using vector from center of surface through vertex<br>"
+                           "Normal     - Distance (mm) from vertex to annotation using vertex's normal vector<br>"
+                           "Tangent    - Distance (mm) from vertex to annotation using vertex's normal vector<br>"
+                           "Text->Line - Screen depth offset that moves annotation closer to viewer when text is obscured by surface"
+                           "</html>");
 
     m_surfaceOffsetLengthSpinBox = new QDoubleSpinBox();
     m_surfaceOffsetLengthSpinBox->setRange(0.0, 999.0);
     m_surfaceOffsetLengthSpinBox->setSingleStep(0.1);
-    m_surfaceOffsetLengthSpinBox->setToolTip("Offset of annotation from surface vertex");
+    m_surfaceOffsetLengthSpinBox->setDecimals(3);
+    m_surfaceOffsetLengthSpinBox->setToolTip(lengthTT);
     QObject::connect(m_surfaceOffsetLengthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationCoordinatesWidget::surfaceVertexOffsetLengthValueChanged);
+    
+    const AString patt(WuQtUtilities::createWordWrappedToolTipText("Polar angle in degrees from top.  "
+                                                               "Positive angle is counter-clockwise"));
+    m_surfaceTextOffsetPolarAngleSpinBox = new QDoubleSpinBox();
+    m_surfaceTextOffsetPolarAngleSpinBox->setRange(0.0, 360.0);
+    m_surfaceTextOffsetPolarAngleSpinBox->setWrapping(true);
+    m_surfaceTextOffsetPolarAngleSpinBox->setSingleStep(1.0);
+    m_surfaceTextOffsetPolarAngleSpinBox->setToolTip(patt);
+    QObject::connect(m_surfaceTextOffsetPolarAngleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &AnnotationCoordinatesWidget::surfaceOffsetTextOffsetPolarAngleValueChanged);
 
+    const AString prtt(WuQtUtilities::createWordWrappedToolTipText("Polar radius in pixels from vertex to text "
+                                                               "center (assuming text aligment is horizontal="
+                                                               "center, vertical=middle)."));
+    m_surfaceTextOffsetPolarRadiusSpinBox = new QDoubleSpinBox();
+    m_surfaceTextOffsetPolarRadiusSpinBox->setRange(0.0, 999999.0);
+    m_surfaceTextOffsetPolarRadiusSpinBox->setSingleStep(1.0);
+    m_surfaceTextOffsetPolarRadiusSpinBox->setToolTip(prtt);
+    QObject::connect(m_surfaceTextOffsetPolarRadiusSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &AnnotationCoordinatesWidget::surfaceOffsetTextOffsetPolarRadiusValueChanged);
+    
+    const AString offsetTT("<html>"
+                           "Offset from vertex to annotation:<br>"
+                           "Centroid   - Vector from center of surface to vertex; text is in plane of screen<br>"
+                           "Normal     - Vector is vertex's normal vector; text is in plane of screen<br>"
+                           "Tangent    - Text is tangent (using normal vector) to the surface; text rotates with surface<br>"
+                           "Text->Line - Text is offset from vertex and a line connects text to vertex; "
+                           "Angle/Radius values control offset; text is in plane of screen"
+                           "</html>");
     m_surfaceOffsetVectorTypeComboBox = new EnumComboBoxTemplate(this);
     m_surfaceOffsetVectorTypeComboBox->setup<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>();
     QObject::connect(m_surfaceOffsetVectorTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &AnnotationCoordinatesWidget::surfaceVertexOffsetVectorTypeChanged);
-    m_surfaceOffsetVectorTypeComboBox->getWidget()->setToolTip("Vector for surface offset:\n"
-                                                               "   C - Centroid thru Vertex, Faces Viewer\n"
-                                                               "   N - Vertex Normal, Faces Viewer\n"
-                                                               "   T - Tangent, Rotates with Surface");
+    m_surfaceOffsetVectorTypeComboBox->getWidget()->setToolTip(offsetTT);
     
     QWidget* widget(new QWidget());
     QGridLayout* layout(new QGridLayout(widget));
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     layout->setRowStretch(100, 100); /* push widgets up, space at bottom */
-    layout->addWidget(vertexLabel, 0, 0);
-    layout->addWidget(m_surfaceStructureComboBox->getWidget(), 0, 1);
-    layout->addWidget(m_surfaceNodeIndexSpinBox, 0, 2);
-    layout->addWidget(offsetLabel, 1, 0);
+    layout->addWidget(vertexLabel, 0, 0, Qt::AlignHCenter);
+    layout->addWidget(m_surfaceStructureComboBox->getWidget(), 1, 0);
+    layout->addWidget(m_surfaceNodeIndexSpinBox, 2, 0);
+    layout->addWidget(offsetLabel, 0, 1, Qt::AlignHCenter);
     layout->addWidget(m_surfaceOffsetVectorTypeComboBox->getWidget(), 1, 1);
-    layout->addWidget(m_surfaceOffsetLengthSpinBox, 1, 2);
-
+    layout->addWidget(m_surfaceOffsetLengthSpinBox, 2, 1);
+    layout->addWidget(angleRadiusLabel, 0, 2, Qt::AlignHCenter);
+    layout->addWidget(m_surfaceTextOffsetPolarAngleSpinBox, 1, 2);
+    layout->addWidget(m_surfaceTextOffsetPolarRadiusSpinBox, 2, 2);
+    
     return widget;
 }
 
@@ -340,7 +384,7 @@ AnnotationCoordinatesWidget::updateContent(Annotation* annotation)
 }
 
 /**
- * Update the selected coordinate 
+ * Update the selected coordinate
  */
 void
 AnnotationCoordinatesWidget::updateCoordinate()
@@ -685,6 +729,19 @@ AnnotationCoordinatesWidget::updateCoordinate()
         m_surfaceNodeIndexSpinBox->blockSignals(false);
         
         m_surfaceOffsetLengthSpinBox->blockSignals(true);
+        switch (surfaceOffsetVector) {
+            case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+            case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
+            case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+                m_surfaceOffsetLengthSpinBox->setRange(0.0, 999.0);
+                m_surfaceOffsetLengthSpinBox->setSingleStep(0.1);
+                break;
+            case AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE:
+                m_surfaceOffsetLengthSpinBox->setRange(-999.0, 999.0);
+                m_surfaceOffsetLengthSpinBox->setSingleStep(0.001);
+                break;
+        }
+
         m_surfaceOffsetLengthSpinBox->setValue(surfaceOffsetLength);
         m_surfaceOffsetLengthSpinBox->blockSignals(false);
         
@@ -703,13 +760,33 @@ AnnotationCoordinatesWidget::updateCoordinate()
              * Structure and offset type always come from first coordinate
              */
             m_surfaceStructureComboBox->setSelectedStructure(structure);
+            if (m_annotation->getType() == AnnotationTypeEnum::TEXT) {
+                m_surfaceOffsetVectorTypeComboBox->setup<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>();
+            }
+            else {
+                std::vector<AnnotationSurfaceOffsetVectorTypeEnum::Enum> types;
+                types.push_back(AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX);
+                types.push_back(AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL);
+                types.push_back(AnnotationSurfaceOffsetVectorTypeEnum::TANGENT);
+                m_surfaceOffsetVectorTypeComboBox->setupWithItems<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>(types);
+            }
+
             m_surfaceOffsetVectorTypeComboBox->setSelectedItem<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>(surfaceOffsetVector);
+
+            QSignalBlocker angleBlocker(m_surfaceTextOffsetPolarAngleSpinBox);
+            m_surfaceTextOffsetPolarAngleSpinBox->setValue(firstCoord->getSurfaceTextOffsetPolarAngle());
+            m_surfaceTextOffsetPolarAngleSpinBox->setEnabled(surfaceOffsetVector == AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE);
+            
+            QSignalBlocker radiusBlocker(m_surfaceTextOffsetPolarRadiusSpinBox);
+            m_surfaceTextOffsetPolarRadiusSpinBox->setValue(firstCoord->getSurfaceTextOffsetPolarRadius());
+            m_surfaceTextOffsetPolarRadiusSpinBox->setEnabled(surfaceOffsetVector == AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE);
+            
         }
     }
 }
 
 /**
- * Called when surface offset one value changed.
+ * Called when surface offset value changed.
  *
  * @param value
  *    New value.
@@ -718,6 +795,30 @@ void
 AnnotationCoordinatesWidget::surfaceVertexOffsetLengthValueChanged(double value)
 {
     AnnotationCoordinate::setUserDefaultSurfaceOffsetLength(value);
+    valueChangedCoordinate();
+}
+
+/**
+ * Called when surface offset text polar angle  value changed.
+ *
+ * @param value
+ *    New value.
+ */
+void
+AnnotationCoordinatesWidget::surfaceOffsetTextOffsetPolarAngleValueChanged(double /*value*/)
+{
+    valueChangedCoordinate();
+}
+
+/**
+ * Called when surface offset text polar radius value changed.
+ *
+ * @param value
+ *    New value.
+ */
+void
+AnnotationCoordinatesWidget::surfaceOffsetTextOffsetPolarRadiusValueChanged(double /*value*/)
+{
     valueChangedCoordinate();
 }
 
@@ -835,6 +936,9 @@ AnnotationCoordinatesWidget::valueChangedCoordinate()
                                                    surfaceNodeIndex,
                                                    surfaceOffsetLength,
                                                    surfaceOffsetVector);
+                    
+                    coordinateCopy.setSurfaceTextOffsetPolarAngle(m_surfaceTextOffsetPolarAngleSpinBox->value());
+                    coordinateCopy.setSurfaceTextOffsetPolarRadius(m_surfaceTextOffsetPolarRadiusSpinBox->value());
                 }
                 else {
                     float xyz[3] = {

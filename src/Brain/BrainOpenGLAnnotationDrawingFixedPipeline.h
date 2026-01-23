@@ -266,6 +266,13 @@ namespace caret {
                                                  const Surface* surfaceDisplayed,
                                                  float xyzOut[3]) const;
         
+        bool getAnnotationDrawingSpaceCoordinate(const Annotation* annotation,
+                                                 const AnnotationCoordinate* coordinate,
+                                                 const Surface* surfaceDisplayed,
+                                                 float xyzOut[3],
+                                                 float xyzTwoOut[3],
+                                                 bool& xyzTwoOutValidFlag) const;
+        
         bool getAnnotationTwoDimShapeBounds(const AnnotationOneCoordinateShape* annotation2D,
                                  const float windowXYZ[3],
                                  float bottomLeftOut[3],

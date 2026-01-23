@@ -74,6 +74,10 @@ namespace caret {
         
         void surfaceVertexStructureValueChanged(const StructureEnum::Enum structure);
         
+        void surfaceOffsetTextOffsetPolarAngleValueChanged(double value);
+        
+        void surfaceOffsetTextOffsetPolarRadiusValueChanged(double value);
+        
     private:
         AnnotationCoordinatesWidget(const AnnotationCoordinatesWidget&);
 
@@ -115,6 +119,10 @@ namespace caret {
         EnumComboBoxTemplate* m_surfaceOffsetVectorTypeComboBox;
         
         QDoubleSpinBox* m_surfaceOffsetLengthSpinBox;
+        
+        QDoubleSpinBox* m_surfaceTextOffsetPolarAngleSpinBox;
+        
+        QDoubleSpinBox* m_surfaceTextOffsetPolarRadiusSpinBox;
         
         QDoubleSpinBox* m_xCoordSpinBox;
         

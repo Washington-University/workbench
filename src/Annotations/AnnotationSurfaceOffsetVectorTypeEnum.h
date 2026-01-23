@@ -40,7 +40,9 @@ public:
         /** Vector is surface normal */
         SURFACE_NORMAL,
         /** Tangent to surface */
-        TANGENT
+        TANGENT,
+        /** Text connected to line*/
+        TEXT_CONNECTED_TO_LINE
     };
 
 

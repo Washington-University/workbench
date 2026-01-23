@@ -1084,6 +1084,8 @@ Annotation::isInSurfaceSpaceWithTangentOffset() const
                 case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
                     flag = true;
                     break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE:
+                    break;
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:

@@ -183,17 +183,62 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                                                                                const Surface* surfaceDisplayed,
                                                                                float xyzOut[3]) const
 {
+    float dummyXYZ[3] { 0.0, 0.0, 0.0 };
+    bool dummyFlag(false);
+    
+    return getAnnotationDrawingSpaceCoordinate(annotation,
+                                               coordinate,
+                                               surfaceDisplayed,
+                                               xyzOut,
+                                               dummyXYZ,
+                                               dummyFlag);
+}
+
+/**
+ * Get the drawing space coordinate for display of the annotation.
+ *
+ * @param annotation
+ *     The annotation.
+ * @param coordinate
+ *     The annotation coordinate whose window coordinate is computed.
+ * @param surfaceDisplayed
+ *     Surface that is displayed (may be NULL !)
+ * @param xyzOut
+ *     Output containing the drawing space coordinate.
+ * @param xyzTwoOut
+ *     Output containing the drawing space second coordinate.
+ *     Used for surface space text annotation with offset type text->line
+ * @param xyzTwoOutValidFlag
+ *     Output indicating if xyzTwoOut is valid
+ * @return
+ *     True if the drawing space coordinate is valid, else false.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(const Annotation* annotation,
+                                                                               const AnnotationCoordinate* coordinate,
+                                                                               const Surface* surfaceDisplayed,
+                                                                               float xyzOut[3],
+                                                                               float xyzTwoOut[3],
+                                                                               bool& xyzTwoOutValidFlag) const
+{
+    xyzTwoOutValidFlag = false;
+    
     CaretAssert(annotation);
     const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace = annotation->getCoordinateSpace();
     
     float modelXYZ[3]  = { 0.0, 0.0, 0.0 };
     bool modelXYZValid = false;
     
+    float lineStartXYZ[3] = { 0.0, 0.0, 0.0 };
+    bool lineStartXYZValid = false;
+    
     float drawingSpaceXYZ[3] = { 0.0, 0.0, 0.0 };
     bool drawingSpaceXYZValid = false;
     
     float annotationXYZ[3];
     coordinate->getXYZ(annotationXYZ);
+    
+    float pixelOffsetXYZ[3] = { 0.0, 0.0, 0.0 };
     
     switch (annotationCoordSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
@@ -343,6 +388,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                                 break;
                             case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
                                 break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE:
+                            {
+                                offsetUnitVector[0] = 0.0;
+                                offsetUnitVector[1] = 0.0;
+                                offsetUnitVector[2] = 0.0;
+                                
+                                const float radius(coordinate->getSurfaceTextOffsetPolarRadius());
+                                
+                                const float angle(coordinate->getSurfaceTextOffsetPolarAngle());
+                                const float angleRadiansFromTop(MathFunctions::toRadians(angle + 90.0));
+                                pixelOffsetXYZ[0] = std::cos(angleRadiansFromTop) * radius;
+                                pixelOffsetXYZ[1] = std::sin(angleRadiansFromTop) * radius;
+                                pixelOffsetXYZ[2] = annotationOffsetLength; /* offset in screen depth*/
+                                
+                                lineStartXYZ[0] = modelXYZ[0];
+                                lineStartXYZ[1] = modelXYZ[1];
+                                lineStartXYZ[2] = modelXYZ[2];
+                                lineStartXYZValid = true;
+                            }
+                                break;
                         }
                         
                         modelXYZ[0] += (offsetUnitVector[0] * annotationOffsetLength);
@@ -400,12 +465,30 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
         else {
             CaretLogSevere("Failed to convert model coordinates to drawing space coordinates for annotation drawing.");
         }
+        
+        if (lineStartXYZValid) {
+            if (convertModelToWindowCoordinate(lineStartXYZ,
+                                               xyzTwoOut)) {
+                xyzTwoOutValidFlag = true;
+            }
+        }
     }
     
     if (drawingSpaceXYZValid) {
         xyzOut[0] = drawingSpaceXYZ[0];
         xyzOut[1] = drawingSpaceXYZ[1];
         xyzOut[2] = drawingSpaceXYZ[2];
+
+        xyzOut[0] += pixelOffsetXYZ[0];
+        xyzOut[1] += pixelOffsetXYZ[1];
+        xyzOut[2] += pixelOffsetXYZ[2];
+
+        const bool printPositionsFlag(false);
+        if (printPositionsFlag) {
+            std::cout << "   with offset: " << AString::fromNumbers(xyzOut, 3) << std::endl;
+            std::cout << "   offset     : " << AString::fromNumbers(pixelOffsetXYZ, 3) << std::endl;
+            std::cout << "Pos: " << AString::fromNumbers(xyzOut, 3) << std::endl;
+        }
     }
     
     return drawingSpaceXYZValid;
@@ -2037,8 +2120,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoCoordinateAnnotationSurfaceTan
     
     
     const BoundingBox* boundingBox = surfaceDisplayed->getBoundingBox();
-    const float surfaceExtentZ = boundingBox->getDifferenceZ();
-    
+    const float surfaceExtentZ = ((surfaceDisplayed->getSurfaceType() == SurfaceTypeEnum::FLAT)
+                                  ? boundingBox->getDifferenceY()
+                                  : boundingBox->getDifferenceZ());
+
     /*
      * Need to restore model space
      * Recall that all other annotation spaces are drawn in window space
@@ -2128,8 +2213,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateAnnotationSurfaceT
     
     
     const BoundingBox* boundingBox = surfaceDisplayed->getBoundingBox();
-    const float surfaceExtentZ = boundingBox->getDifferenceZ();
-    
+    const float surfaceExtentZ = ((surfaceDisplayed->getSurfaceType() == SurfaceTypeEnum::FLAT)
+                                  ? boundingBox->getDifferenceY()
+                                  : boundingBox->getDifferenceZ());
+
     /*
      * Need to restore model space
      * Recall that all other annotation spaces are drawn in window space
@@ -4613,10 +4700,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     }
 
     float annXYZ[3];
+    float lineStartXYZ[3];
+    bool lineStartXYZValidFlag(false);
     if ( ! getAnnotationDrawingSpaceCoordinate(text,
-                                         text->getCoordinate(),
-                                         surfaceDisplayed,
-                                         annXYZ)) {
+                                               text->getCoordinate(),
+                                               surfaceDisplayed,
+                                               annXYZ,
+                                               lineStartXYZ,
+                                               lineStartXYZValidFlag)) {
         return false;
     }
     
@@ -4766,6 +4857,29 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                                                                 m_textDrawingFlags);
                         drawnFlag = true;
                     }
+                }
+                
+                if (lineStartXYZValidFlag) {
+                    std::vector<float> lineXYZ;
+                    lineXYZ.push_back(lineStartXYZ[0]);
+                    lineXYZ.push_back(lineStartXYZ[1]);
+                    lineXYZ.push_back(lineStartXYZ[2]);
+                    lineXYZ.push_back(annXYZ[0]);
+                    lineXYZ.push_back(annXYZ[1]);
+                    lineXYZ.push_back(annXYZ[2]);
+                    
+                    clipLineAtTextBox(bottomLeft,
+                                      bottomRight,
+                                      topRight,
+                                      topLeft,
+                                      &lineXYZ[0],
+                                      &lineXYZ[3]);
+
+                    const float lineThickness(1.0);
+                    GraphicsShape::drawLinesByteColor(lineXYZ,
+                                                      textColorRGBA,
+                                                      GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                      lineThickness);
                 }
                 
                 setDepthTestingStatus(depthTestFlag);
@@ -7042,7 +7156,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShapeSurfaceTangen
     CaretAssert(surfaceDisplayed);
     
     const int32_t numCoords = multiCoordShape->getNumberOfCoordinates();
-    if (numCoords < 2) {
+    if (numCoords > 2) {
+        /*
+         * Use first coordinate to test for matching surface
+         */
+        const AnnotationCoordinate* ac(multiCoordShape->getCoordinate(0));
+        CaretAssert(ac);
+        if (ac->getSurfaceStructure() != surfaceDisplayed->getStructure()) {
+            return false;
+        }
+        else if (ac->getSurfaceSpaceNumberOfNodes() != surfaceDisplayed->getNumberOfNodes()) {
+            return false;
+        }
+    }
+    else {
         return false;
     }
     

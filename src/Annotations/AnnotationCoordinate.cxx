@@ -101,13 +101,15 @@ AnnotationCoordinate::copyHelperAnnotationCoordinate(const AnnotationCoordinate&
     m_xyz[1]              = obj.m_xyz[1];
     m_xyz[2]              = obj.m_xyz[2];
     
-    m_surfaceSpaceStructure     = obj.m_surfaceSpaceStructure;
-    m_surfaceSpaceNumberOfNodes = obj.m_surfaceSpaceNumberOfNodes;
-    m_surfaceSpaceNodeIndex     = obj.m_surfaceSpaceNodeIndex;
-    m_surfaceOffsetLength       = obj.m_surfaceOffsetLength;
-    m_surfaceOffsetVectorType   = obj.m_surfaceOffsetVectorType;
-    m_mediaFileName             = obj.m_mediaFileName;
-    m_histologySpaceKey         = obj.m_histologySpaceKey;
+    m_surfaceSpaceStructure        = obj.m_surfaceSpaceStructure;
+    m_surfaceSpaceNumberOfNodes    = obj.m_surfaceSpaceNumberOfNodes;
+    m_surfaceSpaceNodeIndex        = obj.m_surfaceSpaceNodeIndex;
+    m_surfaceOffsetLength          = obj.m_surfaceOffsetLength;
+    m_surfaceOffsetVectorType      = obj.m_surfaceOffsetVectorType;
+    m_surfaceTextOffsetPolarAngle  = obj.m_surfaceTextOffsetPolarAngle;
+    m_surfaceTextOffsetPolarRadius = obj.m_surfaceTextOffsetPolarRadius;
+    m_mediaFileName                = obj.m_mediaFileName;
+    m_histologySpaceKey            = obj.m_histologySpaceKey;
 }
 
 /**
@@ -120,9 +122,11 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
     m_xyz[1] = 0.0;
     m_xyz[2] = 0.0;
     
-    m_surfaceSpaceStructure     = StructureEnum::INVALID;
-    m_surfaceSpaceNumberOfNodes = -1;
-    m_surfaceSpaceNodeIndex     = -1;
+    m_surfaceSpaceStructure        = StructureEnum::INVALID;
+    m_surfaceSpaceNumberOfNodes    = -1;
+    m_surfaceSpaceNodeIndex        = -1;
+    m_surfaceTextOffsetPolarAngle  = 90.0;
+    m_surfaceTextOffsetPolarRadius = 50.0;
     
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
@@ -152,6 +156,11 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
                           &m_surfaceOffsetLength);
     m_sceneAssistant->add<AnnotationSurfaceOffsetVectorTypeEnum, AnnotationSurfaceOffsetVectorTypeEnum::Enum>("m_surfaceOffsetVectorType",
                                                                                                               &m_surfaceOffsetVectorType);
+    m_sceneAssistant->add("m_surfaceTextOffsetPolarAngle",
+                          &m_surfaceTextOffsetPolarAngle);
+    m_sceneAssistant->add("m_surfaceTextOffsetPolarRadius",
+                          &m_surfaceTextOffsetPolarRadius);
+
     m_sceneAssistant->add("m_mediaFileName",
                           &m_mediaFileName);
     m_sceneAssistant->add("m_histologySpaceKey",
@@ -321,6 +330,146 @@ AnnotationCoordinate::getViewportXY(const float viewportWidth,
 {
     viewportXOut = (m_xyz[0] / 100.0) * viewportWidth;
     viewportYOut = (m_xyz[1] / 100.0) * viewportHeight;
+}
+
+/**
+ * @return Surface space structure
+ */
+StructureEnum::Enum
+AnnotationCoordinate::getSurfaceSpaceStructure() const
+{
+    return m_surfaceSpaceStructure;
+}
+
+/**
+ * @return Surface space number of nodes
+ */
+int32_t
+AnnotationCoordinate::getSurfaceSpaceNumberOfNodes() const
+{
+    return m_surfaceSpaceNumberOfNodes;
+}
+
+/**
+ * @return Surface space node index
+ */
+int32_t
+AnnotationCoordinate::getSurfaceSpaceNodeIndex() const
+{
+    return m_surfaceSpaceNodeIndex;
+}
+
+/**
+ * @return Surface space offset length
+ */
+float
+AnnotationCoordinate::getSurfaceSpaceOffsetLength() const
+{
+    return m_surfaceOffsetLength;
+}
+
+/**
+ * @return Surface space offset vector type
+ */
+AnnotationSurfaceOffsetVectorTypeEnum::Enum
+AnnotationCoordinate::getSurfaceSpaceOffsetVectorType() const
+{
+    return m_surfaceOffsetVectorType;
+}
+
+/**
+ * @return Surface space text offset angle
+ */
+float
+AnnotationCoordinate::getSurfaceTextOffsetPolarAngle() const
+{
+    return m_surfaceTextOffsetPolarAngle;
+}
+
+/**
+ * @return Surface space text offset radius
+ */
+float
+AnnotationCoordinate::getSurfaceTextOffsetPolarRadius() const
+{
+    return m_surfaceTextOffsetPolarRadius;
+}
+
+/**
+ * Set the surface space structure
+ * @param structure
+ *    New strucrture
+ */
+void
+AnnotationCoordinate::setSurfaceSpaceStructure(const StructureEnum::Enum structure)
+{
+    m_surfaceSpaceStructure = structure;
+}
+
+/**
+ * Set the surface space number of nodes
+ * @param numberOfNodes
+ *    New value
+ */
+void
+AnnotationCoordinate::setSurfaceSpaceNumberOfNodes(const int32_t numberOfNodes)
+{
+    m_surfaceSpaceNumberOfNodes = numberOfNodes;
+}
+
+/**
+ * Set the surface space node index
+ * @param nodeIndex
+ *    New value
+ */
+void
+AnnotationCoordinate::setSurfaceSpaceNodeIndex(const int32_t nodeIndex)
+{
+    m_surfaceSpaceNodeIndex = nodeIndex;
+}
+
+/**
+ * Set the surface space offset length
+ * @param offsetLength
+ *    New value
+ */
+void
+AnnotationCoordinate::setSurfaceSpaceOffsetLength(const float offsetLength)
+{
+    m_surfaceOffsetLength = offsetLength;
+}
+
+/**
+ * Set the surface space offset type
+ * @param offsetVectorType
+ *    New value
+ */
+void
+AnnotationCoordinate::setSurfaceSpaceOffsetVectorType(const AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVectorType)
+{
+    m_surfaceOffsetVectorType = offsetVectorType;
+}
+
+/**
+ * Set the surface space offset angle
+ * @param angle
+ *    New value
+ */
+void
+AnnotationCoordinate::setSurfaceTextOffsetPolarAngle(const float angle)
+{
+    m_surfaceTextOffsetPolarAngle = angle;
+}
+
+/**
+ * Set the surface space offset radius
+ * @param radius
+ *    New value
+ */
+void
+AnnotationCoordinate::setSurfaceTextOffsetPolarRadius(const float radius)
+{
+    m_surfaceTextOffsetPolarRadius = radius;
 }
 
 /**
@@ -628,6 +777,10 @@ AnnotationCoordinate::toStringForCoordinateSpace(const AnnotationCoordinateSpace
             s.append("Structure: " + StructureEnum::toGuiName(m_surfaceSpaceStructure));
             s.append(" Surface Num Vertices: " + AString::number(m_surfaceSpaceNumberOfNodes));
             s.append(" Surface Vertex: " + AString::number(m_surfaceSpaceNodeIndex));
+            s.append(" Surface Offset Vector Type: " + AnnotationSurfaceOffsetVectorTypeEnum::toName(m_surfaceOffsetVectorType));
+            s.append(" Surface Offset Length: " + AString::number(m_surfaceOffsetLength));
+            s.append(" Surface Text Offset Polar Angle: " + AString::number(m_surfaceTextOffsetPolarAngle));
+            s.append(" Surface Text Offset Polar Radius: " + AString::number(m_surfaceTextOffsetPolarRadius));
         }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:

@@ -72,6 +72,34 @@ namespace caret {
                            float& viewportXOut,
                            float& viewportYOut) const;
         
+        StructureEnum::Enum getSurfaceSpaceStructure() const;
+        
+        int32_t getSurfaceSpaceNumberOfNodes() const;
+        
+        int32_t getSurfaceSpaceNodeIndex() const;
+        
+        float getSurfaceSpaceOffsetLength() const;
+        
+        AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceSpaceOffsetVectorType() const;
+        
+        float getSurfaceTextOffsetPolarAngle() const;
+        
+        float getSurfaceTextOffsetPolarRadius() const;
+        
+        void setSurfaceSpaceStructure(const StructureEnum::Enum structure);
+        
+        void setSurfaceSpaceNumberOfNodes(const int32_t numberOfNodes);
+        
+        void setSurfaceSpaceNodeIndex(const int32_t nodeIndex);
+        
+        void setSurfaceSpaceOffsetLength(const float offsetLength);
+        
+        void setSurfaceSpaceOffsetVectorType(const AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVectorType);
+        
+        void setSurfaceTextOffsetPolarAngle(const float angle);
+
+        void setSurfaceTextOffsetPolarRadius(const float radius);
+        
         void getSurfaceSpace(StructureEnum::Enum& structureOut,
                              int32_t& surfaceNumberOfNodesOut,
                              int32_t& surfaceNodeIndexOut) const;
@@ -163,6 +191,10 @@ namespace caret {
         StructureEnum::Enum m_surfaceSpaceStructure;
         
         float m_surfaceOffsetLength;
+        
+        float m_surfaceTextOffsetPolarAngle = 90.0;
+        
+        float m_surfaceTextOffsetPolarRadius = 50.0;
         
         AnnotationSurfaceOffsetVectorTypeEnum::Enum m_surfaceOffsetVectorType;
         
