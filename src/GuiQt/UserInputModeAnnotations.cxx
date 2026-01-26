@@ -69,6 +69,7 @@
 #include "DisplayPropertiesSamples.h"
 #include "DrawingViewportContent.h"
 #include "EventDrawingViewportContentGet.h"
+#include "EventAnnotationCoordinateSelected.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationDrawingFinishCancel.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
@@ -2491,6 +2492,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 }
             }
             
+            int32_t coordinateIndexMoved(-1);
+            
             bool allowMoveFlag(true);
             if (isOnePolyTypeAnnotationSelected(selectedAnnotations)) {
                 allowMoveFlag = false;
@@ -2509,6 +2512,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                         break;
                     case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
                         allowMoveFlag = true;
+                        coordinateIndexMoved = m_annotationUnderMousePolyLineCoordinateIndex;
                         break;
                     case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                         allowMoveFlag = true;
@@ -2523,6 +2527,44 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                         /* shrink expand polyhedron */
                         allowMoveFlag = true;
                         annSpatialMod.setPolyhedronShrinkExpand(true);
+                        break;
+                }
+            }
+            else {
+                switch (sizingHandleType) {
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+                        coordinateIndexMoved = 1;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+                        coordinateIndexMoved = 0;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
                         break;
                 }
             }
@@ -2567,6 +2609,18 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                             errorMessage)) {
                         WuQMessageBox::errorOk(m_annotationToolsWidget,
                                                errorMessage);
+                    }
+                }
+                
+                Annotation* annotationSelected(NULL);
+                if (coordinateIndexMoved >= 0) {
+                    if (selectedAnnotations.size() == 1) {
+                        CaretAssertVectorIndex(selectedAnnotations, 0);
+                        annotationSelected = selectedAnnotations[0];
+                        
+                        EventAnnotationCoordinateSelected coordEvent(annotationSelected,
+                                                                     coordinateIndexMoved);
+                        EventManager::get()->sendEvent(coordEvent.getPointer());
                     }
                 }
                 
@@ -2833,6 +2887,55 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
         {
             setAnnotationUnderMouse(mouseEvent,
                                     NULL);
+            
+            if (m_annotationUnderMouse != NULL) {
+                int32_t coordinateIndex(-1);
+                
+                switch (m_annotationUnderMouseSizeHandleType) {
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+                        coordinateIndex = 1;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+                        coordinateIndex = 0;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+                        coordinateIndex = m_annotationUnderMousePolyLineCoordinateIndex;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
+                        break;
+                }
+                
+                if (coordinateIndex >= 0) {
+                    EventAnnotationCoordinateSelected coordEvent(m_annotationUnderMouse,
+                                                                 coordinateIndex);
+                    EventManager::get()->sendEvent(coordEvent.getPointer());
+                }
+            }
+
             if ((m_annotationUnderMouse != NULL)
                 && ( ! m_mouseClickAnnotationsChangedFlag)) {
                 std::vector<Annotation*> anns;
@@ -5482,6 +5585,25 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::applyCommand(AnnotationRedoUnd
                                         errorMessage)) {
         WuQMessageBox::errorOk(m_parentWidgetForDialogs,
                                errorMessage);
+    }
+}
+
+/**
+ * Called when coordinate selected to select it in the annotation toolbar
+ * @param annotation
+ *    The selected annotation
+ * @param coordinateIndex
+ *    Index of the coordinate
+ */
+void
+UserInputModeAnnotations::selectCoordinate(const Annotation* annotation,
+                                           const int32_t coordinateIndex)
+{
+    if ((annotation != NULL)
+        && (coordinateIndex >= 0)) {
+        EventAnnotationCoordinateSelected coordEvent(annotation,
+                                                     coordinateIndex);
+        EventManager::get()->sendEvent(coordEvent.getPointer());
     }
 }
 

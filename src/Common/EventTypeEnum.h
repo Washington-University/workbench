@@ -46,6 +46,8 @@ public:
         EVENT_ANNOTATION_CHART_LABEL_GET,
         /** Get color and scale bars from tab(s) */
         EVENT_ANNOTATION_BARS_GET,
+        /** Annotation coordinate selected */
+        EVENT_ANNOTATION_COORDINATE_SELECTED,
         /** Annotation create new of a particular type */
         EVENT_ANNOTATION_CREATE_NEW_TYPE,
         /** Annotation finish cancel annotation being drawn */

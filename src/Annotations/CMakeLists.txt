@@ -86,6 +86,7 @@ AnnotationTwoCoordinateShape.h
 AnnotationTypeEnum.h
 EventAnnotationAddToRemoveFromFile.h
 EventAnnotationChartLabelGet.h
+EventAnnotationCoordinateSelected.h
 EventAnnotationGroupGetWithKey.h
 EventAnnotationGrouping.h
 EventAnnotationPolyhedronGetByLinkedIdentifier.h
@@ -154,6 +155,7 @@ AnnotationTwoCoordinateShape.cxx
 AnnotationTypeEnum.cxx
 EventAnnotationAddToRemoveFromFile.cxx
 EventAnnotationChartLabelGet.cxx
+EventAnnotationCoordinateSelected.cxx
 EventAnnotationGroupGetWithKey.cxx
 EventAnnotationGrouping.cxx
 EventAnnotationPolyhedronGetByLinkedIdentifier.cxx

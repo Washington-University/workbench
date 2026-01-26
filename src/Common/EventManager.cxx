@@ -395,6 +395,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE:
         case EventTypeEnum::EVENT_ANNOTATION_BARS_GET:
         case EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET:
+        case EventTypeEnum::EVENT_ANNOTATION_COORDINATE_SELECTED:
         case EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE:
         case EventTypeEnum::EVENT_ANNOTATION_DRAWING_FINISH_CANCEL:
         case EventTypeEnum::EVENT_ANNOTATION_GET_BEING_DRAWN_IN_WINDOW:

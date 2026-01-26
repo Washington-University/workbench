@@ -81,6 +81,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_BARS_GET,
                                      "EVENT_ANNOTATION_BARS_GET",
                                      "Event to get annotation color and scale bars from tab(s)"));
+
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_COORDINATE_SELECTED,
+                                     "EVENT_ANNOTATION_COORDINATE_SELECTED",
+                                     "Event issued when an annotation coordinate is selected"));
     
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_CREATE_NEW_TYPE,
                                      "EVENT_ANNOTATION_CREATE_NEW_TYPE",

@@ -466,6 +466,9 @@ namespace caret {
         
         SelectionItemAnnotation* performIdentificationAnnotations(const MouseEvent& mouseEvent);
         
+        void selectCoordinate(const Annotation* annotation,
+                              const int32_t coordinateIndex);
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;

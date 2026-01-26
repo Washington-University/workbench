@@ -51,6 +51,7 @@
 #include "ChartTwoOverlaySet.h"
 #include "CziImageFile.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventAnnotationCoordinateSelected.h"
 #include "EventBrowserWindowContent.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
@@ -129,6 +130,16 @@ m_browserWindowIndex(browserWindowIndex)
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
+    
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            EventManager::get()->addEventListener(this,
+                                                  EventTypeEnum::EVENT_ANNOTATION_COORDINATE_SELECTED);
+            break;
+        case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+            CaretAssert(0);
+            break;
+    }
 }
 
 /**
@@ -136,6 +147,42 @@ m_browserWindowIndex(browserWindowIndex)
  */
 AnnotationCoordinatesWidget::~AnnotationCoordinatesWidget()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+AnnotationCoordinatesWidget::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_COORDINATE_SELECTED) {
+        EventAnnotationCoordinateSelected* coordEvent(dynamic_cast<EventAnnotationCoordinateSelected*>(event));
+        CaretAssert(coordEvent);
+        
+        if (m_annotation != NULL) {
+            if (m_annotation == coordEvent->getAnnotation()) {
+                const int32_t coordIndex(coordEvent->getCoordinateIndex());
+                if (coordIndex >= 0) {
+                    int32_t coordNumber(coordIndex + 1);
+                    if ((coordNumber >= m_coordNumberSpinBox->minimum())
+                        && (coordNumber <= m_coordNumberSpinBox->maximum())) {
+                        /*
+                         * After the coordinate selected event is isused
+                         * an event is issued to update the toolbar
+                         */
+                        QSignalBlocker blocker(m_coordNumberSpinBox);
+                        m_coordNumberSpinBox->setValue(coordNumber);
+                        
+                        coordEvent->setEventProcessed();
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**

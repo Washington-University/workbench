@@ -27,6 +27,7 @@
 #include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationWidgetParentEnum.h"
+#include "EventListenerInterface.h"
 #include "StructureEnum.h"
 #include "UserInputModeEnum.h"
 
@@ -42,7 +43,7 @@ namespace caret {
     class EnumComboBoxTemplate;
     class StructureEnumComboBox;
     
-    class AnnotationCoordinatesWidget : public QWidget {
+    class AnnotationCoordinatesWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -54,6 +55,7 @@ namespace caret {
         
         virtual ~AnnotationCoordinatesWidget();
         
+        virtual void receiveEvent(Event* event) override;
 
         // ADD_NEW_METHODS_HERE
 
