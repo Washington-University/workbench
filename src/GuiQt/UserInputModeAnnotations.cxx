@@ -2402,7 +2402,38 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                         dy,
                                                         m_annotationUnderMousePolyLineCoordinateIndex,
                                                         mouseEvent.isFirstDragging());
-            if (coordInfo.m_surfaceSpaceInfo.m_validFlag) {
+            const AnnotationText* textLineAnnotation(NULL);
+            if (selectedAnnotations.size() == 1) {
+                CaretAssertVectorIndex(selectedAnnotations, 0);
+                const Annotation* ann(selectedAnnotations[0]);
+                CaretAssert(ann);
+                if (ann->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+                    const AnnotationCoordinate* ac(ann->getCoordinate(0));
+                    CaretAssert(ac);
+                    if (ac->getSurfaceOffsetVectorType() == AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE) {
+                        textLineAnnotation = dynamic_cast<const AnnotationText*>(ann);
+                    }
+                }
+            }
+            if (textLineAnnotation != NULL) {
+                const AnnotationCoordinate* ac(textLineAnnotation->getCoordinate());
+                CaretAssert(ac);
+                    if (coordInfo.m_windowSpaceInfo.m_validFlag
+                        && coordInfo.m_surfaceSpaceInfo.m_validFlag) {
+                        if ((ac->getSurfaceStructure() == coordInfo.m_surfaceSpaceInfo.m_structure)
+                            && (ac->getSurfaceSpaceNumberOfNodes() == coordInfo.m_surfaceSpaceInfo.m_numberOfNodes)) {
+                            /* JWH-ANNOT
+                            std::cout << "Moving text in surface space Text->Line" << std::endl;
+                            if (coordInfo.m_surfaceSpaceInfo.m_surface != NULL) {
+                                std::cout << "   Surface: " << coordInfo.m_surfaceSpaceInfo.m_surface->getFileNameNoPath() << std::endl;
+                            }
+                             */
+                            annSpatialMod.setSurfaceTextLineScreenCoordAtMouseXY(coordInfo.m_windowSpaceInfo.m_xyz[0],
+                                                                                 coordInfo.m_windowSpaceInfo.m_xyz[1]);
+                        }
+                    }
+            }
+            else if (coordInfo.m_surfaceSpaceInfo.m_validFlag) {
                 annSpatialMod.setSurfaceCoordinateAtMouseXY(coordInfo.m_surfaceSpaceInfo.m_structure,
                                                             coordInfo.m_surfaceSpaceInfo.m_numberOfNodes,
                                                             coordInfo.m_surfaceSpaceInfo.m_nodeIndex);

@@ -132,6 +132,26 @@ AnnotationSpatialModification::setSurfaceCoordinateAtMouseXY(const StructureEnum
 }
 
 /**
+ * Set the surface text  line screen XY  at mouse X/Y.
+ *
+ * @param screenX
+ *     The screen X
+ * @param screenY
+ *     The screen Y
+ */
+void
+AnnotationSpatialModification::setSurfaceTextLineScreenCoordAtMouseXY(const float screenX,
+                                                                      const float screenY)
+{
+    if ((screenX >= 0)
+        && (screenY >= 0)) {
+        m_surfaceTextLineScreenCoordinateAtMouseXY.m_screenX = screenX;
+        m_surfaceTextLineScreenCoordinateAtMouseXY.m_screenY = screenY;
+        m_surfaceTextLineScreenCoordinateAtMouseXY.m_screenXYValid = true;
+    }
+}
+
+/**
  * Set the stereotaxic coordinate at mouse X/Y
  *
  * @param stereotaxicX

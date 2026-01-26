@@ -1343,7 +1343,14 @@ AnnotationText::applySpatialModification(const AnnotationSpatialModification& sp
     
     bool validFlag = false;
     if (operationSupportedFlag) {
-        validFlag = AnnotationOneCoordinateShape::applySpatialModification(spatialModification);
+        if (spatialModification.m_surfaceTextLineScreenCoordinateAtMouseXY.m_screenXYValid) {
+            /* JWH-ANNOT
+            std::cout << "Need screen XY of surface vertex to set offset correctly" << std::endl;
+             */
+        }
+        else {
+            validFlag = AnnotationOneCoordinateShape::applySpatialModification(spatialModification);
+        }
     }
     
     return validFlag;

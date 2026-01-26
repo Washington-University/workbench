@@ -42,6 +42,7 @@ namespace caret {
     class BrainOpenGLWidget;
     class BrainOpenGLViewportContent;
     class MouseEvent;
+    class Surface;
     
     class AnnotationCoordinateInformation : public CaretObject {
         
@@ -132,6 +133,7 @@ namespace caret {
         
         class SurfaceSpaceInfo : public SpaceInfo {
         public:
+            const Surface* m_surface = NULL;
             StructureEnum::Enum m_structure = StructureEnum::INVALID;
             int32_t m_numberOfNodes = 0;
             int32_t m_nodeIndex = -1;

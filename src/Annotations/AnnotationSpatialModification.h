@@ -51,6 +51,9 @@ namespace caret {
                                      const int32_t surfaceNumberOfNodes,
                                      const int32_t surfaceNodeIndex);
         
+        void setSurfaceTextLineScreenCoordAtMouseXY(const float screenX,
+                                                    const float screenY);
+        
         void setStereotaxicCoordinateAtMouseXY(const float stereotaxicX,
                                                const float stereotaxicY,
                                                const float stereotaxicZ);
@@ -115,6 +118,17 @@ namespace caret {
             int32_t m_surfaceNodeIndex;
             
             bool m_surfaceNodeValid;
+        };
+        
+        class SurfaceTextLineScreenCoord {
+        public:
+            SurfaceTextLineScreenCoord() { }
+            
+            float m_screenX = -1;
+            
+            float m_screenY = -1;
+            
+            bool m_screenXYValid = false;
         };
         
         class ChartCoord {
@@ -217,6 +231,8 @@ namespace caret {
         MediaCoord m_mediaCoordAtPreviousMouseXY;
         
         SurfaceCoord m_surfaceCoordinateAtMouseXY;
+        
+        SurfaceTextLineScreenCoord m_surfaceTextLineScreenCoordinateAtMouseXY;
         
         StereotaxicCoord m_stereotaxicCoordinateAtMouseXY;
         

@@ -212,6 +212,7 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
 
     std::vector<int32_t> spacerTabIndices;
     
+    std::vector<const Surface*> surfaces;
     std::vector<int32_t> surfaceNumberOfNodes;
     std::vector<StructureEnum::Enum> surfaceStructures;
     
@@ -247,6 +248,7 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
             chartSpaceValidFlags.push_back(true);
         }
         if (aci->m_surfaceSpaceInfo.m_validFlag) {
+            surfaces.push_back(aci->m_surfaceSpaceInfo.m_surface);
             surfaceNumberOfNodes.push_back(aci->m_surfaceSpaceInfo.m_numberOfNodes);
             surfaceStructures.push_back(aci->m_surfaceSpaceInfo.m_structure);
         }
@@ -310,14 +312,19 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
     }
     
     if ((surfaceStructures.size() == numCoordInfo)
-        && (surfaceNumberOfNodes.size() == numCoordInfo)) {
+        && (surfaceNumberOfNodes.size() == numCoordInfo)
+        && (surfaces.size() == numCoordInfo)) {
+        std::set<const Surface*> uniqueSurfaces(surfaces.begin(),
+                                                surfaces.end());
         std::set<StructureEnum::Enum> uniqueStructures(surfaceStructures.begin(),
                                                        surfaceStructures.end());
         std::set<int32_t> uniqueNumberOfNodes(surfaceNumberOfNodes.begin(),
                                               surfaceNumberOfNodes.end());
-        if ((uniqueStructures.size() == 1)
+        if ((uniqueSurfaces.size() == 1)
+            && (uniqueStructures.size() == 1)
             && (uniqueNumberOfNodes.size() == 1)) {
             validForAllCoordInfoOut.m_surfaceSpaceInfo.m_validFlag = true;
+            validForAllCoordInfoOut.m_surfaceSpaceInfo.m_surface = *uniqueSurfaces.begin();
             validForAllCoordInfoOut.m_surfaceSpaceInfo.m_structure = *uniqueStructures.begin();
             validForAllCoordInfoOut.m_surfaceSpaceInfo.m_numberOfNodes = *uniqueNumberOfNodes.begin();
         }
@@ -457,6 +464,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                                  * in the SAME TAB
                                  */
                                 if ((coordInfoOne->m_tabSpaceInfo.m_index != coordInfoTwo->m_tabSpaceInfo.m_index)
+                                    || (coordInfoOne->m_surfaceSpaceInfo.m_surface != coordInfoTwo->m_surfaceSpaceInfo.m_surface)
                                     || (coordInfoOne->m_surfaceSpaceInfo.m_numberOfNodes != coordInfoTwo->m_surfaceSpaceInfo.m_numberOfNodes)
                                     || (coordInfoOne->m_surfaceSpaceInfo.m_structure != coordInfoTwo->m_surfaceSpaceInfo.m_structure)) {
                                     addItFlag = false;
@@ -536,7 +544,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const std::vector<std:
                     for(int32_t i = 1; i < numCoordInfo; i++) {
                         CaretAssertVectorIndex(coordInfoMulti, i);
                         const auto coordInfo(coordInfoMulti[i].get());
- 
+                        
                         /*
                          * See if same space is valid for second coord info
                          */
@@ -583,6 +591,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const std::vector<std:
                                  * in the SAME TAB
                                  */
                                 if ((firstCoordInfo->m_tabSpaceInfo.m_index != coordInfo->m_tabSpaceInfo.m_index)
+                                    || (firstCoordInfo->m_surfaceSpaceInfo.m_surface != coordInfo->m_surfaceSpaceInfo.m_surface)
                                     || (firstCoordInfo->m_surfaceSpaceInfo.m_numberOfNodes != coordInfo->m_surfaceSpaceInfo.m_numberOfNodes)
                                     || (firstCoordInfo->m_surfaceSpaceInfo.m_structure != coordInfo->m_surfaceSpaceInfo.m_structure)) {
                                     addItFlag = false;
@@ -707,6 +716,7 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         
         const Surface* surface = surfaceNodeIdentification->getSurface();
         CaretAssert(surface);
+        coordInfoOut.m_surfaceSpaceInfo.m_surface       = surface;
         coordInfoOut.m_surfaceSpaceInfo.m_numberOfNodes = surface->getNumberOfNodes();
         coordInfoOut.m_surfaceSpaceInfo.m_structure     = surface->getStructure();
         coordInfoOut.m_surfaceSpaceInfo.m_nodeIndex     = surfaceNodeIdentification->getNodeNumber();
@@ -727,6 +737,7 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         if (vertices[0] >= 0) {
             const Surface* surface = surfaceTriangleIdentification->getSurface();
             CaretAssert(surface);
+            coordInfoOut.m_surfaceSpaceInfo.m_surface       = surface;
             coordInfoOut.m_surfaceSpaceInfo.m_numberOfNodes = surface->getNumberOfNodes();
             coordInfoOut.m_surfaceSpaceInfo.m_structure     = surface->getStructure();
             coordInfoOut.m_surfaceSpaceInfo.m_nodeIndex     = vertices[0];
