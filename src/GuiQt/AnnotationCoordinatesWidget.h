@@ -78,7 +78,7 @@ namespace caret {
         
         void surfaceOffsetTextOffsetPolarAngleValueChanged(double value);
         
-        void surfaceOffsetTextOffsetPolarRadiusValueChanged(double value);
+        void surfaceOffsetTextScreenDepthValueChanged(double value);
         
     private:
         AnnotationCoordinatesWidget(const AnnotationCoordinatesWidget&);
@@ -124,7 +124,7 @@ namespace caret {
         
         QDoubleSpinBox* m_surfaceTextOffsetPolarAngleSpinBox;
         
-        QDoubleSpinBox* m_surfaceTextOffsetPolarRadiusSpinBox;
+        QDoubleSpinBox* m_surfaceTextOffsetScreenDepthSpinBox;
         
         QDoubleSpinBox* m_xCoordSpinBox;
         

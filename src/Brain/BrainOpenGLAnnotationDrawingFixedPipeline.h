@@ -397,6 +397,7 @@ namespace caret {
         
         bool drawTextSurfaceTangentOffset(AnnotationFile* annotationFile,
                                           AnnotationText* text,
+                                          const Surface* surfaceDisplayed,
                                           const float surfaceExtentZ,
                                           const float vertexXYZ[3],
                                           const float vertexNormalXYZ[3]);
@@ -464,7 +465,7 @@ namespace caret {
                                                               const float lineThickness);
 
         bool isDrawnWithDepthTesting(const Annotation* annotation,
-                                     const Surface* surface);
+                                     const Surface* surface) const;
         
         bool setDepthTestingStatus(const bool newDepthTestingStatus);
         

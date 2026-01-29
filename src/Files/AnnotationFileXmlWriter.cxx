@@ -940,8 +940,8 @@ AnnotationFileXmlWriter::writeCoordinate(const AnnotationCoordinate* coordinate,
     m_stream->writeAttribute(ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_POLAR_ANGLE,
                              realToString(coordinate->getSurfaceTextOffsetPolarAngle()));
     
-    m_stream->writeAttribute(ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_POLAR_RADIUS,
-                             realToString(coordinate->getSurfaceTextOffsetPolarRadius()));
+    m_stream->writeAttribute(ATTRIBUTE_COORD_SURFACE_NODE_SCREEN_DEPTH,
+                             realToString(coordinate->getSurfaceTextOffsetScreenDepth()));
     
     switch (coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

@@ -233,15 +233,15 @@ AnnotationCoordinatesWidget::createCoordinateWidgetXYZ()
 QWidget*
 AnnotationCoordinatesWidget::createCoordinateWidgetSurface()
 {
-    QLabel* vertexLabel(new QLabel("Vertex"));
-    QLabel* offsetLabel(new QLabel("Offset"));
-    QLabel* angleRadiusLabel(new QLabel("Angle/Radius"));
+    QLabel* vertexLabel(new QLabel("Structure/Vertex"));
+    QLabel* offsetLabel(new QLabel("Offset Type/Dist"));
+    QLabel* angleDepthLabel(new QLabel("Angle/Depth"));
     
     QFont font(vertexLabel->font());
     font.setPointSizeF(font.pointSizeF() * 0.8);
     vertexLabel->setFont(font);
     offsetLabel->setFont(font);
-    angleRadiusLabel->setFont(font);
+    angleDepthLabel->setFont(font);
 
     m_surfaceStructureComboBox = new StructureEnumComboBox(this);
     m_surfaceStructureComboBox->listOnlyValidStructures();
@@ -282,15 +282,16 @@ AnnotationCoordinatesWidget::createCoordinateWidgetSurface()
     QObject::connect(m_surfaceTextOffsetPolarAngleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationCoordinatesWidget::surfaceOffsetTextOffsetPolarAngleValueChanged);
 
-    const AString prtt(WuQtUtilities::createWordWrappedToolTipText("Polar radius in pixels from vertex to text "
-                                                               "center (assuming text aligment is horizontal="
-                                                               "center, vertical=middle)."));
-    m_surfaceTextOffsetPolarRadiusSpinBox = new QDoubleSpinBox();
-    m_surfaceTextOffsetPolarRadiusSpinBox->setRange(0.0, 999999.0);
-    m_surfaceTextOffsetPolarRadiusSpinBox->setSingleStep(1.0);
-    m_surfaceTextOffsetPolarRadiusSpinBox->setToolTip(prtt);
-    QObject::connect(m_surfaceTextOffsetPolarRadiusSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-                     this, &AnnotationCoordinatesWidget::surfaceOffsetTextOffsetPolarRadiusValueChanged);
+    const AString prtt(WuQtUtilities::createWordWrappedToolTipText("Depth moves text towards viewer "
+                                                                   "when text is inside the surface.  "
+                                                                   "This value does not work with Tangent offset."));
+    m_surfaceTextOffsetScreenDepthSpinBox = new QDoubleSpinBox();
+    m_surfaceTextOffsetScreenDepthSpinBox->setRange(0.0, 100.0);
+    m_surfaceTextOffsetScreenDepthSpinBox->setDecimals(3);
+    m_surfaceTextOffsetScreenDepthSpinBox->setSingleStep(0.001);
+    m_surfaceTextOffsetScreenDepthSpinBox->setToolTip(prtt);
+    QObject::connect(m_surfaceTextOffsetScreenDepthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &AnnotationCoordinatesWidget::surfaceOffsetTextScreenDepthValueChanged);
     
     const AString offsetTT("<html>"
                            "Offset from vertex to annotation:<br>"
@@ -298,7 +299,7 @@ AnnotationCoordinatesWidget::createCoordinateWidgetSurface()
                            "Normal     - Vector is vertex's normal vector; text is in plane of screen<br>"
                            "Tangent    - Text is tangent (using normal vector) to the surface; text rotates with surface<br>"
                            "Text->Line - Text is offset from vertex and a line connects text to vertex; "
-                           "Angle/Radius values control offset; text is in plane of screen"
+                           "Angle/Depth values control angle of text from vertex; depth moves text to viewer"
                            "</html>");
     m_surfaceOffsetVectorTypeComboBox = new EnumComboBoxTemplate(this);
     m_surfaceOffsetVectorTypeComboBox->setup<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>();
@@ -316,9 +317,9 @@ AnnotationCoordinatesWidget::createCoordinateWidgetSurface()
     layout->addWidget(offsetLabel, 0, 1, Qt::AlignHCenter);
     layout->addWidget(m_surfaceOffsetVectorTypeComboBox->getWidget(), 1, 1);
     layout->addWidget(m_surfaceOffsetLengthSpinBox, 2, 1);
-    layout->addWidget(angleRadiusLabel, 0, 2, Qt::AlignHCenter);
+    layout->addWidget(angleDepthLabel, 0, 2, Qt::AlignHCenter);
     layout->addWidget(m_surfaceTextOffsetPolarAngleSpinBox, 1, 2);
-    layout->addWidget(m_surfaceTextOffsetPolarRadiusSpinBox, 2, 2);
+    layout->addWidget(m_surfaceTextOffsetScreenDepthSpinBox, 2, 2);
     
     return widget;
 }
@@ -821,13 +822,11 @@ AnnotationCoordinatesWidget::updateCoordinate()
             m_surfaceOffsetVectorTypeComboBox->setSelectedItem<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>(surfaceOffsetVector);
 
             QSignalBlocker angleBlocker(m_surfaceTextOffsetPolarAngleSpinBox);
-            m_surfaceTextOffsetPolarAngleSpinBox->setValue(firstCoord->getSurfaceTextOffsetPolarAngle());
+            m_surfaceTextOffsetPolarAngleSpinBox->setValue(coordinate->getSurfaceTextOffsetPolarAngle());
             m_surfaceTextOffsetPolarAngleSpinBox->setEnabled(surfaceOffsetVector == AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE);
             
-            QSignalBlocker radiusBlocker(m_surfaceTextOffsetPolarRadiusSpinBox);
-            m_surfaceTextOffsetPolarRadiusSpinBox->setValue(firstCoord->getSurfaceTextOffsetPolarRadius());
-            m_surfaceTextOffsetPolarRadiusSpinBox->setEnabled(surfaceOffsetVector == AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE);
-            
+            QSignalBlocker screenDepthBlocker(m_surfaceTextOffsetScreenDepthSpinBox);
+            m_surfaceTextOffsetScreenDepthSpinBox->setValue(coordinate->getSurfaceTextOffsetScreenDepth());
         }
     }
 }
@@ -858,13 +857,13 @@ AnnotationCoordinatesWidget::surfaceOffsetTextOffsetPolarAngleValueChanged(doubl
 }
 
 /**
- * Called when surface offset text polar radius value changed.
+ * Called when surface offset text screen depth value changed
  *
  * @param value
  *    New value.
  */
 void
-AnnotationCoordinatesWidget::surfaceOffsetTextOffsetPolarRadiusValueChanged(double /*value*/)
+AnnotationCoordinatesWidget::surfaceOffsetTextScreenDepthValueChanged(double /*value*/)
 {
     valueChangedCoordinate();
 }
@@ -985,7 +984,7 @@ AnnotationCoordinatesWidget::valueChangedCoordinate()
                                                    surfaceOffsetVector);
                     
                     coordinateCopy.setSurfaceTextOffsetPolarAngle(m_surfaceTextOffsetPolarAngleSpinBox->value());
-                    coordinateCopy.setSurfaceTextOffsetPolarRadius(m_surfaceTextOffsetPolarRadiusSpinBox->value());
+                    coordinateCopy.setSurfaceTextOffsetScreenDepth(m_surfaceTextOffsetScreenDepthSpinBox->value());
                 }
                 else {
                     float xyz[3] = {

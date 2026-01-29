@@ -173,15 +173,6 @@ AnnotationText::initializeAnnotationTextMembers()
             break;
     }
     
-    /*
-     * Initialize the surface coordinate offset to small value.
-     * Otherwise, this can result in surface space text annotations
-     * being out of the viewport (in depth), too near or too far,
-     * especially when the offset type is Text->Line
-     */
-    CaretAssert(getCoordinate(0));
-    getCoordinate(0)->setSurfaceSpaceOffsetLength(0.05);
-    
     m_text = "";
     m_textWithSubstitutions = "";
     

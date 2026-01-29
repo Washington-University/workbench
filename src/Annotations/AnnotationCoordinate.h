@@ -38,7 +38,7 @@ namespace caret {
     public:
         static float getSurfaceTextOffsetPolarAngleDefaultValue();
         
-        static float getSurfaceTextOffsetPolarRadiusDefaultValue();
+        static float getSurfaceTextOffsetScreenDepthDefaultValue();
 
         AnnotationCoordinate(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
@@ -88,7 +88,7 @@ namespace caret {
         
         float getSurfaceTextOffsetPolarAngle() const;
         
-        float getSurfaceTextOffsetPolarRadius() const;
+        float getSurfaceTextOffsetScreenDepth() const;
         
         void setSurfaceSpaceStructure(const StructureEnum::Enum structure);
         
@@ -102,7 +102,7 @@ namespace caret {
         
         void setSurfaceTextOffsetPolarAngle(const float angle);
 
-        void setSurfaceTextOffsetPolarRadius(const float radius);
+        void setSurfaceTextOffsetScreenDepth(const float depth);
         
         void getSurfaceSpace(StructureEnum::Enum& structureOut,
                              int32_t& surfaceNumberOfNodesOut,
@@ -198,7 +198,7 @@ namespace caret {
         
         float m_surfaceTextOffsetPolarAngle = 90.0;
         
-        float m_surfaceTextOffsetPolarRadius = 50.0;
+        float m_surfaceTextOffsetScreenDepth = 0.0;
         
         AnnotationSurfaceOffsetVectorTypeEnum::Enum m_surfaceOffsetVectorType;
         

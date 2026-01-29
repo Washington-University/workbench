@@ -364,6 +364,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                             annotationOffsetVector = AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL;
                         }
                         
+                        if (isDrawnWithDepthTesting(annotation,
+                                                    surfaceDisplayed)) {
+                            pixelOffsetXYZ[2] = coordinate->getSurfaceTextOffsetScreenDepth();
+                        }
+                        
                         switch (annotationOffsetVector) {
                             case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
                             {
@@ -394,36 +399,19 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                                 offsetUnitVector[1] = 0.0;
                                 offsetUnitVector[2] = 0.0;
                                 
-                                const float radius(coordinate->getSurfaceTextOffsetPolarRadius());
+                                const float radius(coordinate->getSurfaceSpaceOffsetLength());
                                 
                                 const float angle(coordinate->getSurfaceTextOffsetPolarAngle());
                                 const float angleRadiansFromTop(MathFunctions::toRadians(angle + 90.0));
                                 
                                 float pixelDistance(radius);
                                 
-//                                /*
-//                                 * Percentage of surface height
-//                                 */
-//                                BoundingBox bb;
-//                                surfaceDisplayed->getBounds(bb);
-//                                const float surfaceHeight(bb.getDifferenceZ());
-//                                if (surfaceHeight > 0) {
-//                                    pixelDistance = (radius / 100.0) * surfaceHeight;
-//                                }
-
                                 /*
                                  * Scale with surface scaling
                                  */
                                 if (m_surfaceViewScaling) {
                                     pixelDistance = radius * m_surfaceViewScaling;
                                 }
-//                                /*
-//                                 * Percent of viewport height
-//                                 */
-//                                const float vpHeight(m_modelSpaceViewport[3]);
-//                                if (vpHeight > 0) {
-//                                    pixelDistance = (radius / 100.0) * vpHeight;
-//                                }
                                 
                                 pixelOffsetXYZ[0] = std::cos(angleRadiansFromTop) * pixelDistance;
                                 pixelOffsetXYZ[1] = std::sin(angleRadiansFromTop) * pixelDistance;
@@ -2050,6 +2038,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOneCoordinateAnnotationSurfaceTan
         glRotated(annotation->getRotationAngle(), 0.0, 0.0, -1.0);
     }
     
+    AnnotationText* textAnn(NULL);
     switch (annotation->getType()) {
         case AnnotationTypeEnum::ARROW:
             break;
@@ -2099,8 +2088,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOneCoordinateAnnotationSurfaceTan
             CaretAssertMessage(0, "Scale Bar is NEVER drawn in surface space");
             break;
         case AnnotationTypeEnum::TEXT:
+            textAnn = dynamic_cast<AnnotationText*>(annotation);
             drawnFlag = drawTextSurfaceTangentOffset(annotationFile,
-                                                     dynamic_cast<AnnotationText*>(annotation),
+                                                     textAnn,
+                                                     surfaceDisplayed,
                                                      surfaceExtentZ,
                                                      vertexXYZ,
                                                      normalXYZ);
@@ -2119,6 +2110,52 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOneCoordinateAnnotationSurfaceTan
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     
+    if (textAnn != NULL) {
+        double bottomLeft[3];
+        double bottomRight[3];
+        double topRight[3];
+        double topLeft[3];
+        double underlineStart[3];
+        double underlineEnd[3];
+        m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextInModelSpace(*textAnn, m_surfaceViewScaling, surfaceExtentZ, m_textDrawingFlags,
+                                                                                    bottomLeft, bottomRight, topRight, topLeft,
+                                                                                    underlineStart, underlineEnd);
+
+        std::vector<float> connectLineCoordinates;
+        std::vector<float> arrowCoordinates;
+        
+        float bottomLeftFloat[3] { (float)bottomLeft[0], (float)bottomLeft[1], (float)bottomLeft[2] };
+        float topLeftFloat[3] { (float)topLeft[0], (float)topLeft[1], (float)topLeft[2] };
+        float topRightFloat[3] { (float)topRight[0], (float)topRight[1], (float)topRight[2] };
+        float bottomRightFloat[3] { (float)bottomRight[0], (float)bottomRight[1], (float)bottomRight[2] };
+        getTextLineToBrainordinateLineCoordinates(textAnn,
+                                                  surfaceDisplayed,
+                                                  bottomLeftFloat,
+                                                  bottomRightFloat,
+                                                  topRightFloat,
+                                                  topLeftFloat,
+                                                  connectLineCoordinates,
+                                                  arrowCoordinates);
+        
+        if ( ! connectLineCoordinates.empty()) {
+            if (textAnn->getLineWidthPercentage() <= 0.0) {
+                convertObsoleteLineWidthPixelsToPercentageWidth(textAnn);
+            }
+            
+            uint8_t textColorRGBA[4];
+            textAnn->getTextColorRGBA(textColorRGBA);
+            GraphicsShape::drawLinesByteColor(connectLineCoordinates,
+                                              textColorRGBA,
+                                              GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                              textAnn->getLineWidthPercentage());
+            if ( ! arrowCoordinates.empty()) {
+                GraphicsShape::drawLineStripMiterJoinByteColor(arrowCoordinates,
+                                                               textColorRGBA,
+                                                               GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                               textAnn->getLineWidthPercentage());
+            }
+        }
+    }
     return drawnFlag;
 }
 
@@ -4338,6 +4375,42 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                                                       surfaceDisplayed,
                                                       annXYZ)) {
                         
+                        switch (coord->getSurfaceSpaceOffsetVectorType()) {
+                            case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+                            {
+                                /*
+                                 * Note: getAnnotationDrawingSpaceCoordinate() always offsets
+                                 * TANGENT by zero.
+                                 */
+                                std::unique_ptr<Annotation> annClone(text->clone());
+                                AnnotationText* textClone(dynamic_cast<AnnotationText*>(annClone.get()));
+                                CaretAssert(textClone);
+                                AnnotationCoordinate* textCoord(textClone->getCoordinate(0));
+                                CaretAssert(textCoord);
+                                const float lengthScale(0.85); /* Don't go all the way to the text */
+                                textCoord->setSurfaceSpace(structure,
+                                                           numNodes,
+                                                           nodeIndex,
+                                                           coord->getSurfaceOffsetLength() * lengthScale,
+                                                           AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL);
+                                float textOffsetXYZ[3];
+                                if (getAnnotationDrawingSpaceCoordinate(textClone,
+                                                                        textCoord,
+                                                                        surfaceDisplayed,
+                                                                        textOffsetXYZ)) {
+                                    annXYZ[0] = textOffsetXYZ[0];
+                                    annXYZ[1] = textOffsetXYZ[1];
+                                    annXYZ[2] = textOffsetXYZ[2];
+                                }
+                            }
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE:
+                                break;
+                        }
                         const bool clipAtBoxFlag = true;
                         if (clipAtBoxFlag) {
                             clipLineAtTextBox(bottomLeft,
@@ -4546,6 +4619,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isBackFacing(const float xyz[3],
  *    File containing the annotation.
  * @param text
  *    Annotation text to draw.
+ * @param surfaceDisplayed
+ *    Surface that is being drawn on
  * @param surfaceExtentZ
  *    Z-extent of the surface.
  * @param vertexXYZ,
@@ -4558,6 +4633,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isBackFacing(const float xyz[3],
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(AnnotationFile* annotationFile,
                                                                         AnnotationText* text,
+                                                                        const Surface* surfaceDisplayed,
                                                                         const float surfaceExtentZ,
                                                                         const float vertexXYZ[3],
                                                                         const float vertexNormalXYZ[3])
@@ -4634,6 +4710,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(Annotati
                                                 invalidPolyLineCoordinateIndex,
                                                 vertexXYZ,
                                                 verticesInWindowXYZ));
+        
+        /*
+         * Depth offset does not work, fix later
+         */
+        const bool useDepthOffsetFlag(false);
+        if (useDepthOffsetFlag) {
+            if (isDrawnWithDepthTesting(text, surfaceDisplayed)) {
+                for (Vector3D& xyz : verticesInWindowXYZ) {
+                    xyz[2] += text->getCoordinate(0)->getSurfaceTextOffsetScreenDepth();
+                }
+            }
+        }
     }
     else {
         glPushMatrix();
@@ -8196,7 +8284,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor(const Annotation
  */
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* annotation,
-                                                                   const Surface* surface)
+                                                                   const Surface* surface) const
 {
     bool depthTestFlag = true;
     bool testFlatSurfaceFlag = false;

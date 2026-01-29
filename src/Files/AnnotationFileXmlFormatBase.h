@@ -83,7 +83,7 @@ namespace caret {
         
         static const QString ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_POLAR_ANGLE;
         
-        static const QString ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_POLAR_RADIUS;
+        static const QString ATTRIBUTE_COORD_SURFACE_NODE_SCREEN_DEPTH;
         
         static const QString ATTRIBUTE_FOREGROUND_CARET_COLOR;
         
@@ -247,7 +247,7 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_POLAR_ANGLE = "nodeOffsetPolarAngle";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_POLAR_RADIUS = "nodeOffsetPolarRadius";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NODE_SCREEN_DEPTH = "nodeOffsetScreenDepth";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_VECTOR_TYPE = "nodeOffsetVectorType";
     

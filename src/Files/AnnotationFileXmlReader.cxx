@@ -421,10 +421,10 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
                                                                                   ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_POLAR_ANGLE,
                                                                                   AnnotationCoordinate::getSurfaceTextOffsetPolarAngleDefaultValue());
     
-    const float offsetPolarRadius = m_streamHelper->getOptionalAttributeFloatValue(attributes,
+    const float offsetScreenDepth = m_streamHelper->getOptionalAttributeFloatValue(attributes,
                                                                                    coordinateElementName,
-                                                                                   ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_POLAR_RADIUS,
-                                                                                   AnnotationCoordinate::getSurfaceTextOffsetPolarRadiusDefaultValue());
+                                                                                   ATTRIBUTE_COORD_SURFACE_NODE_SCREEN_DEPTH,
+                                                                                   AnnotationCoordinate::getSurfaceTextOffsetScreenDepthDefaultValue());
         
     const QString offsetVectorString = m_streamHelper->getOptionalAttributeStringValue(attributes,
                                                                                        coordinateElementName,
@@ -458,7 +458,7 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
     }
 
     coordinate->setSurfaceTextOffsetPolarAngle(offsetPolarAngle);
-    coordinate->setSurfaceTextOffsetPolarRadius(offsetPolarRadius);
+    coordinate->setSurfaceTextOffsetScreenDepth(offsetScreenDepth);
     
     switch (coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

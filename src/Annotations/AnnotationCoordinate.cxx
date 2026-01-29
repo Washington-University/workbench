@@ -51,9 +51,9 @@ AnnotationCoordinate::getSurfaceTextOffsetPolarAngleDefaultValue()
  * @return Default value for offset polar radius
  */
 float
-AnnotationCoordinate::getSurfaceTextOffsetPolarRadiusDefaultValue()
+AnnotationCoordinate::getSurfaceTextOffsetScreenDepthDefaultValue()
 {
-    return 10.0;
+    return 0.0;
 }
 
 
@@ -126,7 +126,7 @@ AnnotationCoordinate::copyHelperAnnotationCoordinate(const AnnotationCoordinate&
     m_surfaceOffsetLength          = obj.m_surfaceOffsetLength;
     m_surfaceOffsetVectorType      = obj.m_surfaceOffsetVectorType;
     m_surfaceTextOffsetPolarAngle  = obj.m_surfaceTextOffsetPolarAngle;
-    m_surfaceTextOffsetPolarRadius = obj.m_surfaceTextOffsetPolarRadius;
+    m_surfaceTextOffsetScreenDepth = obj.m_surfaceTextOffsetScreenDepth;
     m_mediaFileName                = obj.m_mediaFileName;
     m_histologySpaceKey            = obj.m_histologySpaceKey;
 }
@@ -145,7 +145,7 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
     m_surfaceSpaceNumberOfNodes    = -1;
     m_surfaceSpaceNodeIndex        = -1;
     m_surfaceTextOffsetPolarAngle  = getSurfaceTextOffsetPolarAngleDefaultValue();
-    m_surfaceTextOffsetPolarRadius = getSurfaceTextOffsetPolarRadiusDefaultValue();
+    m_surfaceTextOffsetScreenDepth = getSurfaceTextOffsetScreenDepthDefaultValue();
     
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
@@ -177,8 +177,8 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
                                                                                                               &m_surfaceOffsetVectorType);
     m_sceneAssistant->add("m_surfaceTextOffsetPolarAngle",
                           &m_surfaceTextOffsetPolarAngle);
-    m_sceneAssistant->add("m_surfaceTextOffsetPolarRadius",
-                          &m_surfaceTextOffsetPolarRadius);
+    m_sceneAssistant->add("m_surfaceTextOffsetScreenDepth",
+                          &m_surfaceTextOffsetScreenDepth);
 
     m_sceneAssistant->add("m_mediaFileName",
                           &m_mediaFileName);
@@ -406,12 +406,12 @@ AnnotationCoordinate::getSurfaceTextOffsetPolarAngle() const
 }
 
 /**
- * @return Surface space text offset radius
+ * @return Surface space text offset screen depth
  */
 float
-AnnotationCoordinate::getSurfaceTextOffsetPolarRadius() const
+AnnotationCoordinate::getSurfaceTextOffsetScreenDepth() const
 {
-    return m_surfaceTextOffsetPolarRadius;
+    return m_surfaceTextOffsetScreenDepth;
 }
 
 /**
@@ -493,15 +493,15 @@ AnnotationCoordinate::setSurfaceTextOffsetPolarAngle(const float angle)
 }
 
 /**
- * Set the surface space offset radius
+ * Set the surface space offset screen depth
  * @param radius
  *    New value
  */
 void
-AnnotationCoordinate::setSurfaceTextOffsetPolarRadius(const float radius)
+AnnotationCoordinate::setSurfaceTextOffsetScreenDepth(const float depth)
 {
-    if (m_surfaceTextOffsetPolarRadius != radius) {
-        m_surfaceTextOffsetPolarRadius = radius;
+    if (m_surfaceTextOffsetScreenDepth != depth) {
+        m_surfaceTextOffsetScreenDepth = depth;
         setModified();
     }
 }
@@ -814,7 +814,7 @@ AnnotationCoordinate::toStringForCoordinateSpace(const AnnotationCoordinateSpace
             s.append(" Surface Offset Vector Type: " + AnnotationSurfaceOffsetVectorTypeEnum::toName(m_surfaceOffsetVectorType));
             s.append(" Surface Offset Length: " + AString::number(m_surfaceOffsetLength));
             s.append(" Surface Text Offset Polar Angle: " + AString::number(m_surfaceTextOffsetPolarAngle));
-            s.append(" Surface Text Offset Polar Radius: " + AString::number(m_surfaceTextOffsetPolarRadius));
+            s.append(" Surface Text Offset Screen Depth: " + AString::number(m_surfaceTextOffsetScreenDepth));
         }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
