@@ -2769,7 +2769,6 @@ Annotation::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     restoreSubClassDataFromScene(sceneAttributes,
                                  sceneClass);
-    
 }
 
 /**

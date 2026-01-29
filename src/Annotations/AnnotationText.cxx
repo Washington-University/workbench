@@ -23,6 +23,7 @@
 #include "AnnotationText.h"
 #undef __ANNOTATION_TEXT_DECLARE__
 
+#include "AnnotationCoordinate.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationSpatialModification.h"
 #include "AnnotationTextSubstitution.h"
@@ -171,6 +172,15 @@ AnnotationText::initializeAnnotationTextMembers()
             m_fontPercentViewportSize = s_userDefaultFontPercentViewportSize;
             break;
     }
+    
+    /*
+     * Initialize the surface coordinate offset to small value.
+     * Otherwise, this can result in surface space text annotations
+     * being out of the viewport (in depth), too near or too far,
+     * especially when the offset type is Text->Line
+     */
+    CaretAssert(getCoordinate(0));
+    getCoordinate(0)->setSurfaceSpaceOffsetLength(0.05);
     
     m_text = "";
     m_textWithSubstitutions = "";
@@ -1347,6 +1357,11 @@ AnnotationText::applySpatialModification(const AnnotationSpatialModification& sp
             /* JWH-ANNOT
             std::cout << "Need screen XY of surface vertex to set offset correctly" << std::endl;
              */
+            
+            /*
+             * Allow drag to new vertex
+             */
+            validFlag = AnnotationOneCoordinateShape::applySpatialModification(spatialModification);
         }
         else {
             validFlag = AnnotationOneCoordinateShape::applySpatialModification(spatialModification);

@@ -36,6 +36,10 @@ namespace caret {
     class AnnotationCoordinate : public CaretObjectTracksModification, public SceneableInterface {
         
     public:
+        static float getSurfaceTextOffsetPolarAngleDefaultValue();
+        
+        static float getSurfaceTextOffsetPolarRadiusDefaultValue();
+
         AnnotationCoordinate(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~AnnotationCoordinate();

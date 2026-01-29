@@ -39,6 +39,25 @@ using namespace caret;
  */
 
 /**
+ * @return Default value for offset polar angle
+ */
+float
+AnnotationCoordinate::getSurfaceTextOffsetPolarAngleDefaultValue()
+{
+    return 90.0;
+}
+
+/**
+ * @return Default value for offset polar radius
+ */
+float
+AnnotationCoordinate::getSurfaceTextOffsetPolarRadiusDefaultValue()
+{
+    return 10.0;
+}
+
+
+/**
  * Constructor.
  */
 AnnotationCoordinate::AnnotationCoordinate(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
@@ -125,8 +144,8 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
     m_surfaceSpaceStructure        = StructureEnum::INVALID;
     m_surfaceSpaceNumberOfNodes    = -1;
     m_surfaceSpaceNodeIndex        = -1;
-    m_surfaceTextOffsetPolarAngle  = 90.0;
-    m_surfaceTextOffsetPolarRadius = 50.0;
+    m_surfaceTextOffsetPolarAngle  = getSurfaceTextOffsetPolarAngleDefaultValue();
+    m_surfaceTextOffsetPolarRadius = getSurfaceTextOffsetPolarRadiusDefaultValue();
     
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
@@ -403,7 +422,10 @@ AnnotationCoordinate::getSurfaceTextOffsetPolarRadius() const
 void
 AnnotationCoordinate::setSurfaceSpaceStructure(const StructureEnum::Enum structure)
 {
-    m_surfaceSpaceStructure = structure;
+    if (m_surfaceSpaceStructure != structure) {
+        m_surfaceSpaceStructure = structure;
+        setModified();
+    }
 }
 
 /**
@@ -414,7 +436,10 @@ AnnotationCoordinate::setSurfaceSpaceStructure(const StructureEnum::Enum structu
 void
 AnnotationCoordinate::setSurfaceSpaceNumberOfNodes(const int32_t numberOfNodes)
 {
-    m_surfaceSpaceNumberOfNodes = numberOfNodes;
+    if (m_surfaceSpaceNumberOfNodes != numberOfNodes) {
+        m_surfaceSpaceNumberOfNodes = numberOfNodes;
+        setModified();
+    }
 }
 
 /**
@@ -436,7 +461,10 @@ AnnotationCoordinate::setSurfaceSpaceNodeIndex(const int32_t nodeIndex)
 void
 AnnotationCoordinate::setSurfaceSpaceOffsetLength(const float offsetLength)
 {
-    m_surfaceOffsetLength = offsetLength;
+    if (m_surfaceOffsetLength != offsetLength) {
+        m_surfaceOffsetLength = offsetLength;
+        setModified();
+    }
 }
 
 /**
@@ -447,7 +475,10 @@ AnnotationCoordinate::setSurfaceSpaceOffsetLength(const float offsetLength)
 void
 AnnotationCoordinate::setSurfaceSpaceOffsetVectorType(const AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVectorType)
 {
-    m_surfaceOffsetVectorType = offsetVectorType;
+    if (m_surfaceOffsetVectorType != offsetVectorType) {
+        m_surfaceOffsetVectorType = offsetVectorType;
+        setModified();
+    }
 }
 
 /**
@@ -469,7 +500,10 @@ AnnotationCoordinate::setSurfaceTextOffsetPolarAngle(const float angle)
 void
 AnnotationCoordinate::setSurfaceTextOffsetPolarRadius(const float radius)
 {
-    m_surfaceTextOffsetPolarRadius = radius;
+    if (m_surfaceTextOffsetPolarRadius != radius) {
+        m_surfaceTextOffsetPolarRadius = radius;
+        setModified();
+    }
 }
 
 /**

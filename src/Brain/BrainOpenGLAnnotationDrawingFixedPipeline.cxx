@@ -398,8 +398,35 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                                 
                                 const float angle(coordinate->getSurfaceTextOffsetPolarAngle());
                                 const float angleRadiansFromTop(MathFunctions::toRadians(angle + 90.0));
-                                pixelOffsetXYZ[0] = std::cos(angleRadiansFromTop) * radius;
-                                pixelOffsetXYZ[1] = std::sin(angleRadiansFromTop) * radius;
+                                
+                                float pixelDistance(radius);
+                                
+//                                /*
+//                                 * Percentage of surface height
+//                                 */
+//                                BoundingBox bb;
+//                                surfaceDisplayed->getBounds(bb);
+//                                const float surfaceHeight(bb.getDifferenceZ());
+//                                if (surfaceHeight > 0) {
+//                                    pixelDistance = (radius / 100.0) * surfaceHeight;
+//                                }
+
+                                /*
+                                 * Scale with surface scaling
+                                 */
+                                if (m_surfaceViewScaling) {
+                                    pixelDistance = radius * m_surfaceViewScaling;
+                                }
+//                                /*
+//                                 * Percent of viewport height
+//                                 */
+//                                const float vpHeight(m_modelSpaceViewport[3]);
+//                                if (vpHeight > 0) {
+//                                    pixelDistance = (radius / 100.0) * vpHeight;
+//                                }
+                                
+                                pixelOffsetXYZ[0] = std::cos(angleRadiansFromTop) * pixelDistance;
+                                pixelOffsetXYZ[1] = std::sin(angleRadiansFromTop) * pixelDistance;
                                 pixelOffsetXYZ[2] = annotationOffsetLength; /* offset in screen depth*/
                                 
                                 lineStartXYZ[0] = modelXYZ[0];
@@ -4868,18 +4895,24 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                     lineXYZ.push_back(annXYZ[1]);
                     lineXYZ.push_back(annXYZ[2]);
                     
-                    clipLineAtTextBox(bottomLeft,
-                                      bottomRight,
-                                      topRight,
-                                      topLeft,
-                                      &lineXYZ[0],
-                                      &lineXYZ[3]);
-
-                    const float lineThickness(1.0);
-                    GraphicsShape::drawLinesByteColor(lineXYZ,
-                                                      textColorRGBA,
-                                                      GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                                      lineThickness);
+                    const float distSQ(MathFunctions::distanceSquared2D(lineStartXYZ[0],
+                                                                        lineStartXYZ[1],
+                                                                        annXYZ[0],
+                                                                        annXYZ[1]));
+                    if (distSQ > 0.01) {
+                        clipLineAtTextBox(bottomLeft,
+                                          bottomRight,
+                                          topRight,
+                                          topLeft,
+                                          &lineXYZ[0],
+                                          &lineXYZ[3]);
+                        
+                        const float lineThickness(1.0);
+                        GraphicsShape::drawLinesByteColor(lineXYZ,
+                                                          textColorRGBA,
+                                                          GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                          lineThickness);
+                    }
                 }
                 
                 setDepthTestingStatus(depthTestFlag);
