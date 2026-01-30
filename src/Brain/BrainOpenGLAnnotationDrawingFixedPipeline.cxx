@@ -423,6 +423,36 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                                 lineStartXYZValid = true;
                             }
                                 break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_ANTERIOR:
+                            {
+                                modelXYZ[1] += coordinate->getSurfaceOffsetLength();
+                            }
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_INFERIOR:
+                            {
+                                modelXYZ[2] -= coordinate->getSurfaceOffsetLength();
+                            }
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_LEFT:
+                            {
+                                modelXYZ[0] -= coordinate->getSurfaceOffsetLength();
+                            }
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_POSTERIOR:
+                            {
+                                modelXYZ[1] -= coordinate->getSurfaceOffsetLength();
+                            }
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_RIGHT:
+                            {
+                                modelXYZ[0] += coordinate->getSurfaceOffsetLength();
+                            }
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_SUPERIOR:
+                            {
+                                modelXYZ[2] += coordinate->getSurfaceOffsetLength();
+                            }
+                                break;
                         }
                         
                         modelXYZ[0] += (offsetUnitVector[0] * annotationOffsetLength);
@@ -4410,31 +4440,45 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                                 break;
                             case AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE:
                                 break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_ANTERIOR:
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_INFERIOR:
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_LEFT:
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_POSTERIOR:
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_RIGHT:
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_SUPERIOR:
+                                break;
                         }
+                        bool drawLineFlag(true);
                         const bool clipAtBoxFlag = true;
                         if (clipAtBoxFlag) {
-                            clipLineAtTextBox(bottomLeft,
-                                              bottomRight,
-                                              topRight,
-                                              topLeft,
-                                              brainordinateXYZ,
-                                              annXYZ);
+                            drawLineFlag = (clipLineAtTextBox(bottomLeft,
+                                                              bottomRight,
+                                                              topRight,
+                                                              topLeft,
+                                                              brainordinateXYZ,
+                                                              annXYZ) != 0);
                         }
                         
-                        if (text->getLineWidthPercentage() <= 0.0) {
-                            convertObsoleteLineWidthPixelsToPercentageWidth(text);
+                        if (drawLineFlag) {
+                            if (text->getLineWidthPercentage() <= 0.0) {
+                                convertObsoleteLineWidthPixelsToPercentageWidth(text);
+                            }
+                            const float lineWidth = getLineWidthFromPercentageHeight(text->getLineWidthPercentage());
+                            std::vector<float> unusedArrowCoordinates;
+                            createLineCoordinates(annXYZ,
+                                                  brainordinateXYZ,
+                                                  lineWidth,
+                                                  false,
+                                                  showArrowFlag,
+                                                  lineCoordinatesOut,
+                                                  unusedArrowCoordinates,
+                                                  arrowCoordinatesOut);
                         }
-                        const float lineWidth = getLineWidthFromPercentageHeight(text->getLineWidthPercentage());
-                        std::vector<float> unusedArrowCoordinates;
-                        createLineCoordinates(annXYZ,
-                                              brainordinateXYZ,
-                                              lineWidth,
-                                              false,
-                                              showArrowFlag,
-                                              lineCoordinatesOut,
-                                              unusedArrowCoordinates,
-                                              arrowCoordinatesOut);
-                        
                     }
                 }
             }
@@ -4459,8 +4503,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
  * @param endXYZ
  *    XYZ of where line attaches to text and may be changed to avoid
  *    overlapping the text.
+ * @return 1 if line was clipped to box; 0 if line is inside box;
+ *         0 if line (both ends) are in the box
+ *        -1 if line (both ends) are outside the box
  */
-void
+int32_t
 BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomLeft[3],
                                                              const float bottomRight[3],
                                                              const float topRight[3],
@@ -4468,8 +4515,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomL
                                                              const float startXYZ[3],
                                                              float endXYZ[3]) const
 {
-    const float tol = 0.01;
-
     float clippedXYZ[3] = { 0.0, 0.0, 0.0 };
     float clippedDistance = std::numeric_limits<float>::max();
     bool clippedValid = false;
@@ -4499,6 +4544,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomL
         /*
          * perform a 2D intersection test
          */
+        const float tol = 2.0;
         float intersection[3] = { 0.0, 0.0, 0.0 };
         const bool yesFlag = MathFunctions::lineIntersection2D(p1, p2,
                                                                startXYZ, endXYZ,
@@ -4528,7 +4574,29 @@ BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomL
         endXYZ[0] = clippedXYZ[0];
         endXYZ[1] = clippedXYZ[1];
         endXYZ[2] = clippedXYZ[2];
+        return 1;  /* line intersects box and has been clipped */
     }
+    else {
+        const bool startInsideFlag(MathFunctions::pointInsideBox2D(bottomLeft,
+                                                                   bottomRight,
+                                                                   topRight,
+                                                                   topLeft,
+                                                                   startXYZ));
+        const bool endInsideFlag(MathFunctions::pointInsideBox2D(bottomLeft,
+                                                                 bottomRight,
+                                                                 topRight,
+                                                                 topLeft,
+                                                                 endXYZ));
+        if (startInsideFlag
+            && endInsideFlag) {
+            return 0;  /* line (both ends) is inside box*/
+        }
+        else {
+            return -1;  /* line (both ends) is outside box */
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -4988,18 +5056,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                                         annXYZ[0],
                                                                         annXYZ[1]));
                     if (distSQ > 0.01) {
-                        clipLineAtTextBox(bottomLeft,
-                                          bottomRight,
-                                          topRight,
-                                          topLeft,
-                                          &lineXYZ[0],
-                                          &lineXYZ[3]);
-                        
-                        const float lineThickness(1.0);
-                        GraphicsShape::drawLinesByteColor(lineXYZ,
-                                                          textColorRGBA,
-                                                          GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                                          lineThickness);
+                        if (clipLineAtTextBox(bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              &lineXYZ[0],
+                                              &lineXYZ[3]) != 0) {
+                            const float lineThickness(1.0);
+                            GraphicsShape::drawLinesByteColor(lineXYZ,
+                                                              textColorRGBA,
+                                                              GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                              lineThickness);
+                        }
                     }
                 }
                 

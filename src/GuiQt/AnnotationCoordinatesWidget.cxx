@@ -261,7 +261,8 @@ AnnotationCoordinatesWidget::createCoordinateWidgetSurface()
                            "Centroid   - Distance (mm) from vertex to annotation using vector from center of surface through vertex<br>"
                            "Normal     - Distance (mm) from vertex to annotation using vertex's normal vector<br>"
                            "Tangent    - Distance (mm) from vertex to annotation using vertex's normal vector<br>"
-                           "Text->Line - Screen depth offset that moves annotation closer to viewer when text is obscured by surface"
+                           "Vec Modes  - Distance (mm) from vertex in the specified direction"
+//                           "Text->Line - Screen depth offset that moves annotation closer to viewer when text is obscured by surface"
                            "</html>");
 
     m_surfaceOffsetLengthSpinBox = new QDoubleSpinBox();
@@ -298,8 +299,9 @@ AnnotationCoordinatesWidget::createCoordinateWidgetSurface()
                            "Centroid   - Vector from center of surface to vertex; text is in plane of screen<br>"
                            "Normal     - Vector is vertex's normal vector; text is in plane of screen<br>"
                            "Tangent    - Text is tangent (using normal vector) to the surface; text rotates with surface<br>"
-                           "Text->Line - Text is offset from vertex and a line connects text to vertex; "
-                           "Angle/Depth values control angle of text from vertex; depth moves text to viewer"
+                           "Vec Modes  - The vector modes move the text in the specified direction"
+//                           "Text->Line - Text is offset from vertex and a line connects text to vertex; "
+//                           "Angle/Depth values control angle of text from vertex; depth moves text to viewer"
                            "</html>");
     m_surfaceOffsetVectorTypeComboBox = new EnumComboBoxTemplate(this);
     m_surfaceOffsetVectorTypeComboBox->setup<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>();
@@ -370,11 +372,11 @@ AnnotationCoordinatesWidget::updateContent(Annotation* annotation)
         if (annotation->testProperty(Annotation::Property::COORDINATE)) {
             m_annotation = annotation;
             
+            QSignalBlocker blocker(m_coordNumberSpinBox);
             const int32_t numCoords(m_annotation->getNumberOfCoordinates());
             m_coordNumberSpinBox->setRange(1, numCoords);
             
             if (m_annotation != m_previousAnnotation) {
-                QSignalBlocker blocker(m_coordNumberSpinBox);
                 m_coordNumberSpinBox->setValue(1);
             }
             
@@ -385,6 +387,7 @@ AnnotationCoordinatesWidget::updateContent(Annotation* annotation)
     m_surfaceStructureComboBox->listOnlyValidStructures();
 
     updateCoordinate();
+    
     bool surfaceSpaceFlag(false);
     bool viewportSpaceFlag(false);
     if (m_annotation != NULL) {
@@ -781,6 +784,12 @@ AnnotationCoordinatesWidget::updateCoordinate()
             case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
             case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
             case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_ANTERIOR:
+            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_INFERIOR:
+            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_LEFT:
+            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_POSTERIOR:
+            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_RIGHT:
+            case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_SUPERIOR:
                 m_surfaceOffsetLengthSpinBox->setRange(0.0, 999.0);
                 m_surfaceOffsetLengthSpinBox->setSingleStep(0.1);
                 break;
@@ -789,7 +798,6 @@ AnnotationCoordinatesWidget::updateCoordinate()
                 m_surfaceOffsetLengthSpinBox->setSingleStep(0.001);
                 break;
         }
-
         m_surfaceOffsetLengthSpinBox->setValue(surfaceOffsetLength);
         m_surfaceOffsetLengthSpinBox->blockSignals(false);
         

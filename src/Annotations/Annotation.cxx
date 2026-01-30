@@ -1086,6 +1086,18 @@ Annotation::isInSurfaceSpaceWithTangentOffset() const
                     break;
                 case AnnotationSurfaceOffsetVectorTypeEnum::TEXT_CONNECTED_TO_LINE:
                     break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_ANTERIOR:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_INFERIOR:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_LEFT:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_POSTERIOR:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_RIGHT:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::VECTOR_SUPERIOR:
+                    break;
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:

@@ -113,21 +113,45 @@ AnnotationSurfaceOffsetVectorTypeEnum::initialize()
                                                              "CENTROID_THRU_VERTEX",
                                                              "Centroid",
                                                              "Centroid Thru Vertex"));
-    
     enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(SURFACE_NORMAL,
                                                              "SURFACE_NORMAL",
                                                              "Normal",
                                                              "Surface Normal"));
-    
     enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(TANGENT,
                                                              "TANGENT",
                                                              "Tangent",
                                                              "Tangent"));
-    
-    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(TEXT_CONNECTED_TO_LINE,
-                                                             "TEXT_CONNECTED_TO_LINE",
-                                                             "Text->Line",
-                                                             "Text Connected to Line"));
+    const bool includeTextToLineFlag(false);
+    if (includeTextToLineFlag) {
+        enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(TEXT_CONNECTED_TO_LINE,
+                                                                 "TEXT_CONNECTED_TO_LINE",
+                                                                 "Text->Line",
+                                                                 "Text Connected to Line"));
+    }
+    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(VECTOR_ANTERIOR,
+                                                             "VECTOR_ANTERIOR",
+                                                             "Vec->Anterior",
+                                                             "Vector pointing to anterior"));
+    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(VECTOR_INFERIOR,
+                                                             "VECTOR_INFERIOR",
+                                                             "Vec->Inferior",
+                                                             "Vector pointing to inferior"));
+    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(VECTOR_LEFT,
+                                                             "VECTOR_LEFT",
+                                                             "Vec->Left",
+                                                             "Vector pointing to left"));
+    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(VECTOR_POSTERIOR,
+                                                             "VECTOR_POSTERIOR",
+                                                             "Vec->Posterior",
+                                                             "Vector pointing to posterior"));
+    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(VECTOR_RIGHT,
+                                                             "VECTOR_RIGHT",
+                                                             "Vec->Right",
+                                                             "Vector pointing to right"));
+    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(VECTOR_SUPERIOR,
+                                                             "VECTOR_SUPERIOR",
+                                                             "Vec->Superior",
+                                                             "Vector pointing to superior"));
 }
 
 /**

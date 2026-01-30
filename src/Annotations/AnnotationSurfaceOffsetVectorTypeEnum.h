@@ -42,7 +42,19 @@ public:
         /** Tangent to surface */
         TANGENT,
         /** Text connected to line*/
-        TEXT_CONNECTED_TO_LINE
+        TEXT_CONNECTED_TO_LINE,
+        /** vector pointing anterior */
+        VECTOR_ANTERIOR,
+        /** vector pointint to inferior */
+        VECTOR_INFERIOR,
+        /** vector pointint to left */
+        VECTOR_LEFT,
+        /** vector pointint to superior */
+        VECTOR_POSTERIOR,
+        /** vector pointint to right */
+        VECTOR_RIGHT,
+        /** vector pointint to superior */
+        VECTOR_SUPERIOR
     };
 
 

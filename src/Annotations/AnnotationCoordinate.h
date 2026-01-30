@@ -194,7 +194,7 @@ namespace caret {
         
         StructureEnum::Enum m_surfaceSpaceStructure;
         
-        float m_surfaceOffsetLength;
+        float m_surfaceOffsetLength = 0.0;
         
         float m_surfaceTextOffsetPolarAngle = 90.0;
         
@@ -219,8 +219,8 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_COORDINATE_DECLARE__
-    float AnnotationCoordinate::s_userDefaultSurfaceOffsetLength = 1.0f;
-    AnnotationSurfaceOffsetVectorTypeEnum::Enum AnnotationCoordinate::s_userDefaultSurfaceOffsetVectorType = AnnotationSurfaceOffsetVectorTypeEnum::TANGENT;
+    float AnnotationCoordinate::s_userDefaultSurfaceOffsetLength = 0.0;
+    AnnotationSurfaceOffsetVectorTypeEnum::Enum AnnotationCoordinate::s_userDefaultSurfaceOffsetVectorType = AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL;
 #endif // __ANNOTATION_COORDINATE_DECLARE__
 
 } // namespace

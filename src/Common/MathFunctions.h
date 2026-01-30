@@ -253,6 +253,17 @@ public:
                                      const float tolerance,
                                      float intersectionOut[2]);
     
+    static bool pointInsideBox2D(const float a[2],
+                                 const float b[2],
+                                 const float c[2],
+                                 const float d[2],
+                                 const float p[2]);
+
+    static bool pointInsideTriangle2D(const float a[2],
+                                      const float b[2],
+                                      const float c[2],
+                                      const float p[2]);
+
     static bool rayIntersectPlane(
                     const float p1[3],
                     const float p2[3],

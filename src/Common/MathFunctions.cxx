@@ -1545,6 +1545,86 @@ MathFunctions::vectorIntersection2D(
 }
 
 /**
+ * Test for a point inside a box.  Vertices should be in a counter-clockwise order.
+ * @param a
+ *    Vertex of the box
+ * @param b
+ *    Vertex of the box
+ * @param c
+ *    Vertex of the box
+ * @param d
+ *    Vertex of the box
+ * @param p
+ *    Point for testing inside the box
+ */
+bool
+MathFunctions::pointInsideBox2D(const float a[2],
+                                const float b[2],
+                                const float c[2],
+                                const float d[2],
+                                const float p[2])
+{
+    if (pointInsideTriangle2D(a, b, c, p)
+        || pointInsideTriangle2D(b, c, d, p)) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Test for a point inside a triangle.  Vertices should be in a counter-clockwise order.
+ * @param a
+ *    Vertex of the box
+ * @param b
+ *    Vertex of the box
+ * @param c
+ *    Vertex of the box
+ * @param p
+ *    Point for testing inside the box
+ */
+bool
+MathFunctions::pointInsideTriangle2D(const float a[2],
+                                     const float b[2],
+                                     const float c[2],
+                                     const float p[2])
+{
+    const float area(triangleAreaSigned2D(a, b, c));
+    
+    if (area > 0.0) {
+        /*
+         * Triangle vertices oriented counter-clockwise
+         */
+        const float areaOne(triangleAreaSigned2D(a, b, p));
+        const float areaTwo(triangleAreaSigned2D(b, c, p));
+        const float areaThree(triangleAreaSigned2D(c, a, p));
+        if ((areaOne >= 0.0)
+            && (areaTwo >= 0.0)
+            && (areaThree >= 0.0)) {
+            return true;
+        }
+    }
+    else if (area < 0.0) {
+        /*
+         * Triangle vertices oriented counter-clockwise
+         */
+        const float areaOne(triangleAreaSigned2D(a, b, p));
+        const float areaTwo(triangleAreaSigned2D(b, c, p));
+        const float areaThree(triangleAreaSigned2D(c, a, p));
+        if ((areaOne <= 0.0)
+            && (areaTwo <= 0.0)
+            && (areaThree <= 0.0)) {
+            return true;
+        }
+    }
+    /*
+     * Triangle is degenerate (no area)
+     */
+    
+    return false;
+}
+
+
+/**
  * Determine if a ray intersects a plane.
  * @param p1 - 1st point defining the plane
  * @param p2 - 2nd point defining the plane

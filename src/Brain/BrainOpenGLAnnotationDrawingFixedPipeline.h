@@ -503,13 +503,13 @@ namespace caret {
         void endOpenGLForDrawing(GLint savedShadeModel,
                                  GLboolean savedLightingEnabled);
         
-        void clipLineAtTextBox(const float bottomLeft[3],
-                               const float bottomRight[3],
-                               const float topRight[3],
-                               const float topLeft[3],
-                               const float startXYZ[3],
-                               float endXYZ[3]) const;
-        
+        int32_t clipLineAtTextBox(const float bottomLeft[3],
+                                  const float bottomRight[3],
+                                  const float topRight[3],
+                                  const float topLeft[3],
+                                  const float startXYZ[3],
+                                  float endXYZ[3]) const;
+
         void setPrimitiveLineWidthInPixels(const Annotation* annotation,
                                            const Vector3D& windowXY,
                                            GraphicsPrimitive* primitive) const;

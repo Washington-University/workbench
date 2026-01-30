@@ -147,15 +147,22 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
     m_surfaceTextOffsetPolarAngle  = getSurfaceTextOffsetPolarAngleDefaultValue();
     m_surfaceTextOffsetScreenDepth = getSurfaceTextOffsetScreenDepthDefaultValue();
     
-    switch (m_attributeDefaultType) {
-        case AnnotationAttributesDefaultTypeEnum::NORMAL:
-            m_surfaceOffsetLength       = getDefaultSurfaceOffsetLength();
-            m_surfaceOffsetVectorType   = AnnotationSurfaceOffsetVectorTypeEnum::TANGENT;
-            break;
-        case AnnotationAttributesDefaultTypeEnum::USER:
-            m_surfaceOffsetLength     = s_userDefaultSurfaceOffsetLength;
-            m_surfaceOffsetVectorType = s_userDefaultSurfaceOffsetVectorType;
-            break;
+    const bool alwaysInitToDefaultsFlag(true);
+    if (alwaysInitToDefaultsFlag) {
+        m_surfaceOffsetVectorType   = AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL;
+        m_surfaceOffsetLength       = getDefaultSurfaceOffsetLength();
+    }
+    else {
+        switch (m_attributeDefaultType) {
+            case AnnotationAttributesDefaultTypeEnum::NORMAL:
+                m_surfaceOffsetLength       = getDefaultSurfaceOffsetLength();
+                m_surfaceOffsetVectorType   = AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL;
+                break;
+            case AnnotationAttributesDefaultTypeEnum::USER:
+                m_surfaceOffsetLength     = s_userDefaultSurfaceOffsetLength;
+                m_surfaceOffsetVectorType = s_userDefaultSurfaceOffsetVectorType;
+                break;
+        }
     }
     
     m_mediaFileName = "";
@@ -632,7 +639,7 @@ AnnotationCoordinate::setSurfaceSpace(const StructureEnum::Enum structure,
 float
 AnnotationCoordinate::getDefaultSurfaceOffsetLength()
 {
-    return 5.0;
+    return 0.0;
 }
 
 /**
