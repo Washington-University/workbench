@@ -270,7 +270,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                             objectNamePrefix,
                                                                             this);
-        m_borderTabIndex = addToScrolledAreaInTabWidget(m_borderSelectionViewController,
+        m_borderTabIndex = addToTabWidget(m_borderSelectionViewController,
                              "Borders");
     }
     
@@ -285,7 +285,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_fociSelectionViewController = new FociSelectionViewController(browserWindowIndex,
                                                                         objectNamePrefix,
                                                                                 this);
-        m_fociTabIndex = addToScrolledAreaInTabWidget(m_fociSelectionViewController,
+        m_fociTabIndex = addToTabWidget(m_fociSelectionViewController,
                              "Foci");
     }
     

@@ -174,12 +174,40 @@ GroupAndNameHierarchyModel::setAllSelectedWithNames(const DisplayGroupEnum::Enum
     for (const AString& itemName : names) {
         for (GroupAndNameHierarchyItem* item : allItems) {
             if (item->getName() == itemName) {
-                item->setSelected(displayGroup,
-                                  tabIndex,
-                                  checked);
+//                item->setSelected(displayGroup,
+//                                  tabIndex,
+//                                  checked);
+
+                if (checked) {
+                    item->setSelected(displayGroup,
+                                      tabIndex,
+                                      true);
+                    item->setAncestorsSelected(displayGroup,
+                                               tabIndex,
+                                               true);
+                    item->setDescendantsSelected(displayGroup,
+                                                 tabIndex,
+                                                 true);
+                }
+                else {
+                    item->setSelected(displayGroup,
+                                      tabIndex,
+                                      false);
+                    item->setDescendantsSelected(displayGroup,
+                                                 tabIndex,
+                                                 false);
+                }
             }
         }
     }
+    
+//    GroupAndNameHierarchyTreeWidgetItem* treeItem = dynamic_cast<GroupAndNameHierarchyTreeWidgetItem*>(item);
+//    CaretAssert(treeItem);
+//    const Qt::CheckState checkState = item->checkState(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN);
+//    const GroupAndNameCheckStateEnum::Enum itemCheckState = GroupAndNameHierarchyTreeWidgetItem::fromQCheckState(checkState);
+//    const bool newStatus = (itemCheckState != GroupAndNameCheckStateEnum::UNCHECKED);
+//    treeItem->setModelDataSelected(newStatus);
+
 }
 
 /**

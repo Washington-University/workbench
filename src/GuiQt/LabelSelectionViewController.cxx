@@ -22,7 +22,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
-#include <QScrollArea>
 
 #define __LABEL_SELECTION_VIEW_CONTROLLER_DECLARE__
 #include "LabelSelectionViewController.h"
@@ -101,13 +100,7 @@ LabelSelectionViewController::createSelectionWidget()
                                                                                        + ":Selection"),
                                                                                       "labels",
                                                                                       this);
-    
-    QScrollArea* scrollArea = new QScrollArea();
-    scrollArea->setWidget(m_labelClassNameHierarchyViewController);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    
-    return scrollArea;
+    return m_labelClassNameHierarchyViewController;
 }
 
 /**

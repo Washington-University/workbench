@@ -58,7 +58,7 @@ NamesOnOffLineEditWidget::NamesOnOffLineEditWidget(QWidget* parent)
     
     QLabel* separatorLabel(new QLabel("Sep:"));
     m_separatorLineEdit = new QLineEdit();
-    m_separatorLineEdit->setFixedWidth(40);
+    m_separatorLineEdit->setFixedWidth(24);
     m_separatorLineEdit->setText(";");
     m_separatorLineEdit->setToolTip("<html>"
                                     "Separator for use when multiple label names are in Names text box"

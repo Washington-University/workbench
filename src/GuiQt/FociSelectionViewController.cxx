@@ -26,7 +26,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
-//#include <QTabWidget>
 #include <QToolButton>
 
 #define __FOCI_SELECTION_VIEW_CONTROLLER_DECLARE__
@@ -123,12 +122,11 @@ m_objectNamePrefix(parentObjectName
                                                          "Select features toolbox foci tab");
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    //WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(m_fociDisplayCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupLayout);
-    layout->addWidget(m_tabWidget->getWidget(), 0, Qt::AlignLeft);
-    layout->addStretch();    
+    layout->addWidget(m_tabWidget->getWidget(), 100, Qt::AlignLeft);
+    layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
@@ -445,8 +443,6 @@ FociSelectionViewController::updateFociViewController()
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesFoci* dpf = brain->getDisplayPropertiesFoci();
     const DisplayGroupEnum::Enum displayGroup = dpf->getDisplayGroupForTab(browserTabIndex);
-//    dpf->setDisplayGroupForTab(browserTabIndex, 
-//                               m_fociDisplayGroupComboBox->getSelectedDisplayGroup());
     
     setWindowTitle("Foci");
     

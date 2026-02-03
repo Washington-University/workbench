@@ -31,6 +31,7 @@
 
 class QAction;
 class QLineEdit;
+class QTreeWidget;
 class QTreeWidgetItem;
 class QToolButton;
 class QVBoxLayout;
@@ -44,7 +45,6 @@ namespace caret {
     class GroupAndNameHierarchyModel;
     class GroupAndNameHierarchyTreeWidgetItem;
     class VolumeFile;
-    class WuQTreeWidget;
     
     class GroupAndNameHierarchyViewController : public QWidget {
         
@@ -78,10 +78,6 @@ namespace caret {
                             int column);
 
         void showTreeViewContextMenu(const QPoint& pos);
-        
-//        void processFileSelectionChanged();
-//        
-//        void processSelectionChanges();
         
         void treeItemClicked(QTreeWidgetItem* item, int column);
         
@@ -150,8 +146,8 @@ namespace caret {
         
         QVBoxLayout* m_modelTreeWidgetLayout;
         
-        WuQTreeWidget* m_modelTreeWidget;
-        
+        QTreeWidget* m_modelTreeWidget;
+
         int32_t m_browserWindowIndex;
         
         QAction* m_collapseAllAction;

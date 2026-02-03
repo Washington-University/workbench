@@ -94,7 +94,7 @@ WuQTabWidget::WuQTabWidget(const TabAlignment alignment,
     verticalLayout->addLayout(tabBarLayout,
                               0);
     verticalLayout->addWidget(stackedWidgetGroupBox,
-                              0,
+                              100,
                               tabBarAlignment);
     verticalLayout->addStretch();
 }

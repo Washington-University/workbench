@@ -126,7 +126,7 @@ m_objectNamePrefix(parentObjectName
     layout->addWidget(m_bordersDisplayCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupLayout);
-    layout->addWidget(m_tabWidget->getWidget(), 0, Qt::AlignLeft);
+    layout->addWidget(m_tabWidget->getWidget(), 100, Qt::AlignLeft);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);

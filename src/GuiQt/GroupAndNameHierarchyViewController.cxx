@@ -56,7 +56,6 @@
 #include "VolumeFile.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBoxTwo.h"
-#include "WuQTreeWidget.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -105,7 +104,6 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
                                           descriptiveNameForMacros));
     layout->addSpacing(5);
     layout->addLayout(m_modelTreeWidgetLayout, 100);
-    layout->addStretch();
     
     s_allViewControllers.insert(this);
 }
@@ -485,20 +483,22 @@ GroupAndNameHierarchyViewController::createTreeWidget()
         delete m_modelTreeWidget;
     }
     
-    m_modelTreeWidget = new WuQTreeWidget();
-    m_modelTreeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_modelTreeWidget = new QTreeWidget();
+    m_modelTreeWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_modelTreeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    m_modelTreeWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     m_modelTreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::itemCollapsed,
+    QObject::connect(m_modelTreeWidget, &QTreeWidget::itemCollapsed,
                      this, &GroupAndNameHierarchyViewController::itemWasCollapsed);
-    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::itemExpanded,
+    QObject::connect(m_modelTreeWidget, &QTreeWidget::itemExpanded,
                      this, &GroupAndNameHierarchyViewController::itemWasExpanded);
-    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::itemChanged,
+    QObject::connect(m_modelTreeWidget, &QTreeWidget::itemChanged,
                      this, &GroupAndNameHierarchyViewController::itemWasChanged);
-    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::itemClicked,
+    QObject::connect(m_modelTreeWidget, &QTreeWidget::itemClicked,
                      this, &GroupAndNameHierarchyViewController::treeItemClicked);
-    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::itemDoubleClicked,
+    QObject::connect(m_modelTreeWidget, &QTreeWidget::itemDoubleClicked,
                      this, &GroupAndNameHierarchyViewController::treeItemDoubleClicked);
-    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::customContextMenuRequested,
+    QObject::connect(m_modelTreeWidget, &QTreeWidget::customContextMenuRequested,
                      this, &GroupAndNameHierarchyViewController::showTreeViewContextMenu);
 
     m_modelTreeWidgetLayout->addWidget(m_modelTreeWidget, 0);
@@ -573,7 +573,6 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
     m_modelTreeWidget->blockSignals(true);
     
     if (needUpdate) {
-        
         createTreeWidget();
         m_modelTreeWidget->blockSignals(true); // gets reset
 
@@ -600,10 +599,6 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
     m_previousBrowserTabIndex = browserTabIndex;
     m_previousDisplayGroup = m_displayGroup;
     m_modelTreeWidget->blockSignals(false);
-    
-    if (needUpdate) {
-        m_modelTreeWidget->resizeToFitContent();
-    }
 }
 
 /**
@@ -677,7 +672,7 @@ GroupAndNameHierarchyViewController::showTreeViewContextMenu(const QPoint& pos)
     if (m_modelTreeWidget != NULL) {
         const QModelIndex selectedIndex(m_modelTreeWidget->indexAt(pos));
         if (selectedIndex.isValid()) {
-            const QTreeWidgetItem* item(m_modelTreeWidget->getItemFromIndex(selectedIndex));
+            const QTreeWidgetItem* item(m_modelTreeWidget->itemFromIndex(selectedIndex));
             if (item != NULL) {
                 const GroupAndNameHierarchyTreeWidgetItem* gnhItem(dynamic_cast<const GroupAndNameHierarchyTreeWidgetItem*>(item));
                 if (gnhItem != NULL) {
@@ -895,7 +890,7 @@ GroupAndNameHierarchyViewController::scrollTreeViewToFindItem()
         CaretAssertVectorIndex(m_findItems, m_findItemsCurrentIndex);
         const QTreeWidgetItem* item(m_findItems[m_findItemsCurrentIndex]);
         CaretAssert(item);
-        const QModelIndex modelIndex(m_modelTreeWidget->getIndexFromItem(item));
+        const QModelIndex modelIndex(m_modelTreeWidget->indexFromItem(item));
         if (modelIndex.isValid()) {
             m_modelTreeWidget->setCurrentIndex(modelIndex);
             m_modelTreeWidget->scrollTo(modelIndex,
