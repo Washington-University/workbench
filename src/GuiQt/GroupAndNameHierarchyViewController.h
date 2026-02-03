@@ -95,6 +95,10 @@ namespace caret {
         
         void allOffActionTriggered();
         
+        void namesOnSelectedTriggered(const std::vector<AString>& names);
+        
+        void namesOffSelectedTriggered(const std::vector<AString>& names);
+        
         void infoActionTriggered();
         
         void findActionTriggered();
@@ -113,6 +117,9 @@ namespace caret {
                             const bool selectionInvalidatesSurfaceNodeColoring);
         
         std::vector<GroupAndNameHierarchyModel*> getAllModels() const;
+        
+        void setNamesOnOff(const std::vector<AString>& names,
+                           const bool status);
         
         void updateGraphics();
         

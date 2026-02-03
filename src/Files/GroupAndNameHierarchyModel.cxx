@@ -154,6 +154,35 @@ GroupAndNameHierarchyModel::setAllSelected(const DisplayGroupEnum::Enum displayG
 }
 
 /**
+ * Set the selection status of all items with the given name
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
+ * @param selectionStatus
+ *    New selection status.
+ */
+void
+GroupAndNameHierarchyModel::setAllSelectedWithNames(const DisplayGroupEnum::Enum displayGroup,
+                                                    const int32_t tabIndex,
+                                                    const std::vector<AString>& names,
+                                                    const bool checked)
+{
+    std::vector<GroupAndNameHierarchyItem*> allItems(getDescendants());
+    allItems.push_back(this);
+    
+    for (const AString& itemName : names) {
+        for (GroupAndNameHierarchyItem* item : allItems) {
+            if (item->getName() == itemName) {
+                item->setSelected(displayGroup,
+                                  tabIndex,
+                                  checked);
+            }
+        }
+    }
+}
+
+/**
  * Update this group hierarchy with the border names
  * and classes.
  *
@@ -354,23 +383,12 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
                         
                         prevIter++;
                     }
-//                    if (std::equal(labelKeysAndNames.begin(),
-//                                   labelKeysAndNames.end(),
-//                                   m_previousLabelKeysAndNames) == false) {
-//                        needToGenerateKeys = true;
-//                    }
                 }
-                
-//                if (labelTable->hasLabelsWithInvalidGroupNameHierarchy()) {
-//                    needToGenerateKeys = true;
-//                }
             }
         }
     }
 
     if (needToGenerateKeys) {
-        //const int32_t ID_NOT_USED = 0;
-        
         /*
          * Save keys and names for comparison in next update test
          */
@@ -567,8 +585,6 @@ GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
     }
     
     if (needToGenerateKeys) {
-        //const int32_t ID_NOT_USED = 0;
-        
         /*
          * Save keys and names for comparison in next update test
          */
@@ -775,8 +791,6 @@ GroupAndNameHierarchyModel::update(VolumeFile* volumeFile,
     }
     
     if (needToGenerateKeys) {
-        //const int32_t ID_NOT_USED = 0;
-        
         /*
          * Save keys and names for comparison in next update test
          */

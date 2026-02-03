@@ -121,6 +121,29 @@ LabelSelectionItemModel::setCheckedStatusOfAllItems(const bool checked)
 }
 
 /**
+ * Set the checked status of all items with the given names
+ * @param names
+ *    The label names
+ * @param checked
+ *    New checked status
+ */
+void
+LabelSelectionItemModel::setCheckedStatusOfAllItemsWithNames(const std::vector<AString>& names,
+                                                             const bool checked)
+{
+    Qt::CheckState checkState(checked
+                              ? Qt::Checked
+                              : Qt::Unchecked);
+    for (const AString& n : names) {
+        std::vector<LabelSelectionItem*> items(getItemsWithName(n));
+        for (LabelSelectionItem* lsi : items) {
+            lsi->setCheckState(checkState);
+            lsi->setAllChildrenChecked(checked);
+        }
+    }
+}
+
+/**
  * Update the checked state of all items
  */
 void
@@ -437,10 +460,28 @@ LabelSelectionItemModel::getAllDescendants() const
 }
 
 /**
- * @return All items that match the given name
+ * @return All items that match the given name (const method)
  */
 std::vector<LabelSelectionItem*>
 LabelSelectionItemModel::getItemsWithName(const AString& name) const
+{
+    std::vector<LabelSelectionItem*> itemsOut;
+    
+    std::vector<LabelSelectionItem*> allItems(getAllDescendants());
+    for (LabelSelectionItem* item : allItems) {
+        if (item->text() == name) {
+            itemsOut.push_back(item);
+        }
+    }
+    
+    return itemsOut;
+}
+
+/**
+ * @return All items that match the given name
+ */
+std::vector<LabelSelectionItem*>
+LabelSelectionItemModel::getItemsWithName(const AString& name)
 {
     std::vector<LabelSelectionItem*> itemsOut;
     

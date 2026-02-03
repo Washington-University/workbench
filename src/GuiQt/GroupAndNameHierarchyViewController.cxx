@@ -52,6 +52,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
+#include "NamesOnOffLineEditWidget.h"
 #include "VolumeFile.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBoxTwo.h"
@@ -280,8 +281,14 @@ GroupAndNameHierarchyViewController::createButtonsWidget(const QString& objectNa
     QObject::connect(m_findTextLineEdit, &QLineEdit::textChanged,
                      this, &GroupAndNameHierarchyViewController::findTextLineEditTextChanged);
     
-    QWidget* widget(new QWidget());
-    QHBoxLayout* buttonsLayout(new QHBoxLayout(widget));
+    NamesOnOffLineEditWidget* namesOnOffWidget(new NamesOnOffLineEditWidget());
+    QObject::connect(namesOnOffWidget, &NamesOnOffLineEditWidget::namesOnTriggered,
+                     this, &GroupAndNameHierarchyViewController::namesOnSelectedTriggered);
+    QObject::connect(namesOnOffWidget, &NamesOnOffLineEditWidget::namesOffTriggered,
+                     this, &GroupAndNameHierarchyViewController::namesOffSelectedTriggered);
+    
+
+    QHBoxLayout* buttonsLayout(new QHBoxLayout());
     buttonsLayout->setSpacing(buttonsLayout->spacing() / 2);
     buttonsLayout->setContentsMargins(2, 2, 2, 2);
     buttonsLayout->addWidget(allOnToolButton);
@@ -295,6 +302,13 @@ GroupAndNameHierarchyViewController::createButtonsWidget(const QString& objectNa
     buttonsLayout->addWidget(nextToolButton);
     buttonsLayout->addWidget(m_findTextLineEdit,
                              100); /* stretch factor */
+    
+    QWidget* widget(new QWidget());
+    QVBoxLayout* layout(new QVBoxLayout(widget));
+    layout->setSpacing(2);
+    layout->setContentsMargins(0, 0, 0 , 0);
+    layout->addLayout(buttonsLayout, 0);
+    layout->addWidget(namesOnOffWidget, 0);
     return widget;
 }
 
@@ -758,6 +772,57 @@ GroupAndNameHierarchyViewController::allOffActionTriggered()
 {
     setAllSelected(false);
 }
+
+/**
+ * Called when name on is triggered
+ * @param names
+ *    Names to turn on
+ */
+void
+GroupAndNameHierarchyViewController::namesOnSelectedTriggered(const std::vector<AString>& names)
+{
+    setNamesOnOff(names, true);
+}
+
+/**
+ * Called when name off is triggered
+ * @param names
+ *    Names to turn off
+ */
+void
+GroupAndNameHierarchyViewController::namesOffSelectedTriggered(const std::vector<AString>& names)
+{
+    setNamesOnOff(names, false);
+}
+
+/**
+ * Called when Info button is clicked
+ * @param names
+ *    Names to turn on/off
+ * @param status
+ *    On of status for the items
+ */
+void
+GroupAndNameHierarchyViewController::setNamesOnOff(const std::vector<AString>& names,
+                                                   const bool status)
+{
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
+    CaretAssert(browserTabContent);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    const std::vector<GroupAndNameHierarchyModel*> allModels(getAllModels());
+    for (GroupAndNameHierarchyModel* model : allModels) {
+        model->setAllSelectedWithNames(m_displayGroup,
+                                       browserTabIndex,
+                                       names,
+                                       status);
+    }
+
+    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
+    updateSelectedAndExpandedCheckboxes();
+    updateGraphics();
+}
+
 
 /**
  * Called when Info button is clicked

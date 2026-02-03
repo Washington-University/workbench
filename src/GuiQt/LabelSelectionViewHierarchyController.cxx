@@ -58,6 +58,7 @@
 #include "LabelSelectionItem.h"
 #include "LabelSelectionItemModel.h"
 #include "LabelSelectionItemModelProxyFilter.h"
+#include "NamesOnOffLineEditWidget.h"
 #include "SceneClass.h"
 #include "SceneStringArray.h"
 #include "SessionManager.h"
@@ -202,6 +203,12 @@ m_objectNamePrefix(parentObjectName
     QObject::connect(m_findTextLineEdit, &QLineEdit::textChanged,
                      this, &LabelSelectionViewHierarchyController::findTextLineEditTextChanged);
 
+    NamesOnOffLineEditWidget* namesOnOffWidget(new NamesOnOffLineEditWidget());
+    QObject::connect(namesOnOffWidget, &NamesOnOffLineEditWidget::namesOnTriggered,
+                                      this, &LabelSelectionViewHierarchyController::namesOnSelectedTriggered);
+    QObject::connect(namesOnOffWidget, &NamesOnOffLineEditWidget::namesOffTriggered,
+                                      this, &LabelSelectionViewHierarchyController::namesOffSelectedTriggered);
+
     QHBoxLayout* buttonsLayout(new QHBoxLayout());
     buttonsLayout->setSpacing(buttonsLayout->spacing() / 2);
     buttonsLayout->setContentsMargins(2, 2, 2, 2);
@@ -248,6 +255,8 @@ m_objectNamePrefix(parentObjectName
     layout->addLayout(showNameLayout, row, 0, 1, 3);
     ++row;
     layout->addLayout(buttonsLayout, row, 0, 1, 3);
+    ++row;
+    layout->addWidget(namesOnOffWidget, row, 0, 1, 3);
     ++row;
     layout->addWidget(m_treeView, row, 0, 1, 3);
     layout->setRowStretch(row, 100);
@@ -530,16 +539,6 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
                                                                              cog->getClusterType(),
                                                                              cog->getXYZ());
                                 }
-//                                pi->getAllCOGS();
-//                                const LabelSelectionItem::CogSet* cogSet(pi->getMyAndChildrenCentersOfGravity());
-//                                if (cogSet != NULL) {
-//                                    const LabelSelectionItem::COG* cog(cogSet->getAllCOG());
-//                                    if (cog != NULL) {
-//                                        highlightEvent.addLabelAndStereotaxicXYZ(pi->text(),
-//                                                                                 cog->getClusterType(),
-//                                                                                 cog->getXYZ());
-//                                    }
-//                                }
                             }
                             EventManager::get()->sendEvent(highlightEvent.getPointer());
                             
@@ -802,6 +801,36 @@ LabelSelectionViewHierarchyController::allOffActionTriggered()
 {
     if (m_labelHierarchyModel != NULL) {
         m_labelHierarchyModel->setCheckedStatusOfAllItems(false);
+        processSelectionChanges();
+    }
+}
+
+/**
+ * Called when name on is triggered
+ * @param names
+ *    Names to turn on
+ */
+void
+LabelSelectionViewHierarchyController::namesOnSelectedTriggered(const std::vector<AString>& names)
+{
+    if (m_labelHierarchyModel != NULL) {
+        m_labelHierarchyModel->setCheckedStatusOfAllItemsWithNames(names,
+                                                                   true);
+        processSelectionChanges();
+    }
+}
+
+/**
+ * Called when name off is triggered
+ * @param names
+ *    Names to turn off
+ */
+void
+LabelSelectionViewHierarchyController::namesOffSelectedTriggered(const std::vector<AString>& names)
+{
+    if (m_labelHierarchyModel != NULL) {
+        m_labelHierarchyModel->setCheckedStatusOfAllItemsWithNames(names,
+                                                                   false);
         processSelectionChanges();
     }
 }

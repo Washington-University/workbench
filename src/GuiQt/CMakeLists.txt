@@ -209,6 +209,7 @@ ELSE()
         MetaDataEditorDialog.h
         MetaDataEditorWidget.h
 	MovieRecordingDialog.h
+	NamesOnOffLineEditWidget.h
         OffScreenOpenGLRenderer.h
 	OpenFileQuicklyDialog.h
         OverlaySetViewController.h
@@ -550,6 +551,7 @@ MediaOverlaySetViewController.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MovieRecordingDialog.h
+NamesOnOffLineEditWidget.h
 OffScreenOpenGLRenderer.h
 OpenFileQuicklyDialog.h
 OverlaySetViewController.h
@@ -913,6 +915,7 @@ MediaOverlaySetViewController.cxx
 MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MovieRecordingDialog.cxx
+NamesOnOffLineEditWidget.cxx
 OffScreenOpenGLRenderer.cxx
 OpenFileQuicklyDialog.cxx
 OverlaySetViewController.cxx

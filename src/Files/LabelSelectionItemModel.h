@@ -65,6 +65,9 @@ namespace caret {
 
         void setCheckedStatusOfAllItems(const bool checked);
         
+        void setCheckedStatusOfAllItemsWithNames(const std::vector<AString>& names,
+                                                 const bool checked);
+        
         void updateCheckedStateOfAllItems();
         
         std::vector<LabelSelectionItem*> getAllDescendants() const;
@@ -74,6 +77,8 @@ namespace caret {
         std::vector<LabelSelectionItem*> getTopLevelItems();
         
         std::vector<LabelSelectionItem*> getItemsWithName(const AString& name) const;
+        
+        std::vector<LabelSelectionItem*> getItemsWithName(const AString& name);
         
         AString toFormattedString(const AString& indentation) const;
         

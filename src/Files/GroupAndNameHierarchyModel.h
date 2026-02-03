@@ -52,6 +52,11 @@ namespace caret {
                             const int32_t tabIndex,
                             const bool status);
         
+        void setAllSelectedWithNames(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t tabIndex,
+                                     const std::vector<AString>& names,
+                                     const bool checked);
+        
         void update(BorderFile* borderFile,
                     const bool forceUpdate);
         

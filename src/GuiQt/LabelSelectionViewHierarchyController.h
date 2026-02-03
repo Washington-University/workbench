@@ -99,6 +99,10 @@ namespace caret {
         
         void findTextLineEditTextChanged(const QString& text);
         
+        void namesOnSelectedTriggered(const std::vector<AString>& names);
+        
+        void namesOffSelectedTriggered(const std::vector<AString>& names);
+        
     private:
         LabelSelectionViewHierarchyController(const LabelSelectionViewHierarchyController&);
 

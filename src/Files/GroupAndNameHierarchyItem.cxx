@@ -234,7 +234,8 @@ GroupAndNameHierarchyItem::getDescendants() const
 {
     std::vector<GroupAndNameHierarchyItem*> descendants;
     
-    if (m_parent != NULL) {
+    if ((getItemType() == GroupAndNameHierarchyItem::ITEM_TYPE_MODEL)
+        || (m_parent != NULL)) {
         for (std::vector<GroupAndNameHierarchyItem*>::const_iterator iter = m_children.begin();
              iter != m_children.end();
              iter++) {
