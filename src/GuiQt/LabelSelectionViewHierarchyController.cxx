@@ -397,6 +397,13 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
     
     menu.addSeparator();
 
+    const AString itemName(labelItem->getPrimaryName());
+    QAction* allOnAction(menu.addAction("Turn on ALL with name "
+                                        + itemName));
+    QAction* allOffAction(menu.addAction("Turn off ALL with name "
+                                         + itemName));
+    menu.addSeparator();
+
     /*
      * Crosshair/pointer icon
      */
@@ -459,6 +466,14 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
                 const AString name(labelItem->text().trimmed());
                 QApplication::clipboard()->setText(name,
                                                    QClipboard::Clipboard);
+            }
+            else if (selectedAction == allOnAction) {
+                std::vector<AString> names { itemName };
+                setNamesOnOff(names, true);
+            }
+            else if (selectedAction == allOffAction) {
+                std::vector<AString> names { itemName };
+                setNamesOnOff(names, false);
             }
             else {
                 /*
@@ -813,11 +828,7 @@ LabelSelectionViewHierarchyController::allOffActionTriggered()
 void
 LabelSelectionViewHierarchyController::namesOnSelectedTriggered(const std::vector<AString>& names)
 {
-    if (m_labelHierarchyModel != NULL) {
-        m_labelHierarchyModel->setCheckedStatusOfAllItemsWithNames(names,
-                                                                   true);
-        processSelectionChanges();
-    }
+    setNamesOnOff(names, true);
 }
 
 /**
@@ -828,13 +839,19 @@ LabelSelectionViewHierarchyController::namesOnSelectedTriggered(const std::vecto
 void
 LabelSelectionViewHierarchyController::namesOffSelectedTriggered(const std::vector<AString>& names)
 {
+    setNamesOnOff(names, false);
+}
+
+void
+LabelSelectionViewHierarchyController::setNamesOnOff(const std::vector<AString>& names,
+                                                     const bool status)
+{
     if (m_labelHierarchyModel != NULL) {
         m_labelHierarchyModel->setCheckedStatusOfAllItemsWithNames(names,
-                                                                   false);
+                                                                   status);
         processSelectionChanges();
     }
 }
-
 /**
  * Called when Info button is clicked
  */

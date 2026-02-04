@@ -24,6 +24,8 @@
 #undef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__
 
 #include <QAction>
+#include <QApplication>
+#include <QClipboard>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -501,7 +503,7 @@ GroupAndNameHierarchyViewController::createTreeWidget()
     QObject::connect(m_modelTreeWidget, &QTreeWidget::customContextMenuRequested,
                      this, &GroupAndNameHierarchyViewController::showTreeViewContextMenu);
 
-    m_modelTreeWidgetLayout->addWidget(m_modelTreeWidget, 0);
+    m_modelTreeWidgetLayout->addWidget(m_modelTreeWidget, 100);
     
     m_modelTreeWidget->blockSignals(false);
     
@@ -660,15 +662,6 @@ GroupAndNameHierarchyViewController::updateSelectedAndExpandedCheckboxesInOtherV
 void
 GroupAndNameHierarchyViewController::showTreeViewContextMenu(const QPoint& pos)
 {
-    /*
-     * Note: GroupAndNameHierarchyTreeWidgetItem do not correspond to individual
-     * borders and foci but to the aggreggated names and classes of the foci.
-     * Since they are not individual borders or foci, info or editing is not possible.
-     */
-    const bool showMenuFlag(false);
-    if ( ! showMenuFlag) {
-        return;
-    }
     if (m_modelTreeWidget != NULL) {
         const QModelIndex selectedIndex(m_modelTreeWidget->indexAt(pos));
         if (selectedIndex.isValid()) {
@@ -676,10 +669,37 @@ GroupAndNameHierarchyViewController::showTreeViewContextMenu(const QPoint& pos)
             if (item != NULL) {
                 const GroupAndNameHierarchyTreeWidgetItem* gnhItem(dynamic_cast<const GroupAndNameHierarchyTreeWidgetItem*>(item));
                 if (gnhItem != NULL) {
-                    const bool infoButtonFlag(false);
-                    showSelectedItemMenu(gnhItem,
-                                         m_modelTreeWidget->mapToGlobal(pos),
-                                         infoButtonFlag);
+                    QMenu menu(this);
+                    
+                    const AString itemName(gnhItem->text(0));
+                    QAction* allOnAction(menu.addAction("Turn on ALL with name: "
+                                                        + itemName));
+                    QAction* allOffAction(menu.addAction("Turn off ALL with name: "
+                                                         + itemName));
+                    QAction* copyAction(menu.addAction("Copy name to clipboard: "
+                                                       + itemName));
+                    if ( ! menu.actions().isEmpty()) {
+                        QAction* selectedAction(menu.exec(m_modelTreeWidget->mapToGlobal(pos)));
+                        if (selectedAction != NULL) {
+                            std::vector<AString> names { itemName };
+                            if (selectedAction == allOnAction) {
+                                setNamesOnOff(names, true);
+                            }
+                            else if (selectedAction == allOffAction) {
+                                setNamesOnOff(names, false);
+                            }
+                            else if (selectedAction == copyAction) {
+                                QApplication::clipboard()->setText(itemName,
+                                                                   QClipboard::Clipboard);
+                            }
+                            else {
+                                CaretAssert(0);
+                            }
+                            
+                            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+                            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                        }
+                    }
                 }
             }
         }

@@ -131,6 +131,9 @@ namespace caret {
         
         void resetFindItemsAndFindText();
         
+        void setNamesOnOff(const std::vector<AString>& names,
+                           const bool status);
+
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex = -1;
