@@ -32,7 +32,6 @@
 #include <QMenu>
 #include <QPushButton>
 #include <QToolButton>
-#include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
 
@@ -58,6 +57,7 @@
 #include "VolumeFile.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBoxTwo.h"
+#include "WuQTreeWidget.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -485,7 +485,8 @@ GroupAndNameHierarchyViewController::createTreeWidget()
         delete m_modelTreeWidget;
     }
     
-    m_modelTreeWidget = new QTreeWidget();
+    const bool doResizeFlag(false);
+    m_modelTreeWidget = new WuQTreeWidget(doResizeFlag);
     m_modelTreeWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_modelTreeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     m_modelTreeWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -910,8 +911,7 @@ GroupAndNameHierarchyViewController::scrollTreeViewToFindItem()
         CaretAssertVectorIndex(m_findItems, m_findItemsCurrentIndex);
         const QTreeWidgetItem* item(m_findItems[m_findItemsCurrentIndex]);
         CaretAssert(item);
-        const QTreeWidget* constTreeWidget(m_modelTreeWidget);
-        const QModelIndex modelIndex(constTreeWidget->indexFromItem(item));
+        const QModelIndex modelIndex(m_modelTreeWidget->getIndexFromItem(item));
         if (modelIndex.isValid()) {
             m_modelTreeWidget->setCurrentIndex(modelIndex);
             m_modelTreeWidget->scrollTo(modelIndex,

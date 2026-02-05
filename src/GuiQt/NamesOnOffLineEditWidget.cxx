@@ -149,9 +149,15 @@ NamesOnOffLineEditWidget::getNames() const
     if (separator.isEmpty()) {
         separator = " ";
     }
+#if QT_VERSION >= 0x060000
     QStringList namesList(m_namesLineEdit->text().trimmed().split(separator,
-                                                           Qt::SkipEmptyParts,
-                                                           Qt::CaseInsensitive)); /* of separator */
+                                                                  Qt::SkipEmptyParts,
+                                                                  Qt::CaseInsensitive)); /* of separator */
+#else
+    QStringList namesList(m_namesLineEdit->text().trimmed().split(separator,
+                                                                  QString::SkipEmptyParts,
+                                                                  Qt::CaseInsensitive)); /* of separator */
+#endif
     std::vector<AString> namesOut;
     for (const QString& name : namesList) {
         const AString n = name.trimmed();

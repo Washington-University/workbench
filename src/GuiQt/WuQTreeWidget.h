@@ -31,15 +31,14 @@ namespace caret {
         Q_OBJECT
 
     public:
-        WuQTreeWidget(QWidget* parent = 0);
+        WuQTreeWidget(const bool doResizeFlag,
+                      QWidget* parent = 0);
         
         virtual ~WuQTreeWidget();
         
-        void resizeToFitContent();
-        
         QModelIndex getIndexFromItem(const QTreeWidgetItem *item, int column = 0) const;
         
-        QTreeWidgetItem*    getItemFromIndex(const QModelIndex &index) const;
+        QTreeWidgetItem* getItemFromIndex(const QModelIndex &index) const;
         
     private slots:
         void itemExpandedOrCollapsed(QTreeWidgetItem*);
@@ -49,9 +48,13 @@ namespace caret {
 
         WuQTreeWidget& operator=(const WuQTreeWidget&);
 
+        void resizeToFitContent();
+        
         int calculateHeight() const;
         
         int calculateHeightRec(QTreeWidgetItem* treeItem) const;
+        
+        const bool m_doResizeFlag;
     };
     
 #ifdef __WU_Q_TREE_WIDGET_DECLARE__

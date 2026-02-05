@@ -47,18 +47,22 @@ using namespace caret;
  * @param parent
  *    The parent widget
  */
-WuQTreeWidget::WuQTreeWidget(QWidget* parent)
-: QTreeWidget(parent)
+WuQTreeWidget::WuQTreeWidget(const bool doResizeFlag,
+                             QWidget* parent)
+: QTreeWidget(parent),
+m_doResizeFlag(doResizeFlag)
 {
-    this->setHeaderHidden(true);
-    this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    this->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    
-    QObject::connect(this, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
-                     this, SLOT(itemExpandedOrCollapsed(QTreeWidgetItem*)));
-    QObject::connect(this, SIGNAL(itemExpanded(QTreeWidgetItem*)),
-                     this, SLOT(itemExpandedOrCollapsed(QTreeWidgetItem*)));
+    if (m_doResizeFlag) {
+        this->setHeaderHidden(true);
+        this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        this->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+        
+        QObject::connect(this, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
+                         this, SLOT(itemExpandedOrCollapsed(QTreeWidgetItem*)));
+        QObject::connect(this, SIGNAL(itemExpanded(QTreeWidgetItem*)),
+                         this, SLOT(itemExpandedOrCollapsed(QTreeWidgetItem*)));
+    }
 }
 
 /**
@@ -76,7 +80,9 @@ WuQTreeWidget::~WuQTreeWidget()
 void 
 WuQTreeWidget::itemExpandedOrCollapsed(QTreeWidgetItem*)
 {
-    this->resizeToFitContent();
+    if (m_doResizeFlag) {
+        this->resizeToFitContent();
+    }
 }
 
 /**

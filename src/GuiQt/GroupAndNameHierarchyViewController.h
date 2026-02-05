@@ -33,7 +33,6 @@ class QAction;
 class QLineEdit;
 class QTreeWidgetItem;
 class QToolButton;
-class QTreeWidget;
 class QVBoxLayout;
 
 namespace caret {
@@ -45,7 +44,8 @@ namespace caret {
     class GroupAndNameHierarchyModel;
     class GroupAndNameHierarchyTreeWidgetItem;
     class VolumeFile;
-    
+    class WuQTreeWidget;
+
     class GroupAndNameHierarchyViewController : public QWidget {
         
         Q_OBJECT
@@ -146,7 +146,7 @@ namespace caret {
         
         QVBoxLayout* m_modelTreeWidgetLayout;
         
-        QTreeWidget* m_modelTreeWidget;
+        WuQTreeWidget* m_modelTreeWidget;
 
         int32_t m_browserWindowIndex;
         
