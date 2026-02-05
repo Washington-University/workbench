@@ -31,9 +31,9 @@
 
 class QAction;
 class QLineEdit;
-class QTreeWidget;
 class QTreeWidgetItem;
 class QToolButton;
+class QTreeWidget;
 class QVBoxLayout;
 
 namespace caret {

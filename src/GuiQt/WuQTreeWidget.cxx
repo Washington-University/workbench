@@ -42,6 +42,10 @@ using namespace caret;
  */
 /**
  * Constructor.
+ * @param allowResizeFlag
+ *    Will fit size to fit content
+ * @param parent
+ *    The parent widget
  */
 WuQTreeWidget::WuQTreeWidget(QWidget* parent)
 : QTreeWidget(parent)
