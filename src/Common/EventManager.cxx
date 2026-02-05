@@ -449,6 +449,8 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING:
         case EventTypeEnum::EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA:
         case EventTypeEnum::EVENT_CHART_TWO_OVERLAY_VALIDATE:
+        case EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED:
+        case EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_GET:
         case EventTypeEnum::EVENT_DATA_FILE_ADD:
         case EventTypeEnum::EVENT_DATA_FILE_DELETE:
         case EventTypeEnum::EVENT_DATA_FILE_READ:

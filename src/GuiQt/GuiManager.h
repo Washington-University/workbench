@@ -33,7 +33,6 @@
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "GlobalShortcutEnum.h"
-#include "GuiDarkLightThemeModeEnum.h"
 #include "SceneableInterface.h"
 
 class QAction;
@@ -52,6 +51,7 @@ namespace caret {
     class CustomViewDialog;
     class EventOperatingSystemRequestOpenDataFile;
     class GapsAndMarginsDialog;
+    class GuiDarkLightThemeManager;
     class HelpViewerDialog;
     class IdentifyBrainordinateDialog;
     class IdentificationDisplayDialog;
@@ -105,16 +105,6 @@ namespace caret {
         
         static std::vector<std::unique_ptr<InfoItem>> getScreensInfo();
 
-        static void applyCurrentDarkLightTheme();
-        
-        static void applyDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
-        
-        static void applySystemDarkLightTheme();
-
-        static GuiDarkLightThemeModeEnum::Enum getCurrentDarkLightTheme();
-
-        static bool isCurrentActiveThemeDark();
-        
         Brain* getBrain() const;
         
         int32_t getNumberOfOpenBrainBrowserWindows() const;
@@ -148,6 +138,8 @@ namespace caret {
         void receiveEvent(Event* event);
 
         const CursorManager* getCursorManager() const;
+        
+        GuiDarkLightThemeManager* getGuiDarkLightThemeManager();
         
         QAction* getInformationDisplayDialogEnabledAction();
         
@@ -296,6 +288,8 @@ namespace caret {
 
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
+        
+        std::unique_ptr<GuiDarkLightThemeManager> m_guiDarkLightThemeManager;
         
         /** Contains pointers to Brain Browser windows */
         std::vector<BrainBrowserWindow*> m_brainBrowserWindows;

@@ -127,6 +127,8 @@ EventBrowserTabReopenClosed.h
 EventBrowserTabSelectInWindow.h
 EventBrowserWindowPixelSizeInfoEvent.h
 EventCaretPreferencesGet.h
+EventDarkLightThemeModeChanged.h
+EventDarkLightThemeModeGet.h
 EventGetViewportSize.h
 EventListenerInterface.h
 EventManager.h
@@ -304,6 +306,8 @@ EventBrowserTabReopenClosed.cxx
 EventBrowserTabSelectInWindow.cxx
 EventBrowserWindowPixelSizeInfoEvent.cxx
 EventCaretPreferencesGet.cxx
+EventDarkLightThemeModeChanged.cxx
+EventDarkLightThemeModeGet.cxx
 EventGetViewportSize.cxx
 EventListenerInterface.cxx
 EventManager.cxx

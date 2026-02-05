@@ -41,6 +41,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "GuiDarkLightThemeManager.h"
 #include "GuiManager.h"
 #include "PreferencesDialog.h"
 #include "SessionManager.h"
@@ -108,7 +109,7 @@ PreferencesGeneralWidget::updateContent(CaretPreferences* caretPreferences)
     m_preferences = caretPreferences;
     CaretAssert(m_preferences);
     
-    const GuiDarkLightThemeModeEnum::Enum darkLightMode  = GuiManager::getCurrentDarkLightTheme();
+    const GuiDarkLightThemeModeEnum::Enum darkLightMode = m_preferences->getDarkLightThemeMode();
     m_darkLightThemeModeEnumComboBox->setSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>(darkLightMode);
 }
 
@@ -122,9 +123,11 @@ PreferencesGeneralWidget::darkLightThemeModeEnumComboBoxItemActivated()
 
     const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode = m_darkLightThemeModeEnumComboBox->getSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
     
-    GuiManager::applyDarkLightTheme(darkLightThemeMode);
-    
     m_preferences->setDarkLightThemMode(darkLightThemeMode);
+    
+    GuiDarkLightThemeManager* darkLightThemeManager(GuiManager::get()->getGuiDarkLightThemeManager());
+    CaretAssert(darkLightThemeManager);
+    darkLightThemeManager->darkLightThemeChangedByPreferencesGeneralWidget();
 }
 
 /**

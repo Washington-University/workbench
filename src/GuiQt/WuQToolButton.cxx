@@ -27,6 +27,9 @@
 #include <QImage>
 
 #include "CaretAssert.h"
+#include "EventDarkLightThemeModeChanged.h"
+#include "EventDarkLightThemeModeGet.h"
+#include "EventManager.h"
 #include "GuiManager.h"
 
 using namespace caret;
@@ -46,6 +49,9 @@ WuQToolButton::WuQToolButton(QWidget* parent)
 : QToolButton(parent)
 {
     setStyleOnMacOS();
+    
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
 }
 
 /**
@@ -53,6 +59,21 @@ WuQToolButton::WuQToolButton(QWidget* parent)
  */
 WuQToolButton::~WuQToolButton()
 {
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+WuQToolButton::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED) {
+        EventDarkLightThemeModeChanged* themeChangedEvent(dynamic_cast<EventDarkLightThemeModeChanged*>(event));
+        CaretAssert(themeChangedEvent);
+    }
 }
 
 /**
@@ -89,11 +110,23 @@ WuQToolButton::setStyleOnMacOS()
     
     
     setStyleSheet(" QToolButton { } ");
-    if (GuiManager::isCurrentActiveThemeDark()) {
-        setStyleOnMacOSDark();
-    }
-    else {
-        setStyleOnMacOSLight();
+    
+    EventDarkLightThemeModeGet themeModeEvent;
+    EventManager::get()->sendEvent(themeModeEvent.getPointer());
+    CaretAssert(themeModeEvent.getEventProcessCount() > 0);
+    const GuiDarkLightThemeModeEnum::Enum darkLightMode = themeModeEvent.getDarkLightThemeMode();
+
+    switch (darkLightMode) {
+        case GuiDarkLightThemeModeEnum::SYSTEM:
+            CaretAssert(0);
+            setStyleOnMacOSLight();
+            break;
+        case GuiDarkLightThemeModeEnum::DARK:
+            setStyleOnMacOSDark();
+            break;
+        case GuiDarkLightThemeModeEnum::LIGHT:
+            setStyleOnMacOSLight();
+            break;
     }
 }
 
@@ -258,47 +291,6 @@ WuQToolButton::setStyleOnMacOSLight()
     this->setStyleSheet(toolButtonStyleSheet);
 #else
 #endif
-}
-
-
-
-/**
- * Override changeEvent from QWidget
- * @param event
- */
-void
-WuQToolButton::changeEvent(QEvent *event)
-{
-    if (m_blockChangeEventFlag) {
-        return;
-    }
-    
-     if (event->type() == QEvent::PaletteChange) {
-         /*
-          * Setting style causes change event
-          */
-         m_blockChangeEventFlag = true;
-
-         /*
-         * Gets called when dark/light them changes.
-         */
-         if (m_iconsCreatedFlag) {
-             if (GuiManager::isCurrentActiveThemeDark()) {
-                 setIcon(m_darkIcon);
-                 std::cout << "Setting dark icon" << std::endl;
-             }
-             else {
-                 setIcon(m_lightIcon);
-                 std::cout << "Setting light icon" << std::endl;
-             }
-         }
-         
-         setStyleOnMacOS();
-         
-         m_blockChangeEventFlag = false;
-    }
-    
-    QToolButton::changeEvent(event);
 }
 
 /**

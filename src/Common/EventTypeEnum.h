@@ -158,6 +158,10 @@ public:
         EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
         /** Validate that chart two overlay is valid (it exists). */
         EVENT_CHART_TWO_OVERLAY_VALIDATE,
+        /** Dark / Light Theme mode changed*/
+        EVENT_DARK_LIGHT_THEME_MODE_CHANGED,
+        /** Get the Dark / Light Theme mode */
+        EVENT_DARK_LIGHT_THEME_MODE_GET,
         /** Add a data file into the Brain*/
         EVENT_DATA_FILE_ADD,
         /** Delete a data file from the brain */

@@ -97,6 +97,7 @@
 #include "FileInformation.h"
 #include "FociProjectionDialog.h"
 #include "GapsAndMargins.h"
+#include "GuiDarkLightThemeManager.h"
 #include "GuiManager.h"
 #include "LockAspectWarningDialog.h"
 #include "ModelSurface.h"
@@ -904,10 +905,9 @@ BrainBrowserWindow::changeEvent(QEvent *event)
         }
     }
     else if (event->type() == QEvent::PaletteChange) {
-        /*
-         * Gets called when dark/light them changes but does not appear
-         * that anything needs to be done.
-         */
+        GuiDarkLightThemeManager* darkLightThemeManager(GuiManager::get()->getGuiDarkLightThemeManager());
+        CaretAssert(darkLightThemeManager);
+        darkLightThemeManager->darkLightThemeChangedByPaletteChangeEventInBrowserWindow();
     }
     
     m_restoringSceneNoSaveWindowCompontentStatusFlag = false;

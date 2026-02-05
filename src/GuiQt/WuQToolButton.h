@@ -28,11 +28,11 @@
 #include <QMenu> /* without this get a compilation error in QToolButton */
 #include <QToolButton>
 
-
+#include "EventListenerInterface.h"
 
 namespace caret {
 
-    class WuQToolButton : public QToolButton {
+    class WuQToolButton : public QToolButton, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -45,12 +45,14 @@ namespace caret {
 
         WuQToolButton& operator=(const WuQToolButton&) = delete;
 
+        virtual void receiveEvent(Event* event) override;
+
         void setLightIcon(const QIcon& icon);
 
         // ADD_NEW_METHODS_HERE
 
     protected:
-        virtual void changeEvent(QEvent *event) override;
+//        virtual void changeEvent(QEvent *event) override;
         
         virtual void showEvent(QShowEvent *event) override;
         

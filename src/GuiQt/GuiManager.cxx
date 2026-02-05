@@ -92,6 +92,7 @@
 #include "ExitProgramModifiedFilesDialog.h"
 #include "FociPropertiesEditorDialog.h"
 #include "GapsAndMarginsDialog.h"
+#include "GuiDarkLightThemeManager.h"
 #include "HelpViewerDialog.h"
 #include "HtmlTableBuilder.h"
 #include "IdentificationDisplayDialog.h"
@@ -215,6 +216,7 @@ GuiManager::initializeGuiManager()
     m_paletteEditorDialog = NULL;
     
     this->cursorManager = new CursorManager();
+    m_guiDarkLightThemeManager.reset(new GuiDarkLightThemeManager());
     
     /*
      * When running macro commands, some object may be child
@@ -379,6 +381,7 @@ GuiManager::initializeGuiManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ALERT_USER);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
@@ -711,13 +714,6 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
                                   AString& errorMessageOut)
 {
     errorMessageOut.clear();
-    
-    if (getNumberOfOpenBrainBrowserWindows() <= 0) {
-        /*
-         * Set dark/light them before first window is created
-         */
-        GuiManager::applyCurrentDarkLightTheme();
-    }
     
     /*
      * If no tabs can be created, do not create a new window.
@@ -2930,6 +2926,16 @@ GuiManager::getCursorManager() const
 }
 
 /**
+ * @return The GUI's dark light theme manager
+ */
+GuiDarkLightThemeManager*
+GuiManager::getGuiDarkLightThemeManager()
+{
+    CaretAssert(m_guiDarkLightThemeManager);
+    return m_guiDarkLightThemeManager.get();
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes
@@ -4305,84 +4311,4 @@ GuiManager::toolTipHyperlinkClicked(const QString& hyperlink)
                        + hyperlink);
     }
 }
-
-/**
- * Apply the given dark / light theme mode
- * @param darkLightThemeMode
- *   New theme
- */
-void
-GuiManager::applyDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
-{
-#ifdef CARET_OS_MACOSX
-    switch (darkLightThemeMode) {
-        case GuiDarkLightThemeModeEnum::SYSTEM:
-            macSetToAutoTheme();
-            break;
-        case GuiDarkLightThemeModeEnum::DARK:
-            macSetToDarkTheme();
-            break;
-        case GuiDarkLightThemeModeEnum::LIGHT:
-            macSetToLightTheme();
-            break;
-    }
-#endif
-}
-
-/**
- * Apply the currtent dark / light theme.  This is called when Workbench is started.
- */
-void
-GuiManager::applyCurrentDarkLightTheme()
-{
-    CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
-    GuiManager::applyDarkLightTheme(prefs->getDarkLightThemeMode());
-}
-
-/**
- * If the current dark/light mode them is system, apply it
- */
-void
-GuiManager::applySystemDarkLightTheme()
-{
-    const GuiDarkLightThemeModeEnum::Enum darkLightTheme(getCurrentDarkLightTheme());
-    if (darkLightTheme == GuiDarkLightThemeModeEnum::SYSTEM){
-//        applyDarkLightTheme(<#const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode#>)
-    }
-}
-
-/**
- * @return The current dark/light theme
- */
-GuiDarkLightThemeModeEnum::Enum
-GuiManager::getCurrentDarkLightTheme()
-{
-    CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
-    return prefs->getDarkLightThemeMode();
-}
-
-/**
- * @return True if current O/S is macOS and current theme is dark
- * else return true if theme selected on Preferences General is dark.
- */
-bool
-GuiManager::isCurrentActiveThemeDark()
-{
-#ifdef CARET_OS_MACOSX
-    return macIsInDarkTheme();
-#else
-    switch (getCurrentDarkLightTheme()) {
-        case GuiDarkLightThemeModeEnum::SYSTEM:
-            break;
-        case GuiDarkLightThemeModeEnum::DARK:
-            return true;
-            break;
-        case GuiDarkLightThemeModeEnum::LIGHT:
-            break;
-    }
-    return false;
-#endif
-}
-
-
 
