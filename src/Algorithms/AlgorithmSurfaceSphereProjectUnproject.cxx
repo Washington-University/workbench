@@ -44,25 +44,26 @@ AString AlgorithmSurfaceSphereProjectUnproject::getShortDescription()
 OperationParameters* AlgorithmSurfaceSphereProjectUnproject::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addSurfaceParameter(1, "sphere-in", "a sphere with the desired output mesh");
+    ret->addSurfaceParameter(1, "sphere-in", "a sphere with the desired output mesh, to apply the deformations to");
     
-    ret->addSurfaceParameter(2, "sphere-project-to", "a sphere that aligns with sphere-in");
+    ret->addSurfaceParameter(2, "sphere-project-to", "<sphere-unproject-from>, but 'before' the deformation that is desired, i.e., is aligned with <sphere-in>");
     
-    ret->addSurfaceParameter(3, "sphere-unproject-from", "<sphere-project-to> deformed to the desired output space");
+    ret->addSurfaceParameter(3, "sphere-unproject-from", "<sphere-project-to>, deformed to the desired output registration");
     
-    ret->addSurfaceOutputParameter(4, "sphere-out", "the output sphere");
+    ret->addSurfaceOutputParameter(4, "sphere-out", "<sphere-in> after the deformations are applied");
     
     ret->setHelpText(
-        AString("Background: A surface registration starts with an input sphere, and moves its vertices around on the sphere until it matches the template data.  ") +
-        "This means that the registration deformation is actually represented as the difference between two separate files - the starting sphere, and the registered sphere.  " +
-        "Since the starting sphere of the registration may not have vertex correspondence to any other sphere (often, it is a native sphere), it can be inconvenient to manipulate or compare these deformations across subjects, etc.\n\n" +
+        AString("Background: A surface registration starts with an input sphere and data, and moves the vertices around on the sphere until the new spherical location of the data matches the template data ") +
+        "(side note: this does not deform the anatomical position of any data, nor does surface-based resampling, as long as the same pair of spheres is used to resample both the surface and metric files).  " +
+        "This means that the spherical deformations produced by the registration are actually represented as the difference between two separate files - the starting sphere, and the registered sphere.  " +
+        "Since the starting sphere of the registration may not have vertex correspondence to any other sphere (often, it is a native-mesh sphere), it can be inconvenient to manipulate or compare these spherical deformations across subjects, etc.\n\n" +
         
         "The purpose of this command is to be able to apply these deformations onto a new sphere of the user's choice, to make it easier to compare or manipulate them.  " +
         "Common uses are to concatenate two successive separate registrations (e.g. Human to Chimpanzee, and then Chimpanzee to Macaque) or inversion (for dedrifting or symmetric registration schemes).\n\n" +
         
         "<sphere-in> must already be considered to be in alignment with one of the two ends of the registration (if your registration is Human to Chimpanzee, <sphere-in> must be in register with either Human or Chimpanzee).  " +
         "The 'project-to' sphere must be the side of the registration that is aligned with <sphere-in> (if your registration is Human to Chimpanzee, and <sphere-in> is aligned with Human, then 'project-to' should be the original Human sphere).  " +
-        "The 'unproject-from' sphere must be the remaining sphere of the registration (original vs deformed/registered).  " +
+        "The 'unproject-from' sphere must be the remaining sphere of the registration pair (original vs deformed/registered).  " +
         "The output is as if you had run the same registration with <sphere-in> as the starting sphere, in the direction of deforming the 'project-to' sphere to create the 'unproject-from' sphere.\n\n" +
         
         "Note that this command cannot check for you what spheres are aligned with other spheres, and using the wrong spheres or in the incorrect order will not necessarily cause an error message.  " +

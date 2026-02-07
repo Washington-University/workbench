@@ -43,11 +43,11 @@ AString AlgorithmSurfaceResample::getShortDescription()
 OperationParameters* AlgorithmSurfaceResample::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addSurfaceParameter(1, "surface-in", "the surface file to resample");
+    ret->addSurfaceParameter(1, "surface-in", "the surface file to resample, typically a native-mesh anatomical or inflated surface");
     
-    ret->addSurfaceParameter(2, "current-sphere", "a sphere surface with the mesh that the input surface is currently on");
+    ret->addSurfaceParameter(2, "current-sphere", "a sphere surface that is in register with <new-sphere> and uses the mesh that the input surface is currently on, typically a registered native-mesh sphere");
     
-    ret->addSurfaceParameter(3, "new-sphere", "a sphere surface that is in register with <current-sphere> and has the desired output mesh");
+    ret->addSurfaceParameter(3, "new-sphere", "a sphere surface that has the desired output mesh, typically a standard sphere");
     
     ret->addStringParameter(4, "method", "the method name");
     
