@@ -22,13 +22,14 @@
 /*LICENSE_END*/
 
 
-
-//#include <memory>
+#include <utility>
 
 #include <QMenu> /* without this get a compilation error in QToolButton */
 #include <QToolButton>
 
 #include "EventListenerInterface.h"
+#include "GuiDarkLightThemeModeEnum.h"
+#include "WorkbenchIconTypeEnum.h"
 
 namespace caret {
 
@@ -37,7 +38,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        WuQToolButton(QWidget* parent = 0);
+        WuQToolButton(const WorkbenchIconTypeEnum::Enum iconType,
+                      QWidget* parent = 0);
         
         virtual ~WuQToolButton();
         
@@ -47,29 +49,27 @@ namespace caret {
 
         virtual void receiveEvent(Event* event) override;
 
-        void setLightIcon(const QIcon& icon);
-
         // ADD_NEW_METHODS_HERE
 
     protected:
-//        virtual void changeEvent(QEvent *event) override;
-        
         virtual void showEvent(QShowEvent *event) override;
         
     private:
-        void setStyleOnMacOS();
+        void updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
         
-        void setStyleOnMacOSDark();
+        void updateButtonForMacOS(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
         
-        void setStyleOnMacOSLight();
+        QPixmap createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
+                             const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
         
-        QIcon m_lightIcon;
+        void setFontHeight(QSharedPointer<QPainter>& painter,
+                           const int32_t fontHeight);
+
+        GuiDarkLightThemeModeEnum::Enum getCurrentDarkLightThemeMode() const;
         
-        QIcon m_darkIcon;
+        QPixmap m_lightPixmap;
         
-        bool m_iconsCreatedFlag = false;
-        
-        bool m_blockChangeEventFlag = false;
+        QPixmap m_darkPixmap;
         
         // ADD_NEW_MEMBERS_HERE
 

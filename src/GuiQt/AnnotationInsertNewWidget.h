@@ -81,9 +81,6 @@ namespace caret {
         QToolButton* createSpaceToolButton(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                            QActionGroup* actionGroup);
         
-        QPixmap createShapePixmap(const QWidget* widget,
-                                  const AnnotationTypeEnum::Enum annotationType);
-        
         QPixmap createSpacePixmap(const QWidget* widget,
                                   const AnnotationCoordinateSpaceEnum::Enum annotationSpace);
         

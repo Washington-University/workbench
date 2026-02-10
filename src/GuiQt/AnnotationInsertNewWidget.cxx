@@ -29,7 +29,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
-#include <QPainter>
 #include <QRadioButton>
 #include <QSignalBlocker>
 #include <QSpinBox>
@@ -57,6 +56,7 @@
 #include "Model.h"
 #include "UserInputModeEnum.h"
 #include "WuQMessageBox.h"
+#include "WuQToolButton.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -615,13 +615,55 @@ QToolButton*
 AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum annotationType,
                                                  QActionGroup* actionGroup)
 {
-    const QString typeGuiName = AnnotationTypeEnum::toGuiName(annotationType);
-    QToolButton* toolButton = new QToolButton();
+    WorkbenchIconTypeEnum::Enum iconType(WorkbenchIconTypeEnum::NO_ICON);
+    switch (annotationType) {
+        case AnnotationTypeEnum::ARROW:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_ARROW;
+            break;
+        case AnnotationTypeEnum::BOX:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_BOX;
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            CaretAssertMessage(0, "No pixmap for browser tab as user does not create them like other annotations");
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            CaretAssertMessage(0, "No pixmap for colorbar as user does not create them like other annotations");
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_IMAGE;
+            break;
+        case AnnotationTypeEnum::LINE:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_LINE;
+            break;
+        case AnnotationTypeEnum::MARKER:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_MARKER;
+            break;
+        case AnnotationTypeEnum::OVAL:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_OVAL;
+            break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_POLYHEDRON;
+            break;
+        case AnnotationTypeEnum::POLYGON:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_POLYGON;
+            break;
+        case AnnotationTypeEnum::POLYLINE:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_POLYLINE;
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            CaretAssertMessage(0, "No pixmap for scale bar as user does not create them like other annotations");
+            break;
+        case AnnotationTypeEnum::TEXT:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_TEXT;
+            break;
+    }
+    CaretAssert(iconType != WorkbenchIconTypeEnum::NO_ICON);
+
     
-    QAction* action = new QAction(createShapePixmap(toolButton,
-                                                    annotationType),
-                                  typeGuiName,
-                                  this);
+    const QString typeGuiName = AnnotationTypeEnum::toGuiName(annotationType);
+    WuQToolButton* toolButton = new WuQToolButton(iconType);
+    QAction* action(toolButton->defaultAction());
+    action->setText(typeGuiName);
     
     action->setData(AnnotationTypeEnum::toIntegerCode(annotationType));
 
@@ -787,14 +829,14 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
     action->setCheckable(true);
     action->setChecked(false);
     
-    toolButton->setDefaultAction(action);
+//    toolButton->setDefaultAction(action);
     
     /*
      * Must set style AFTER button is added to action group
      * so that checked property is enabled for button
      */
     actionGroup->addAction(action);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
+//    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }
@@ -974,179 +1016,6 @@ AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
 }
 
 /**
- * Create a pixmap for the given annotation shape type.
- *
- * @param widget
- *    To color the pixmap with backround and foreground,
- *    the palette from the given widget is used.
- * @param annotationType
- *    The annotation type.
- * @return
- *    Pixmap with icon for the given annotation type.
- */
-QPixmap
-AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
-                                             const AnnotationTypeEnum::Enum annotationType)
-{
-    CaretAssert(widget);
-
-    /*
-     * Create a small, square pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    const float width  = 24.0;
-    const float height = 24.0;
-    QPixmap pixmap(static_cast<int>(width),
-                   static_cast<int>(height));
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
-                                                                                pixmap);
-    
-    /**
-     * NOTE: ORIGIN is in TOP LEFT corner of pixmap.
-     */
-    switch (annotationType) {
-        case AnnotationTypeEnum::ARROW:
-            painter->drawLine(2, height - 2, width - 2, 2);
-            painter->drawLine(width / 2, 2, width - 2, 2);
-            painter->drawLine(width - 2, 2, width - 2, height / 2);
-            break;
-        case AnnotationTypeEnum::BOX:
-            painter->drawRect(1, 1, width - 2, height - 2);
-            break;
-        case AnnotationTypeEnum::BROWSER_TAB:
-            CaretAssertMessage(0, "No pixmap for browser tab as user does not create them like other annotations");
-            break;
-        case AnnotationTypeEnum::COLOR_BAR:
-            CaretAssertMessage(0, "No pixmap for colorbar as user does not create them like other annotations");
-            break;
-        case AnnotationTypeEnum::IMAGE:
-        {
-            const int blueAsGray = qGray(25,25,255);
-            QColor skyColor(blueAsGray, blueAsGray, blueAsGray);
-            
-            /*
-             * Background (sky)
-             */
-            painter->fillRect(pixmap.rect(), skyColor);
-            
-            const int greenAsGray = qGray(0, 255, 0);
-            QColor terrainColor(greenAsGray, greenAsGray, greenAsGray);
-            
-            /*
-             * Terrain
-             */
-            painter->setBrush(terrainColor);
-            painter->setPen(terrainColor);
-            const int w14 = width * 0.25;
-            const int h23 = height * 0.667;
-            const int h34 = height * 0.75;
-            QPolygon terrain;
-            terrain.push_back(QPoint(1, height - 1));
-            terrain.push_back(QPoint(width - 1, height - 1));
-            terrain.push_back(QPoint(width - 1, h23));
-            terrain.push_back(QPoint(w14 * 3, h34));
-            terrain.push_back(QPoint(w14 * 2, h23));
-            terrain.push_back(QPoint(w14, h34));
-            terrain.push_back(QPoint(1, h23));
-            terrain.push_back(QPoint(1, height - 1));
-            painter->drawPolygon(terrain);
-            
-            const int yellowAsGray = qGray(255, 255, 0);
-            QColor sunColor(yellowAsGray, yellowAsGray, yellowAsGray);
-            
-            /*
-             * Sun
-             */
-            painter->setBrush(sunColor);
-            painter->setPen(sunColor);
-            const int radius = width * 0.25;
-            painter->drawEllipse(width * 0.33, height * 0.33, radius, radius);
-        }
-            break;
-        case AnnotationTypeEnum::LINE:
-            painter->drawLine(2, height - 2, width - 2, 2);
-            break;
-        case AnnotationTypeEnum::MARKER:
-            painter->drawLine(2, height - 2, width - 2, 2);
-            painter->drawLine(2, 2, width - 2, height - 2);
-            break;
-        case AnnotationTypeEnum::OVAL:
-            painter->drawEllipse(1, 1, width - 1, height - 1);
-            break;
-        case AnnotationTypeEnum::POLYHEDRON:
-        {
-            CaretAssert(width  == 24);
-            CaretAssert(height == 24);
-            {
-                QPolygon polygon;
-                polygon.push_back(QPoint(12, 2));
-                polygon.push_back(QPoint(6, 8));
-                polygon.push_back(QPoint(12, 12));
-                polygon.push_back(QPoint(18, 8));
-                painter->drawPolygon(polygon);
-            }
-            {
-                QPolygon polygon;
-                polygon.push_back(QPoint(6, 8));
-                polygon.push_back(QPoint(2, 18));
-                polygon.push_back(QPoint(10, 20));
-                polygon.push_back(QPoint(12, 12));
-                painter->drawPolygon(polygon);
-            }
-            {
-                QPolygon polygon;
-                polygon.push_back(QPoint(12, 12));
-                polygon.push_back(QPoint(10, 20));
-                polygon.push_back(QPoint(16, 20));
-                polygon.push_back(QPoint(18, 8));
-                painter->drawPolygon(polygon);
-            }
-        }
-            break;
-        case AnnotationTypeEnum::POLYGON:
-        {
-            const int hh(height / 2);
-            const int hw(width / 2);
-            QPolygon polygon;
-            polygon.push_back(QPoint(2, 2));
-            polygon.push_back(QPoint(width - 2, 5));
-            polygon.push_back(QPoint(width - 5, height - 2));
-            polygon.push_back(QPoint(hh, hw));
-            polygon.push_back(QPoint(2, height - 4));
-            painter->drawPolygon(polygon);
-        }
-            break;
-        case AnnotationTypeEnum::POLYLINE:
-        {
-            const int hh(height / 2);
-            const int hw(width / 2);
-            QPolygon polyLine;
-            polyLine.push_back(QPoint(2, hh));
-            polyLine.push_back(QPoint(6, 3));
-            polyLine.push_back(QPoint(hw + 5, height - 3));
-            polyLine.push_back(QPoint(width - 2, hh - 3));
-            painter->drawPolyline(polyLine);
-        }
-            break;
-        case AnnotationTypeEnum::SCALE_BAR:
-            CaretAssertMessage(0, "No pixmap for scale bar as user does not create them like other annotations");
-            break;
-        case AnnotationTypeEnum::TEXT:
-        {
-            QFont font = painter->font();
-            font.setPixelSize(20);
-            painter->setFont(font);
-            painter->drawText(pixmap.rect(),
-                             (Qt::AlignCenter),
-                             "A");
-        }
-            break;
-    }
-    
-    return pixmap;
-}
-
-/**
  * @return Create the space tool button for the given annotation space.
  *
  * @param annotationSpace
@@ -1158,120 +1027,49 @@ QToolButton*
 AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                  QActionGroup* actionGroup)
 {
+    WorkbenchIconTypeEnum::Enum iconType(WorkbenchIconTypeEnum::NO_ICON);
+    
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_CHART;
             break;
         case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_HISTOLOGY;
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_MEDIA_FILE_NAME_AND_PIXEL;
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
+            CaretAssertMessage(0, "Annotations in spacer space not supported.");
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_STEREOTAXIC;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_SURFACE;
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_TAB;
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
             CaretAssertMessage(0, "Annotations in viewport space not supported.");
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_WINDOW;
             break;
     }
+    CaretAssert(iconType != WorkbenchIconTypeEnum::NO_ICON);
     
-    const bool useIconFlag = true;
-    QToolButton* toolButton = new QToolButton();
-    QAction* action = NULL;
-    if (useIconFlag) {
-        action = new QAction(createSpacePixmap(toolButton,
-                                               annotationSpace),
-                             AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(annotationSpace),
-                             this);
-    }
-    else {
-        action = new QAction(AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(annotationSpace),
-                             this);
-    }
-
+    QToolButton* toolButton(new WuQToolButton(iconType));
+    QAction* action(toolButton->defaultAction());
+    
     action->setData((int)AnnotationCoordinateSpaceEnum::toIntegerCode(annotationSpace));
     action->setToolTip(AnnotationCoordinateSpaceEnum::toToolTip(annotationSpace));
     action->setCheckable(true);
     action->setChecked(false);
-    
-    toolButton->setDefaultAction(action);
-    
-    /*
-     * Must set style AFTER button is added to action group
-     * so that checked property is enabled for button
-     */
+        
     actionGroup->addAction(action);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
-}
-
-/**
- * Create a pixmap for the given annotation coordinate space
- *
- * @param widget
- *    To color the pixmap with backround and foreground,
- *    the palette from the given widget is used.
- * @param annotationSpace
- *    The annotation coordinate space.
- * @return
- *    Pixmap with icon for the given annotation coordinate space.
- */
-QPixmap
-AnnotationInsertNewWidget::createSpacePixmap(const QWidget* widget,
-                                             const AnnotationCoordinateSpaceEnum::Enum annotationSpace)
-{
-    CaretAssert(widget);
-    
-    /*
-     * Create a small, square pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    const float width  = 24.0;
-    const float height = 24.0;
-    QPixmap pixmap(static_cast<int>(width),
-                   static_cast<int>(height));
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
-                                                                                pixmap);
-    
-    /**
-     * NOTE: ORIGIN is in TOP LEFT corner of pixmap.
-     */
-    switch (annotationSpace) {
-        case AnnotationCoordinateSpaceEnum::CHART:
-            break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
-            break;
-        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
-            break;
-        case AnnotationCoordinateSpaceEnum::SPACER:
-            break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            break;
-        case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            CaretAssertMessage(0, "Annotations in viewport space not supported.");
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            break;
-    }
-    
-    const QString letter = AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(annotationSpace);
-    QFont font = painter->font();
-    font.setPixelSize(20);
-    painter->setFont(font);
-    painter->drawText(pixmap.rect(),
-                      (Qt::AlignCenter),
-                      letter);
-    
-    return pixmap;
 }
 

@@ -1829,3 +1829,87 @@ WuQtUtilities::getFixedFont()
     }
     return s_fixedFont;
 }
+
+/**
+ * Print the color
+ * @param name
+ *    Name of the color
+ * @param color
+ *    Color that is printed
+ */
+void
+WuQtUtilities::printColor(const QString& name,
+                          const QColor& color)
+{
+    std::cout << name.toStdString();
+    std::cout << " r: " << color.red();
+    std::cout << " g: " << color.green();
+    std::cout << " b: " << color.blue();
+    std::cout << " a: " << color.alpha();
+    std::cout << std::endl;
+}
+
+/**
+ * Print the color group
+ * @param colorGroupName
+ *    Name of color group that is printed
+ * @param palette
+ *    The palette
+ * @param colorGroup
+ *    The color group in the palette
+ */
+void
+WuQtUtilities::printColorGroup(const AString& colorGroupName,
+                               const QPalette& palette,
+                               const QPalette::ColorGroup colorGroup)
+{
+    std::cout << "   Color Group: " << colorGroupName << std::endl;
+    printColor("      Window", palette.color(colorGroup,
+                                             QPalette::Window));
+    printColor("      WindowText", palette.color(colorGroup,
+                                                 QPalette::WindowText));
+    printColor("      Base", palette.color(colorGroup,
+                                           QPalette::Base));
+    printColor("      AlternateBase", palette.color(colorGroup,
+                                                    QPalette::AlternateBase));
+    printColor("      Text", palette.color(colorGroup,
+                                           QPalette::Text));
+    printColor("      Button", palette.color(colorGroup,
+                                             QPalette::Button));
+    printColor("      ButtonText", palette.color(colorGroup,
+                                                 QPalette::ButtonText));
+    printColor("      BrightText", palette.color(colorGroup,
+                                                 QPalette::BrightText));
+    printColor("      Light", palette.color(colorGroup,
+                                            QPalette::Light));
+    printColor("      Midlight", palette.color(colorGroup,
+                                               QPalette::Midlight));
+    printColor("      Dark", palette.color(colorGroup,
+                                           QPalette::Dark));
+    printColor("      Mid", palette.color(colorGroup,
+                                          QPalette::Mid));
+    printColor("      Shadow", palette.color(colorGroup,
+                                             QPalette::Shadow));
+    printColor("      Highlight", palette.color(colorGroup,
+                                                QPalette::Highlight));
+    printColor("      HighlightedText", palette.color(colorGroup,
+                                                      QPalette::HighlightedText));
+}
+
+/**
+ * Print all color groups for widget
+ * @param name
+ *    Name that is printed
+ * @param widget
+ *    The widget
+ */
+void
+WuQtUtilities::printColorGroups(const AString& name,
+                                QWidget* widget)
+{
+    std::cout << "All colorgroups for " << name << std::endl;
+    printColorGroup("   Disabled", widget->palette(), QPalette::Disabled);
+    printColorGroup("   Active", widget->palette(), QPalette::Active);
+    printColorGroup("   Inactive", widget->palette(), QPalette::Inactive);
+    printColorGroup("   Normal", widget->palette(), QPalette::Normal);
+}

@@ -62,7 +62,22 @@ PreferencesGeneralWidget::PreferencesGeneralWidget(QWidget* parent)
      * Image texture minification filter
      */
     m_darkLightThemeModeEnumComboBox = new EnumComboBoxTemplate(this);
+    
+#ifdef CARET_OS_MACOSX
+    /*
+     * System, Dark, and Light on macOS
+     */
     m_darkLightThemeModeEnumComboBox->setup<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
+#else
+    /*
+     * Dark and Light only on Linux and Windows
+     */
+    std::vector<GuiDarkLightThemeModeEnum::Enum> themes;
+    themes.push_back(GuiDarkLightThemeModeEnum::DARK);
+    themes.push_back(GuiDarkLightThemeModeEnum::LIGHT);
+    m_darkLightThemeModeEnumComboBox->setupWithItems<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>(themes);
+#endif
+
     QObject::connect(m_darkLightThemeModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &PreferencesGeneralWidget::darkLightThemeModeEnumComboBoxItemActivated);
     PreferencesDialog::addWidgetToLayout(gridLayout,
@@ -83,12 +98,6 @@ PreferencesGeneralWidget::PreferencesGeneralWidget(QWidget* parent)
     layout->addLayout(gridLayout);
     layout->addWidget(msgLabel);
     layout->addStretch();
-    
-#ifdef CARET_OS_MACOSX
-    setEnabled(true);
-#else
-    setEnabled(false);
-#endif
 }
 
 /**

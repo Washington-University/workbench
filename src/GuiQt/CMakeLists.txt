@@ -654,6 +654,7 @@ WbMacroCustomOperationTypeEnum.h
 WbMacroHelper.h
 WbMacroWidgetActionNames.h
 WbMacroWidgetActionsManager.h
+WorkbenchIconTypeEnum.h
 WorkbenchInstallationAssistantDialog.h
 WuQCollapsibleWidget.h
 WuQColorEditorWidget.h
@@ -1018,6 +1019,7 @@ WbMacroCustomOperationSurfaceDefaultColor.cxx
 WbMacroCustomOperationTypeEnum.cxx
 WbMacroHelper.cxx
 WbMacroWidgetActionsManager.cxx
+WorkbenchIconTypeEnum.cxx
 WorkbenchInstallationAssistantDialog.cxx
 WuQCollapsibleWidget.cxx
 WuQColorEditorWidget.cxx
