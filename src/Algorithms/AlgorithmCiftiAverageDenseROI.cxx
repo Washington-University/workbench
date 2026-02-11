@@ -48,7 +48,7 @@ OperationParameters* AlgorithmCiftiAverageDenseROI::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
-    ret->addCiftiOutputParameter(1, "cifti-out", "output cifti dscalar file");
+    ret->addCiftiOutputParameter(1, "cifti-out", "output cifti file");
     
     OptionalParameter* ciftiRoiOpt = ret->createOptionalParameter(2, "-cifti-roi", "cifti file containing combined weights");
     ciftiRoiOpt->addCiftiParameter(1, "roi-cifti", "the roi cifti file");
@@ -346,7 +346,7 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     for (int i = 1; i < numCifti; ++i)
     {
         const CiftiXML& thisXML = ciftiList[i]->getCiftiXML();
-        if (!thisXML.approximateMatch(baseXML)) throw AlgorithmException("cifti files do not match between #1 and #" + AString::number(i + 1));
+        if (!thisXML.approximateMatch(baseXML)) throw AlgorithmException("cifti files do not match between '" + ciftiList[0]->getFileName() + "' and '" + ciftiList[i]->getFileName() + "'");
     }
     int numMaps = roiXML.getDimensionLength(CiftiXML::ALONG_ROW);
     vector<vector<double> > accum(numMaps, vector<double>(rowSize, 0.0));

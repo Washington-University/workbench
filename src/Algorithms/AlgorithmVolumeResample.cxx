@@ -77,7 +77,7 @@ OperationParameters* AlgorithmVolumeResample::getParameters()
         AString("Resample a volume file with an arbitrary list of transformations.  ") +
         "You may specify -affine, -warp, and -affine-series multiple times each, and they will be used in the order specified.  "
         "For instance, for rigid motion correction followed by nonlinear atlas registration, specify -affine-series first, then -warp.  "
-        "The recommended methods are CUBIC (cubic spline) for most data, and ENCLOSING_VOXEL for label data.  "
+        "The recommended methods are CUBIC (cubic spline) for most data, and the -volume-label-resample command for label data (the ENCLOSING_VOXEL method in this command will give a rough version).  "
         "The parameter <method> must be one of:\n\n"
         "CUBIC\nENCLOSING_VOXEL\nTRILINEAR"
     );

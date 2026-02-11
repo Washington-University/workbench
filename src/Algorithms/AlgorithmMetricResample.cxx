@@ -45,9 +45,9 @@ OperationParameters* AlgorithmMetricResample::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addMetricParameter(1, "metric-in", "the metric file to resample, typically a native-mesh metric");
     
-    ret->addSurfaceParameter(2, "current-sphere", "a sphere surface that is in register with <new-sphere> and has the mesh that the metric is currently on, typically a registered native-mesh sphere");
+    ret->addSurfaceParameter(2, "current-sphere", "a sphere surface that is in register with <new-sphere> and has the mesh that the metric is currently on, typically a registered native-mesh sphere, such as {subject}.L.sphere.MSMAll.native.surf.gii");
     
-    ret->addSurfaceParameter(3, "new-sphere", "a sphere surface that the desired output mesh, typically a standard sphere");
+    ret->addSurfaceParameter(3, "new-sphere", "a sphere surface that the desired output mesh, typically a standard sphere, such as L.sphere.32k_fs_LR.surf.gii");
     
     ret->addStringParameter(4, "method", "the method name");
     
