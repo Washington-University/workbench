@@ -55,8 +55,8 @@
 #include "GuiManager.h"
 #include "Model.h"
 #include "UserInputModeEnum.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
-#include "WuQToolButton.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -362,8 +362,7 @@ AnnotationInsertNewWidget::createEditSamplesWidgets()
     m_newSampleAction->setToolTip(sampleToolTipText);
     QObject::connect(m_newSampleAction, &QAction::triggered,
                      this, &AnnotationInsertNewWidget::newSampleActionTriggered);
-    QToolButton* newSampleToolButton(new QToolButton());
-    WuQtUtilities::setToolButtonStyleForQt5Mac(newSampleToolButton);
+    QToolButton* newSampleToolButton(new WorkbenchToolButton());
     newSampleToolButton->setDefaultAction(m_newSampleAction);
     
     m_newSampleDepthSpinBox = NULL;
@@ -595,10 +594,9 @@ AnnotationInsertNewWidget::createFileSelectionToolButton()
     m_fileSelectionToolButtonAction->setToolTip("Choose file for new annotation");
     m_fileSelectionToolButtonAction->setMenu(m_fileSelectionMenu);
     
-    QToolButton* fileSelectionToolButton = new QToolButton();
+    QToolButton* fileSelectionToolButton = new WorkbenchToolButton();
     fileSelectionToolButton->setDefaultAction(m_fileSelectionToolButtonAction);
     fileSelectionToolButton->setFixedWidth(fileSelectionToolButton->sizeHint().width());
-    WuQtUtilities::setToolButtonStyleForQt5Mac(fileSelectionToolButton);
     
     return fileSelectionToolButton;
 }
@@ -661,7 +659,7 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
 
     
     const QString typeGuiName = AnnotationTypeEnum::toGuiName(annotationType);
-    WuQToolButton* toolButton = new WuQToolButton(iconType);
+    WorkbenchToolButton* toolButton = new WorkbenchToolButton(iconType);
     QAction* action(toolButton->defaultAction());
     action->setText(typeGuiName);
     
@@ -829,14 +827,11 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
     action->setCheckable(true);
     action->setChecked(false);
     
-//    toolButton->setDefaultAction(action);
-    
     /*
      * Must set style AFTER button is added to action group
      * so that checked property is enabled for button
      */
     actionGroup->addAction(action);
-//    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }
@@ -1060,7 +1055,7 @@ AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpace
     }
     CaretAssert(iconType != WorkbenchIconTypeEnum::NO_ICON);
     
-    QToolButton* toolButton(new WuQToolButton(iconType));
+    QToolButton* toolButton(new WorkbenchToolButton(iconType));
     QAction* action(toolButton->defaultAction());
     
     action->setData((int)AnnotationCoordinateSpaceEnum::toIntegerCode(annotationSpace));

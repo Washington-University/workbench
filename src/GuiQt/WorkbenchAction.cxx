@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __WU_Q_TOOL_BUTTON_DECLARE__
-#include "WuQToolButton.h"
-#undef __WU_Q_TOOL_BUTTON_DECLARE__
+#define __WORKBENCH_ACTION_DECLARE__
+#include "WorkbenchAction.h"
+#undef __WORKBENCH_ACTION_DECLARE__
 
 #include <QEvent>
 #include <QImage>
@@ -29,10 +29,10 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventDarkLightThemeModeChanged.h"
 #include "EventDarkLightThemeModeGet.h"
 #include "EventManager.h"
-#include "GuiManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -40,8 +40,8 @@ using namespace caret;
 
     
 /**
- * \class caret::WuQToolButton 
- * \brief Extends QToolButton to work with light/dark mode and fixes macOS style
+ * \class caret::WorkbenchAction 
+ * \brief Extends QAction to work with light/dark mode for the icon
  * \ingroup GuiQt
  */
 
@@ -51,14 +51,10 @@ using namespace caret;
  *    Type of icon for tool button
  * @param parent
  *    Parent widget
- * @param checkableToolButtonFlag
- *    Toolbutton is checkable
- * @param menuInToolButtonFlag
- *    Toolbutton will have a menu
  */
-WuQToolButton::WuQToolButton(const WorkbenchIconTypeEnum::Enum iconType,
-                             QWidget* parent)
-: QToolButton(parent)
+WorkbenchAction::WorkbenchAction(const WorkbenchIconTypeEnum::Enum iconType,
+                                 QObject* parent)
+: QAction(parent)
 {
     static bool firstFlag(true);
     if (firstFlag) {
@@ -70,9 +66,6 @@ WuQToolButton::WuQToolButton(const WorkbenchIconTypeEnum::Enum iconType,
     m_lightPixmap = createPixmap(iconType,
                                  GuiDarkLightThemeModeEnum::LIGHT);
     
-    QAction* action(new QAction());
-    setDefaultAction(action);
-    
     updateForDarkLightTheme(getCurrentDarkLightThemeMode());
     
     EventManager::get()->addEventListener(this,
@@ -82,7 +75,7 @@ WuQToolButton::WuQToolButton(const WorkbenchIconTypeEnum::Enum iconType,
 /**
  * Destructor.
  */
-WuQToolButton::~WuQToolButton()
+WorkbenchAction::~WorkbenchAction()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -94,7 +87,7 @@ WuQToolButton::~WuQToolButton()
  *     The event that the receive can respond to.
  */
 void
-WuQToolButton::receiveEvent(Event* event)
+WorkbenchAction::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED) {
         EventDarkLightThemeModeChanged* themeChangedEvent(dynamic_cast<EventDarkLightThemeModeChanged*>(event));
@@ -112,96 +105,21 @@ WuQToolButton::receiveEvent(Event* event)
  *    The dark / light theme for the button
  */
 void
-WuQToolButton::updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+WorkbenchAction::updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
 {
     switch (darkLightThemeMode) {
         case GuiDarkLightThemeModeEnum::SYSTEM:
             CaretAssert(0);
-            defaultAction()->setIcon(m_lightPixmap);
+            setIcon(m_lightPixmap);
             break;
         case GuiDarkLightThemeModeEnum::DARK:
-            defaultAction()->setIcon(m_darkPixmap);
+            setIcon(m_darkPixmap);
             break;
         case GuiDarkLightThemeModeEnum::LIGHT:
-            defaultAction()->setIcon(m_lightPixmap);
+            setIcon(m_lightPixmap);
             break;
     }
-    
-#ifdef CARET_OS_MACOSX
-    updateButtonForMacOS(darkLightThemeMode);
-#endif
 }
-
-/**
- * Update the button for MacOS that does not properly decorate the button
- * @param darkLightThemeMode
- *    The dark / light theme for the button
- */
-void
-WuQToolButton::updateButtonForMacOS(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
-{
-    QColor backgroundColor(52, 52, 52, 255);
-    QColor borderColor(85, 85, 85, 255);
-    QColor checkedPressedColor(74, 74, 74, 255);
-
-    switch (darkLightThemeMode) {
-        case GuiDarkLightThemeModeEnum::SYSTEM:
-            CaretAssert(0);
-            backgroundColor.setRgb(255, 255, 255);
-            borderColor.setRgb(196, 196, 196);
-            checkedPressedColor.setRgb(222, 222, 222);
-            break;
-        case GuiDarkLightThemeModeEnum::DARK:
-            backgroundColor.setRgb(52, 52, 52);
-            borderColor.setRgb(85, 85, 85);
-            checkedPressedColor.setRgb(74, 74, 74);
-            break;
-        case GuiDarkLightThemeModeEnum::LIGHT:
-            backgroundColor.setRgb(255, 255, 255);
-            borderColor.setRgb(196, 196, 196);
-            checkedPressedColor.setRgb(222, 222, 222);
-            break;
-    }
-
-    QString toolButtonStyleSheet(" QToolButton { "
-                                 "   background: " + backgroundColor.name() + "; ");
-    toolButtonStyleSheet.append("   border-style: solid; "
-                                "   border-width: 1px; "
-                                "   border-color: " + borderColor.name() + "; "
-                                "   padding-top:    2px; "
-                                "   padding-bottom: 2px; "
-                                "   padding-right:  3px; "
-                                "   padding-left:   3px; ");
-    toolButtonStyleSheet.append(" } ");
-    
-    /*
-     * Background color when button is "checked"
-     */
-    toolButtonStyleSheet.append(" QToolButton:checked { "
-                                "   background-color: " + checkedPressedColor.name() + "; "
-                                " } ");
-    /*
-     * Background color when button is "pressed"
-     */
-    toolButtonStyleSheet.append(" QToolButton:pressed { "
-                                "   background-color: " + checkedPressedColor.name() + "; "
-                                " } ");
-    
-    this->setStyleSheet(toolButtonStyleSheet);
-}
-
-/**
- * Called to show the toolbutton (overrides parent)
- * @param event
- *   The show event
- */
-void
-WuQToolButton::showEvent(QShowEvent *event)
-{
-    QToolButton::showEvent(event);
-}
-
-
 
 /**
  * @return Icon for the given icon type and dark/light theme mode
@@ -213,8 +131,8 @@ WuQToolButton::showEvent(QShowEvent *event)
  *    The pixmap that was created
  */
 QPixmap
-WuQToolButton::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
-                            const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
+                              const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
 {
     /*
      * Create the pixmap the painter for drawing in the pixmap
@@ -223,10 +141,17 @@ WuQToolButton::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
     const int32_t height(24);
     QPixmap pixmap(static_cast<int>(width),
                    static_cast<int>(height));
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(this,
-                                                                                pixmap,
-                                                                                WuQtUtilities::TransparentBackground);
-
+    pixmap.fill(QColor(0, 0, 0, 0));
+    
+    /*
+     * Create a painter and fill the pixmap with
+     * the background color
+     */
+    QSharedPointer<QPainter> painter(new QPainter(&pixmap));
+    painter->setRenderHint(QPainter::Antialiasing,
+                           true);
+    painter->setBackgroundMode(Qt::TransparentMode);
+    
     bool lightThemeFlag(false);
     QColor foregroundColor(255, 255, 255, 255);
     switch (darkLightThemeMode) {
@@ -244,6 +169,8 @@ WuQToolButton::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
             lightThemeFlag = true;
             break;
     }
+    const bool darkThemeFlag( ! lightThemeFlag);
+    
     painter->setPen(foregroundColor);
 
     /*
@@ -253,20 +180,26 @@ WuQToolButton::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
     setFontHeight(painter,
                   fontHeight);
     
-    QIcon icon;
-    
+    const bool REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO  = false;
+//    const bool REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_YES = true;
+
     switch (iconType) {
         case WorkbenchIconTypeEnum::NO_ICON:
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_COLOR_BACKGROUND:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_COLOR_FOREGROUND:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_DELETE:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_LINE_ARROW_DOWN:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_LINE_ARROW_UP:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_ARROW:
             painter->drawLine(2, height - 2, width - 2, 2);
@@ -282,7 +215,7 @@ WuQToolButton::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
              * Background (sky)
              */
             int blueAsGray = qGray(25,25,255);
-            if ( ! lightThemeFlag) {
+            if (darkThemeFlag) {
                 /*
                  * Dark sky
                  */
@@ -296,7 +229,7 @@ WuQToolButton::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
              * Terrain
              */
             int greenAsGray = qGray(0, 255, 0);
-            if ( ! lightThemeFlag) {
+            if (darkThemeFlag) {
                 greenAsGray = qGray(0, 180, 0);
             }
             QColor terrainColor(greenAsGray, greenAsGray, greenAsGray);
@@ -321,7 +254,7 @@ WuQToolButton::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
              */
             const int yellowAsGray = qGray(255, 255, 0);
             QColor sunColor(yellowAsGray, yellowAsGray, yellowAsGray);
-            if ( ! lightThemeFlag) {
+            if (darkThemeFlag) {
                 /*
                  * Replace sun with moon
                  */
@@ -444,92 +377,196 @@ WuQToolButton::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
                               AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(AnnotationCoordinateSpaceEnum::WINDOW));
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_ORIENTATION_HORIZONTAL:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_ORIENTATION_VERTICAL:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_HORIZ_CENTER:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_HORIZ_LEFT:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_HORIZ_RIGHT:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_BOTTOM:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_MIDDLE:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_TOP:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_STYLE_BOLD:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_STYLE_ITALIC:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_STYLE_UNDERLINE:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_ANTERIOR:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_DORSAL:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_LEFT:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_MEDIAL:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_POSTERIOR:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_REDO:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_REGION:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_UNDO:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_VENTRAL:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_COLOR_BAR:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH:
-            break;
-        case WorkbenchIconTypeEnum::TABBAR_BRAIN_TIPS:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::TABBAR_DATA_TOOLTIPS:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::TABBAR_FEATURES:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/features_toolbox.png",
+                          "I",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+            break;
+        case WorkbenchIconTypeEnum::TABBAR_HELP:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/help.png",
+                          "I",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+            break;
+        case WorkbenchIconTypeEnum::TABBAR_IDENTIFY_BRAINORDINATE:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/identify.png",
+                          "I",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TABBAR_INFORMATION:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/info.png",
+                          "I",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TABBAR_MACROS_SCROLL:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/macro.png",
+                          "M",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TABBAR_MOVIE:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/movie.png",
+                          "M",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TABBAR_OVERLAYS:
-            break;
-        case WorkbenchIconTypeEnum::TABBAR_QUESTION_MARK:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/overlay_toolbox.png",
+                          "S",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TABBAR_SCENES_CLAP_BOARD:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/clapboard.png",
+                          "S",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TABBAR_TOOLBAR:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/toolbar.png",
+                          "T",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_MISC_LIGHT_BULB:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/lighting.png",
+                          "T",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_RELOCK_ARROW:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_MISC_RULER:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_MISC_SCISSORS:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/clipping.png",
+                          "T",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/volume-crosshair-pointer.png",
+                          "T",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_ANTERIOR:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_CROSSHAIRS:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_CROSSHAIR_LABELS:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_ALL:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_CORONAL:
+            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_PARASAGITTAL:
+            CaretAssertToDoFatal();
             break;
     }
 
@@ -544,7 +581,7 @@ WuQToolButton::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
  *    Hight of the font
  */
 void
-WuQToolButton::setFontHeight(QSharedPointer<QPainter>& painter,
+WorkbenchAction::setFontHeight(QSharedPointer<QPainter>& painter,
                              const int32_t fontHeight)
 {
     QFont font = painter->font();
@@ -556,10 +593,125 @@ WuQToolButton::setFontHeight(QSharedPointer<QPainter>& painter,
  * @return The current dark/light theme
  */
 GuiDarkLightThemeModeEnum::Enum
-WuQToolButton::getCurrentDarkLightThemeMode() const
+WorkbenchAction::getCurrentDarkLightThemeMode() const
 {
     EventDarkLightThemeModeGet themeGetEvent;
     EventManager::get()->sendEvent(themeGetEvent.getPointer());
     return themeGetEvent.getDarkLightThemeMode();
+}
+
+/**
+ * Replace any white pixels in pixmap with transparent pixels
+ * @param imageFileName
+ *    Name of the image file from which the pixmap was read
+ * @param pixmapInOut
+ *    The pixmap
+ */
+void
+WorkbenchAction::replaceWhiteWithTransparent(const AString& imageFileName,
+                                             QPixmap& pixmapInOut)
+{
+    std::cout << "In replace white with transparent for " << imageFileName << std::endl;
+    bool changedFlag(false);
+    QImage image(pixmapInOut.toImage());
+    const int32_t w(image.width());
+    const int32_t h(image.height());
+    for (int32_t x = 0; x < w; x++) {
+        for (int32_t y = 0; y < h; y++) {
+            QColor rgb(image.pixel(x, y));
+            std::cout << "   " << rgb.red() << ", " << rgb.green() << " " << rgb.blue() << " " << rgb.alpha() << std::endl;
+            if (rgb.alpha() != 0) {
+                if ((rgb.red() == 255)
+                    && (rgb.green() == 255)
+                    && (rgb.blue() == 255)) {
+                    rgb.setRgb(0, 0, 0, 0);
+                    image.setPixel(x, y, rgb.rgba());
+                    changedFlag = true;
+                }
+            }
+        }
+    }
+    
+    if (changedFlag) {
+        std::cout << "Changed pixels in " << imageFileName << std::endl;
+        QPixmap newPixmap;
+        if (newPixmap.convertFromImage(image)) {
+            pixmapInOut = newPixmap;
+            std::cout << "Replaced pixels in " << imageFileName << std::endl;
+        }
+        else {
+            CaretLogSevere("Failure to convert image to pixmap when replacing white with transparent for "
+                           + imageFileName);
+        }
+    }
+}
+
+/**
+ * Set the pixmap to the content from the given image file.  If loading the image
+ * fails or conversion of image to dark mode fails, set the pixmap to the
+ * alternative text.
+ * @param pixmap
+ *     The pixmap that is set to image or alternative text
+ * @param painter
+ *     The painter used for setting pixmap to text
+ * @param imageFileName
+ *     Name of the image file (usually a Qt resource path)
+ * @param alternativeTextForPixmap
+ *     If there is an image failure, set the pixmap to this text (should be one character)
+ * @param darkThemeFlag
+ *     True if dark theme for pixmap
+ * @param replaceWhiteWithTransparentFlag
+ *     If true, replace any white pixels in the image with transparent pixels
+ */
+void
+WorkbenchAction::setPixmapIcon(QPixmap& pixmap,
+                               QPainter* painter,
+                               const AString& imageFileName,
+                               const AString& alternativeTextForPixmap,
+                               const bool darkThemeFlag,
+                               const bool replaceWhiteWithTransparentFlag)
+{
+    bool imageSuccessFlag(false);
+    QPixmap imageFilePixmap;
+    if (WuQtUtilities::loadPixmap(imageFileName,
+                                  imageFilePixmap)) {
+        imageSuccessFlag = true;
+        
+        if (replaceWhiteWithTransparentFlag) {
+            replaceWhiteWithTransparent(imageFileName,
+                                        imageFilePixmap);
+        }
+        
+        if (darkThemeFlag) {
+            /*
+             * Invert light pixmap to create dark pixmap
+             */
+            QImage image(imageFilePixmap.toImage());
+            image.invertPixels(QImage::InvertRgb);
+            if ( ! imageFilePixmap.convertFromImage(image)) {
+                imageSuccessFlag = false;
+                CaretLogSevere("Converting to pixmap from image failed, filename="
+                               + imageFileName);
+            }
+        }
+    }
+    else {
+        CaretLogSevere("Failed to load image for pixmap, filename="
+                       + imageFileName);
+    }
+    if (imageSuccessFlag) {
+        /*
+         * Must end painter attached to pixmap to allow
+         * assignment to pixmap
+         */
+        painter->end();
+        pixmap = imageFilePixmap;
+    }
+    else {
+        painter->drawText(pixmap.rect(),
+                          (Qt::AlignCenter),
+                          alternativeTextForPixmap);
+    }
+
 }
 

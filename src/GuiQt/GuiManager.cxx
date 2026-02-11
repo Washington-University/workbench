@@ -146,6 +146,7 @@
 #include "WuQHyperlinkToolTip.h"
 #include "WbMacroCustomOperationManager.h"
 #include "WbMacroHelper.h"
+#include "WorkbenchAction.h"
 #include "WuQMessageBox.h"
 #include "WuQMacroManager.h"
 #include "WuQMacroWidgetTypeEnum.h"
@@ -223,6 +224,8 @@ GuiManager::initializeGuiManager()
      * of GuiManager and not found when searching a window
      * for children objects
      */
+    WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QAction",
+                                                    "caret::WorkbenchAction");
     WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QTabWidget",
                                                     "caret::WuQTabWidgetWithSizeHint");
     WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QTabBar",
@@ -241,28 +244,15 @@ GuiManager::initializeGuiManager()
     /*
      * Information window.
      */
-    QIcon infoDisplayIcon;
-    const bool infoDisplayIconValid =
-    WuQtUtilities::loadIcon(":/ToolBar/info.png", 
-                            infoDisplayIcon);
-    
-
-    m_informationDisplayDialogEnabledAction =
-    WuQtUtilities::createAction("Information...",
-                                ("<html>Enables display of the Information Window "
-                                 "when new information is available.<p>"
-                                 "This is disabled "
-                                 "when information window is located in the Overlay Toolbox.</html>"),
-                                this,
-                                this,
-                                SLOT(showHideInfoWindowSelected(bool)));
-    if (infoDisplayIconValid) {
-        m_informationDisplayDialogEnabledAction->setIcon(infoDisplayIcon);
-        m_informationDisplayDialogEnabledAction->setIconVisibleInMenu(false);
-    }
-    else {
-        m_informationDisplayDialogEnabledAction->setIconText("Info");
-    }
+    m_informationDisplayDialogEnabledAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_INFORMATION,
+                                                                  this);
+    m_informationDisplayDialogEnabledAction->setToolTip("<html>Enables display of the Information Window "
+                                                        "when new information is available.<p>"
+                                                        "This is disabled "
+                                                        "when information window is located in the Overlay Toolbox.</html>");
+    QAction::connect(m_informationDisplayDialogEnabledAction, &QAction::triggered,
+                     this, &GuiManager::showHideInfoWindowSelected);
+    m_informationDisplayDialogEnabledAction->setIconVisibleInMenu(false);
     
     m_informationDisplayDialogEnabledAction->blockSignals(true);
     m_informationDisplayDialogEnabledAction->setCheckable(true);
@@ -277,23 +267,12 @@ GuiManager::initializeGuiManager()
     /*
      * Identify brainordinate window
      */
-    QIcon identifyDisplayIcon;
-    const bool identifyDisplayIconValid =
-    WuQtUtilities::loadIcon(":/ToolBar/identify.png",
-                            identifyDisplayIcon);
-    m_identifyBrainordinateDialogEnabledAction =
-    WuQtUtilities::createAction("Identify...",
-                                "Enables display of the Identify Brainordinate Window",
-                                this,
-                                this,
-                                SLOT(showIdentifyBrainordinateDialogActionToggled(bool)));
-    if (identifyDisplayIconValid) {
-        m_identifyBrainordinateDialogEnabledAction->setIcon(identifyDisplayIcon);
-        m_identifyBrainordinateDialogEnabledAction->setIconVisibleInMenu(false);
-    }
-    else {
-        m_identifyBrainordinateDialogEnabledAction->setIconText("ID");
-    }
+    m_identifyBrainordinateDialogEnabledAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_IDENTIFY_BRAINORDINATE,
+                                                                     this);
+    m_identifyBrainordinateDialogEnabledAction->setToolTip("Enables display of the Identify Brainordinate Window");
+    QObject::connect(m_identifyBrainordinateDialogEnabledAction, &QAction::triggered,
+                     this, &GuiManager::showIdentifyBrainordinateDialogActionToggled);
+    m_identifyBrainordinateDialogEnabledAction->setIconVisibleInMenu(false);
     
     m_identifyBrainordinateDialogEnabledAction->blockSignals(true);
     m_identifyBrainordinateDialogEnabledAction->setCheckable(true);
@@ -306,20 +285,11 @@ GuiManager::initializeGuiManager()
     /*
      * Scene dialog action
      */
-    m_sceneDialogDisplayAction = new QAction("Scenes...",
-                                             this);
+    m_sceneDialogDisplayAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_SCENES_CLAP_BOARD,
+                                                     this);
     QObject::connect(m_sceneDialogDisplayAction, &QAction::triggered,
                      this, &GuiManager::sceneDialogDisplayActionTriggered);
-    QIcon clapBoardIcon;
-    const bool clapBoardIconValid = WuQtUtilities::loadIcon(":/ToolBar/clapboard.png",
-                                                            clapBoardIcon);
-    if (clapBoardIconValid) {
-        m_sceneDialogDisplayAction->setIcon(clapBoardIcon);
-        m_sceneDialogDisplayAction->setIconVisibleInMenu(false);
-    }
-    else {
-        m_sceneDialogDisplayAction->setIconText("Scenes");
-    }
+    m_sceneDialogDisplayAction->setIconVisibleInMenu(false);
     m_sceneDialogDisplayAction->blockSignals(true);
     m_sceneDialogDisplayAction->setCheckable(false);
     m_sceneDialogDisplayAction->blockSignals(false);
@@ -349,22 +319,13 @@ GuiManager::initializeGuiManager()
     /*
      * Help dialog action
      */
-    m_helpViewerDialogDisplayAction = WuQtUtilities::createAction("Workbench Help...",
-                                                                  "Show/Hide the Help Window",
-                                                                  QKeySequence::HelpContents,
-                                                                  this,
-                                                                  this,
-                                                                  SLOT(showHelpDialogActionToggled(bool)));
-    QIcon helpIcon;
-    const bool helpIconValid = WuQtUtilities::loadIcon(":/ToolBar/help.png",
-                                                       helpIcon);
-    if (helpIconValid) {
-        m_helpViewerDialogDisplayAction->setIcon(helpIcon);
-        m_helpViewerDialogDisplayAction->setIconVisibleInMenu(false);
-    }
-    else {
-        m_helpViewerDialogDisplayAction->setIconText("?");
-    }
+    m_helpViewerDialogDisplayAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_HELP,
+                                                          this);
+    m_helpViewerDialogDisplayAction->setToolTip("Show/Hide the Help Window");
+    m_helpViewerDialogDisplayAction->setShortcut(QKeySequence::HelpContents);
+    QObject::connect(m_helpViewerDialogDisplayAction, &QAction::triggered,
+                     this, &GuiManager::showHelpDialogActionToggled);
+    m_helpViewerDialogDisplayAction->setIconVisibleInMenu(false);
     m_helpViewerDialogDisplayAction->blockSignals(true);
     m_helpViewerDialogDisplayAction->setCheckable(true);
     m_helpViewerDialogDisplayAction->setChecked(false);

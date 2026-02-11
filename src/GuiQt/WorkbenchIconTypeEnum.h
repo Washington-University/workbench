@@ -127,12 +127,14 @@ public:
         OVERLAY_TOOLBOX_CONSTRUCT,
         /** Overlay Toolbox Wrench */
         OVERLAY_TOOLBOX_WRENCH,
-        /** Tabbar Brain Tips */
-        TABBAR_BRAIN_TIPS,
         /** Tabbar Data Tooltips */
         TABBAR_DATA_TOOLTIPS,
         /** Tabbar Features */
         TABBAR_FEATURES,
+        /** Tabbar Help */
+        TABBAR_HELP,
+        /** Tabbar Identify Brainordinate */
+        TABBAR_IDENTIFY_BRAINORDINATE,
         /** Tabbar Information */
         TABBAR_INFORMATION,
         /** Tabbar Macros Scroll */
@@ -141,8 +143,6 @@ public:
         TABBAR_MOVIE,
         /** Tabbar Overlays */
         TABBAR_OVERLAYS,
-        /** Tabbar Question Mark */
-        TABBAR_QUESTION_MARK,
         /** Tabbar Scenes Clap Board */
         TABBAR_SCENES_CLAP_BOARD,
         /** Tabbar Toolbar */

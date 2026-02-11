@@ -1,5 +1,5 @@
-#ifndef __WU_Q_TOOL_BUTTON_H__
-#define __WU_Q_TOOL_BUTTON_H__
+#ifndef __WORKBENCH_ACTION_H__
+#define __WORKBENCH_ACTION_H__
 
 /*LICENSE_START*/
 /*
@@ -24,8 +24,7 @@
 
 #include <utility>
 
-#include <QMenu> /* without this get a compilation error in QToolButton */
-#include <QToolButton>
+#include <QAction>
 
 #include "EventListenerInterface.h"
 #include "GuiDarkLightThemeModeEnum.h"
@@ -33,31 +32,26 @@
 
 namespace caret {
 
-    class WuQToolButton : public QToolButton, public EventListenerInterface {
+    class WorkbenchAction : public QAction, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        WuQToolButton(const WorkbenchIconTypeEnum::Enum iconType,
-                      QWidget* parent = 0);
+        WorkbenchAction(const WorkbenchIconTypeEnum::Enum iconType,
+                        QObject* parent = nullptr);
         
-        virtual ~WuQToolButton();
+        virtual ~WorkbenchAction();
         
-        WuQToolButton(const WuQToolButton&) = delete;
+        WorkbenchAction(const WorkbenchAction&) = delete;
 
-        WuQToolButton& operator=(const WuQToolButton&) = delete;
+        WorkbenchAction& operator=(const WorkbenchAction&) = delete;
 
         virtual void receiveEvent(Event* event) override;
 
         // ADD_NEW_METHODS_HERE
 
-    protected:
-        virtual void showEvent(QShowEvent *event) override;
-        
     private:
         void updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
-        
-        void updateButtonForMacOS(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
         
         QPixmap createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
                              const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
@@ -65,7 +59,17 @@ namespace caret {
         void setFontHeight(QSharedPointer<QPainter>& painter,
                            const int32_t fontHeight);
 
+        void setPixmapIcon(QPixmap& pixmap,
+                           QPainter* painter,
+                           const AString& imageFileName,
+                           const AString& alternativeTextForPixmap,
+                           const bool darkThemeFlag,
+                           const bool replaceWhiteWithTransparentFlag);
+        
         GuiDarkLightThemeModeEnum::Enum getCurrentDarkLightThemeMode() const;
+        
+        void replaceWhiteWithTransparent(const AString& imageFileName,
+                                         QPixmap& pixmapInOut);
         
         QPixmap m_lightPixmap;
         
@@ -75,9 +79,9 @@ namespace caret {
 
     };
     
-#ifdef __WU_Q_TOOL_BUTTON_DECLARE__
+#ifdef __WORKBENCH_ACTION_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_TOOL_BUTTON_DECLARE__
+#endif // __WORKBENCH_ACTION_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_TOOL_BUTTON_H__
+#endif  //__WORKBENCH_ACTION_H__

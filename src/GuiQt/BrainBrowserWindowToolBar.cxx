@@ -154,6 +154,8 @@
 #include "VolumeFile.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSurfaceOutlineSetModel.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQHyperlinkToolTip.h"
@@ -305,13 +307,13 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     /*
      * Actions at right side of toolbar
      */
-    QToolButton* informationDialogToolButton = new QToolButton();
+    QToolButton* informationDialogToolButton = new WorkbenchToolButton();
     informationDialogToolButton->setDefaultAction(GuiManager::get()->getInformationDisplayDialogEnabledAction());
     
-    QToolButton* identifyDialogToolButton = new QToolButton();
+    QToolButton* identifyDialogToolButton = new WorkbenchToolButton();
     identifyDialogToolButton->setDefaultAction(GuiManager::get()->getIdentifyBrainordinateDialogDisplayAction());
     
-    QToolButton* helpDialogToolButton = new QToolButton();
+    QToolButton* helpDialogToolButton = new WorkbenchToolButton();
     helpDialogToolButton->setDefaultAction(GuiManager::get()->getHelpViewerDialogDisplayAction());
 
     /*
@@ -325,12 +327,12 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     sceneButtonAction->setMenu(new RecentSceneMenu(RecentSceneMenu::MenuLocation::TOOLBAR_SCENE_BUTTON,
                                                    m_parentBrainBrowserWindow));
     QObject::connect(sceneButtonAction, &QAction::triggered,
-                     [=](bool) { sceneToolButtonClicked(); });
+                     this, &BrainBrowserWindowToolBar::sceneToolButtonClicked);
 
     /*
      * Scene button
      */
-    QToolButton* sceneDialogToolButton = new QToolButton();
+    QToolButton* sceneDialogToolButton = new WorkbenchToolButton();
     sceneDialogToolButton->setDefaultAction(sceneButtonAction);
     WuQHyperlinkToolTip::addWithHyperlink(sceneDialogToolButton,
                                           sceneButtonAction,
@@ -339,64 +341,41 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     /*
      * Movie button
      */
-    QIcon movieIcon;
-    QString movieButtonText;
-    if ( ! WuQtUtilities::loadIcon(":/ToolBar/movie.png",
-                                   movieIcon)) {
-        movieButtonText = "Movie";
-    }
     const QString movieButtonToolTip("Show movie recording window");
-    m_movieToolButton = new QToolButton();
-    m_movieToolButton->setText(movieButtonText);
-    m_movieToolButton->setIcon(movieIcon);
+    m_movieToolButton = new WorkbenchToolButton(WorkbenchIconTypeEnum::TABBAR_MOVIE);
     m_movieToolButton->setToolTip(movieButtonToolTip);
-    QObject::connect(m_movieToolButton, &QToolButton::clicked,
-                     parentBrainBrowserWindow, &BrainBrowserWindow::processMovieRecording);
+      QObject::connect(m_movieToolButton->defaultAction(), &QAction::triggered,
+                       parentBrainBrowserWindow, &BrainBrowserWindow::processMovieRecording);
     
     /*
      * Macros button
      */
     QIcon macrosIcon;
-    QAction* macrosAction = new QAction();
-    if (WuQtUtilities::loadIcon(":/ToolBar/macro.png",
-                                macrosIcon)) {
-        macrosAction->setIcon(macrosIcon);
-    }
-    else {
-        macrosAction->setText("M");
-    }
+    QAction* macrosAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_MACROS_SCROLL,
+                                                this);
     macrosAction->setToolTip("Show macros window");
     QObject::connect(macrosAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBar::showMacroDialog);
-    QToolButton* macrosToolButton = new QToolButton();
+    QToolButton* macrosToolButton = new WorkbenchToolButton();
     macrosToolButton->setDefaultAction(macrosAction);
     macrosAction->setParent(macrosToolButton);
     
     /*
      * Toolbar action and tool button at right of the tab bar
      */
-    QIcon toolBarIcon;
-    const bool toolBarIconValid =
-    WuQtUtilities::loadIcon(":/ToolBar/toolbar.png", 
-                            toolBarIcon);
-    
-    this->toolBarToolButtonAction =
-    WuQtUtilities::createAction("Toolbar", 
-                                "Show or hide the toolbar",
-                                this,
-                                this,
-                                SLOT(showHideToolBar(bool)));
-    if (toolBarIconValid) {
-        this->toolBarToolButtonAction->setIcon(toolBarIcon);
-        this->toolBarToolButtonAction->setIconVisibleInMenu(false);
-    }
+    this->toolBarToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_TOOLBAR,
+                                                        this);
+    this->toolBarToolButtonAction->setToolTip("Show or hide the toolbar JWH");
+    this->toolBarToolButtonAction->setIconVisibleInMenu(false);
+    QObject::connect(this->toolBarToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBar::showHideToolBar);
     this->toolBarToolButtonAction->setIconVisibleInMenu(false);
     this->toolBarToolButtonAction->blockSignals(true);
     this->toolBarToolButtonAction->setCheckable(true);
     this->toolBarToolButtonAction->setChecked(true);
     this->showHideToolBar(this->toolBarToolButtonAction->isChecked());
     this->toolBarToolButtonAction->blockSignals(false);
-    QToolButton* toolBarToolButton = new QToolButton();
+    QToolButton* toolBarToolButton(new WorkbenchToolButton());
     toolBarToolButton->setDefaultAction(this->toolBarToolButtonAction);
     toolBarToolButtonAction->setObjectName(m_objectNamePrefix
                                            + ":ShowToolBar");
@@ -406,13 +385,13 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     /*
      * Toolbox control at right of the tab bar
      */
-    QToolButton* overlayToolBoxToolButton = new QToolButton();
+    QToolButton* overlayToolBoxToolButton = new WorkbenchToolButton();
     overlayToolBoxToolButton->setDefaultAction(overlayToolBoxAction);
     
-    QToolButton* layersToolBoxToolButton = new QToolButton();
+    QToolButton* layersToolBoxToolButton = new WorkbenchToolButton();
     layersToolBoxToolButton->setDefaultAction(layersToolBoxAction);
     
-    QToolButton* dataToolTipsToolButton = new QToolButton();
+    QToolButton* dataToolTipsToolButton = new WorkbenchToolButton();
     dataToolTipsToolButton->setDefaultAction(GuiManager::get()->getDataToolTipsAction(dataToolTipsToolButton));
     
     /*

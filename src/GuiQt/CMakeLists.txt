@@ -281,7 +281,9 @@ ELSE()
         VolumeSurfaceOutlineViewController.h
 	WbMacroHelper.h
 	WbMacroWidgetActionsManager.h
+        WorkbenchAction.h
 	WorkbenchInstallationAssistantDialog.h
+	WorkbenchToolButton.h
         WuQCollapsibleWidget.h
 	WuQColorEditorWidget.h
         WuQDataEntryDialog.h
@@ -324,7 +326,6 @@ ELSE()
 	WuQTextEditWithToolBarWidget.h
         WuQTextEditorDialog.h
         WuQTimedMessageDisplay.h
-	WuQToolButton.h
 	WuQToolTipHelper.h
         WuQTreeWidget.h
         WuQTrueFalseComboBox.h
@@ -654,8 +655,10 @@ WbMacroCustomOperationTypeEnum.h
 WbMacroHelper.h
 WbMacroWidgetActionNames.h
 WbMacroWidgetActionsManager.h
+WorkbenchAction.h
 WorkbenchIconTypeEnum.h
 WorkbenchInstallationAssistantDialog.h
+WorkbenchToolButton.h
 WuQCollapsibleWidget.h
 WuQColorEditorWidget.h
 WuQDataEntryDialog.h
@@ -702,7 +705,6 @@ WuQTabWidgetWithSizeHint.h
 WuQTextEditWithToolBarWidget.h
 WuQTextEditorDialog.h
 WuQTimedMessageDisplay.h
-WuQToolButton.h
 WuQToolTipHelper.h
 WuQTreeWidget.h
 WuQTrueFalseComboBox.h
@@ -1019,8 +1021,10 @@ WbMacroCustomOperationSurfaceDefaultColor.cxx
 WbMacroCustomOperationTypeEnum.cxx
 WbMacroHelper.cxx
 WbMacroWidgetActionsManager.cxx
+WorkbenchAction.cxx
 WorkbenchIconTypeEnum.cxx
 WorkbenchInstallationAssistantDialog.cxx
+WorkbenchToolButton.cxx
 WuQCollapsibleWidget.cxx
 WuQColorEditorWidget.cxx
 WuQDataEntryDialog.cxx
@@ -1064,7 +1068,6 @@ WuQTabWidgetWithSizeHint.cxx
 WuQTextEditWithToolBarWidget.cxx
 WuQTextEditorDialog.cxx
 WuQTimedMessageDisplay.cxx
-WuQToolButton.cxx
 WuQToolTipHelper.cxx
 WuQTreeWidget.cxx
 WuQTrueFalseComboBox.cxx

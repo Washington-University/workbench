@@ -26,6 +26,7 @@
 #include <iosfwd>
 
 #include <QFont>
+#include <QPalette>
 #include <QSize>
 #include <QSharedPointer>
 #include <QString>

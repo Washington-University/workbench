@@ -164,11 +164,13 @@ switch (value) {
         break;
     case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH:
         break;
-    case WorkbenchIconTypeEnum::TABBAR_BRAIN_TIPS:
-        break;
     case WorkbenchIconTypeEnum::TABBAR_DATA_TOOLTIPS:
         break;
     case WorkbenchIconTypeEnum::TABBAR_FEATURES:
+        break;
+    case WorkbenchIconTypeEnum::TABBAR_HELP:
+        break;
+    case WorkbenchIconTypeEnum::TABBAR_IDENTIFY_BRAINORDINATE:
         break;
     case WorkbenchIconTypeEnum::TABBAR_INFORMATION:
         break;
@@ -177,8 +179,6 @@ switch (value) {
     case WorkbenchIconTypeEnum::TABBAR_MOVIE:
         break;
     case WorkbenchIconTypeEnum::TABBAR_OVERLAYS:
-        break;
-    case WorkbenchIconTypeEnum::TABBAR_QUESTION_MARK:
         break;
     case WorkbenchIconTypeEnum::TABBAR_SCENES_CLAP_BOARD:
         break;
@@ -432,17 +432,17 @@ WorkbenchIconTypeEnum::initialize()
                                     "OVERLAY_TOOLBOX_WRENCH", 
                                     "Overlay Toolbox Wrench"));
     
-    enumData.push_back(WorkbenchIconTypeEnum(TABBAR_BRAIN_TIPS, 
-                                    "TABBAR_BRAIN_TIPS", 
-                                    "Tabbar Brain Tips"));
-    
-    enumData.push_back(WorkbenchIconTypeEnum(TABBAR_DATA_TOOLTIPS, 
+    enumData.push_back(WorkbenchIconTypeEnum(TABBAR_DATA_TOOLTIPS,
                                     "TABBAR_DATA_TOOLTIPS", 
                                     "Tabbar Data Tooltips"));
     
     enumData.push_back(WorkbenchIconTypeEnum(TABBAR_FEATURES, 
                                     "TABBAR_FEATURES", 
                                     "Tabbar Features"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(TABBAR_IDENTIFY_BRAINORDINATE,
+                                             "TABBAR_IDENTIFY_BRAINORDINATE",
+                                             "Tabbar Identify Brainordinate"));
     
     enumData.push_back(WorkbenchIconTypeEnum(TABBAR_INFORMATION, 
                                     "TABBAR_INFORMATION", 
@@ -460,9 +460,9 @@ WorkbenchIconTypeEnum::initialize()
                                     "TABBAR_OVERLAYS", 
                                     "Tabbar Overlays"));
     
-    enumData.push_back(WorkbenchIconTypeEnum(TABBAR_QUESTION_MARK, 
-                                    "TABBAR_QUESTION_MARK", 
-                                    "Tabbar Question Mark"));
+    enumData.push_back(WorkbenchIconTypeEnum(TABBAR_HELP,
+                                    "TABBAR_HELP",
+                                    "Tabbar Help"));
     
     enumData.push_back(WorkbenchIconTypeEnum(TABBAR_SCENES_CLAP_BOARD, 
                                     "TABBAR_SCENES_CLAP_BOARD", 
