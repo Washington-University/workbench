@@ -76,7 +76,7 @@ namespace caret {
         
         QMenu* createScaleBarMenu();
         
-        QPixmap createScaleBarPixmap(const QWidget* widget);
+//        QPixmap createScaleBarPixmap(const QWidget* widget);
         
         QString m_objectNamePrefix;
         

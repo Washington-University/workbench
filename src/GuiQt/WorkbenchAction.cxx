@@ -452,7 +452,7 @@ WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
             setPixmapIcon(pixmap,
                           painter.get(),
                           ":/ToolBar/features_toolbox.png",
-                          "I",
+                          "F",
                           darkThemeFlag,
                           REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
@@ -460,7 +460,7 @@ WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
             setPixmapIcon(pixmap,
                           painter.get(),
                           ":/ToolBar/help.png",
-                          "I",
+                          "H",
                           darkThemeFlag,
                           REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
@@ -500,7 +500,7 @@ WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
             setPixmapIcon(pixmap,
                           painter.get(),
                           ":/ToolBar/overlay_toolbox.png",
-                          "S",
+                          "O",
                           darkThemeFlag,
                           REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
@@ -524,21 +524,75 @@ WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
             setPixmapIcon(pixmap,
                           painter.get(),
                           ":/ToolBar/lighting.png",
-                          "T",
+                          "L",
                           darkThemeFlag,
                           REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_RELOCK_ARROW:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/undo.png",
+                          "L",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_MISC_RULER:
-            CaretAssertToDoFatal();
+        {
+            /*
+             * Create a small, square pixmap that will contain
+             * the foreground color around the pixmap's perimeter.
+             */
+            float width  = 24.0;
+            float height = 24.0;
+            float margin = 1.0;
+                        
+            const float leftX(margin);
+            const float rightX(width - margin);
+            const float centerX((leftX + rightX) / 2.0);
+            const float leftCenterX((leftX + centerX) / 2.0);
+            const float rightCenterX((rightX + centerX) / 2.0);
+            const float y(margin + 2.0);
+            const float smallTickHeight(8.0);
+            const float mediumTickHeight(smallTickHeight * 1.3);
+            const float bigTickHeight(smallTickHeight * 1.65);
+            
+            QPen pen = painter->pen();
+            pen.setWidth(4);
+            painter->setPen(pen);
+            
+            /* bottom line */
+            painter->drawLine(QLineF(leftX, y,
+                                     rightX, y));
+            
+            pen.setWidth(2);
+            painter->setPen(pen);
+            
+            /* left tick */
+            painter->drawLine(QLineF(leftX, y,
+                                     leftX, y + bigTickHeight));
+            
+            /* right tick */
+            painter->drawLine(QLineF(rightX, margin,
+                                     rightX, y + bigTickHeight));
+            
+            /* center tick */
+            painter->drawLine(QLineF(centerX, y,
+                                     centerX, y + mediumTickHeight));
+            
+            /* left-center tick */
+            painter->drawLine(QLineF(leftCenterX, y,
+                                     leftCenterX, y + smallTickHeight));
+            
+            /* right-center tick */
+            painter->drawLine(QLineF(rightCenterX, y,
+                                     rightCenterX, y + smallTickHeight));
+        }
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_MISC_SCISSORS:
             setPixmapIcon(pixmap,
                           painter.get(),
                           ":/ToolBar/clipping.png",
-                          "T",
+                          "C",
                           darkThemeFlag,
                           REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
@@ -546,7 +600,7 @@ WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
             setPixmapIcon(pixmap,
                           painter.get(),
                           ":/ToolBar/volume-crosshair-pointer.png",
-                          "T",
+                          "X",
                           darkThemeFlag,
                           REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;

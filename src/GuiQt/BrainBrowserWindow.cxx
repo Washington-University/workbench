@@ -129,7 +129,9 @@
 #include "TileTabsGridConfigurationModifier.h"
 #include "VolumeMontageSetupDialog.h"
 #include "WindowTabAspectRatios.h"
+#include "WorkbenchAction.h"
 #include "WorkbenchInstallationAssistantDialog.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
@@ -1119,7 +1121,7 @@ BrainBrowserWindow::createActionsUsedByToolBar()
      * Button for locking aspect is passed to ToolBar's constructor
      * and is displayed on the toolbar
      */
-    m_toolBarLockWindowAndAllTabAspectRatioButton = new QToolButton();
+    m_toolBarLockWindowAndAllTabAspectRatioButton = new WorkbenchToolButton();
     m_toolBarLockWindowAndAllTabAspectRatioButton->setDefaultAction(m_toolBarLockWindowAndAllTabAspectRatioAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_toolBarLockWindowAndAllTabAspectRatioButton);
     QObject::connect(m_toolBarLockWindowAndAllTabAspectRatioButton, &QToolButton::customContextMenuRequested,
@@ -1129,16 +1131,17 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     /*
      * Undo unlocking of aspect ratio
      */
-    QIcon undoIcon;
-    const bool undoIconValid(WuQtUtilities::loadIcon(":/ToolBar/undo.png",
-                                                     undoIcon));
-    m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction = new QAction();
-    if (undoIconValid) {
-        m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setIcon(undoIcon);
-    }
-    else {
-        m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setText("U");
-    }
+//    QIcon undoIcon;
+//    const bool undoIconValid(WuQtUtilities::loadIcon(":/ToolBar/undo.png",
+//                                                     undoIcon));
+    m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_RELOCK_ARROW,
+                                                                              this);
+//    if (undoIconValid) {
+//        m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setIcon(undoIcon);
+//    }
+//    else {
+//        m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setText("U");
+//    }
     m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setToolTip("Relock to aspect ratios before unlocking");
     m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setObjectName(m_objectNamePrefix
                                                                  + ":ToolBar:UndoUnlockAspectRatio");
@@ -1147,7 +1150,7 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     WuQMacroManager::instance()->addMacroSupportToObject(m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction,
                                                          ("Undo unlock aspect ratio in window " + QString::number(m_browserWindowIndex + 1)));
 
-    m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton = new QToolButton();
+    m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton = new WorkbenchToolButton();
     m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton->setDefaultAction(m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton);
 }
