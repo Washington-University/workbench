@@ -33,6 +33,8 @@
 #include "EventDarkLightThemeModeChanged.h"
 #include "EventDarkLightThemeModeGet.h"
 #include "EventManager.h"
+#include "MathFunctions.h"
+#include "VolumeSliceViewPlaneEnum.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -50,26 +52,29 @@ using namespace caret;
  * @param iconType
  *    Type of icon for tool button
  * @param parent
- *    Parent widget
+ *    Parent widget.  Required to ensure that this gets destroyed to event listeners removed
  */
 WorkbenchAction::WorkbenchAction(const WorkbenchIconTypeEnum::Enum iconType,
                                  QObject* parent)
-: QAction(parent)
+: QAction(parent),
+m_iconType(iconType)
 {
     static bool firstFlag(true);
     if (firstFlag) {
         firstFlag = false;
     }
 
-    m_darkPixmap = createPixmap(iconType,
-                                 GuiDarkLightThemeModeEnum::DARK);
-    m_lightPixmap = createPixmap(iconType,
-                                 GuiDarkLightThemeModeEnum::LIGHT);
-    
+    m_darkPixmap = createPixmapForIconType(iconType,
+                                           GuiDarkLightThemeModeEnum::DARK);
+    m_lightPixmap = createPixmapForIconType(iconType,
+                                            GuiDarkLightThemeModeEnum::LIGHT);
+
     updateForDarkLightTheme(getCurrentDarkLightThemeMode());
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
+    
+    s_allWorkbenchActions.insert(this);
 }
 
 /**
@@ -78,6 +83,7 @@ WorkbenchAction::WorkbenchAction(const WorkbenchIconTypeEnum::Enum iconType,
 WorkbenchAction::~WorkbenchAction()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    s_allWorkbenchActions.erase(this);
 }
 
 /**
@@ -122,6 +128,93 @@ WorkbenchAction::updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum d
 }
 
 /**
+ * Create a pixmap of the given size and a painter with origin in the given location
+ * @param width
+ *    Width for the pixmap
+ * @param height
+ *    Height for the pixmap
+ * @param origin
+ *    Location of origin in the pixmap
+ * @param fontHeight
+ *    If greater than zero, sets font height
+ * @param darkLightThemeMode
+ *    The dark light theme
+ * @param pixmap
+ *    The pixmap (output)
+ * @param painter
+ *    The painter (output)
+ */
+void
+WorkbenchAction::createPixmapPainter(const int32_t width,
+                                     const int32_t height,
+                                     const Origin origin,
+                                     const int32_t fontHeight,
+                                     const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode,
+                                     QPixmap& pixmapOut,
+                                     QSharedPointer<QPainter>& painterOut)
+{
+    /*
+     * If painter is valid, we need to end it before
+     * recreating it and before recreating the pixmap
+     */
+    if (painterOut) {
+        painterOut->end();
+    }
+    
+    pixmapOut = QPixmap(width,
+                        height);
+    
+    pixmapOut.fill(QColor(0, 0, 0, 0));
+    
+    painterOut.reset(new QPainter(&pixmapOut));
+    CaretAssert(painterOut);
+    
+    switch (origin) {
+        case Origin::CENTER:
+            /*
+             * Note: QPainter has its origin at the top left.
+             * Using a negative for the Y-scale value will
+             * move the origin to the bottom.
+             */
+            painterOut->translate(pixmapOut.width() / 2.0,
+                                  pixmapOut.height() / 2.0);
+            painterOut->scale(1.0,
+                              -1.0);
+            break;
+        case Origin::TOP_LEFT:
+            break;
+    }
+    
+    painterOut->setRenderHint(QPainter::Antialiasing,
+                              true);
+    painterOut->setBackgroundMode(Qt::TransparentMode);
+    
+    QColor foregroundColor(255, 255, 255, 255);
+    switch (darkLightThemeMode) {
+        case GuiDarkLightThemeModeEnum::SYSTEM:
+            CaretAssert(0);
+            foregroundColor.setRgb(0, 0, 0, 255);
+            break;
+        case GuiDarkLightThemeModeEnum::DARK:
+            foregroundColor.setRgb(255, 255, 255);
+            break;
+        case GuiDarkLightThemeModeEnum::LIGHT:
+            foregroundColor.setRgb(0, 0, 0, 255);
+            break;
+    }
+    
+    painterOut->setPen(foregroundColor);
+    
+    /*
+     * Default height of text
+     */
+    if (fontHeight > 0) {
+        setFontHeight(painterOut,
+                      fontHeight);
+    }
+}
+
+/**
  * @return Icon for the given icon type and dark/light theme mode
  * @param iconType
  *    Type of icon
@@ -131,57 +224,56 @@ WorkbenchAction::updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum d
  *    The pixmap that was created
  */
 QPixmap
-WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
-                              const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconType,
+                                         const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
 {
     /*
-     * Create the pixmap the painter for drawing in the pixmap
+     * Create a pixmap and attach a painter to the pixmap
+     * with the origin at the top left
      */
-    const int32_t width(24);
-    const int32_t height(24);
-    QPixmap pixmap(static_cast<int>(width),
-                   static_cast<int>(height));
-    pixmap.fill(QColor(0, 0, 0, 0));
+    QPixmap pixmap;
+    QSharedPointer<QPainter> painter;
+    int32_t width(24);
+    int32_t height(24);
+    const int32_t fontHeight20(20);
+    const int32_t fontHeightDefault(-1);
+    createPixmapPainter(width,
+                        height,
+                        Origin::TOP_LEFT,
+                        fontHeight20,
+                        darkLightThemeMode,
+                        pixmap,
+                        painter);
+    CaretAssert(pixmap.width() > 0);
+    CaretAssert(pixmap.height() > 0);
+    CaretAssert(painter);
     
-    /*
-     * Create a painter and fill the pixmap with
-     * the background color
-     */
-    QSharedPointer<QPainter> painter(new QPainter(&pixmap));
-    painter->setRenderHint(QPainter::Antialiasing,
-                           true);
-    painter->setBackgroundMode(Qt::TransparentMode);
-    
+    QColor textColor(255, 255, 255, 216);  /* on macOS alpha for text is 216 */
     bool lightThemeFlag(false);
-    QColor foregroundColor(255, 255, 255, 255);
     switch (darkLightThemeMode) {
         case GuiDarkLightThemeModeEnum::SYSTEM:
             CaretAssert(0);
-            foregroundColor.setRgb(0, 0, 0);
             lightThemeFlag = true;
+            textColor.setRgb(0, 0, 0, 216);
             break;
         case GuiDarkLightThemeModeEnum::DARK:
             lightThemeFlag = false;
-            foregroundColor.setRgb(255, 255, 255);
+            textColor.setRgb(255, 255, 255, 216);
             break;
         case GuiDarkLightThemeModeEnum::LIGHT:
-            foregroundColor.setRgb(0, 0, 0);
             lightThemeFlag = true;
+            textColor.setRgb(0, 0, 0, 216);
             break;
     }
     const bool darkThemeFlag( ! lightThemeFlag);
-    
-    painter->setPen(foregroundColor);
 
-    /*
-     * Default height of text
-     */
-    const int32_t fontHeight(20);
-    setFontHeight(painter,
-                  fontHeight);
-    
     const bool REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO  = false;
 //    const bool REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_YES = true;
+
+    const int32_t width12(12);
+    const int32_t height12(12);
+    const int32_t width24(24);
+    const int32_t height30(30);
 
     switch (iconType) {
         case WorkbenchIconTypeEnum::NO_ICON:
@@ -193,7 +285,23 @@ WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
             CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_DELETE:
-            CaretAssertToDoFatal();
+        {
+            /* trash can */
+            painter->drawLine(4, 6, 4, 22);
+            painter->drawLine(4, 22, 20, 22);
+            painter->drawLine(20, 22, 20, 6);
+            
+            /* trash can lines */
+            painter->drawLine(12, 8, 12, 20);
+            painter->drawLine(8,  8,  8, 20);
+            painter->drawLine(16, 8, 16, 20);
+            
+            /* trash can lid and handle */
+            painter->drawLine(2, 6, 22, 6);
+            painter->drawLine(8, 6, 8, 2);
+            painter->drawLine(8, 2, 16, 2);
+            painter->drawLine(16, 2, 16, 6);
+        }
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_LINE_ARROW_DOWN:
             CaretAssertToDoFatal();
@@ -336,69 +444,149 @@ WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
                 QFont font = painter->font();
                 font.setPixelSize(20);
                 painter->setFont(font);
+                painter->setPen(textColor);
                 painter->drawText(pixmap.rect(),
                                   (Qt::AlignCenter),
                                   "A");
             }
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_CHART:
+            painter->setPen(textColor);
             painter->drawText(pixmap.rect(),
                               (Qt::AlignCenter),
                               AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(AnnotationCoordinateSpaceEnum::CHART));
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_HISTOLOGY:
+            painter->setPen(textColor);
             painter->drawText(pixmap.rect(),
                               (Qt::AlignCenter),
                               AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(AnnotationCoordinateSpaceEnum::HISTOLOGY));
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_MEDIA_FILE_NAME_AND_PIXEL:
+            painter->setPen(textColor);
             painter->drawText(pixmap.rect(),
                               (Qt::AlignCenter),
                               AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL));
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_STEREOTAXIC:
+            painter->setPen(textColor);
             painter->drawText(pixmap.rect(),
                               (Qt::AlignCenter),
                               AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(AnnotationCoordinateSpaceEnum::STEREOTAXIC));
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_SURFACE:
+            painter->setPen(textColor);
             painter->drawText(pixmap.rect(),
                               (Qt::AlignCenter),
                               AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(AnnotationCoordinateSpaceEnum::SURFACE));
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_TAB:
+            painter->setPen(textColor);
             painter->drawText(pixmap.rect(),
                               (Qt::AlignCenter),
                               AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(AnnotationCoordinateSpaceEnum::TAB));
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_WINDOW:
+            painter->setPen(textColor);
             painter->drawText(pixmap.rect(),
                               (Qt::AlignCenter),
                               AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(AnnotationCoordinateSpaceEnum::WINDOW));
             break;
-        case WorkbenchIconTypeEnum::ANNOTATION_ORIENTATION_HORIZONTAL:
-            CaretAssertToDoFatal();
+        case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ORIENTATION_HORIZONTAL:
+            createPixmapPainter(width24,
+                                height30,
+                                Origin::TOP_LEFT,
+                                fontHeightDefault,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            createTextOrientationPixmap(pixmap,
+                                        painter.get(),
+                                        AnnotationTextOrientationEnum::HORIZONTAL);
             break;
-        case WorkbenchIconTypeEnum::ANNOTATION_ORIENTATION_VERTICAL:
-            CaretAssertToDoFatal();
+        case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ORIENTATION_VERTICAL:
+            createPixmapPainter(width24,
+                                height30,
+                                Origin::TOP_LEFT,
+                                fontHeightDefault,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            createTextOrientationPixmap(pixmap,
+                                        painter.get(),
+                                        AnnotationTextOrientationEnum::STACKED);
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_HORIZ_CENTER:
-            CaretAssertToDoFatal();
+            createPixmapPainter(width12,
+                                height12,
+                                Origin::TOP_LEFT,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            createHorizontalAlignmentPixmap(pixmap,
+                                            painter.get(),
+                                            AnnotationTextAlignHorizontalEnum::CENTER);
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_HORIZ_LEFT:
-            CaretAssertToDoFatal();
+            createPixmapPainter(width12,
+                                height12,
+                                Origin::TOP_LEFT,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            createHorizontalAlignmentPixmap(pixmap,
+                                            painter.get(),
+                                            AnnotationTextAlignHorizontalEnum::LEFT);
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_HORIZ_RIGHT:
-            CaretAssertToDoFatal();
+            createPixmapPainter(width12,
+                                height12,
+                                Origin::TOP_LEFT,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            createHorizontalAlignmentPixmap(pixmap,
+                                            painter.get(),
+                                            AnnotationTextAlignHorizontalEnum::RIGHT);
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_BOTTOM:
-            CaretAssertToDoFatal();
+            createPixmapPainter(width12,
+                                height12,
+                                Origin::TOP_LEFT,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            createVerticalAlignmentPixmap(pixmap,
+                                          painter.get(),
+                                          AnnotationTextAlignVerticalEnum::BOTTOM);
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_MIDDLE:
-            CaretAssertToDoFatal();
+            createPixmapPainter(width12,
+                                height12,
+                                Origin::TOP_LEFT,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            createVerticalAlignmentPixmap(pixmap,
+                                          painter.get(),
+                                          AnnotationTextAlignVerticalEnum::MIDDLE);
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_TOP:
-            CaretAssertToDoFatal();
+            createPixmapPainter(width12,
+                                height12,
+                                Origin::TOP_LEFT,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            createVerticalAlignmentPixmap(pixmap,
+                                          painter.get(),
+                                          AnnotationTextAlignVerticalEnum::TOP);
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_TEXT_STYLE_BOLD:
             CaretAssertToDoFatal();
@@ -410,40 +598,132 @@ WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
             CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_ANTERIOR:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-anterior.png",
+                          "A",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_DORSAL:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-dorsal.png",
+                          "D",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_LEFT:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-left.png",
+                          "L",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
-        case WorkbenchIconTypeEnum::ORIENTATION_MEDIAL:
-            CaretAssertToDoFatal();
+        case WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-left-lateral.png",
+                          "LL",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+            break;
+        case WorkbenchIconTypeEnum::ORIENTATION_LEFT_MEDIAL:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-left-medial.png",
+                          "LM",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_POSTERIOR:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-posterior.png",
+                          "P",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_REDO:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/redo.png",
+                          "R",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_REGION:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/select-region.png",
+                          "R",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+            break;
+        case WorkbenchIconTypeEnum::ORIENTATION_RIGHT:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-right.png",
+                          "R",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+            break;
+        case WorkbenchIconTypeEnum::ORIENTATION_RIGHT_LATERAL:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-right-lateral.png",
+                          "RL",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+            break;
+        case WorkbenchIconTypeEnum::ORIENTATION_RIGHT_MEDIAL:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-right-medial.png",
+                          "RM",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_UNDO:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/undo.png",
+                          "U",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_VENTRAL:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-ventral.png",
+                          "V",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_COLOR_BAR:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/LayersPanel/colorbar.png",
+                          "F",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/LayersPanel/construction.png",
+                          "F",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/LayersPanel/wrench.png",
+                          "F",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TABBAR_DATA_TOOLTIPS:
             CaretAssertToDoFatal();
@@ -543,7 +823,6 @@ WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
              * the foreground color around the pixmap's perimeter.
              */
             float width  = 24.0;
-            float height = 24.0;
             float margin = 1.0;
                         
             const float leftX(margin);
@@ -597,30 +876,131 @@ WorkbenchAction::createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
                           REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS:
+        {
+            createPixmapPainter(width,
+                                height,
+                                Origin::CENTER,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            const int pixmapSize = pixmap.width();
+            const int halfSize = pixmapSize / 2;
+            
+            const int startXY = 3;
+            const int endXY   = 8;
+            QPen pen(painter->pen());
+            pen.setWidth(2);
+            painter->setPen(pen);
+            const int tx(-3);
+            const int ty(3);
+            painter->translate(tx, ty);
+            painter->drawLine(-startXY, 0, -endXY, 0);
+            painter->drawLine( startXY, 0,  endXY, 0);
+            painter->drawLine(0, -startXY, 0, -endXY);
+            painter->drawLine(0,  startXY, 0,  endXY);
+            painter->translate(-tx, -ty);
+            
+            const int tipX(3);
+            const int tipY(-3);
+            const int tailX(halfSize);
+            const int tailY(-halfSize);
+            painter->drawLine(tipX, tipY, tailX, tailY);
+            
+            const int headLength(3);
+            painter->drawLine(tipX, tipY, tipX + headLength, tipY);
+            painter->drawLine(tipX, tipY, tipX, tipY - headLength);
+        }
+            break;
+        case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_AXIAL:
             setPixmapIcon(pixmap,
                           painter.get(),
-                          ":/ToolBar/volume-crosshair-pointer.png",
-                          "X",
+                          ":/ToolBar/view-plane-axial.png",
+                          "A",
                           darkThemeFlag,
                           REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
-        case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_ANTERIOR:
-            CaretAssertToDoFatal();
-            break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_CROSSHAIRS:
-            CaretAssertToDoFatal();
+        {
+            int32_t width(22);
+            int32_t height(22);
+            createPixmapPainter(width,
+                                height,
+                                Origin::CENTER,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+
+            const int startXY = 4;
+            const int endXY   = 10;
+            QPen pen(painter->pen());
+            pen.setWidth(2);
+            pen.setColor(textColor);
+            painter->setPen(pen);
+            painter->drawLine(-startXY, 0, -endXY, 0);
+            painter->drawLine( startXY, 0,  endXY, 0);
+            painter->drawLine(0, -startXY, 0, -endXY);
+            painter->drawLine(0,  startXY, 0,  endXY);
+        }
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_CROSSHAIR_LABELS:
-            CaretAssertToDoFatal();
+        {
+            int32_t width(22);
+            int32_t height(22);
+            createPixmapPainter(width,
+                                height,
+                                Origin::TOP_LEFT,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            
+            const float pixmapSize(pixmap.width());
+            const float fullXY = pixmapSize;
+            const float halfXY = fullXY / 2.0f;
+            
+            const float boxWH = 8.0f;
+            const float halfBoxWH = boxWH / 2.0f;
+            
+            QFont font = painter->font();
+            font.setPixelSize(12);
+            painter->setFont(font);
+            painter->setPen(textColor);
+            
+            const float edgeOffset = 1.0f;
+            painter->drawText(QRectF(edgeOffset, halfXY - halfBoxWH, boxWH, boxWH),
+                              "L", QTextOption(Qt::AlignCenter));
+            painter->drawText(QRectF(fullXY - boxWH - edgeOffset + 1, halfXY - halfBoxWH - 1, boxWH, boxWH),
+                              "R", QTextOption(Qt::AlignCenter));
+            
+            painter->drawText(QRectF(halfXY - halfBoxWH, edgeOffset, boxWH, boxWH),
+                              "A", QTextOption(Qt::AlignCenter));
+            painter->drawText(QRectF(halfXY - halfBoxWH + 1, fullXY - boxWH - edgeOffset, boxWH, boxWH),
+                              "P", QTextOption(Qt::AlignCenter));
+        }
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_ALL:
-            CaretAssertToDoFatal();
+            painter->setPen(textColor);
+            painter->drawText(pixmap.rect(),
+                              (Qt::AlignCenter),
+                              VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::ALL));
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_CORONAL:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-plane-coronal.png",
+                          "A",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_PARASAGITTAL:
-            CaretAssertToDoFatal();
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/ToolBar/view-plane-parasagittal.png",
+                          "A",
+                          darkThemeFlag,
+                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
             break;
     }
 
@@ -725,6 +1105,9 @@ WorkbenchAction::setPixmapIcon(QPixmap& pixmap,
                                const bool darkThemeFlag,
                                const bool replaceWhiteWithTransparentFlag)
 {
+    CaretAssert(pixmap.width() > 0);
+    CaretAssert(painter);
+    
     bool imageSuccessFlag(false);
     QPixmap imageFilePixmap;
     if (WuQtUtilities::loadPixmap(imageFileName,
@@ -766,6 +1149,155 @@ WorkbenchAction::setPixmapIcon(QPixmap& pixmap,
                           (Qt::AlignCenter),
                           alternativeTextForPixmap);
     }
+}
 
+/**
+ * Create a horizontal alignment pixmap.
+ *
+ * @param pixmap
+ *    Pixmap that is painted
+ * @param painter
+ *    The painter
+ * @param horizontalAlignment
+ *    The horizontal alignment.
+ */
+void
+WorkbenchAction::createHorizontalAlignmentPixmap(QPixmap& pixmap,
+                                                 QPainter* painter,
+                                                 const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment)
+{
+    float width    = pixmap.width();
+    float height   = pixmap.height();
+    const int32_t numLines = 3;
+    
+    const qreal margin          = width * 0.05;
+    const qreal longLineLength  = width - (margin * 2.0);
+    const qreal shortLineLength = width / 2.0;
+    const qreal yStep = MathFunctions::round(height / (numLines + 1));
+    
+    for (int32_t i = 1; i <= numLines; i++) {
+        const qreal lineLength = (((i % 2) == 0)
+                                  ? shortLineLength
+                                  : longLineLength);
+        const qreal y = yStep * i;
+        
+        qreal xStart = 0.0;
+        qreal xEnd   = width;
+        
+        switch (horizontalAlignment) {
+            case AnnotationTextAlignHorizontalEnum::CENTER:
+                xStart = (width - lineLength) / 2.0;
+                xEnd   = xStart + lineLength;
+                break;
+            case AnnotationTextAlignHorizontalEnum::LEFT:
+                xStart = margin;
+                xEnd   = xStart + lineLength;
+                break;
+            case AnnotationTextAlignHorizontalEnum::RIGHT:
+                xEnd   = width - margin;
+                xStart = xEnd - lineLength;
+                break;
+        }
+        
+        painter->drawLine(QLineF(xStart,
+                                 y,
+                                 xEnd,
+                                 y));
+    }
+}
+
+/**
+ * Create a vertical alignment pixmap.
+ *
+ * @param pixmap
+ *    Pixmap that is painted
+ * @param painter
+ *    The painter
+ * @param verticalAlignment
+ *    The vertical alignment.
+ */
+void
+WorkbenchAction::createVerticalAlignmentPixmap(QPixmap& pixmap,
+                                               QPainter* painter,
+                                               const AnnotationTextAlignVerticalEnum::Enum verticalAlignment)
+{
+    float width    = pixmap.width();
+    float height   = pixmap.height();
+    
+    const qreal margin          = width * 0.05;
+    
+    float yStep = 3.0;
+    float y1 = 0.0;
+    float y2 = 0.0;
+    switch (verticalAlignment) {
+        case AnnotationTextAlignVerticalEnum::BOTTOM:
+            y1 = (height - 1 - yStep);
+            y2 = y1 + yStep;
+            break;
+        case AnnotationTextAlignVerticalEnum::MIDDLE:
+            y1 = MathFunctions::round((height / 2.0) - (yStep / 2.0));
+            y2 = y1 + yStep;
+            break;
+        case AnnotationTextAlignVerticalEnum::TOP:
+            y1 = yStep;
+            y2 = y1 + yStep;
+            break;
+    }
+    
+    const float xStart = margin;
+    const float xEnd   = width - (margin * 2.0);
+    
+    painter->drawLine(QLineF(xStart, y1,
+                             xEnd,   y1));
+    painter->drawLine(QLineF(xStart, y2,
+                             xEnd,   y2));
+}
+
+/**
+ * Draw pixmap for text orientation
+ *
+ * @param pixmap
+ *    Pixmap that is painted
+ * @param painter
+ *    The painter
+ * @param orientation
+ *     The horizontal alignment.
+ */
+void
+WorkbenchAction::createTextOrientationPixmap(QPixmap& pixmap,
+                                             QPainter* painter,
+                                             const AnnotationTextOrientationEnum::Enum orientation)
+{
+    /*
+     * Create a small, square pixmap that will contain
+     * the foreground color around the pixmap's perimeter.
+     */
+    float width  = 24.0;
+    float height = 30.0;
+    
+    switch (orientation) {
+        case AnnotationTextOrientationEnum::HORIZONTAL:
+            painter->drawText(pixmap.rect(),
+                              (Qt::AlignCenter),
+                              "ab");
+            
+            break;
+        case AnnotationTextOrientationEnum::STACKED:
+            painter->drawText(pixmap.rect(),
+                              (Qt::AlignCenter),
+                              "a\nb");
+            break;
+    }
+}
+
+void
+WorkbenchAction::printLeftoverWorkbenchActions()
+{
+    if (s_allWorkbenchActions.size() == 0) {
+        std::cout << "All Workbench Actions were deleted" << std::endl;
+    }
+    for (WorkbenchAction* wa : s_allWorkbenchActions) {
+        std::cout << WorkbenchIconTypeEnum::toName(wa->m_iconType) << std::endl;
+    }
 }
 

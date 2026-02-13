@@ -31,7 +31,6 @@
 #include <QLineEdit>
 #include <QRadioButton>
 #include <QSpinBox>
-#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "Brain.h"
@@ -52,6 +51,7 @@
 #include "VolumeFile.h"
 #include "VolumeFileEditorDelegate.h"
 #include "VolumeFileCreateDialog.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQHyperlinkToolTip.h"
@@ -262,22 +262,20 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
 {
     QLabel* volumeLabel = new QLabel("File");
     
-    m_newFileToolButton = new QToolButton();
+    m_newFileToolButton = new WorkbenchToolButton();
     m_newFileToolButton->setDefaultAction(WuQtUtilities::createAction("New",
                                                                     "Create a new volume file that will become the top-most overlay",
                                                                     this,
                                                                     this, SLOT(newFileActionTriggered())));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_newFileToolButton);
     WuQHyperlinkToolTip::addWithHyperlink(m_newFileToolButton,
                                           helpHyperlink);
     
-    m_addMapsToolButton = new QToolButton();
+    m_addMapsToolButton = new WorkbenchToolButton();
     m_addMapsToolButton->setDefaultAction(WuQtUtilities::createAction("Add",
                                                                       ("Add maps to the selected volume file.\n"
                                                                        "First new map will become the top-most overlay."),
                                                                       this,
                                                                       this, SLOT(addMapsActionTriggered())));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_addMapsToolButton);
     WuQHyperlinkToolTip::addWithHyperlink(m_addMapsToolButton,
                                           helpHyperlink);
     
@@ -286,9 +284,8 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                this,
                                                this, SLOT(lockFileActionTriggered()));
     m_lockAction->setCheckable(true);
-    QToolButton* lockFileToolButton = new QToolButton();
+    QToolButton* lockFileToolButton = new WorkbenchToolButton();
     lockFileToolButton->setDefaultAction(m_lockAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(lockFileToolButton);
     WuQHyperlinkToolTip::addWithHyperlink(lockFileToolButton,
                                           m_lockAction,
                                           helpHyperlink);
@@ -347,9 +344,8 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                           "Choose Label for Voxels",
                                                           this,
                                                           this, SLOT(labelValueActionTriggered()));
-    m_voxelLabelValueToolButton = new QToolButton();
+    m_voxelLabelValueToolButton = new WorkbenchToolButton();
     m_voxelLabelValueToolButton->setDefaultAction(m_voxelLabelValueAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_voxelLabelValueToolButton);
     WuQHyperlinkToolTip::addWithHyperlink(m_voxelLabelValueToolButton,
                                           helpHyperlink);
 
@@ -404,22 +400,20 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
 QWidget*
 UserInputModeVolumeEditWidget::createEditWidget()
 {
-    QToolButton* undoToolButton = new QToolButton();
+    QToolButton* undoToolButton = new WorkbenchToolButton();
     undoToolButton->setDefaultAction(WuQtUtilities::createAction("Undo",
                                                                  "Undo the last volume edit",
                                                                  this,
                                                                  this, SLOT(undoActionTriggered())));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
     WuQHyperlinkToolTip::addWithHyperlink(undoToolButton,
                                           helpHyperlink);
 
     
-    QToolButton* redoToolButton = new QToolButton();
+    QToolButton* redoToolButton = new WorkbenchToolButton();
     redoToolButton->setDefaultAction(WuQtUtilities::createAction("Redo",
                                                                  "Redo (or is it undo) the last undo",
                                                                  this,
                                                                  this, SLOT(redoActionTriggered())));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
     WuQHyperlinkToolTip::addWithHyperlink(redoToolButton,
                                           helpHyperlink);
     
@@ -428,7 +422,6 @@ UserInputModeVolumeEditWidget::createEditWidget()
                                                                   "Reset all edting of the volume",
                                                                   this,
                                                                   this, SLOT(resetActionTriggered())));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
     WuQHyperlinkToolTip::addWithHyperlink(resetToolButton,
                                           helpHyperlink);
 

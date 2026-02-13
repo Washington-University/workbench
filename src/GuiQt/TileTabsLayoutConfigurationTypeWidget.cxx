@@ -29,7 +29,6 @@
 #include <QMenu>
 #include <QRadioButton>
 #include <QSpinBox>
-#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "BrainBrowserWindow.h"
@@ -43,6 +42,8 @@
 #include "TileTabsConfigurationDialog.h"
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
 
@@ -486,7 +487,7 @@ TileTabsLayoutConfigurationTypeWidget::createManualConfigurationSetToolButton()
     }
     CaretAssert( ! setButtonText.isEmpty());
     
-    QToolButton* toolButton = new QToolButton();
+    QToolButton* toolButton = new WorkbenchToolButton();
     toolButton->setText(setButtonText);
     toolButton->setToolTip(toolTipText);
     QObject::connect(toolButton, &QToolButton::clicked,
@@ -504,21 +505,13 @@ TileTabsLayoutConfigurationTypeWidget::createUndoToolButton()
     /*
      * Undo unlocking of aspect ratio
      */
-    QIcon undoIcon;
-    const bool undoIconValid(WuQtUtilities::loadIcon(":/ToolBar/undo.png",
-                                                     undoIcon));
-    m_undoConfigurationChangeAction = new QAction();
-    if (undoIconValid) {
-        m_undoConfigurationChangeAction->setIcon(undoIcon);
-    }
-    else {
-        m_undoConfigurationChangeAction->setText("U");
-    }
+    m_undoConfigurationChangeAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_UNDO,
+                                                          this);
     m_undoConfigurationChangeAction->setToolTip("Revert to previous configuration");
     QObject::connect(m_undoConfigurationChangeAction, &QAction::triggered,
                      this, &TileTabsLayoutConfigurationTypeWidget::processUndoConfigurationActionTriggered);
     
-    QToolButton* toolButton(new QToolButton());
+    QToolButton* toolButton(new WorkbenchToolButton());
     toolButton->setDefaultAction(m_undoConfigurationChangeAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     

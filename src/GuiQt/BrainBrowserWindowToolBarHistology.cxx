@@ -27,7 +27,6 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QLabel>
-#include <QToolButton>
 #include <QVBoxLayout>
 #include <QWhatsThis>
 
@@ -60,6 +59,8 @@
 #include "HistologyOverlay.h"
 #include "HistologyOverlaySet.h"
 #include "ModelHistology.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
@@ -144,25 +145,15 @@ m_parentToolBar(parentToolBar)
                                    "in ths tab or any other tab with the same yoking status "
                                    "(not Off), the volume slices will move to the location "
                                    "of the identified brainordinate.");
-    m_identificationMovesSlicesAction = new QAction(this);
+    m_identificationMovesSlicesAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS,
+                                                            this);
     m_identificationMovesSlicesAction->setCheckable(true);
     m_identificationMovesSlicesAction->setText("");
     WuQtUtilities::setWordWrappedToolTip(m_identificationMovesSlicesAction,
                                          idToolTipText);
     QAction::connect(m_identificationMovesSlicesAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarHistology::identificationMovesSlicesActionTriggered);
-    QIcon volumeCrossHairIcon;
-    const bool volumeCrossHairIconValid =
-    WuQtUtilities::loadIcon(":/ToolBar/volume-crosshair-pointer.png",
-                            volumeCrossHairIcon);
-    QToolButton* identificationMovesSlicesToolButton = new QToolButton;
-    if (volumeCrossHairIconValid) {
-        m_identificationMovesSlicesAction->setIcon(volumeCrossHairIcon);
-        m_identificationMovesSlicesAction->setIcon(BrainBrowserWindowToolBarSliceSelection::createVolumeIdentificationUpdatesSlicesIcon(identificationMovesSlicesToolButton));
-    }
-    else {
-        m_identificationMovesSlicesAction->setText("ID");
-    }
+    QToolButton* identificationMovesSlicesToolButton = new WorkbenchToolButton();
     identificationMovesSlicesToolButton->setDefaultAction(m_identificationMovesSlicesAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(identificationMovesSlicesToolButton);
     m_identificationMovesSlicesAction->setObjectName(objectNamePrefix
@@ -182,7 +173,7 @@ m_parentToolBar(parentToolBar)
                                                      + "MoveSliceToCenter");
     macroManager->addMacroSupportToObject(m_moveToCenterAction,
                                           "Moves to center of slices");
-    QToolButton* moveToCenterToolButton = new QToolButton();
+    QToolButton* moveToCenterToolButton = new WorkbenchToolButton();
     moveToCenterToolButton->setDefaultAction(m_moveToCenterAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(moveToCenterToolButton);
         
@@ -199,7 +190,8 @@ m_parentToolBar(parentToolBar)
     /*
      * Crosshair button
      */
-    m_showAxisCrosshairsAction = new QAction(this);
+    m_showAxisCrosshairsAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_CROSSHAIRS,
+                                                     this);
     m_showAxisCrosshairsAction->setCheckable(true);
     m_showAxisCrosshairsAction->setToolTip("Show crosshairs on histology slice");
     QObject::connect(m_showAxisCrosshairsAction, &QAction::triggered,
@@ -209,17 +201,14 @@ m_parentToolBar(parentToolBar)
     macroManager->addMacroSupportToObject(m_showAxisCrosshairsAction,
                                           "Show histology axis crosshairs");
     
-    QToolButton* showCrosshairsToolButton = new QToolButton();
-    QPixmap xhairPixmap = BrainBrowserWindowToolBarSlicePlane::createCrosshairsIcon(showCrosshairsToolButton);
+    QToolButton* showCrosshairsToolButton = new WorkbenchToolButton();
     showCrosshairsToolButton->setDefaultAction(m_showAxisCrosshairsAction);
-    m_showAxisCrosshairsAction->setIcon(QIcon(xhairPixmap));
-    showCrosshairsToolButton->setIconSize(xhairPixmap.size());
-    WuQtUtilities::setToolButtonStyleForQt5Mac(showCrosshairsToolButton);
 
     /*
      * Axis labels
      */
-    m_showAxisCrosshairLabelsAction = new QAction("", this);
+    m_showAxisCrosshairLabelsAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_CROSSHAIR_LABELS,
+                                                          this);
     m_showAxisCrosshairLabelsAction->setCheckable(true);
     m_showAxisCrosshairLabelsAction->setToolTip("Show axis labels");
     QObject::connect(m_showAxisCrosshairLabelsAction, &QAction::triggered,
@@ -229,12 +218,8 @@ m_parentToolBar(parentToolBar)
     macroManager->addMacroSupportToObject(m_showAxisCrosshairLabelsAction,
                                           "Show axis labels");
     
-    QToolButton* showCrosshairLabelsToolButton = new QToolButton();
+    QToolButton* showCrosshairLabelsToolButton = new WorkbenchToolButton();
     showCrosshairLabelsToolButton->setDefaultAction(m_showAxisCrosshairLabelsAction);
-    QPixmap labelsPixmap = BrainBrowserWindowToolBarSlicePlane::createCrosshairLabelsIcon(showCrosshairLabelsToolButton);
-    m_showAxisCrosshairLabelsAction->setIcon(QIcon(labelsPixmap));
-    showCrosshairLabelsToolButton->setIconSize(labelsPixmap.size());
-    WuQtUtilities::setToolButtonStyleForQt5Mac(showCrosshairLabelsToolButton);
     
     /*
      * Angles
@@ -317,12 +302,6 @@ m_parentToolBar(parentToolBar)
 
     controlsLayout->addLayout(crosshairsLayout,
                               row, columnSliceLabels, 1, 2);
-//    controlsLayout->addWidget(showCrosshairsToolButton,
-//                              row, columnSliceLabels, Qt::AlignRight);
-//    controlsLayout->addWidget(showCrosshairLabelsToolButton,
-//                              row, columnSlicesLabels, Qt::AlignRight);
-//    controlsLayout->addWidget(identificationMovesSlicesToolButton,
-//                              row, columnSliceSpinBoxes, Qt::AlignLeft);
     controlsLayout->addWidget(m_flipXCheckBox,
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(moveToCenterToolButton,

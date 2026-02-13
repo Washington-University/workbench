@@ -243,16 +243,16 @@ namespace caret {
         
         static QFont getFixedFont();
         
-        void printColor(const QString& name,
-                        const QColor& color);
+        static void printColor(const QString& name,
+                               const QColor& color);
         
-        void printColorGroup(const AString& colorGroupName,
-                             const QPalette& palette,
-                             const QPalette::ColorGroup colorGroup);
+        static void printColorGroup(const AString& colorGroupName,
+                                    const QPalette& palette,
+                                    const QPalette::ColorGroup colorGroup);
         
-        void printColorGroups(const AString& name,
-                              QWidget* widget);
-        
+        static void printColorGroups(const AString& name,
+                                     QWidget* widget);
+
     private:
         static QSharedPointer<QPainter> createPixmapWidgetPainterPrivate(const QWidget* widget,
                                                                          QPixmap& pixmap,

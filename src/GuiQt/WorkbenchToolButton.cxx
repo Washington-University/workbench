@@ -44,28 +44,42 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param menuStatus
+ *    Has menu (default NO)
  * @param parent
  *    Parent widget
  */
-WorkbenchToolButton::WorkbenchToolButton(QWidget* parent)
-: QToolButton(parent)
+WorkbenchToolButton::WorkbenchToolButton(const MenuStatus menuStatus,
+                                         QWidget* parent)
+: QToolButton(parent),
+m_menuStatus(menuStatus)
 {
     updateForDarkLightTheme(getCurrentDarkLightThemeMode());
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
+    s_allWorkbenchToolButtons.insert(this);
+    
+//    std::cout << (ptrdiff_t)this << " " << s_allWorkbenchToolButtons.size() << std::endl;
+//    if (s_allWorkbenchToolButtons.size() == 79) {
+//        std::abort();
+//    }
 }
 
 /**
  * Constructor.  Button will contain a default QAction containing the given icon type as a pixmap.
  * @param iconType
  *    Type of icon for tool button
+ * @param menuStatus
+ *    Has menu (default NO)
  * @param parent
  *    Parent widget
  */
 WorkbenchToolButton::WorkbenchToolButton(const WorkbenchIconTypeEnum::Enum iconType,
+                                         const MenuStatus menuStatus,
                                          QWidget* parent)
-: QToolButton(parent)
+: QToolButton(parent),
+m_menuStatus(menuStatus)
 {
     QAction* action(new WorkbenchAction(iconType,
                                         this));
@@ -75,6 +89,7 @@ WorkbenchToolButton::WorkbenchToolButton(const WorkbenchIconTypeEnum::Enum iconT
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
+    s_allWorkbenchToolButtons.insert(this);
 }
 
 /**
@@ -83,6 +98,7 @@ WorkbenchToolButton::WorkbenchToolButton(const WorkbenchIconTypeEnum::Enum iconT
 WorkbenchToolButton::~WorkbenchToolButton()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    s_allWorkbenchToolButtons.erase(this);
 }
 
 /**
@@ -102,6 +118,13 @@ WorkbenchToolButton::receiveEvent(Event* event)
         updateForDarkLightTheme(darkLightThemeMode);
     }
 }
+
+void
+WorkbenchToolButton::updateStyleSheet()
+{
+    updateForDarkLightTheme(getCurrentDarkLightThemeMode());
+}
+
 
 /**
  * Update the button for the given dark / light theme
@@ -150,13 +173,22 @@ WorkbenchToolButton::updateButtonForMacOS(const GuiDarkLightThemeModeEnum::Enum 
 
     QString toolButtonStyleSheet(" QToolButton { "
                                  "   background: " + backgroundColor.name() + "; ");
-    toolButtonStyleSheet.append("   border-style: solid; "
-                                "   border-width: 1px; "
-                                "   border-color: " + borderColor.name() + "; "
-                                "   padding-top:    2px; "
-                                "   padding-bottom: 2px; "
-                                "   padding-right:  3px; "
-                                "   padding-left:   3px; ");
+    switch (m_menuStatus) {
+        case MenuStatus::MENU_NO:
+            toolButtonStyleSheet.append("   border-style: solid; "
+                                        "   border-width: 1px; "
+                                        "   border-color: " + borderColor.name() + "; "
+                                        "   padding-top:    2px; "
+                                        "   padding-bottom: 2px; "
+                                        "   padding-right:  3px; "
+                                        "   padding-left:   3px; ");
+            break;
+        case MenuStatus::MENU_YES:
+            /*
+             * Border not needed for toolbutton with menu
+             */
+            break;
+    }
     toolButtonStyleSheet.append(" } ");
     
     /*
@@ -197,3 +229,14 @@ WorkbenchToolButton::getCurrentDarkLightThemeMode() const
     return themeGetEvent.getDarkLightThemeMode();
 }
 
+void
+WorkbenchToolButton::printLeftoverWorkbenchToolButtons()
+{
+    if (s_allWorkbenchToolButtons.size() == 0) {
+        std::cout << "All Workbench Tool Buttons were deleted" << std::endl;
+    }
+    for (WorkbenchToolButton* wa : s_allWorkbenchToolButtons) {
+        std::cout << "Toolbutton not deleted: " << wa->text()
+        << (ptrdiff_t)wa << std::endl;
+    }
+}

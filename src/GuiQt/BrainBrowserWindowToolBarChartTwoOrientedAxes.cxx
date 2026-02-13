@@ -24,7 +24,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QMenu>
-#include <QToolButton>
 #include <QWidgetAction>
 
 #define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_ORIENTED_AXES_DECLARE__
@@ -45,6 +44,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "ModelChartTwo.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
 #include "WuQTrueFalseComboBox.h"
@@ -130,7 +130,7 @@ m_objectNamePrefix(parentObjectName
     QObject::connect(m_titleCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoOrientedAxes::titleCheckBoxClicked);
     m_titleCheckBox->setToolTip("Display the chart title");
-    m_titleEditToolButton = new QToolButton();
+    m_titleEditToolButton = new WorkbenchToolButton();
     m_titleEditToolButton->setText("Edit");
     m_titleEditToolButton->setToolTip("Edit the chart title");
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_titleEditToolButton);
@@ -335,7 +335,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
             break;
     }
     
-    QToolButton* resetToolButton = new QToolButton();
+    QToolButton* resetToolButton = new WorkbenchToolButton();
     resetToolButton->setText("R");
     resetToolButton->setToolTip("<html>"
                                 "Reset the Min/Max Values:<br>"
@@ -400,7 +400,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxisEditing(const ChartAxis
     macroManager->addMacroSupportToObject(checkBox,
                                           checkBox->toolTip());
 
-    QToolButton* toolButton = new QToolButton();
+    QToolButton* toolButton = new WorkbenchToolButton();
     WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     toolButton->setText("Edit");
     toolButton->setToolTip("Edit the attributes of the "

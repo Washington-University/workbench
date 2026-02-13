@@ -39,6 +39,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "UserInputModeAnnotations.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -106,49 +107,19 @@ AnnotationDeleteWidget::updateContent()
 QToolButton*
 AnnotationDeleteWidget::createDeleteToolButton()
 {
-    m_deleteToolButtonAction = WuQtUtilities::createAction("",
-                                                           ("Delete the selected annotation\n"
-                                                            "\n"
-                                                            "Pressing the Delete key while an annotation\n"
-                                                            "is selected will also delete an annotation\n"
-                                                            "\n"
-                                                            "Pressing the arrow will show a menu for\n"
-                                                            "undeleting annotations"),
-                                                           this,
-                                                           this,
-                                                           SLOT(deleteActionTriggered()));
-    QToolButton* toolButton = new QToolButton();
-    
-    const float width  = 24.0;
-    const float height = 24.0;
-    QPixmap pixmap(static_cast<int>(width),
-                   static_cast<int>(height));
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(toolButton,
-                                                                                pixmap);
-    
-    
-    /* trash can */
-    painter->drawLine(4, 6, 4, 22);
-    painter->drawLine(4, 22, 20, 22);
-    painter->drawLine(20, 22, 20, 6);
-    
-    /* trash can lines */
-    painter->drawLine(12, 8, 12, 20);
-    painter->drawLine(8,  8,  8, 20);
-    painter->drawLine(16, 8, 16, 20);
-    
-    /* trash can lid and handle */
-    painter->drawLine(2, 6, 22, 6);
-    painter->drawLine(8, 6, 8, 2);
-    painter->drawLine(8, 2, 16, 2);
-    painter->drawLine(16, 2, 16, 6);
-    
-    
-    m_deleteToolButtonAction->setIcon(QIcon(pixmap));
-    
-    toolButton->setIconSize(pixmap.size());
-    toolButton->setDefaultAction(m_deleteToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
+    QToolButton* toolButton = new WorkbenchToolButton(WorkbenchIconTypeEnum::ANNOTATION_DELETE);
+    m_deleteToolButtonAction = toolButton->defaultAction();
+    m_deleteToolButtonAction->setToolTip("Delete the selected annotation\n"
+                                         "\n"
+                                         "Pressing the Delete key while an annotation\n"
+                                         "is selected will also delete an annotation\n"
+                                         "\n"
+                                         "Pressing the arrow will show a menu for\n"
+                                         "undeleting annotations");
+    QObject::connect(m_deleteToolButtonAction, &QAction::triggered,
+                     this, &AnnotationDeleteWidget::deleteActionTriggered);
+        
+    toolButton->setIconSize(QSize(24, 24));
     
     return toolButton;
 }

@@ -61,9 +61,6 @@ namespace caret {
         
         QToolButton* createOrientationToolButton(const AnnotationTextOrientationEnum::Enum orientation);
         
-        QPixmap createHorizontalAlignmentPixmap(const QWidget* widget,
-                                                const AnnotationTextOrientationEnum::Enum orientation);
-        
         const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;

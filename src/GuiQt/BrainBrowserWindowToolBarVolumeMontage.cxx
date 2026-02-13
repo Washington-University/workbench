@@ -30,12 +30,12 @@
 #include <QLabel>
 #include <QMenu>
 #include <QSpinBox>
-#include <QToolButton>
 #include <QWidgetAction>
 
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
+#include "WorkbenchToolButton.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
 #include "WuQWidgetObjectGroup.h"
@@ -195,11 +195,11 @@ m_parentToolBar(parentToolBar)
     WuQMacroManager::instance()->addMacroSupportToObject(m_showSliceCoordinateAction,
                                                          "Enable coordinates in volume montage");
 
-    QToolButton* showSliceCoordToolButton = new QToolButton;
+    QToolButton* showSliceCoordToolButton = new WorkbenchToolButton;
     showSliceCoordToolButton->setDefaultAction(m_showSliceCoordinateAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(showSliceCoordToolButton);
 
-    QToolButton* montageEnabledToolButton = new QToolButton();
+    QToolButton* montageEnabledToolButton = new WorkbenchToolButton();
     m_montageEnabledAction = WuQtUtilities::createAction("On",
                                                          "View a montage of parallel slices",
                                                          montageEnabledToolButton,

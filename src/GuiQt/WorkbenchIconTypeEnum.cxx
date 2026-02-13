@@ -118,9 +118,9 @@ switch (value) {
         break;
     case WorkbenchIconTypeEnum::ANNOTATION_NEW_SPACE_WINDOW:
         break;
-    case WorkbenchIconTypeEnum::ANNOTATION_ORIENTATION_HORIZONTAL:
+    case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ORIENTATION_HORIZONTAL:
         break;
-    case WorkbenchIconTypeEnum::ANNOTATION_ORIENTATION_VERTICAL:
+    case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ORIENTATION_VERTICAL:
         break;
     case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_HORIZ_CENTER:
         break;
@@ -146,7 +146,9 @@ switch (value) {
         break;
     case WorkbenchIconTypeEnum::ORIENTATION_LEFT:
         break;
-    case WorkbenchIconTypeEnum::ORIENTATION_MEDIAL:
+    case WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL:
+        break;
+    case WorkbenchIconTypeEnum::ORIENTATION_LEFT_MEDIAL:
         break;
     case WorkbenchIconTypeEnum::ORIENTATION_POSTERIOR:
         break;
@@ -154,6 +156,12 @@ switch (value) {
         break;
     case WorkbenchIconTypeEnum::ORIENTATION_REGION:
         break;
+    case WorkbenchIconTypeEnum::ORIENTATION_RIGHT:
+        break;
+    case WorkbenchIconTypeEnum::ORIENTATION_RIGHT_LATERAL:
+        break;
+    case WorkbenchIconTypeEnum::ORIENTATION_RIGHT_MEDIAL:
+         break;
     case WorkbenchIconTypeEnum::ORIENTATION_UNDO:
         break;
     case WorkbenchIconTypeEnum::ORIENTATION_VENTRAL:
@@ -194,7 +202,7 @@ switch (value) {
         break;
     case WorkbenchIconTypeEnum::TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS:
         break;
-    case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_ANTERIOR:
+    case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_AXIAL:
         break;
     case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_CROSSHAIRS:
         break;
@@ -340,13 +348,13 @@ WorkbenchIconTypeEnum::initialize()
                                     "ANNOTATION_NEW_SPACE_WINDOW", 
                                     "Annotation New Space Window"));
     
-    enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_ORIENTATION_HORIZONTAL, 
-                                    "ANNOTATION_ORIENTATION_HORIZONTAL", 
-                                    "Annotation Orientation Horizontal"));
+    enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_TEXT_ORIENTATION_HORIZONTAL,
+                                    "ANNOTATION_TEXT_ORIENTATION_HORIZONTAL",
+                                    "Annotation Text Orientation Horizontal"));
     
-    enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_ORIENTATION_VERTICAL, 
-                                    "ANNOTATION_ORIENTATION_VERTICAL", 
-                                    "Annotation Orientation Vertical"));
+    enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_TEXT_ORIENTATION_VERTICAL,
+                                    "ANNOTATION_TEXT_ORIENTATION_VERTICAL",
+                                    "Annotation Text Orientation Vertical"));
     
     enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_TEXT_ALIGN_HORIZ_CENTER, 
                                     "ANNOTATION_TEXT_ALIGN_HORIZ_CENTER", 
@@ -396,9 +404,13 @@ WorkbenchIconTypeEnum::initialize()
                                     "ORIENTATION_LEFT", 
                                     "Orientation Left"));
     
-    enumData.push_back(WorkbenchIconTypeEnum(ORIENTATION_MEDIAL, 
-                                    "ORIENTATION_MEDIAL", 
-                                    "Orientation Medial"));
+    enumData.push_back(WorkbenchIconTypeEnum(ORIENTATION_LEFT_LATERAL,
+                                             "ORIENTATION_LEFT_LATERAL",
+                                             "Orientation Left Lateral"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(ORIENTATION_LEFT_MEDIAL,
+                                             "ORIENTATION_LEFT_MEDIAL",
+                                             "Orientation Left Medial"));
     
     enumData.push_back(WorkbenchIconTypeEnum(ORIENTATION_POSTERIOR, 
                                     "ORIENTATION_POSTERIOR", 
@@ -408,7 +420,19 @@ WorkbenchIconTypeEnum::initialize()
                                     "ORIENTATION_REDO", 
                                     "Orientation Redo"));
     
-    enumData.push_back(WorkbenchIconTypeEnum(ORIENTATION_REGION, 
+    enumData.push_back(WorkbenchIconTypeEnum(ORIENTATION_RIGHT,
+                                             "ORIENTATION_RIGHT",
+                                             "Orientation Right"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(ORIENTATION_RIGHT_LATERAL,
+                                             "ORIENTATION_RIGHT_LATERAL",
+                                             "Orientation Right Lateral"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(ORIENTATION_RIGHT_MEDIAL,
+                                             "ORIENTATION_RIGHT_MEDIAL",
+                                             "Orientation Right Medial"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(ORIENTATION_REGION,
                                     "ORIENTATION_REGION", 
                                     "Orientation Region"));
     
@@ -492,9 +516,9 @@ WorkbenchIconTypeEnum::initialize()
                                     "TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS", 
                                     "Toolbar Slice Indices Move Crosshairs"));
     
-    enumData.push_back(WorkbenchIconTypeEnum(TOOLBAR_VOLUME_SLICE_PLANE_ANTERIOR, 
-                                    "TOOLBAR_VOLUME_SLICE_PLANE_ANTERIOR", 
-                                    "Toolbar Volume Slice Plane Anterior"));
+    enumData.push_back(WorkbenchIconTypeEnum(TOOLBAR_VOLUME_SLICE_PLANE_AXIAL,
+                                    "TOOLBAR_VOLUME_SLICE_PLANE_AXIAL",
+                                    "Toolbar Volume Slice Plane Axial"));
     
     enumData.push_back(WorkbenchIconTypeEnum(TOOLBAR_VOLUME_SLICE_CROSSHAIRS, 
                                     "TOOLBAR_VOLUME_SLICE_CROSSHAIRS", 

@@ -29,7 +29,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QMenu>
-#include <QToolButton>
 #include <QWidgetAction>
 
 #include "Brain.h"
@@ -43,6 +42,7 @@
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
 #include "SurfaceTypeEnum.h"
+#include "WorkbenchToolButton.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
@@ -97,7 +97,7 @@ m_parentToolBar(parentToolBar)
     macroManager->addMacroSupportToObject(this->wholeBrainSurfaceLeftCheckBox,
                                           "Enable all view left surface");
     
-    QToolButton* wholeBrainLeftSurfaceToolButton = new QToolButton();
+    QToolButton* wholeBrainLeftSurfaceToolButton = new WorkbenchToolButton();
     QAction* leftSurfaceAction = WuQtUtilities::createAction("Left",
                                                              "Select the whole brain left surface",
                                                              wholeBrainLeftSurfaceToolButton,
@@ -131,7 +131,7 @@ m_parentToolBar(parentToolBar)
     macroManager->addMacroSupportToObject(this->wholeBrainSurfaceRightCheckBox,
                                           "Enable all view right surface");
     
-    QToolButton* wholeBrainRightSurfaceToolButton = new QToolButton();
+    QToolButton* wholeBrainRightSurfaceToolButton = new WorkbenchToolButton();
     QAction* rightSurfaceAction = WuQtUtilities::createAction("Right",
                                                               "Select the whole brain right surface",
                                                               wholeBrainRightSurfaceToolButton,
@@ -165,7 +165,7 @@ m_parentToolBar(parentToolBar)
     macroManager->addMacroSupportToObject(this->wholeBrainSurfaceCerebellumCheckBox,
                                           "Enable all view cerebellum");
     
-    QToolButton* wholeBrainCerebellumSurfaceToolButton = new QToolButton();
+    QToolButton* wholeBrainCerebellumSurfaceToolButton = new WorkbenchToolButton();
     QAction* cerebellumSurfaceAction = WuQtUtilities::createAction("Cerebellum",
                                                                    "Select the whole brain cerebellum surface",
                                                                    wholeBrainCerebellumSurfaceToolButton,
@@ -199,7 +199,7 @@ m_parentToolBar(parentToolBar)
     macroManager->addMacroSupportToObject(this->wholeBrainSurfaceHippocampusCheckBox,
                                           "Enable all view hippocampus");
     
-    m_wholeBrainSurfaceHippocampusToolButton = new QToolButton();
+    m_wholeBrainSurfaceHippocampusToolButton = new WorkbenchToolButton();
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_wholeBrainSurfaceHippocampusToolButton);
     QObject::connect(m_wholeBrainSurfaceHippocampusToolButton, &QToolButton::clicked,
                      this, &BrainBrowserWindowToolBarAllSurface::wholeBrainHippocampusToolButtonClicked);

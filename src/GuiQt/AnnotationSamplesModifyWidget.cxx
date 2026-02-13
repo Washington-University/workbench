@@ -27,7 +27,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QMenu>
-#include <QToolButton>
 
 #include "AnnotationManager.h"
 #include "AnnotationPolyhedron.h"
@@ -41,6 +40,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "UserInputModeAnnotationsContextMenu.h"
+#include "WorkbenchToolButton.h"
 #include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
 
@@ -98,7 +98,7 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_lockAction, &QAction::toggled,
                      this, &AnnotationSamplesModifyWidget::lockActionToggled);
     
-    QToolButton* lockToolButton = new QToolButton();
+    QToolButton* lockToolButton = new WorkbenchToolButton();
     lockToolButton->setDefaultAction(m_lockAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(lockToolButton);
 
@@ -107,7 +107,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_moreAction->setToolTip("<html>Click to display menu containing more options</html>");
     QObject::connect(m_moreAction, &QAction::triggered,
                      this, &AnnotationSamplesModifyWidget::moreActionTriggered);
-    m_moreToolButton = new QToolButton();
+    m_moreToolButton = new WorkbenchToolButton();
     m_moreToolButton->setDefaultAction(m_moreAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_moreToolButton);
     

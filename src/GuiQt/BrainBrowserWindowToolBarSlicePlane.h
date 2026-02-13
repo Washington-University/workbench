@@ -44,10 +44,6 @@ namespace caret {
         
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
-        static QPixmap createCrosshairsIcon(const QWidget* widget);
-        
-        static QPixmap createCrosshairLabelsIcon(const QWidget* widget);
-        
         // ADD_NEW_METHODS_HERE
         
     private slots:

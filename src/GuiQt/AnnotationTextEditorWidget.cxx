@@ -27,7 +27,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "AnnotationManager.h"
@@ -41,6 +40,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "UserInputModeEnum.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -98,9 +98,8 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_editAction, &QAction::triggered,
                      this, &AnnotationTextEditorWidget::displayTextEditor);
     m_editAction->setToolTip("Edit the text in a text editor");
-    QToolButton* editToolButton(new QToolButton());
+    QToolButton* editToolButton(new WorkbenchToolButton());
     editToolButton->setDefaultAction(m_editAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(editToolButton);
     
     QGridLayout* layout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);

@@ -21,11 +21,14 @@
  */
 /*LICENSE_END*/
 
-
+#include <set>
 #include <utility>
 
 #include <QAction>
 
+#include "AnnotationTextAlignHorizontalEnum.h"
+#include "AnnotationTextAlignVerticalEnum.h"
+#include "AnnotationTextOrientationEnum.h"
 #include "EventListenerInterface.h"
 #include "GuiDarkLightThemeModeEnum.h"
 #include "WorkbenchIconTypeEnum.h"
@@ -38,7 +41,7 @@ namespace caret {
 
     public:
         WorkbenchAction(const WorkbenchIconTypeEnum::Enum iconType,
-                        QObject* parent = nullptr);
+                        QObject* parent);
         
         virtual ~WorkbenchAction();
         
@@ -48,13 +51,28 @@ namespace caret {
 
         virtual void receiveEvent(Event* event) override;
 
+        static void printLeftoverWorkbenchActions();
+        
         // ADD_NEW_METHODS_HERE
 
     private:
+        enum class Origin {
+            CENTER,
+            TOP_LEFT
+        };
+        
+        void createPixmapPainter(const int32_t width,
+                                 const int32_t height,
+                                 const Origin origin,
+                                 const int32_t fontHeight,
+                                 const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode,
+                                 QPixmap& pixmapOut,
+                                 QSharedPointer<QPainter>& painterOut);
+        
         void updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
         
-        QPixmap createPixmap(const WorkbenchIconTypeEnum::Enum iconType,
-                             const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
+        QPixmap createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconType,
+                                        const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
         
         void setFontHeight(QSharedPointer<QPainter>& painter,
                            const int32_t fontHeight);
@@ -71,16 +89,31 @@ namespace caret {
         void replaceWhiteWithTransparent(const AString& imageFileName,
                                          QPixmap& pixmapInOut);
         
+        void createHorizontalAlignmentPixmap(QPixmap& pixmap,
+                                             QPainter* painter,
+                                             const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment);
+        
+        void createVerticalAlignmentPixmap(QPixmap& pixmap,
+                                           QPainter* painter,
+                                           const AnnotationTextAlignVerticalEnum::Enum verticalAlignment);
+        
+        void createTextOrientationPixmap(QPixmap& pixmap,
+                                         QPainter* painter,
+                                         const AnnotationTextOrientationEnum::Enum orientation);
+
+        const WorkbenchIconTypeEnum::Enum m_iconType;
+        
         QPixmap m_lightPixmap;
         
         QPixmap m_darkPixmap;
         
+        static std::set<WorkbenchAction*> s_allWorkbenchActions;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __WORKBENCH_ACTION_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::set<WorkbenchAction*> WorkbenchAction::s_allWorkbenchActions;
 #endif // __WORKBENCH_ACTION_DECLARE__
 
 } // namespace

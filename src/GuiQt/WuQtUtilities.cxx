@@ -1438,7 +1438,7 @@ WuQtUtilities::createCaretColorEnumPixmap(const QWidget* widget,
                    pixmapHeight);
     QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
                                                                                 pixmap,
-                                                                                0);
+                                                                                WuQtUtilities::TransparentBackground);
     
     if (noneColorFlag) {
         /*

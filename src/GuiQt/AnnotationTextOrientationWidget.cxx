@@ -41,6 +41,8 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -215,76 +217,27 @@ AnnotationTextOrientationWidget::orientationActionSelected(QAction* action)
 QToolButton*
 AnnotationTextOrientationWidget::createOrientationToolButton(const AnnotationTextOrientationEnum::Enum orientation)
 {
+    WorkbenchIconTypeEnum::Enum iconType(WorkbenchIconTypeEnum::NO_ICON);
     QString toolTipText;
     switch (orientation) {
         case AnnotationTextOrientationEnum::HORIZONTAL:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_TEXT_ORIENTATION_HORIZONTAL;
             toolTipText = "Horizontal (left-to-right) text";
             break;
         case AnnotationTextOrientationEnum::STACKED:
+            iconType = WorkbenchIconTypeEnum::ANNOTATION_TEXT_ORIENTATION_VERTICAL;
             toolTipText = "Stacked (top-to-bottom) text";
             break;
     }
     
-    QToolButton* toolButton = new QToolButton();
-    QPixmap pixmap = createHorizontalAlignmentPixmap(toolButton,
-                                                     orientation);
+    QToolButton* toolButton = new WorkbenchToolButton(iconType);
     
-    QAction* action = new QAction(this);
+    QAction* action = toolButton->defaultAction();
     action->setCheckable(true);
     action->setData((int)AnnotationTextOrientationEnum::toIntegerCode(orientation));
     action->setToolTip(toolTipText);
-    action->setIcon(QIcon(pixmap));
     toolButton->setDefaultAction(action);
-    toolButton->setIconSize(pixmap.size());
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
+    toolButton->setIconSize(QSize(24, 30));
     
     return toolButton;
 }
-
-/**
- * Create a horizontal alignment pixmap.
- *
- * @param widget
- *    To color the pixmap with backround and foreground,
- *    the palette from the given widget is used.
- * @param orientation
- *    The horizontal alignment.
- * @return
- *    Pixmap with icon for the given horizontal alignment.
- */
-QPixmap
-AnnotationTextOrientationWidget::createHorizontalAlignmentPixmap(const QWidget* widget,
-                                                               const AnnotationTextOrientationEnum::Enum orientation)
-{
-    CaretAssert(widget);
-    
-    /*
-     * Create a small, square pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    float width  = 24.0;
-    float height = 30.0;
-    QPixmap pixmap(static_cast<int>(width),
-                   static_cast<int>(height));
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
-                                                                                pixmap);
-    
-    switch (orientation) {
-        case AnnotationTextOrientationEnum::HORIZONTAL:
-            painter->drawText(pixmap.rect(),
-                             (Qt::AlignCenter),
-                             "ab");
-                             
-            break;
-        case AnnotationTextOrientationEnum::STACKED:
-            painter->drawText(pixmap.rect(),
-                             (Qt::AlignCenter),
-                             "a\nb");
-            break;
-    }
-
-    
-    
-    return pixmap;
-}
-

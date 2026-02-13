@@ -44,13 +44,12 @@
 #include "EnumComboBoxTemplate.h"
 #include "GuiManager.h"
 #include "ScaleBarWidget.h"
-#include "WuQtUtilities.h"
-#include "WuQWidgetObjectGroup.h"
 #include "YokingGroupEnum.h"
 #include "WorkbenchAction.h"
 #include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMacroManager.h"
+#include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -107,23 +106,13 @@ m_parentToolBar(parentToolBar)
     /*
      * Lighting action and button
      */
-//    QIcon shadingIcon;
-//    const bool shadingIconValid = WuQtUtilities::loadIcon(":/ToolBar/lighting.png",
-//                                                          shadingIcon);
     const AString lightToolTip = WuQtUtilities::createWordWrappedToolTipText("Enables shading on surfaces.  Shading affects "
                                                                              "palette colors (but not by much) and in rare circumstances it "
                                                                              "may be helpful to turn shading off.");
 
     m_lightingAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_MISC_LIGHT_BULB,
                                            this);
-//    m_lightingAction = new QAction(this);
     m_lightingAction->setCheckable(true);
-//    if (shadingIconValid) {
-//        m_lightingAction->setIcon(shadingIcon);
-//    }
-//    else {
-//        m_lightingAction->setText("L");
-//    }
     m_lightingAction->setToolTip(lightToolTip);
     m_lightingAction->setObjectName(m_objectNamePrefix
                                     + ":EnableShading");
@@ -134,25 +123,13 @@ m_parentToolBar(parentToolBar)
 
     QToolButton* lightingToolButton = new WorkbenchToolButton();
     lightingToolButton->setDefaultAction(m_lightingAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(lightingToolButton);
 
     /*
      * Clipping action and button
      */
-//    QIcon clippingIcon;
-//    const bool clippingIconValid =
-//    WuQtUtilities::loadIcon(":/ToolBar/clipping.png",
-//                            clippingIcon);
-    
-    m_clippingPlanesAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_MISC_SCISSORS);
-//    m_clippingPlanesAction = new QAction(this);
+    m_clippingPlanesAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_MISC_SCISSORS,
+                                                 this);
     m_clippingPlanesAction->setCheckable(true);
-//    if (clippingIconValid) {
-//        m_clippingPlanesAction->setIcon(clippingIcon);
-//    }
-//    else {
-//        m_clippingPlanesAction->setText("C");
-//    }
     m_clippingPlanesAction->setToolTip("Enable clipping planes; click arrow to edit");
     m_clippingPlanesAction->setMenu(createClippingPlanesMenu());
     m_clippingPlanesAction->setObjectName(m_objectNamePrefix
@@ -162,27 +139,21 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_clippingPlanesAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarTab::clippingPlanesActionToggled);
     
-    QToolButton* clippingPlanesToolButton = new WorkbenchToolButton();
+    QToolButton* clippingPlanesToolButton = new WorkbenchToolButton(WorkbenchToolButton::MenuStatus::MENU_YES);
     clippingPlanesToolButton->setDefaultAction(m_clippingPlanesAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(clippingPlanesToolButton);
 
     /*
      * Scale bar action and button
      */
-//    QToolButton* scaleBarToolButton = new QToolButton();
-//    QPixmap scaleBarPixmap = createScaleBarPixmap(scaleBarToolButton);
-//    m_scaleBarAction = new QAction(this);
     QToolButton* scaleBarToolButton(new WorkbenchToolButton(WorkbenchIconTypeEnum::TOOLBAR_MISC_RULER));
     m_scaleBarAction = scaleBarToolButton->defaultAction();
     m_scaleBarAction->setCheckable(true);
     m_scaleBarAction->setToolTip("Enable scale bar; click arrow to edit");
-//    m_scaleBarAction->setIcon(QIcon(scaleBarPixmap));
     m_scaleBarAction->setMenu(createScaleBarMenu());
     QObject::connect(m_scaleBarAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarTab::scaleBarActionToggled);
 
     scaleBarToolButton->setDefaultAction(m_scaleBarAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(scaleBarToolButton);
 
     m_macroRecordingLabel = new QLabel("");
     
@@ -467,77 +438,3 @@ BrainBrowserWindowToolBarTab::scaleBarMenuAboutToShow()
     BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
     m_scaleBarWidget->updateContent(browserTabContent);
 }
-
-
-///**
-// * Create an ruler icon for Scale Bar tool button
-// *
-// * @param widget
-// *    To color the pixmap with backround and foreground,
-// *    the palette from the given widget is used.
-// * @return
-// *    Pixmap with icon
-// */
-//
-//QPixmap
-//BrainBrowserWindowToolBarTab::createScaleBarPixmap(const QWidget* widget)
-//{
-//    CaretAssert(widget);
-//    
-//    /*
-//     * Create a small, square pixmap that will contain
-//     * the foreground color around the pixmap's perimeter.
-//     */
-//    float width  = 24.0;
-//    float height = 24.0;
-//    float margin = 1.0;
-//    
-//    QPixmap pixmap(static_cast<int>(width),
-//                   static_cast<int>(height));
-//    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(widget,
-//                                                                                                pixmap);
-//    
-//    const float leftX(margin);
-//    const float rightX(width - margin);
-//    const float centerX((leftX + rightX) / 2.0);
-//    const float leftCenterX((leftX + centerX) / 2.0);
-//    const float rightCenterX((rightX + centerX) / 2.0);
-//    const float y(margin + 2.0);
-//    const float smallTickHeight(8.0);
-//    const float mediumTickHeight(smallTickHeight * 1.3);
-//    const float bigTickHeight(smallTickHeight * 1.65);
-//    
-//    QPen pen = painter->pen();
-//    pen.setWidth(4);
-//    painter->setPen(pen);
-//    
-//    /* bottom line */
-//    painter->drawLine(QLineF(leftX, y,
-//                             rightX, y));
-//    
-//    pen.setWidth(2);
-//    painter->setPen(pen);
-//    
-//    /* left tick */
-//    painter->drawLine(QLineF(leftX, y,
-//                             leftX, y + bigTickHeight));
-//                      
-//    /* right tick */
-//    painter->drawLine(QLineF(rightX, margin,
-//                             rightX, y + bigTickHeight));
-//    
-//    /* center tick */
-//    painter->drawLine(QLineF(centerX, y,
-//                             centerX, y + mediumTickHeight));
-//
-//    /* left-center tick */
-//    painter->drawLine(QLineF(leftCenterX, y,
-//                             leftCenterX, y + smallTickHeight));
-//
-//    /* right-center tick */
-//    painter->drawLine(QLineF(rightCenterX, y,
-//                             rightCenterX, y + smallTickHeight));
-//    
-//    return pixmap;
-//}
-//

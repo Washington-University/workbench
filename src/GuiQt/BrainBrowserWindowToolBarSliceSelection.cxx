@@ -35,7 +35,6 @@
 #include <QPainter>
 #include <QPen>
 #include <QSpinBox>
-#include <QToolButton>
 #include <QWidgetAction>
 
 #include "BrainBrowserWindowToolBar.h"
@@ -52,6 +51,8 @@
 #include "VolumeObliqueOptionsWidget.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
 #include "WuQWidgetObjectGroup.h"
@@ -91,9 +92,8 @@ m_objectNamePrefix(parentObjectName
                                                                                this,
                                                                                this,
                                                                                SLOT(volumeIndicesOriginActionTriggered()));
-    QToolButton* volumeIndicesOriginToolButton = new QToolButton;
+    QToolButton* volumeIndicesOriginToolButton = new WorkbenchToolButton();
     volumeIndicesOriginToolButton->setDefaultAction(volumeIndicesOriginToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(volumeIndicesOriginToolButton);
     volumeIndicesOriginToolButtonAction->setObjectName(m_objectNamePrefix
                                                        + "MoveVolumeSlicesToOrigin");
     volumeIndicesOriginToolButtonAction->setParent(volumeIndicesOriginToolButton);
@@ -211,26 +211,14 @@ m_objectNamePrefix(parentObjectName
                                    "in ths tab or any other tab with the same yoking status "
                                    "(not Off), the volume slices will move to the location "
                                    "of the identified brainordinate.");
-    m_volumeIdentificationUpdatesSlicesAction = WuQtUtilities::createAction("",
-                                                                            WuQtUtilities::createWordWrappedToolTipText(idToolTipText),
-                                                                            this,
-                                                                            this,
-                                                                            SLOT(volumeIdentificationToggled(bool)));
+    m_volumeIdentificationUpdatesSlicesAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS,
+                                                                    this);
+    m_volumeIdentificationUpdatesSlicesAction->setToolTip(WuQtUtilities::createWordWrappedToolTipText(idToolTipText));
+    QObject::connect(m_volumeIdentificationUpdatesSlicesAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarSliceSelection::volumeIdentificationToggled);
     m_volumeIdentificationUpdatesSlicesAction->setCheckable(true);
-    QIcon volumeCrossHairIcon;
-    const bool volumeCrossHairIconValid =
-    WuQtUtilities::loadIcon(":/ToolBar/volume-crosshair-pointer.png",
-                            volumeCrossHairIcon);
-    QToolButton* volumeIDToolButton = new QToolButton;
-    if (volumeCrossHairIconValid) {
-        m_volumeIdentificationUpdatesSlicesAction->setIcon(volumeCrossHairIcon);
-        m_volumeIdentificationUpdatesSlicesAction->setIcon(createVolumeIdentificationUpdatesSlicesIcon(volumeIDToolButton));
-    }
-    else {
-        m_volumeIdentificationUpdatesSlicesAction->setText("ID");
-    }
+    QToolButton* volumeIDToolButton = new WorkbenchToolButton();
     volumeIDToolButton->setDefaultAction(m_volumeIdentificationUpdatesSlicesAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(volumeIDToolButton);
     m_volumeIdentificationUpdatesSlicesAction->setObjectName(m_objectNamePrefix
                                                              + "MoveSliceToID");
     macroManager->addMacroSupportToObject(m_volumeIdentificationUpdatesSlicesAction,
@@ -266,14 +254,13 @@ m_objectNamePrefix(parentObjectName
      * button does not change size as its text
      * is updated by the MPR or Oblique QAction.
      */
-    m_optionsToolButton = new QToolButton();
+    m_optionsToolButton = new WorkbenchToolButton();
     m_optionsToolButton->setText("123456");
     m_optionsToolButton->setFixedWidth(m_optionsToolButton->sizeHint().width());
     m_optionsToolButton->setText("");
     if ( ! m_newOptionsToolButtonFlag) {
         m_optionsToolButton->setDefaultAction(m_mprOptionsAction);
     }
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_optionsToolButton);
     if (m_newOptionsToolButtonFlag) {
         m_optionsToolButton->setArrowType(Qt::DownArrow);
         QObject::connect(m_optionsToolButton, &QToolButton::clicked,

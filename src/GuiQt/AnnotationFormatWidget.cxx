@@ -24,11 +24,11 @@
 #undef __ANNOTATION_FORMAT_WIDGET_DECLARE__
 
 #include <QLabel>
-#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "AnnotationMenuArrange.h"
 #include "CaretAssert.h"
+#include "WorkbenchToolButton.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -103,7 +103,7 @@ AnnotationFormatWidget::createArrangeMenuToolButton()
     arrangeAction->setToolTip("Arrange (align) and group annotations");
     arrangeAction->setMenu(arrangeMenu);
     
-    QToolButton* arrangeToolButton = new QToolButton();
+    QToolButton* arrangeToolButton = new WorkbenchToolButton();
     arrangeToolButton->setDefaultAction(arrangeAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(arrangeToolButton);
     

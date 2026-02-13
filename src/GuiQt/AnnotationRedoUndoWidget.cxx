@@ -26,7 +26,6 @@
 #include <QAction>
 #include <QGridLayout>
 #include <QLabel>
-#include <QToolButton>
 
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
@@ -34,6 +33,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "UserInputModeAnnotations.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -75,7 +75,7 @@ m_browserWindowIndex(browserWindowIndex)
                                                this,
                                                this,
                                                SLOT(redoActionTriggered()));
-    QToolButton* redoToolButton = new QToolButton();
+    QToolButton* redoToolButton = new WorkbenchToolButton();
     redoToolButton->setDefaultAction(m_redoAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
     
@@ -84,7 +84,7 @@ m_browserWindowIndex(browserWindowIndex)
                                                this,
                                                this,
                                                SLOT(undoActionTriggered()));
-    QToolButton* undoToolButton = new QToolButton();
+    QToolButton* undoToolButton = new WorkbenchToolButton();
     undoToolButton->setDefaultAction(m_undoAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
     

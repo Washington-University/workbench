@@ -23,7 +23,6 @@
 #include <QColorDialog>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QToolButton>
 #include <QVBoxLayout>
 
 #define __ANNOTATION_FONT_WIDGET_DECLARE__
@@ -47,6 +46,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "ModelSurfaceMontage.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -151,10 +151,9 @@ m_browserWindowIndex(browserWindowIndex)
                                     this);
     m_textColorAction->setToolTip("Adjust the text color");
     m_textColorAction->setMenu(m_textColorMenu);
-    m_textColorToolButton = new QToolButton();
+    m_textColorToolButton = new WorkbenchToolButton(WorkbenchToolButton::MenuStatus::MENU_YES);
     m_textColorToolButton->setDefaultAction(m_textColorAction);
     m_textColorToolButton->setIconSize(toolButtonSize);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_textColorToolButton);
     
     /*
      * Text background color menu
@@ -172,10 +171,9 @@ m_browserWindowIndex(browserWindowIndex)
                                               this);
     m_textBackgroundColorAction->setToolTip("Adjust the text background color");
     m_textBackgroundColorAction->setMenu(m_textBackgroundColorMenu);
-    m_textBackgroundColorToolButton = new QToolButton();
+    m_textBackgroundColorToolButton = new WorkbenchToolButton(WorkbenchToolButton::MenuStatus::MENU_YES);
     m_textBackgroundColorToolButton->setDefaultAction(m_textBackgroundColorAction);
     m_textBackgroundColorToolButton->setIconSize(toolButtonSize);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_textBackgroundColorToolButton);
     
     QToolButton* boldFontToolButton      = NULL;
     QToolButton* italicFontToolButton    = NULL;
@@ -193,9 +191,8 @@ m_browserWindowIndex(browserWindowIndex)
                                                            "Enable/disable bold styling",
                                                            this, this, SLOT(fontBoldChanged()));
             m_boldFontAction->setCheckable(true);
-            boldFontToolButton = new QToolButton();
+            boldFontToolButton = new WorkbenchToolButton();
             boldFontToolButton->setDefaultAction(m_boldFontAction);
-            WuQtUtilities::setToolButtonStyleForQt5Mac(boldFontToolButton);
             
             /*
              * Change the bold toolbutton's font to bold.
@@ -210,9 +207,8 @@ m_browserWindowIndex(browserWindowIndex)
             m_italicFontAction = WuQtUtilities::createAction("i", "Enable/disable italic styling",
                                                              this, this, SLOT(fontItalicChanged()));
             m_italicFontAction->setCheckable(true);
-            italicFontToolButton = new QToolButton();
+            italicFontToolButton = new WorkbenchToolButton();
             italicFontToolButton->setDefaultAction(m_italicFontAction);
-            WuQtUtilities::setToolButtonStyleForQt5Mac(italicFontToolButton);
             
             /*
              * Change the italic toolbutton's font to italic.
@@ -227,9 +223,8 @@ m_browserWindowIndex(browserWindowIndex)
             m_underlineFontAction =  WuQtUtilities::createAction("U", "Enable/disable font underlining",
                                                                  this, this, SLOT(fontUnderlineChanged()));
             m_underlineFontAction->setCheckable(true);
-            underlineFontToolButton = new QToolButton();
+            underlineFontToolButton = new WorkbenchToolButton();
             underlineFontToolButton->setDefaultAction(m_underlineFontAction);
-            WuQtUtilities::setToolButtonStyleForQt5Mac(underlineFontToolButton);
             
             /*
              * Change the underline toolbutton's font to underline.
@@ -436,7 +431,6 @@ AnnotationFontWidget::updateFontNameControls()
 {
     if ( ! m_annotationsFontName.empty()) {
         AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::VERA;
-        //bool fontNameValid = true;
         
         const int32_t numAnn = static_cast<int32_t>(m_annotationsFontName.size());
         for (int32_t i = 0; i < numAnn; i++) {
@@ -449,7 +443,6 @@ AnnotationFontWidget::updateFontNameControls()
             }
             else {
                 if (annText->getFont() != fontName) {
-                    //fontNameValid = false;
                 }
             }
         }

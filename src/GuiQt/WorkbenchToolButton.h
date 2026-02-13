@@ -21,25 +21,38 @@
  */
 /*LICENSE_END*/
 
+#include <set>
 
 #include <QMenu> /* without this get a compilation error in QToolButton */
 #include <QToolButton>
 
+#include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "GuiDarkLightThemeModeEnum.h"
 #include "WorkbenchIconTypeEnum.h"
 
 namespace caret {
+    class CaretObject;
 
-    class WorkbenchToolButton : public QToolButton, public EventListenerInterface {
+    class WorkbenchToolButton :
+       public QToolButton,
+       //public CaretObject,  // Can be used to track allocation/deallocation of instances to ensure no memory leaks
+       public EventListenerInterface {
         
         Q_OBJECT
 
     public:
+        enum class MenuStatus {
+            MENU_NO,
+            MENU_YES
+        };
+        
         WorkbenchToolButton(const WorkbenchIconTypeEnum::Enum iconType,
+                            const MenuStatus menuStatus = MenuStatus::MENU_NO,
                             QWidget* parent = 0);
         
-        WorkbenchToolButton(QWidget* parent = 0);
+        WorkbenchToolButton(const MenuStatus menuStatus = MenuStatus::MENU_NO,
+                            QWidget* parent = 0);
         
         virtual ~WorkbenchToolButton();
         
@@ -49,6 +62,10 @@ namespace caret {
 
         virtual void receiveEvent(Event* event) override;
 
+        void updateStyleSheet();
+        
+        static void printLeftoverWorkbenchToolButtons();
+        
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -61,12 +78,15 @@ namespace caret {
         
         GuiDarkLightThemeModeEnum::Enum getCurrentDarkLightThemeMode() const;
         
+        const MenuStatus m_menuStatus;
+        
+        static std::set<WorkbenchToolButton*> s_allWorkbenchToolButtons;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __WORKBENCH_TOOL_BUTTON_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::set<WorkbenchToolButton*> WorkbenchToolButton::s_allWorkbenchToolButtons;
 #endif // __WORKBENCH_TOOL_BUTTON_DECLARE__
 
 } // namespace

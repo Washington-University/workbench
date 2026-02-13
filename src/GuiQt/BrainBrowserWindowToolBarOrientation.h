@@ -106,10 +106,7 @@ namespace caret {
         
         QIcon* viewOrientationLeftIcon;
         QIcon* viewOrientationRightIcon;
-        QIcon* viewOrientationAnteriorIcon;
         QIcon* viewOrientationPosteriorIcon;
-        QIcon* viewOrientationDorsalIcon;
-        QIcon* viewOrientationVentralIcon;
         QIcon* viewOrientationLeftLateralIcon;
         QIcon* viewOrientationLeftMedialIcon;
         QIcon* viewOrientationRightLateralIcon;

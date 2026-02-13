@@ -81,10 +81,10 @@ public:
         ANNOTATION_NEW_SPACE_TAB,
         /** Annotation New Space Window */
         ANNOTATION_NEW_SPACE_WINDOW,
-        /** Annotation Orientation Horizontal */
-        ANNOTATION_ORIENTATION_HORIZONTAL,
-        /** Annotation Orientation Vertical */
-        ANNOTATION_ORIENTATION_VERTICAL,
+        /** Annotation Text Orientation Horizontal */
+        ANNOTATION_TEXT_ORIENTATION_HORIZONTAL,
+        /** Annotation Text Orientation Vertical */
+        ANNOTATION_TEXT_ORIENTATION_VERTICAL,
         /** Annotation Text Align Horiz Center */
         ANNOTATION_TEXT_ALIGN_HORIZ_CENTER,
         /** Annotation Text Align Horiz Left */
@@ -109,14 +109,22 @@ public:
         ORIENTATION_DORSAL,
         /** Orientation Left */
         ORIENTATION_LEFT,
-        /** Orientation Medial */
-        ORIENTATION_MEDIAL,
+        /** Orientation Left Lateral*/
+        ORIENTATION_LEFT_LATERAL,
+        /** Orientation Left Medial*/
+        ORIENTATION_LEFT_MEDIAL,
         /** Orientation Posterior */
         ORIENTATION_POSTERIOR,
         /** Orientation Redo */
         ORIENTATION_REDO,
         /** Orientation Region */
         ORIENTATION_REGION,
+        /** Orientation Right */
+        ORIENTATION_RIGHT,
+        /** Orientation Right Lateral*/
+        ORIENTATION_RIGHT_LATERAL,
+        /** Orientation Right Medial*/
+        ORIENTATION_RIGHT_MEDIAL,
         /** Orientation Undo */
         ORIENTATION_UNDO,
         /** Orientation Ventral */
@@ -157,8 +165,8 @@ public:
         TOOLBAR_MISC_SCISSORS,
         /** Toolbar Slice Indices Move Crosshairs */
         TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS,
-        /** Toolbar Volume Slice Plane Anterior */
-        TOOLBAR_VOLUME_SLICE_PLANE_ANTERIOR,
+        /** Toolbar Volume Slice Plane Axial */
+        TOOLBAR_VOLUME_SLICE_PLANE_AXIAL,
         /** Toolbar Volume Slice Crosshairs */
         TOOLBAR_VOLUME_SLICE_CROSSHAIRS,
         /** Toolbar Volume Slice Crosshair Labels */

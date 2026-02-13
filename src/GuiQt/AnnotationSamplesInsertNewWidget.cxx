@@ -29,7 +29,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QMenu>
-#include <QToolButton>
 
 #include "AnnotationManager.h"
 #include "AnnotationPolyhedron.h"
@@ -61,6 +60,7 @@
 #include "GuiManager.h"
 #include "SamplesDrawingSettings.h"
 #include "SamplesFile.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQMessageBoxTwo.h"
 #include "WuQTextEditorDialog.h"
@@ -109,7 +109,7 @@ m_browserWindowIndex(browserWindowIndex)
     newFileAction->setToolTip("Create a new Samples File");
     QObject::connect(newFileAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::newFileActionTriggered);
-    QToolButton* newFileToolButton(new QToolButton());
+    QToolButton* newFileToolButton(new WorkbenchToolButton());
     newFileToolButton->setDefaultAction(newFileAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(newFileToolButton);
 
@@ -123,7 +123,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_saveFileAction->setToolTip(saveToolTip);
     QObject::connect(m_saveFileAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::saveFileActionTriggered);
-    QToolButton* saveFileToolButton(new QToolButton());
+    QToolButton* saveFileToolButton(new WorkbenchToolButton());
     saveFileToolButton->setDefaultAction(m_saveFileAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(saveFileToolButton);
 
@@ -134,7 +134,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_newProspectiveSampleAction->setToolTip(getNewSampleToolTip(AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE));
     QObject::connect(m_newProspectiveSampleAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::newProspectiveSampleActionTriggered);
-    m_newProspectiveSampleToolButton = new QToolButton();
+    m_newProspectiveSampleToolButton = new WorkbenchToolButton();
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_newProspectiveSampleToolButton);
     m_newProspectiveSampleToolButton->setDefaultAction(m_newProspectiveSampleAction);
     
@@ -149,7 +149,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_newRetrospectiveSampleAction->setToolTip(getNewSampleToolTip(AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE));
     QObject::connect(m_newRetrospectiveSampleAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::newRetrospectiveSampleActionTriggered);
-    m_newRetrospectiveSampleToolButton = new QToolButton();
+    m_newRetrospectiveSampleToolButton = new WorkbenchToolButton();
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_newRetrospectiveSampleToolButton);
     m_newRetrospectiveSampleToolButton->setDefaultAction(m_newRetrospectiveSampleAction);
     
@@ -188,7 +188,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_selectAction->setToolTip("Display menu listing all Samples; \nselect to edit metadata");
     QObject::connect(m_selectAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::selectActionTriggered);
-    m_selectToolButton = new QToolButton();
+    m_selectToolButton = new WorkbenchToolButton();
     m_selectToolButton->setDefaultAction(m_selectAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_selectToolButton);
     

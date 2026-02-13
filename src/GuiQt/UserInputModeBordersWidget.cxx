@@ -32,7 +32,6 @@
 #include <QLabel>
 #include <QRadioButton>
 #include <QStackedWidget>
-#include <QToolButton>
 
 
 #define __USER_INPUT_MODE_BORDERS_WIDGET_DECLARE__
@@ -68,6 +67,7 @@
 #include "RegionOfInterestCreateFromBorderDialog.h"
 #include "Surface.h"
 #include "UserInputModeBorders.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -376,7 +376,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                         this,
                                                         this,
                                                         SLOT(drawFinishButtonClicked()));
-    QToolButton* finishToolButton = new QToolButton();
+    QToolButton* finishToolButton = new WorkbenchToolButton();
     finishToolButton->setDefaultAction(finishAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(finishToolButton);
     
@@ -391,7 +391,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                       this,
                                                       this,
                                                       SLOT(drawUndoButtonClicked()));
-    QToolButton* undoToolButton = new QToolButton();
+    QToolButton* undoToolButton = new WorkbenchToolButton();
     undoToolButton->setDefaultAction(undoAction);
     undoToolButton->setAutoRepeat(true);
     undoToolButton->setAutoRepeatDelay(500);  // 500ms = 1/2 second
@@ -405,7 +405,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                       this,
                                                       this,
                                                       SLOT(drawUndoLastEditButtonClicked()));
-    m_undoFinishToolButton = new QToolButton();
+    m_undoFinishToolButton = new WorkbenchToolButton();
     m_undoFinishToolButton->setDefaultAction(undoFinishAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_undoFinishToolButton);
     
@@ -417,7 +417,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                        this,
                                                        this,
                                                        SLOT(drawResetButtonClicked()));
-    QToolButton* resetToolButton = new QToolButton();
+    QToolButton* resetToolButton = new WorkbenchToolButton();
     resetToolButton->setDefaultAction(resetAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
     

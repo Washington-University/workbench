@@ -25,7 +25,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QRadioButton>
-#include <QToolButton>
 
 #define __USER_INPUT_MODE_FOCI_WIDGET_DECLARE__
 #include "UserInputModeFociWidget.h"
@@ -51,6 +50,7 @@
 #include "Surface.h"
 #include "UserInputModeFoci.h"
 #include "VolumeFile.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -139,9 +139,8 @@ UserInputModeFociWidget::createModeWidget()
     const AString newToolTipText = ("Click this button to display a dialog for creating a new focus. "
                                     + m_transformToolTipText);
 
-    QToolButton* newFocusToolButton = new QToolButton();
+    QToolButton* newFocusToolButton = new WorkbenchToolButton();
     newFocusToolButton->setText("New Focus...");
-    WuQtUtilities::setToolButtonStyleForQt5Mac(newFocusToolButton);
     newFocusToolButton->setToolTip(newToolTipText);
     QObject::connect(newFocusToolButton, &QToolButton::clicked,
                      this, &UserInputModeFociWidget::createNewFocusActionTriggered);

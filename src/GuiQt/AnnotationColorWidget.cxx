@@ -43,6 +43,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "WorkbenchToolButton.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
@@ -130,10 +131,9 @@ m_browserWindowIndex(browserWindowIndex)
                                           this);
     m_backgroundColorAction->setToolTip("Adjust the fill color");
     m_backgroundColorAction->setMenu(m_backgroundColorMenu);
-    m_backgroundToolButton = new QToolButton();
+    m_backgroundToolButton = new WorkbenchToolButton(WorkbenchToolButton::MenuStatus::MENU_YES);
     m_backgroundToolButton->setDefaultAction(m_backgroundColorAction);
     m_backgroundToolButton->setIconSize(toolButtonSize);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_backgroundToolButton);
     
     /*
      * Widget/object group for background widgets
@@ -157,10 +157,9 @@ m_browserWindowIndex(browserWindowIndex)
                                           this);
     m_lineColorAction->setToolTip("Adjust the line color");
     m_lineColorAction->setMenu(m_lineColorMenu);
-    m_lineToolButton = new QToolButton();
+    m_lineToolButton = new WorkbenchToolButton(WorkbenchToolButton::MenuStatus::MENU_YES);
     m_lineToolButton->setDefaultAction(m_lineColorAction);
     m_lineToolButton->setIconSize(toolButtonSize);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_lineToolButton);
     
     m_lineColorWidgetGroup = new WuQWidgetObjectGroup(this);
     m_lineColorWidgetGroup->add(foreLineLabel);
@@ -221,6 +220,13 @@ m_browserWindowIndex(browserWindowIndex)
             else {
                 backFillLabel->setHidden(true);
                 m_backgroundToolButton->setHidden(true);
+                
+                /*
+                 * These widgets are not shown so give them a
+                 * parent so they get deleted.
+                 */
+                backFillLabel->setParent(this);
+                m_backgroundToolButton->setParent(this);
             }
         }
             break;

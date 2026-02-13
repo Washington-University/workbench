@@ -29,7 +29,6 @@
 #include <QLabel>
 #include <QPainter>
 #include <QPen>
-#include <QToolButton>
 
 #include "Annotation.h"
 #include "AnnotationManager.h"
@@ -42,6 +41,8 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "UserInputModeAnnotations.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -76,7 +77,7 @@ m_browserWindowIndex(browserWindowIndex)
     CaretAssert(m_userInputModeAnnotations);
     
     m_finishAction = new QAction("Finish");
-    m_finishToolButton = new QToolButton();
+    m_finishToolButton = new WorkbenchToolButton();
     m_finishToolButton->setDefaultAction(m_finishAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_finishToolButton);
     QObject::connect(m_finishAction, &QAction::triggered,
@@ -94,14 +95,14 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_cancelAction, &QAction::triggered,
                      this, &AnnotationPolyTypeDrawEditWidget::cancelActionTriggered);
     
-    QToolButton* cancelToolButton = new QToolButton();
+    QToolButton* cancelToolButton = new WorkbenchToolButton();
     cancelToolButton->setDefaultAction(m_cancelAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(cancelToolButton);
     
     WuQtUtilities::matchWidgetWidths(m_finishToolButton,
                                      cancelToolButton);
     
-    QToolButton* eraseLastCoordinateToolButton = new QToolButton();
+    QToolButton* eraseLastCoordinateToolButton = new WorkbenchToolButton();
     m_eraseLastCoordinateAction = new QAction("Erase");
     m_eraseLastCoordinateAction->setToolTip("<html>"
                                             "Remove the last coordinate that was "
@@ -131,7 +132,7 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_addCoordinatesAction, &QAction::triggered, this,
                      &AnnotationPolyTypeDrawEditWidget::drawCoordinatesActionTriggered);
     
-    QToolButton* addCoordinatesToolButton(new QToolButton());
+    QToolButton* addCoordinatesToolButton(new WorkbenchToolButton());
     addCoordinatesToolButton->setDefaultAction(m_addCoordinatesAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(addCoordinatesToolButton);
     
@@ -152,7 +153,7 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_removeCoordinatesAction, &QAction::triggered, this,
                      &AnnotationPolyTypeDrawEditWidget::removeCoordinatesActionTriggered);
     
-    QToolButton* removeCoordinatesToolButton(new QToolButton());
+    QToolButton* removeCoordinatesToolButton(new WorkbenchToolButton());
     removeCoordinatesToolButton->setDefaultAction(m_removeCoordinatesAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(removeCoordinatesToolButton);
     
@@ -173,7 +174,7 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_insertCoordinatesAction, &QAction::triggered, this,
                      &AnnotationPolyTypeDrawEditWidget::insertCoordinatesActionTriggered);
     
-    QToolButton* insertCoordinatesToolButton(new QToolButton());
+    QToolButton* insertCoordinatesToolButton(new WorkbenchToolButton());
     insertCoordinatesToolButton->setDefaultAction(m_insertCoordinatesAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(insertCoordinatesToolButton);
     
@@ -194,7 +195,7 @@ m_browserWindowIndex(browserWindowIndex)
         QObject::connect(m_movePolygonCoordinatesAction, &QAction::triggered,
                          this, &AnnotationPolyTypeDrawEditWidget::movePolygonCoordinatesActionTriggered);
         
-        movePolygonCoordinatesToolButton = new QToolButton();
+        movePolygonCoordinatesToolButton = new WorkbenchToolButton();
         movePolygonCoordinatesToolButton->setDefaultAction(m_movePolygonCoordinatesAction);
         WuQtUtilities::setToolButtonStyleForQt5Mac(movePolygonCoordinatesToolButton);
     }
@@ -217,7 +218,7 @@ m_browserWindowIndex(browserWindowIndex)
         QObject::connect(m_resizePolygonCoordinatesAction, &QAction::triggered,
                          this, &AnnotationPolyTypeDrawEditWidget::resizePolygonCoordinatesActionTriggered);
         
-        resizePolygonCoordinatesToolButton = new QToolButton();
+        resizePolygonCoordinatesToolButton = new WorkbenchToolButton();
         resizePolygonCoordinatesToolButton->setDefaultAction(m_resizePolygonCoordinatesAction);
         WuQtUtilities::setToolButtonStyleForQt5Mac(resizePolygonCoordinatesToolButton);
         
@@ -261,7 +262,7 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_moveOneCoordinateAction, &QAction::triggered, this,
                      &AnnotationPolyTypeDrawEditWidget::moveOneCoordinateActionTriggered);
     
-    QToolButton* moveOneCoordinateToolButton(new QToolButton());
+    QToolButton* moveOneCoordinateToolButton(new WorkbenchToolButton());
     moveOneCoordinateToolButton->setDefaultAction(m_moveOneCoordinateAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(moveOneCoordinateToolButton);
     
@@ -289,7 +290,7 @@ m_browserWindowIndex(browserWindowIndex)
         QObject::connect(m_moveTwoCoordinatesAction, &QAction::triggered, this,
                          &AnnotationPolyTypeDrawEditWidget::moveTwoCoordinatesActionTriggered);
         
-        moveTwoCoordinatesToolButton = new QToolButton();
+        moveTwoCoordinatesToolButton = new WorkbenchToolButton();
         moveTwoCoordinatesToolButton->setDefaultAction(m_moveTwoCoordinatesAction);
         WuQtUtilities::setToolButtonStyleForQt5Mac(moveTwoCoordinatesToolButton);
     }

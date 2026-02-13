@@ -1131,17 +1131,8 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     /*
      * Undo unlocking of aspect ratio
      */
-//    QIcon undoIcon;
-//    const bool undoIconValid(WuQtUtilities::loadIcon(":/ToolBar/undo.png",
-//                                                     undoIcon));
     m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_RELOCK_ARROW,
                                                                               this);
-//    if (undoIconValid) {
-//        m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setIcon(undoIcon);
-//    }
-//    else {
-//        m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setText("U");
-//    }
     m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setToolTip("Relock to aspect ratios before unlocking");
     m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setObjectName(m_objectNamePrefix
                                                                  + ":ToolBar:UndoUnlockAspectRatio");

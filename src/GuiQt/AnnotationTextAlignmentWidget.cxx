@@ -34,7 +34,6 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QRectF>
-#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "AnnotationManager.h"
@@ -46,6 +45,8 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "MathFunctions.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -367,31 +368,32 @@ AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
 QToolButton*
 AnnotationTextAlignmentWidget::createHorizontalAlignmentToolButton(const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment)
 {
+    WorkbenchIconTypeEnum::Enum iconType(WorkbenchIconTypeEnum::NO_ICON);
     QString toolTipText;
     switch (horizontalAlignment) {
         case AnnotationTextAlignHorizontalEnum::CENTER:
+            iconType    = WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_HORIZ_CENTER;
             toolTipText = "Align Text Center";
             break;
         case AnnotationTextAlignHorizontalEnum::LEFT:
+            iconType    = WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_HORIZ_LEFT;
             toolTipText = "Align Text Left";
             break;
         case AnnotationTextAlignHorizontalEnum::RIGHT:
+            iconType    = WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_HORIZ_RIGHT;
             toolTipText = "Align Text Right";
             break;
     }
     
-    QToolButton* toolButton = new QToolButton();
-    QPixmap pixmap = createHorizontalAlignmentPixmap(toolButton,
-                                                     horizontalAlignment);
-    
-    QAction* action = new QAction(this);
+    QAction* action = new WorkbenchAction(iconType,
+                                          this);
     action->setCheckable(true);
     action->setData((int)AnnotationTextAlignHorizontalEnum::toIntegerCode(horizontalAlignment));
     action->setToolTip(toolTipText);
-    action->setIcon(QIcon(pixmap));
+    
+    QToolButton* toolButton = new WorkbenchToolButton();
     toolButton->setDefaultAction(action);
-    toolButton->setIconSize(pixmap.size());
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
+    toolButton->setIconSize(QSize(12, 12));
     
     return toolButton;
 }
@@ -407,205 +409,32 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentToolButton(const Annotat
 QToolButton*
 AnnotationTextAlignmentWidget::createVerticalAlignmentToolButton(const AnnotationTextAlignVerticalEnum::Enum verticalAlignment)
 {
+    WorkbenchIconTypeEnum::Enum iconType(WorkbenchIconTypeEnum::NO_ICON);
     QString toolTipText;
     switch (verticalAlignment) {
         case AnnotationTextAlignVerticalEnum::BOTTOM:
+            iconType    = WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_BOTTOM;
             toolTipText = "Align Text Bottom";
             break;
         case AnnotationTextAlignVerticalEnum::MIDDLE:
+            iconType    = WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_MIDDLE;
             toolTipText = "Align Text Middle";
             break;
         case AnnotationTextAlignVerticalEnum::TOP:
+            iconType    = WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_TOP;
             toolTipText = "Align Text Top";
             break;
     }
     
-    QToolButton* toolButton = new QToolButton();
-    QPixmap pixmap = createVerticalAlignmentPixmap(toolButton,
-                                                   verticalAlignment);
-    
-    QAction* action = new QAction(this);
+    QAction* action = new WorkbenchAction(iconType,
+                                          this);
     action->setCheckable(true);
     action->setData((int)AnnotationTextAlignVerticalEnum::toIntegerCode(verticalAlignment));
     action->setToolTip(toolTipText);
-    action->setIcon(QIcon(pixmap));
+
+    QToolButton* toolButton = new WorkbenchToolButton();
     toolButton->setDefaultAction(action);
-    toolButton->setIconSize(pixmap.size());
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
+    toolButton->setIconSize(QSize(12, 12));
     
     return toolButton;
 }
-
-
-/**
- * Create a horizontal alignment pixmap.
- *
- * @param widget
- *    To color the pixmap with backround and foreground, 
- *    the palette from the given widget is used.
- * @param horizontalAlignment
- *    The horizontal alignment.
- * @return
- *    Pixmap with icon for the given horizontal alignment.
- */
-QPixmap
-AnnotationTextAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* widget,
-                                                     const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment)
-{
-    CaretAssert(widget);
-    
-    /*
-     * Create a small, square pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    float width  = 24.0;
-    float height = 24.0;
-    int32_t numLines = 5;
-    
-    if (m_smallLayoutFlag) {
-        width    = 12.0;
-        height   = 12.0;
-        numLines = 3;
-    }
-    QPixmap pixmap(static_cast<int>(width),
-                   static_cast<int>(height));
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
-                                                                                pixmap);
-    
-    const qreal margin          = width * 0.05;
-    const qreal longLineLength  = width - (margin * 2.0);
-    const qreal shortLineLength = width / 2.0;
-    const qreal yStep = MathFunctions::round(height / (numLines + 1));
-    
-    for (int32_t i = 1; i <= numLines; i++) {
-        const qreal lineLength = (((i % 2) == 0)
-                                  ? shortLineLength
-                                  : longLineLength);
-        const qreal y = yStep * i;
-        
-        qreal xStart = 0.0;
-        qreal xEnd   = width;
-        
-        switch (horizontalAlignment) {
-            case AnnotationTextAlignHorizontalEnum::CENTER:
-                xStart = (width - lineLength) / 2.0;
-                xEnd   = xStart + lineLength;
-                break;
-            case AnnotationTextAlignHorizontalEnum::LEFT:
-                xStart = margin;
-                xEnd   = xStart + lineLength;
-                break;
-            case AnnotationTextAlignHorizontalEnum::RIGHT:
-                xEnd   = width - margin;
-                xStart = xEnd - lineLength;
-                break;
-        }
-
-        painter->drawLine(QLineF(xStart,
-                                y,
-                                xEnd,
-                                y));
-    }
-    
-    return pixmap;
-}
-
-/**
- * Create a vertical alignment pixmap.
- *
- * @param widget
- *    To color the pixmap with backround and foreground,
- *    the palette from the given widget is used.
- * @param verticalAlignment
- *    The vertical alignment.
- * @return
- *    Pixmap with icon for the given vertical alignment.
- */
-QPixmap
-AnnotationTextAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widget,
-                                                         const AnnotationTextAlignVerticalEnum::Enum verticalAlignment)
-{
-    CaretAssert(widget);
-    
-    /*
-     * Create a small, square pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    float width  = 24.0;
-    float height = 24.0;
-    int32_t numLines = 5;
-    
-    if (m_smallLayoutFlag) {
-        width    = 12.0;
-        height   = 12.0;
-        numLines = 3;
-    }
-    QPixmap pixmap(static_cast<int>(width),
-                   static_cast<int>(height));
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
-                                                                                pixmap);
-    const qreal margin          = width * 0.05;
-    
-    if (m_smallLayoutFlag) {
-        float yStep = 3.0;
-        float y1 = 0.0;
-        float y2 = 0.0;
-        switch (verticalAlignment) {
-            case AnnotationTextAlignVerticalEnum::BOTTOM:
-                y1 = (height - 1 - yStep);
-                y2 = y1 + yStep;
-                break;
-            case AnnotationTextAlignVerticalEnum::MIDDLE:
-                y1 = MathFunctions::round((height / 2.0) - (yStep / 2.0));
-                y2 = y1 + yStep;
-                break;
-            case AnnotationTextAlignVerticalEnum::TOP:
-                y1 = yStep;
-                y2 = y1 + yStep;
-                break;
-        }
-        
-        const float xStart = margin;
-        const float xEnd   = width - (margin * 2.0);
-        
-        painter->drawLine(QLineF(xStart, y1,
-                                xEnd,   y1));
-        painter->drawLine(QLineF(xStart, y2,
-                                xEnd,   y2));
-    }
-    else {
-        const qreal longLineLength  = width - (margin * 2.0);
-        const qreal shortLineLength = width / 2.0;
-        const qreal yStep = MathFunctions::round(height / 6.0);
-        for (int32_t i = 1; i <= numLines; i++) {
-            const qreal lineLength = (((i % 2) == 0)
-                                      ? shortLineLength
-                                      : longLineLength);
-            
-            int32_t iOffset = i;
-            switch (verticalAlignment) {
-                case AnnotationTextAlignVerticalEnum::BOTTOM:
-                    iOffset += 2;
-                    break;
-                case AnnotationTextAlignVerticalEnum::MIDDLE:
-                    iOffset += 1;
-                    break;
-                case AnnotationTextAlignVerticalEnum::TOP:
-                    break;
-            }
-            const qreal y = yStep * iOffset;
-            
-            const qreal xStart = margin;
-            const qreal xEnd   = xStart + lineLength;
-            
-            
-            painter->drawLine(QLineF(xStart,
-                                    y,
-                                    xEnd,
-                                    y));
-        }
-    }
-    
-    return pixmap;
-}
-

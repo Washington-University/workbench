@@ -232,6 +232,8 @@ GuiManager::initializeGuiManager()
                                                     "caret::WuQTabBar");
     WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QSpinBox",
                                                     "caret::WuQSpinBox");
+    WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QToolButton",
+                                                    "caret::WorkbenchToolButton");
     WuQMacroManager::instance()->addParentObject(this);
     WuQMacroManager::instance()->setMacroHelper(new WbMacroHelper(this));
     WuQMacroManager::instance()->setCustomCommandManager(new WbMacroCustomOperationManager());

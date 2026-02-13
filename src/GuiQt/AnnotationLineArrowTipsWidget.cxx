@@ -27,7 +27,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QPainter>
-#include <QToolButton>
 
 #include "AnnotationLine.h"
 #include "AnnotationManager.h"
@@ -37,6 +36,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -68,7 +68,7 @@ m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* label = new QLabel("Line");
 
-    QToolButton* endArrowToolButton = new QToolButton();
+    QToolButton* endArrowToolButton = new WorkbenchToolButton();
     m_endArrowAction = new QAction(this);
     m_endArrowAction->setCheckable(true);
     m_endArrowAction->setToolTip("Show arrow at line's end coordinate");
@@ -79,7 +79,7 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setToolButtonStyleForQt5Mac(endArrowToolButton);
     
     
-    QToolButton* startArrowToolButton = new QToolButton();
+    QToolButton* startArrowToolButton = new WorkbenchToolButton();
     m_startArrowAction = new QAction(this);
     m_startArrowAction->setCheckable(true);
     m_startArrowAction->setToolTip("Show arrow at line's start coordinate");

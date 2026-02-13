@@ -48,6 +48,8 @@ using namespace caret;
 #include "Surface.h"
 #include "StructureEnum.h"
 #include "ViewingTransformations.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -77,106 +79,67 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     
     this->viewOrientationLeftIcon = WuQtUtilities::loadIcon(":/ToolBar/view-left.png");
     this->viewOrientationRightIcon = WuQtUtilities::loadIcon(":/ToolBar/view-right.png");
-    this->viewOrientationAnteriorIcon = WuQtUtilities::loadIcon(":/ToolBar/view-anterior.png");
-    this->viewOrientationPosteriorIcon = WuQtUtilities::loadIcon(":/ToolBar/view-posterior.png");
-    this->viewOrientationDorsalIcon = WuQtUtilities::loadIcon(":/ToolBar/view-dorsal.png");
-    this->viewOrientationVentralIcon = WuQtUtilities::loadIcon(":/ToolBar/view-ventral.png");
     this->viewOrientationLeftLateralIcon = WuQtUtilities::loadIcon(":/ToolBar/view-left-lateral.png");
     this->viewOrientationLeftMedialIcon = WuQtUtilities::loadIcon(":/ToolBar/view-left-medial.png");
     this->viewOrientationRightLateralIcon = WuQtUtilities::loadIcon(":/ToolBar/view-right-lateral.png");
     this->viewOrientationRightMedialIcon = WuQtUtilities::loadIcon(":/ToolBar/view-right-medial.png");
     
-    this->orientationLeftOrLateralToolButtonAction = WuQtUtilities::createAction("L",
-                                                                                 "View from a LEFT perspective",
-                                                                                 this,
-                                                                                 this,
-                                                                                 SLOT(orientationLeftOrLateralToolButtonTriggered(bool)));
-    if (this->viewOrientationLeftIcon != NULL) {
-        this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationLeftIcon);
-    }
-    else {
-        this->orientationLeftOrLateralToolButtonAction->setIconText("L");
-    }
+    this->orientationLeftOrLateralToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL,
+                                                                         this);
+    this->orientationLeftOrLateralToolButtonAction->setToolTip("View from a LEFT perspective");
+    QObject::connect(this->orientationLeftOrLateralToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarOrientation::orientationLeftOrLateralToolButtonTriggered);
     this->orientationLeftOrLateralToolButtonAction->setObjectName(objectNamePrefix
                                                                   + "LeftOrLateralView");
     macroManager->addMacroSupportToObject(this->orientationLeftOrLateralToolButtonAction,
                                           "Select left or lateral orientation");
     
-    this->orientationRightOrMedialToolButtonAction = WuQtUtilities::createAction("R",
-                                                                                 "View from a RIGHT perspective",
-                                                                                 this,
-                                                                                 this,
-                                                                                 SLOT(orientationRightOrMedialToolButtonTriggered(bool)));
-    if (this->viewOrientationRightIcon != NULL) {
-        this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationRightIcon);
-    }
-    else {
-        this->orientationRightOrMedialToolButtonAction->setIconText("R");
-    }
+    this->orientationRightOrMedialToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_RIGHT_MEDIAL,
+                                                                         this);
+    this->orientationRightOrMedialToolButtonAction->setToolTip("View from a RIGHT perspective");
+    QObject::connect(this->orientationRightOrMedialToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarOrientation::orientationRightOrMedialToolButtonTriggered);
+
     this->orientationRightOrMedialToolButtonAction->setObjectName(objectNamePrefix
                                                                   + "RightOrMedialView");
     macroManager->addMacroSupportToObject(this->orientationRightOrMedialToolButtonAction,
                                           "Select right or medial orientation");
     
-    this->orientationAnteriorToolButtonAction = WuQtUtilities::createAction("A",
-                                                                            "View from an ANTERIOR perspective",
-                                                                            this,
-                                                                            this,
-                                                                            SLOT(orientationAnteriorToolButtonTriggered(bool)));
-    if (this->viewOrientationAnteriorIcon != NULL) {
-        this->orientationAnteriorToolButtonAction->setIcon(*this->viewOrientationAnteriorIcon);
-    }
-    else {
-        this->orientationAnteriorToolButtonAction->setIconText("A");
-    }
+    this->orientationAnteriorToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_ANTERIOR,
+                                                                    this);
+    this->orientationAnteriorToolButtonAction->setToolTip("View from an ANTERIOR perspective");
+    QObject::connect(this->orientationAnteriorToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarOrientation::orientationAnteriorToolButtonTriggered);
     this->orientationAnteriorToolButtonAction->setObjectName(objectNamePrefix
                                                              + "AnteriorView");
     macroManager->addMacroSupportToObject(this->orientationAnteriorToolButtonAction,
                                           "Select anterior orientation");
     
-    this->orientationPosteriorToolButtonAction = WuQtUtilities::createAction("P",
-                                                                             "View from a POSTERIOR perspective",
-                                                                             this,
-                                                                             this,
-                                                                             SLOT(orientationPosteriorToolButtonTriggered(bool)));
-    if (this->viewOrientationPosteriorIcon != NULL) {
-        this->orientationPosteriorToolButtonAction->setIcon(*this->viewOrientationPosteriorIcon);
-    }
-    else {
-        this->orientationPosteriorToolButtonAction->setIconText("P");
-    }
+    this->orientationPosteriorToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_POSTERIOR,
+                                                                     this);
+    this->orientationPosteriorToolButtonAction->setToolTip("View from a POSTERIOR perspective");
+    QObject::connect(this->orientationPosteriorToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarOrientation::orientationPosteriorToolButtonTriggered);
     this->orientationPosteriorToolButtonAction->setObjectName(objectNamePrefix
                                                               + "PosteriorView");
     macroManager->addMacroSupportToObject(this->orientationPosteriorToolButtonAction,
                                           "Select posterior orientation");
     
-    this->orientationDorsalToolButtonAction = WuQtUtilities::createAction("D",
-                                                                          "View from a DORSAL perspective",
-                                                                          this,
-                                                                          this,
-                                                                          SLOT(orientationDorsalToolButtonTriggered(bool)));
-    if (this->viewOrientationDorsalIcon != NULL) {
-        this->orientationDorsalToolButtonAction->setIcon(*this->viewOrientationDorsalIcon);
-    }
-    else {
-        this->orientationDorsalToolButtonAction->setIconText("D");
-    }
+    this->orientationDorsalToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_DORSAL,
+                                                                  this);
+    this->orientationDorsalToolButtonAction->setToolTip("View from a DORSAL perspective");
+    QObject::connect(this->orientationDorsalToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarOrientation::orientationDorsalToolButtonTriggered);
     this->orientationDorsalToolButtonAction->setObjectName(objectNamePrefix
                                                            + "DorsalView");
     macroManager->addMacroSupportToObject(this->orientationDorsalToolButtonAction,
                                           "Select dorsal orientation");
     
-    this->orientationVentralToolButtonAction = WuQtUtilities::createAction("V",
-                                                                           "View from a VENTRAL perspective",
-                                                                           this,
-                                                                           this,
-                                                                           SLOT(orientationVentralToolButtonTriggered(bool)));
-    if (this->viewOrientationVentralIcon != NULL) {
-        this->orientationVentralToolButtonAction->setIcon(*this->viewOrientationVentralIcon);
-    }
-    else {
-        this->orientationVentralToolButtonAction->setIconText("V");
-    }
+    this->orientationVentralToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_VENTRAL,
+                                                                   this);
+    this->orientationVentralToolButtonAction->setToolTip("View from a VENTRAL perspective");
+    QObject::connect(this->orientationVentralToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarOrientation::orientationVentralToolButtonTriggered);
     this->orientationVentralToolButtonAction->setObjectName(objectNamePrefix
                                                             + "VentralView");
     macroManager->addMacroSupportToObject(this->orientationVentralToolButtonAction,
@@ -223,62 +186,51 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     macroManager->addMacroSupportToObject(this->orientationResetToolButtonAction,
                                           "Reset to default orientation");
     
-    this->orientationLeftOrLateralToolButton = new QToolButton();
+    this->orientationLeftOrLateralToolButton = new WorkbenchToolButton();
     this->orientationLeftOrLateralToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationLeftOrLateralToolButton);
     this->orientationLeftOrLateralToolButtonAction->setParent(this->orientationLeftOrLateralToolButton);
     
-    this->orientationRightOrMedialToolButton = new QToolButton();
+    this->orientationRightOrMedialToolButton = new WorkbenchToolButton();
     this->orientationRightOrMedialToolButton->setDefaultAction(this->orientationRightOrMedialToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationRightOrMedialToolButton);
     orientationRightOrMedialToolButtonAction->setParent(orientationRightOrMedialToolButton);
     
-    this->orientationAnteriorToolButton = new QToolButton();
+    this->orientationAnteriorToolButton = new WorkbenchToolButton();
     this->orientationAnteriorToolButton->setDefaultAction(this->orientationAnteriorToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationAnteriorToolButton);
     this->orientationAnteriorToolButtonAction->setParent(this->orientationAnteriorToolButton);
     
-    this->orientationPosteriorToolButton = new QToolButton();
+    this->orientationPosteriorToolButton = new WorkbenchToolButton();
     this->orientationPosteriorToolButton->setDefaultAction(this->orientationPosteriorToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationPosteriorToolButton);
     this->orientationPosteriorToolButtonAction->setParent(this->orientationPosteriorToolButton);
     
-    this->orientationDorsalToolButton = new QToolButton();
+    this->orientationDorsalToolButton = new WorkbenchToolButton();
     this->orientationDorsalToolButton->setDefaultAction(this->orientationDorsalToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationDorsalToolButton);
     this->orientationDorsalToolButtonAction->setParent(this->orientationDorsalToolButton);
     
-    this->orientationVentralToolButton = new QToolButton();
+    this->orientationVentralToolButton = new WorkbenchToolButton();
     this->orientationVentralToolButton->setDefaultAction(this->orientationVentralToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationVentralToolButton);
     this->orientationVentralToolButtonAction->setParent(this->orientationVentralToolButton);
     
-    this->orientationLateralMedialToolButton = new QToolButton();
+    this->orientationLateralMedialToolButton = new WorkbenchToolButton();
     this->orientationLateralMedialToolButton->setDefaultAction(this->orientationLateralMedialToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationLateralMedialToolButton);
     orientationLateralMedialToolButtonAction->setParent(orientationLateralMedialToolButton);
     
-    this->orientationDorsalVentralToolButton = new QToolButton();
+    this->orientationDorsalVentralToolButton = new WorkbenchToolButton();
     this->orientationDorsalVentralToolButton->setDefaultAction(this->orientationDorsalVentralToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationDorsalVentralToolButton);
     orientationDorsalVentralToolButtonAction->setParent(orientationDorsalVentralToolButton);
     
-    this->orientationAnteriorPosteriorToolButton = new QToolButton();
+    this->orientationAnteriorPosteriorToolButton = new WorkbenchToolButton();
     this->orientationAnteriorPosteriorToolButton->setDefaultAction(this->orientationAnteriorPosteriorToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationAnteriorPosteriorToolButton);
     orientationAnteriorPosteriorToolButtonAction->setParent(orientationAnteriorPosteriorToolButton);
     
     WuQtUtilities::matchWidgetWidths(this->orientationLateralMedialToolButton,
                                      this->orientationDorsalVentralToolButton,
                                      this->orientationAnteriorPosteriorToolButton);
     
-    QToolButton* orientationResetToolButton = new QToolButton();
+    QToolButton* orientationResetToolButton = new WorkbenchToolButton();
     orientationResetToolButton->setDefaultAction(this->orientationResetToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(orientationResetToolButton);
     
-    this->orientationCustomViewSelectToolButton = new QToolButton();
+    this->orientationCustomViewSelectToolButton = new WorkbenchToolButton();
     this->orientationCustomViewSelectToolButton->setDefaultAction(getParentToolBar()->customViewAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationCustomViewSelectToolButton);
         
     m_singleViewWidget = new QWidget();
     QGridLayout* singleViewLayout = new QGridLayout(m_singleViewWidget);
@@ -311,65 +263,39 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     /*
      * Redo and Undo
      */
-    QIcon redoIcon;
-    const bool redoIconValid(WuQtUtilities::loadIcon(":/ToolBar/redo.png",
-                                                     redoIcon));
-    QIcon undoIcon;
-    const bool undoIconValid(WuQtUtilities::loadIcon(":/ToolBar/undo.png",
-                                                     undoIcon));
-
-    m_redoAction = new QAction();
-    if (redoIconValid) {
-        m_redoAction->setIcon(redoIcon);
-    }
-    else {
-        m_redoAction->setText("R");
-    }
+    m_redoAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_REDO,
+                                       this);
     m_redoAction->setToolTip("Redo change in view");
     QObject::connect(m_redoAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarOrientation::redoActionTriggered);
-    QToolButton* redoToolButton = new QToolButton();
+    QToolButton* redoToolButton = new WorkbenchToolButton();
     redoToolButton->setDefaultAction(m_redoAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
     m_redoAction->setObjectName(objectNamePrefix + ":Redo");
     WuQMacroManager::instance()->addMacroSupportToObject(m_redoAction, "Redo Image View");
     
-    m_undoAction = new QAction();
-    if (undoIconValid) {
-        m_undoAction->setIcon(undoIcon);
-    }
-    else {
-        m_undoAction->setText("U");
-    }
+    m_undoAction= new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_UNDO,
+                                      this);
     m_undoAction->setToolTip("Undo change in view");
     QObject::connect(m_undoAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarOrientation::undoActionTriggered);
-    QToolButton* undoToolButton = new QToolButton();
+    QToolButton* undoToolButton = new WorkbenchToolButton();
     undoToolButton->setDefaultAction(m_undoAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
     m_undoAction->setObjectName(objectNamePrefix + ":Undo");
     WuQMacroManager::instance()->addMacroSupportToObject(m_undoAction, "Undo Image View");
 
     /*
      * Select region
      */
-    QIcon selectRegionIcon;
-    const bool selectRegionIconValid(WuQtUtilities::loadIcon(":/ToolBar/select-region.png",
-                                                             selectRegionIcon));
-    m_selectRegionAction = new QAction();
-    if (selectRegionIconValid) {
-        m_selectRegionAction->setIcon(selectRegionIcon);
-    }
-    else {
-        m_selectRegionAction->setText("SR");
-    }
+    m_selectRegionAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_REGION,
+                                               this);
     m_selectRegionAction->setToolTip("<html>Select region by dragging mouse to form a rectangle</html>");
+    QObject::connect(m_selectRegionAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarOrientation::selectRegionActionTriggered);
     m_selectRegionAction->setCheckable(true);
     QObject::connect(m_selectRegionAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarOrientation::selectRegionActionTriggered);
-    QToolButton* selectRegionToolButton(new QToolButton());
+    QToolButton* selectRegionToolButton(new WorkbenchToolButton());
     selectRegionToolButton->setDefaultAction(m_selectRegionAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(selectRegionToolButton);
     m_selectRegionAction->setObjectName(objectNamePrefix + ":SelectRegion");
     WuQMacroManager::instance()->addMacroSupportToObject(m_selectRegionAction, "Selection Region");
     
@@ -407,26 +333,6 @@ BrainBrowserWindowToolBarOrientation::~BrainBrowserWindowToolBarOrientation()
     if (this->viewOrientationRightIcon != NULL) {
         delete this->viewOrientationRightIcon;
         this->viewOrientationRightIcon = NULL;
-    }
-    
-    if (this->viewOrientationAnteriorIcon != NULL) {
-        delete this->viewOrientationAnteriorIcon;
-        this->viewOrientationAnteriorIcon = NULL;
-    }
-    
-    if (this->viewOrientationPosteriorIcon != NULL) {
-        delete this->viewOrientationPosteriorIcon;
-        this->viewOrientationPosteriorIcon = NULL;
-    }
-    
-    if (this->viewOrientationDorsalIcon != NULL) {
-        delete this->viewOrientationDorsalIcon;
-        this->viewOrientationDorsalIcon = NULL;
-    }
-    
-    if (this->viewOrientationVentralIcon != NULL) {
-        delete this->viewOrientationVentralIcon;
-        this->viewOrientationVentralIcon = NULL;
     }
     
     if (this->viewOrientationLeftLateralIcon != NULL) {
