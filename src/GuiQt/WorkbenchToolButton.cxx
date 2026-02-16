@@ -54,16 +54,9 @@ WorkbenchToolButton::WorkbenchToolButton(const MenuStatus menuStatus,
 : QToolButton(parent),
 m_menuStatus(menuStatus)
 {
+    initialize();
+    
     updateForDarkLightTheme(getCurrentDarkLightThemeMode());
-    
-    EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
-    s_allWorkbenchToolButtons.insert(this);
-    
-//    std::cout << (ptrdiff_t)this << " " << s_allWorkbenchToolButtons.size() << std::endl;
-//    if (s_allWorkbenchToolButtons.size() == 79) {
-//        std::abort();
-//    }
 }
 
 /**
@@ -81,15 +74,12 @@ WorkbenchToolButton::WorkbenchToolButton(const WorkbenchIconTypeEnum::Enum iconT
 : QToolButton(parent),
 m_menuStatus(menuStatus)
 {
-    QAction* action(new WorkbenchAction(iconType,
-                                        this));
-    setDefaultAction(action);
+    initialize();
+    
+    setDefaultAction(new WorkbenchAction(iconType,
+                                         this));
     
     updateForDarkLightTheme(getCurrentDarkLightThemeMode());
-    
-    EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
-    s_allWorkbenchToolButtons.insert(this);
 }
 
 /**
@@ -99,6 +89,19 @@ WorkbenchToolButton::~WorkbenchToolButton()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     s_allWorkbenchToolButtons.erase(this);
+}
+
+/**
+ * Initialize this instance
+ */
+void
+WorkbenchToolButton::initialize()
+{
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
+//    std::cout << (ptrdiff_t)this << " " << s_allWorkbenchButtonsCounter << std::endl;
+    s_allWorkbenchToolButtons[this] = s_allWorkbenchButtonsCounter;
+    ++s_allWorkbenchButtonsCounter;
 }
 
 /**
@@ -141,6 +144,29 @@ WorkbenchToolButton::updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::En
 }
 
 /**
+ * Set the special background color
+ * @param specialBackgroundColor
+ *    The special background color
+ */
+void
+WorkbenchToolButton::setSpecialBackgroundColor(const QColor& specialBackgroundColor)
+{
+    m_specialBackgroundColor = specialBackgroundColor;
+}
+
+/**
+ * Enabled/disable the special background color
+ * @param enabled
+ *    Enabled status
+ */
+void
+WorkbenchToolButton::setSpecialBackgroundColorEnabled(const bool enabled)
+{
+    m_specialBackgroundColorEnabled = enabled;
+    updateStyleSheet();
+}
+
+/**
  * Update the button for MacOS that does not properly decorate the button
  * @param darkLightThemeMode
  *    The dark / light theme for the button
@@ -169,6 +195,10 @@ WorkbenchToolButton::updateButtonForMacOS(const GuiDarkLightThemeModeEnum::Enum 
             borderColor.setRgb(196, 196, 196);
             checkedPressedColor.setRgb(222, 222, 222);
             break;
+    }
+    
+    if (m_specialBackgroundColorEnabled) {
+        backgroundColor = m_specialBackgroundColor;
     }
 
     QString toolButtonStyleSheet(" QToolButton { "
@@ -235,8 +265,10 @@ WorkbenchToolButton::printLeftoverWorkbenchToolButtons()
     if (s_allWorkbenchToolButtons.size() == 0) {
         std::cout << "All Workbench Tool Buttons were deleted" << std::endl;
     }
-    for (WorkbenchToolButton* wa : s_allWorkbenchToolButtons) {
-        std::cout << "Toolbutton not deleted: " << wa->text()
-        << (ptrdiff_t)wa << std::endl;
+    for (auto& buttonAndCounter: s_allWorkbenchToolButtons) {
+        WorkbenchToolButton* button(buttonAndCounter.first);
+        std::cout << "Toolbutton not deleted: " << button->text()
+        << " ptr: " << (ptrdiff_t)button << std::endl
+        << " counter: " << buttonAndCounter.second << std::endl;
     }
 }

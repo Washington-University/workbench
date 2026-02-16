@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-#include <set>
+#include <map>
 
 #include <QMenu> /* without this get a compilation error in QToolButton */
 #include <QToolButton>
@@ -36,7 +36,7 @@ namespace caret {
 
     class WorkbenchToolButton :
        public QToolButton,
-       //public CaretObject,  // Can be used to track allocation/deallocation of instances to ensure no memory leaks
+       public CaretObject,  // Can be used to track allocation/deallocation of instances to ensure no memory leaks
        public EventListenerInterface {
         
         Q_OBJECT
@@ -64,6 +64,10 @@ namespace caret {
 
         void updateStyleSheet();
         
+        void setSpecialBackgroundColor(const QColor& specialBackgroundColor);
+           
+        void setSpecialBackgroundColorEnabled(const bool enabled);
+           
         static void printLeftoverWorkbenchToolButtons();
         
         // ADD_NEW_METHODS_HERE
@@ -72,6 +76,8 @@ namespace caret {
         virtual void showEvent(QShowEvent *event) override;
         
     private:
+        void initialize();
+        
         void updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
         
         void updateButtonForMacOS(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
@@ -80,13 +86,19 @@ namespace caret {
         
         const MenuStatus m_menuStatus;
         
-        static std::set<WorkbenchToolButton*> s_allWorkbenchToolButtons;
+        QColor m_specialBackgroundColor;
+           
+        bool m_specialBackgroundColorEnabled = false;
+           
+        static std::map<WorkbenchToolButton*, int> s_allWorkbenchToolButtons;
+        static int s_allWorkbenchButtonsCounter;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __WORKBENCH_TOOL_BUTTON_DECLARE__
-    std::set<WorkbenchToolButton*> WorkbenchToolButton::s_allWorkbenchToolButtons;
+    std::map<WorkbenchToolButton*, int> WorkbenchToolButton::s_allWorkbenchToolButtons;
+    int WorkbenchToolButton::s_allWorkbenchButtonsCounter = 0;
 #endif // __WORKBENCH_TOOL_BUTTON_DECLARE__
 
 } // namespace

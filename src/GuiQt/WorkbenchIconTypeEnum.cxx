@@ -72,10 +72,6 @@ using namespace caret;
 switch (value) {
     case WorkbenchIconTypeEnum::NO_ICON:
         break;
-    case WorkbenchIconTypeEnum::ANNOTATION_COLOR_BACKGROUND:
-        break;
-    case WorkbenchIconTypeEnum::ANNOTATION_COLOR_FOREGROUND:
-        break;
     case WorkbenchIconTypeEnum::ANNOTATION_DELETE:
         break;
     case WorkbenchIconTypeEnum::ANNOTATION_LINE_ARROW_DOWN:
@@ -133,12 +129,6 @@ switch (value) {
     case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_MIDDLE:
         break;
     case WorkbenchIconTypeEnum::ANNOTATION_TEXT_ALIGN_VERT_TOP:
-        break;
-    case WorkbenchIconTypeEnum::ANNOTATION_TEXT_STYLE_BOLD:
-        break;
-    case WorkbenchIconTypeEnum::ANNOTATION_TEXT_STYLE_ITALIC:
-        break;
-    case WorkbenchIconTypeEnum::ANNOTATION_TEXT_STYLE_UNDERLINE:
         break;
     case WorkbenchIconTypeEnum::ORIENTATION_ANTERIOR:
         break;
@@ -260,14 +250,6 @@ WorkbenchIconTypeEnum::initialize()
                                     "NO_ICON", 
                                     "No Icon"));
     
-    enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_COLOR_BACKGROUND, 
-                                    "ANNOTATION_COLOR_BACKGROUND", 
-                                    "Annotation Color Background"));
-    
-    enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_COLOR_FOREGROUND, 
-                                    "ANNOTATION_COLOR_FOREGROUND", 
-                                    "Annotation Color Foreground"));
-    
     enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_DELETE, 
                                     "ANNOTATION_DELETE", 
                                     "Annotation Delete"));
@@ -379,19 +361,7 @@ WorkbenchIconTypeEnum::initialize()
     enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_TEXT_ALIGN_VERT_TOP, 
                                     "ANNOTATION_TEXT_ALIGN_VERT_TOP", 
                                     "Annotation Text Align Vert Top"));
-    
-    enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_TEXT_STYLE_BOLD, 
-                                    "ANNOTATION_TEXT_STYLE_BOLD", 
-                                    "Annotation Text Style Bold"));
-    
-    enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_TEXT_STYLE_ITALIC, 
-                                    "ANNOTATION_TEXT_STYLE_ITALIC", 
-                                    "Annotation Text Style Italic"));
-    
-    enumData.push_back(WorkbenchIconTypeEnum(ANNOTATION_TEXT_STYLE_UNDERLINE, 
-                                    "ANNOTATION_TEXT_STYLE_UNDERLINE", 
-                                    "Annotation Text Style Underline"));
-    
+        
     enumData.push_back(WorkbenchIconTypeEnum(ORIENTATION_ANTERIOR, 
                                     "ORIENTATION_ANTERIOR", 
                                     "Orientation Anterior"));

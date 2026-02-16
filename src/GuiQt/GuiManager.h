@@ -149,7 +149,7 @@ namespace caret {
         
         QAction* getHelpViewerDialogDisplayAction();
         
-        QAction* getDataToolTipsAction(QWidget* buttonWidget);
+        QAction* getDataToolTipsAction();
         
         void closeAllOtherWindows(BrainBrowserWindow* browserWindow);
         
@@ -279,8 +279,6 @@ namespace caret {
         void updateNonModalDialogs();
         
         void addParentLessNonModalDialog(QWidget* dialog);
-        
-        QPixmap createDataToolTipsIcon(const QWidget* widget);
         
         void processOpenDataFileEvent(EventOperatingSystemRequestOpenDataFile* openDataFileEvent);
         

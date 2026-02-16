@@ -145,14 +145,15 @@ m_parentToolBar(parentToolBar)
     /*
      * Scale bar action and button
      */
-    QToolButton* scaleBarToolButton(new WorkbenchToolButton(WorkbenchIconTypeEnum::TOOLBAR_MISC_RULER));
-    m_scaleBarAction = scaleBarToolButton->defaultAction();
+    m_scaleBarAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_MISC_RULER,
+                                           this);
     m_scaleBarAction->setCheckable(true);
     m_scaleBarAction->setToolTip("Enable scale bar; click arrow to edit");
     m_scaleBarAction->setMenu(createScaleBarMenu());
     QObject::connect(m_scaleBarAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarTab::scaleBarActionToggled);
 
+    QToolButton* scaleBarToolButton(new WorkbenchToolButton());
     scaleBarToolButton->setDefaultAction(m_scaleBarAction);
 
     m_macroRecordingLabel = new QLabel("");

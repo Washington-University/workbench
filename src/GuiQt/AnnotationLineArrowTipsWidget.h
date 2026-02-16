@@ -55,17 +55,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        enum class ArrowType {
-            DOWN,
-            UP
-        };
-        
         AnnotationLineArrowTipsWidget(const AnnotationLineArrowTipsWidget&);
 
         AnnotationLineArrowTipsWidget& operator=(const AnnotationLineArrowTipsWidget&);
-        
-        QPixmap createArrowPixmap(const QWidget* widget,
-                                  const ArrowType arrowType);
         
         const UserInputModeEnum::Enum m_userInputMode;
         

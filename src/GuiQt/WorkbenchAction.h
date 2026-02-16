@@ -29,13 +29,17 @@
 #include "AnnotationTextAlignHorizontalEnum.h"
 #include "AnnotationTextAlignVerticalEnum.h"
 #include "AnnotationTextOrientationEnum.h"
+#include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "GuiDarkLightThemeModeEnum.h"
 #include "WorkbenchIconTypeEnum.h"
 
 namespace caret {
 
-    class WorkbenchAction : public QAction, public EventListenerInterface {
+    class WorkbenchAction :
+    public QAction,
+    public CaretObject,
+    public EventListenerInterface {
         
         Q_OBJECT
 
@@ -56,9 +60,19 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        enum class ArrowType {
+            DOWN,
+            UP
+        };
+        
         enum class Origin {
             CENTER,
             TOP_LEFT
+        };
+        
+        enum class PixelModification {
+            NONE,
+            REPLACE_BLACK_WITH_DARK_GRAY
         };
         
         void createPixmapPainter(const int32_t width,
@@ -82,13 +96,15 @@ namespace caret {
                            const AString& imageFileName,
                            const AString& alternativeTextForPixmap,
                            const bool darkThemeFlag,
-                           const bool replaceWhiteWithTransparentFlag);
+                           const PixelModification pixelModification);
         
         GuiDarkLightThemeModeEnum::Enum getCurrentDarkLightThemeMode() const;
         
-        void replaceWhiteWithTransparent(const AString& imageFileName,
-                                         QPixmap& pixmapInOut);
-        
+        void replacePixmapPixelColor(const AString& imageFileName,
+                                     QPixmap& pixmapInOut,
+                                     const QColor& findColor,
+                                     const QColor& replaceColor);
+
         void createHorizontalAlignmentPixmap(QPixmap& pixmap,
                                              QPainter* painter,
                                              const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment);
@@ -100,6 +116,10 @@ namespace caret {
         void createTextOrientationPixmap(QPixmap& pixmap,
                                          QPainter* painter,
                                          const AnnotationTextOrientationEnum::Enum orientation);
+
+        void createArrowPixmap(QPixmap& pixmap,
+                               QPainter* painter,
+                               const ArrowType arrowType);
 
         const WorkbenchIconTypeEnum::Enum m_iconType;
         

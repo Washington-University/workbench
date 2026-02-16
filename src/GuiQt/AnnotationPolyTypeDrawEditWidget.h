@@ -33,6 +33,7 @@ class QToolButton;
 namespace caret {
     class Annotation;
     class UserInputModeAnnotations;
+    class WorkbenchToolButton;
 
     class AnnotationPolyTypeDrawEditWidget : public QWidget {
         
@@ -83,11 +84,11 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        QToolButton* m_finishToolButton = NULL;
+        WorkbenchToolButton* m_finishToolButton = NULL;
         
-        QString m_finishToolButtonStyleSheetDisabled;
-        
-        QString m_finishToolButtonStyleSheetEnabled;
+//        QString m_finishToolButtonStyleSheetDisabled;
+//        
+//        QString m_finishToolButtonStyleSheetEnabled;
         
         QAction* m_finishAction = NULL;
         

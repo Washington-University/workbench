@@ -392,7 +392,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     layersToolBoxToolButton->setDefaultAction(layersToolBoxAction);
     
     QToolButton* dataToolTipsToolButton = new WorkbenchToolButton();
-    dataToolTipsToolButton->setDefaultAction(GuiManager::get()->getDataToolTipsAction(dataToolTipsToolButton));
+    dataToolTipsToolButton->setDefaultAction(GuiManager::get()->getDataToolTipsAction());
     
     /*
      * Make all tool buttons the same height
@@ -407,17 +407,6 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
                                       overlayToolBoxToolButton,
                                       layersToolBoxToolButton,
                                       dataToolTipsToolButton);
-    
-    WuQtUtilities::setToolButtonStyleForQt5Mac(macrosToolButton);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_movieToolButton);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(helpDialogToolButton);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(informationDialogToolButton);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(identifyDialogToolButton);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(sceneDialogToolButton);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolBarToolButton);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(overlayToolBoxToolButton);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(layersToolBoxToolButton);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(dataToolTipsToolButton);
     
     /*
      * Tab bar and controls at far right side of toolbar

@@ -36,6 +36,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "WorkbenchAction.h"
 #include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -69,25 +70,23 @@ m_browserWindowIndex(browserWindowIndex)
     QLabel* label = new QLabel("Line");
 
     QToolButton* endArrowToolButton = new WorkbenchToolButton();
-    m_endArrowAction = new QAction(this);
+    m_endArrowAction = new WorkbenchAction(WorkbenchIconTypeEnum::ANNOTATION_LINE_ARROW_UP,
+                                           this);
     m_endArrowAction->setCheckable(true);
     m_endArrowAction->setToolTip("Show arrow at line's end coordinate");
-    m_endArrowAction->setIcon(QIcon(createArrowPixmap(endArrowToolButton, ArrowType::DOWN)));
     QObject::connect(m_endArrowAction, &QAction::triggered,
                      this, &AnnotationLineArrowTipsWidget::endArrowTipActionToggled);
     endArrowToolButton->setDefaultAction(m_endArrowAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(endArrowToolButton);
     
     
     QToolButton* startArrowToolButton = new WorkbenchToolButton();
-    m_startArrowAction = new QAction(this);
+    m_startArrowAction = new WorkbenchAction(WorkbenchIconTypeEnum::ANNOTATION_LINE_ARROW_DOWN,
+                                             this);
     m_startArrowAction->setCheckable(true);
     m_startArrowAction->setToolTip("Show arrow at line's start coordinate");
-    m_startArrowAction->setIcon(QIcon(createArrowPixmap(startArrowToolButton, ArrowType::UP)));
     QObject::connect(m_startArrowAction, &QAction::triggered,
                      this, &AnnotationLineArrowTipsWidget::startArrowTipActionToggled);
     startArrowToolButton->setDefaultAction(m_startArrowAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(startArrowToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
@@ -205,64 +204,4 @@ AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
     
         AnnotationLine::setUserDefaultDisplayEndArrow(m_endArrowAction->isChecked());
 }
-
-/**
- * Create a pixmap for the given arrow type type.
- *
- * @param widget
- *    To color the pixmap with backround and foreground,
- *    the palette from the given widget is used.
- * @param arrowType
- *    The arrow type.
- * @return
- *    Pixmap with icon for the given arrow type.
- */
-QPixmap
-AnnotationLineArrowTipsWidget::createArrowPixmap(const QWidget* widget,
-                          const ArrowType arrowType)
-{
-    CaretAssert(widget);
-    
-    /*
-     * Create a small, square pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    const float width  = 24.0;
-    const float height = 24.0;
-    QPixmap pixmap(static_cast<int>(width),
-                   static_cast<int>(height));
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(widget, pixmap);
-    
-    const bool fillShapeFlag = false;
-    if (fillShapeFlag) {
-        QBrush brush = painter->brush();
-        brush.setColor(painter->pen().color());
-        brush.setStyle(Qt::SolidPattern);
-        painter->setBrush(brush);
-    }
-    
-    const float percentage = 0.10f;
-    const float left   = width  * percentage;
-    const float right  = width  * (1.0 - percentage);
-    const float bottom = height * percentage;
-    const float top    = height * (1.0 - percentage);
-    const float centerX = width * 0.5;
-    QPolygonF triangle;
-    switch (arrowType) {
-        case ArrowType::DOWN:
-            triangle.push_back(QPointF(right, top));
-            triangle.push_back(QPointF(left, top));
-            triangle.push_back(QPointF(centerX, bottom));
-            break;
-        case ArrowType::UP:
-            triangle.push_back(QPointF(left, bottom));
-            triangle.push_back(QPointF(right, bottom));
-            triangle.push_back(QPointF(centerX, top));
-            break;
-    }
-    painter->drawPolygon(triangle);
-    
-    return pixmap;
-}
-
 

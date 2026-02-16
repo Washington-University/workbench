@@ -267,9 +267,6 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
     }
     const bool darkThemeFlag( ! lightThemeFlag);
 
-    const bool REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO  = false;
-//    const bool REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_YES = true;
-
     const int32_t width12(12);
     const int32_t height12(12);
     const int32_t width24(24);
@@ -277,12 +274,6 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
 
     switch (iconType) {
         case WorkbenchIconTypeEnum::NO_ICON:
-            break;
-        case WorkbenchIconTypeEnum::ANNOTATION_COLOR_BACKGROUND:
-            CaretAssertToDoFatal();
-            break;
-        case WorkbenchIconTypeEnum::ANNOTATION_COLOR_FOREGROUND:
-            CaretAssertToDoFatal();
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_DELETE:
         {
@@ -304,10 +295,14 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
         }
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_LINE_ARROW_DOWN:
-            CaretAssertToDoFatal();
+            createArrowPixmap(pixmap,
+                              painter.get(),
+                              ArrowType::DOWN);
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_LINE_ARROW_UP:
-            CaretAssertToDoFatal();
+            createArrowPixmap(pixmap,
+                              painter.get(),
+                              ArrowType::UP);
             break;
         case WorkbenchIconTypeEnum::ANNOTATION_NEW_SHAPE_ARROW:
             painter->drawLine(2, height - 2, width - 2, 2);
@@ -588,22 +583,13 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                                           painter.get(),
                                           AnnotationTextAlignVerticalEnum::TOP);
             break;
-        case WorkbenchIconTypeEnum::ANNOTATION_TEXT_STYLE_BOLD:
-            CaretAssertToDoFatal();
-            break;
-        case WorkbenchIconTypeEnum::ANNOTATION_TEXT_STYLE_ITALIC:
-            CaretAssertToDoFatal();
-            break;
-        case WorkbenchIconTypeEnum::ANNOTATION_TEXT_STYLE_UNDERLINE:
-            CaretAssertToDoFatal();
-            break;
         case WorkbenchIconTypeEnum::ORIENTATION_ANTERIOR:
             setPixmapIcon(pixmap,
                           painter.get(),
                           ":/ToolBar/view-anterior.png",
                           "A",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_DORSAL:
             setPixmapIcon(pixmap,
@@ -611,7 +597,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-dorsal.png",
                           "D",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_LEFT:
             setPixmapIcon(pixmap,
@@ -619,7 +605,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-left.png",
                           "L",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL:
             setPixmapIcon(pixmap,
@@ -627,7 +613,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-left-lateral.png",
                           "LL",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_LEFT_MEDIAL:
             setPixmapIcon(pixmap,
@@ -635,7 +621,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-left-medial.png",
                           "LM",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_POSTERIOR:
             setPixmapIcon(pixmap,
@@ -643,7 +629,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-posterior.png",
                           "P",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_REDO:
             setPixmapIcon(pixmap,
@@ -651,7 +637,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/redo.png",
                           "R",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_REGION:
             setPixmapIcon(pixmap,
@@ -659,7 +645,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/select-region.png",
                           "R",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_RIGHT:
             setPixmapIcon(pixmap,
@@ -667,7 +653,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-right.png",
                           "R",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_RIGHT_LATERAL:
             setPixmapIcon(pixmap,
@@ -675,7 +661,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-right-lateral.png",
                           "RL",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_RIGHT_MEDIAL:
             setPixmapIcon(pixmap,
@@ -683,7 +669,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-right-medial.png",
                           "RM",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_UNDO:
             setPixmapIcon(pixmap,
@@ -691,7 +677,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/undo.png",
                           "U",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_VENTRAL:
             setPixmapIcon(pixmap,
@@ -699,7 +685,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-ventral.png",
                           "V",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_COLOR_BAR:
             setPixmapIcon(pixmap,
@@ -707,7 +693,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/LayersPanel/colorbar.png",
                           "F",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT:
             setPixmapIcon(pixmap,
@@ -715,7 +701,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/LayersPanel/construction.png",
                           "F",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH:
             setPixmapIcon(pixmap,
@@ -723,10 +709,55 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/LayersPanel/wrench.png",
                           "F",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_DATA_TOOLTIPS:
-            CaretAssertToDoFatal();
+        {
+            const int32_t pixmapWidth(32);
+            const int32_t pixmapHeight(32);
+            createPixmapPainter(pixmapWidth,
+                                pixmapHeight,
+                                Origin::CENTER,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            const int leftX(-14);
+            const int rightX(14);
+            const int bottomY(-8);
+            const int topY(14);
+            const int tipLeftX(-6);
+            const int tipRightX(6);
+            const int tipY(-14);
+            const int tipX(0);
+            
+            QPen pen(painter->pen());
+            pen.setWidth(2);
+            painter->setPen(pen);
+            
+            /*
+             * Outline of icon
+             */
+            QPolygon polygon;
+            polygon.push_back(QPoint(leftX, topY));
+            polygon.push_back(QPoint(leftX, bottomY));
+            polygon.push_back(QPoint(tipLeftX, bottomY));
+            polygon.push_back(QPoint(tipX, tipY));
+            polygon.push_back(QPoint(tipRightX, bottomY));
+            polygon.push_back(QPoint(rightX, bottomY));
+            polygon.push_back(QPoint(rightX, topY));
+            painter->drawPolygon(polygon);
+            
+            /*
+             * Horizontal lines inside outline
+             */
+            const int lineLeftX(-8);
+            const int lineRightX(8);
+            const int lineOneY(6);
+            const int lineTwoY(0);
+            painter->drawLine(lineLeftX, lineOneY, lineRightX, lineOneY);
+            painter->drawLine(lineLeftX, lineTwoY, lineRightX, lineTwoY);
+        }
             break;
         case WorkbenchIconTypeEnum::TABBAR_FEATURES:
             setPixmapIcon(pixmap,
@@ -734,7 +765,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/features_toolbox.png",
                           "F",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_HELP:
             setPixmapIcon(pixmap,
@@ -742,7 +773,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/help.png",
                           "H",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_IDENTIFY_BRAINORDINATE:
             setPixmapIcon(pixmap,
@@ -750,7 +781,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/identify.png",
                           "I",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_INFORMATION:
             setPixmapIcon(pixmap,
@@ -758,7 +789,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/info.png",
                           "I",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_MACROS_SCROLL:
             setPixmapIcon(pixmap,
@@ -766,7 +797,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/macro.png",
                           "M",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_MOVIE:
             setPixmapIcon(pixmap,
@@ -774,7 +805,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/movie.png",
                           "M",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::REPLACE_BLACK_WITH_DARK_GRAY);
             break;
         case WorkbenchIconTypeEnum::TABBAR_OVERLAYS:
             setPixmapIcon(pixmap,
@@ -782,7 +813,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/overlay_toolbox.png",
                           "O",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_SCENES_CLAP_BOARD:
             setPixmapIcon(pixmap,
@@ -790,7 +821,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/clapboard.png",
                           "S",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_TOOLBAR:
             setPixmapIcon(pixmap,
@@ -798,7 +829,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/toolbar.png",
                           "T",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_MISC_LIGHT_BULB:
             setPixmapIcon(pixmap,
@@ -806,7 +837,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/lighting.png",
                           "L",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_RELOCK_ARROW:
             setPixmapIcon(pixmap,
@@ -814,7 +845,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/undo.png",
                           "L",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_MISC_RULER:
         {
@@ -873,7 +904,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/clipping.png",
                           "C",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS:
         {
@@ -918,7 +949,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-plane-axial.png",
                           "A",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_CROSSHAIRS:
         {
@@ -992,7 +1023,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-plane-coronal.png",
                           "A",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_PARASAGITTAL:
             setPixmapIcon(pixmap,
@@ -1000,7 +1031,7 @@ WorkbenchAction::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconT
                           ":/ToolBar/view-plane-parasagittal.png",
                           "A",
                           darkThemeFlag,
-                          REPLACE_WHITE_PIXELS_WITH_TRANSPARENT_NO);
+                          PixelModification::NONE);
             break;
     }
 
@@ -1042,24 +1073,23 @@ WorkbenchAction::getCurrentDarkLightThemeMode() const
  *    The pixmap
  */
 void
-WorkbenchAction::replaceWhiteWithTransparent(const AString& imageFileName,
-                                             QPixmap& pixmapInOut)
+WorkbenchAction::replacePixmapPixelColor(const AString& imageFileName,
+                                         QPixmap& pixmapInOut,
+                                         const QColor& findColor,
+                                         const QColor& replaceColor)
 {
-    std::cout << "In replace white with transparent for " << imageFileName << std::endl;
     bool changedFlag(false);
     QImage image(pixmapInOut.toImage());
     const int32_t w(image.width());
     const int32_t h(image.height());
     for (int32_t x = 0; x < w; x++) {
         for (int32_t y = 0; y < h; y++) {
-            QColor rgb(image.pixel(x, y));
-            std::cout << "   " << rgb.red() << ", " << rgb.green() << " " << rgb.blue() << " " << rgb.alpha() << std::endl;
-            if (rgb.alpha() != 0) {
-                if ((rgb.red() == 255)
-                    && (rgb.green() == 255)
-                    && (rgb.blue() == 255)) {
-                    rgb.setRgb(0, 0, 0, 0);
-                    image.setPixel(x, y, rgb.rgba());
+            QColor color(image.pixelColor(x, y));
+            if (color.alpha() != 0) {
+                if ((color.red() == findColor.red())
+                    && (color.green() == findColor.green())
+                    && (color.blue() == findColor.blue())) {
+                    image.setPixelColor(x, y, replaceColor.rgba());
                     changedFlag = true;
                 }
             }
@@ -1067,11 +1097,9 @@ WorkbenchAction::replaceWhiteWithTransparent(const AString& imageFileName,
     }
     
     if (changedFlag) {
-        std::cout << "Changed pixels in " << imageFileName << std::endl;
         QPixmap newPixmap;
         if (newPixmap.convertFromImage(image)) {
             pixmapInOut = newPixmap;
-            std::cout << "Replaced pixels in " << imageFileName << std::endl;
         }
         else {
             CaretLogSevere("Failure to convert image to pixmap when replacing white with transparent for "
@@ -1094,8 +1122,8 @@ WorkbenchAction::replaceWhiteWithTransparent(const AString& imageFileName,
  *     If there is an image failure, set the pixmap to this text (should be one character)
  * @param darkThemeFlag
  *     True if dark theme for pixmap
- * @param replaceWhiteWithTransparentFlag
- *     If true, replace any white pixels in the image with transparent pixels
+ * @param pixelModification
+ *     Optional pixel modification
  */
 void
 WorkbenchAction::setPixmapIcon(QPixmap& pixmap,
@@ -1103,7 +1131,7 @@ WorkbenchAction::setPixmapIcon(QPixmap& pixmap,
                                const AString& imageFileName,
                                const AString& alternativeTextForPixmap,
                                const bool darkThemeFlag,
-                               const bool replaceWhiteWithTransparentFlag)
+                               const PixelModification pixelModification)
 {
     CaretAssert(pixmap.width() > 0);
     CaretAssert(painter);
@@ -1114,10 +1142,20 @@ WorkbenchAction::setPixmapIcon(QPixmap& pixmap,
                                   imageFilePixmap)) {
         imageSuccessFlag = true;
         
-        if (replaceWhiteWithTransparentFlag) {
-            replaceWhiteWithTransparent(imageFileName,
-                                        imageFilePixmap);
+        switch (pixelModification) {
+            case PixelModification::NONE:
+                break;
+            case PixelModification::REPLACE_BLACK_WITH_DARK_GRAY:
+                replacePixmapPixelColor(imageFileName,
+                                        imageFilePixmap,
+                                        QColor(0, 0, 0),
+                                        QColor(55, 55, 55, 55));
+                break;
         }
+//        if (replaceWhiteWithTransparentFlag) {
+//            replaceWhiteWithTransparent(imageFileName,
+//                                        imageFilePixmap);
+//        }
         
         if (darkThemeFlag) {
             /*
@@ -1268,12 +1306,12 @@ WorkbenchAction::createTextOrientationPixmap(QPixmap& pixmap,
                                              QPainter* painter,
                                              const AnnotationTextOrientationEnum::Enum orientation)
 {
-    /*
-     * Create a small, square pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    float width  = 24.0;
-    float height = 30.0;
+//    /*
+//     * Create a small, square pixmap that will contain
+//     * the foreground color around the pixmap's perimeter.
+//     */
+//    float width  = 24.0;
+//    float height = 30.0;
     
     switch (orientation) {
         case AnnotationTextOrientationEnum::HORIZONTAL:
@@ -1288,6 +1326,54 @@ WorkbenchAction::createTextOrientationPixmap(QPixmap& pixmap,
                               "a\nb");
             break;
     }
+}
+
+/**
+ * Draw pixmap for annotation line arrow
+ *
+ * @param pixmap
+ *    Pixmap that is painted
+ * @param painter
+ *    The painter
+ * @param arrowType
+ *     Type of arrow
+ */
+void
+WorkbenchAction::createArrowPixmap(QPixmap& pixmap,
+                                   QPainter* painter,
+                                   const ArrowType arrowType)
+{
+    const float width(pixmap.width());
+    const float height(pixmap.height());
+    
+    const bool fillShapeFlag = false;
+    if (fillShapeFlag) {
+        QBrush brush = painter->brush();
+        brush.setColor(painter->pen().color());
+        brush.setStyle(Qt::SolidPattern);
+        painter->setBrush(brush);
+    }
+    
+    const float percentage = 0.10f;
+    const float left   = width  * percentage;
+    const float right  = width  * (1.0 - percentage);
+    const float bottom = height * percentage;
+    const float top    = height * (1.0 - percentage);
+    const float centerX = width * 0.5;
+    QPolygonF triangle;
+    switch (arrowType) {
+        case ArrowType::DOWN:
+            triangle.push_back(QPointF(right, top));
+            triangle.push_back(QPointF(left, top));
+            triangle.push_back(QPointF(centerX, bottom));
+            break;
+        case ArrowType::UP:
+            triangle.push_back(QPointF(left, bottom));
+            triangle.push_back(QPointF(right, bottom));
+            triangle.push_back(QPointF(centerX, top));
+            break;
+    }
+    painter->drawPolygon(triangle);
 }
 
 void

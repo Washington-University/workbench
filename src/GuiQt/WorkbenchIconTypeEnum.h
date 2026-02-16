@@ -37,10 +37,6 @@ public:
     enum Enum {
         /** No Icon */
         NO_ICON,
-        /** Annotation Color Background */
-        ANNOTATION_COLOR_BACKGROUND,
-        /** Annotation Color Foreground */
-        ANNOTATION_COLOR_FOREGROUND,
         /** Annotation Delete */
         ANNOTATION_DELETE,
         /** Annotation Line Arrow Down */
@@ -97,12 +93,6 @@ public:
         ANNOTATION_TEXT_ALIGN_VERT_MIDDLE,
         /** Annotation Text Align Vert Top */
         ANNOTATION_TEXT_ALIGN_VERT_TOP,
-        /** Annotation Text Style Bold */
-        ANNOTATION_TEXT_STYLE_BOLD,
-        /** Annotation Text Style Italic */
-        ANNOTATION_TEXT_STYLE_ITALIC,
-        /** Annotation Text Style Underline */
-        ANNOTATION_TEXT_STYLE_UNDERLINE,
         /** Orientation Anterior */
         ORIENTATION_ANTERIOR,
         /** Orientation Dorsal */

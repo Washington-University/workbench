@@ -78,18 +78,15 @@ m_browserWindowIndex(browserWindowIndex)
     
     m_finishAction = new QAction("Finish");
     m_finishToolButton = new WorkbenchToolButton();
+    m_finishToolButton->setSpecialBackgroundColor(QColor(0, 200, 0));
     m_finishToolButton->setDefaultAction(m_finishAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_finishToolButton);
     QObject::connect(m_finishAction, &QAction::triggered,
                      this, &AnnotationPolyTypeDrawEditWidget::finishActionTriggered);
     
-    m_finishToolButtonStyleSheetDisabled = m_finishToolButton->styleSheet();
-    
     /*
      * Used to make button background green when finish button is enabled
-     */
-    m_finishToolButtonStyleSheetEnabled = ("background-color: rgb(0, 255, 0)");
-    
+     */    
     m_cancelAction = new QAction("Cancel");
     m_cancelAction->setToolTip("Cancel drawing and discard changes");
     QObject::connect(m_cancelAction, &QAction::triggered,
@@ -653,12 +650,7 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
             break;
     }
 
-    if (finishEnabledFlag) {
-        m_finishToolButton->setStyleSheet(m_finishToolButtonStyleSheetEnabled);
-    }
-    else {
-        m_finishToolButton->setStyleSheet(m_finishToolButtonStyleSheetDisabled);
-    }
+    m_finishToolButton->setSpecialBackgroundColorEnabled(finishEnabledFlag);
     
     if (m_addCoordinatesAction != NULL) {
         m_addCoordinatesAction->setEnabled(addCoordinatesEnabledFlag);
