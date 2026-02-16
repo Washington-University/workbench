@@ -657,6 +657,7 @@ WbMacroWidgetActionNames.h
 WbMacroWidgetActionsManager.h
 WorkbenchAction.h
 WorkbenchIconTypeEnum.h
+WorkbenchIconTypeLoader.h
 WorkbenchInstallationAssistantDialog.h
 WorkbenchToolButton.h
 WuQCollapsibleWidget.h
@@ -1023,6 +1024,7 @@ WbMacroHelper.cxx
 WbMacroWidgetActionsManager.cxx
 WorkbenchAction.cxx
 WorkbenchIconTypeEnum.cxx
+WorkbenchIconTypeLoader.cxx
 WorkbenchInstallationAssistantDialog.cxx
 WorkbenchToolButton.cxx
 WuQCollapsibleWidget.cxx

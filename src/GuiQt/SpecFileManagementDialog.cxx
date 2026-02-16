@@ -83,6 +83,7 @@
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
 #include "UsernamePasswordWidget.h"
+#include "WorkbenchIconTypeLoader.h"
 #include "WuQImageLabel.h"
 #include "WuQMessageBox.h"
 #include "WuQMessageBoxTwo.h"
@@ -258,11 +259,15 @@ m_specFile(specFile)
     /*
      * Load icons.
      */
-    m_iconOpenFile   = WuQtUtilities::loadIcon(":/SpecFileDialog/load_icon.png");
-    m_iconOptions    = WuQtUtilities::loadIcon(":/SpecFileDialog/options_icon.png");
-    m_iconReloadFile = WuQtUtilities::loadIcon(":/SpecFileDialog/reload_icon.png");
-    m_iconCloseFile = WuQtUtilities::loadIcon(":/SpecFileDialog/delete_icon.png");
-    
+    m_iconOpenFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_LOAD)));
+//    m_iconOpenFile   = WuQtUtilities::loadIcon(":/SpecFileDialog/load_icon.png");
+    m_iconOptions.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_OPTIONS)));
+//    m_iconOptions    = WuQtUtilities::loadIcon(":/SpecFileDialog/options_icon.png");
+//    m_iconReloadFile = WuQtUtilities::loadIcon(":/SpecFileDialog/reload_icon.png");
+    m_iconReloadFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_RELOAD)));
+//    m_iconCloseFile = WuQtUtilities::loadIcon(":/SpecFileDialog/delete_icon.png");
+    m_iconCloseFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_DELETE)));
+
     /*
      * Open Spec File or Manage Files?
      */
@@ -494,18 +499,18 @@ SpecFileManagementDialog::~SpecFileManagementDialog()
 {
     clearSpecFileManagementDialogRowContent();
     
-    if (m_iconOpenFile != NULL) {
-        delete m_iconOpenFile;
-    }
-    if (m_iconOptions != NULL) {
-        delete m_iconOptions;
-    }
-    if (m_iconReloadFile != NULL) {
-        delete m_iconReloadFile;
-    }
-    if (m_iconCloseFile != NULL) {
-        delete m_iconCloseFile;
-    }
+//    if (m_iconOpenFile != NULL) {
+//        delete m_iconOpenFile;
+//    }
+//    if (m_iconOptions != NULL) {
+//        delete m_iconOptions;
+//    }
+//    if (m_iconReloadFile != NULL) {
+//        delete m_iconReloadFile;
+//    }
+//    if (m_iconCloseFile != NULL) {
+//        delete m_iconCloseFile;
+//    }
 }
 
 /**
@@ -953,7 +958,7 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
         }
         if (hasReadCheckBoxFlag) {
             if (m_COLUMN_READ_BUTTON >= 0) {
-                WuQImageLabel* loadImageLabel = new WuQImageLabel(m_iconReloadFile,
+                WuQImageLabel* loadImageLabel = new WuQImageLabel(m_iconReloadFile.get(),
                                                                   "Reload");
                 QObject::connect(loadImageLabel, SIGNAL(clicked()),
                                  m_fileReloadOrOpenFileActionSignalMapper, SLOT(map()));
@@ -966,7 +971,7 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
         
         if (hasCloseCheckBoxFlag) {
             if (m_COLUMN_CLOSE_BUTTON >= 0) {
-                WuQImageLabel* closeImageLabel = new WuQImageLabel(m_iconCloseFile,
+                WuQImageLabel* closeImageLabel = new WuQImageLabel(m_iconCloseFile.get(),
                                                                    "Close");
                 QObject::connect(closeImageLabel, SIGNAL(clicked()),
                                  m_fileCloseFileActionSignalMapper, SLOT(map()));
@@ -979,7 +984,7 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
     
         if (hasOptionsButtonFlag) {
             if (m_COLUMN_OPTIONS_TOOLBUTTON >= 0) {
-                WuQImageLabel* optionsImageLabel = new WuQImageLabel(m_iconOptions,
+                WuQImageLabel* optionsImageLabel = new WuQImageLabel(m_iconOptions.get(),
                                                                      "Options");
                 QObject::connect(optionsImageLabel, SIGNAL(clicked()),
                                  m_fileOptionsActionSignalMapper, SLOT(map()));
@@ -1533,12 +1538,12 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 closeWidget->setEnabled(caretDataFile != NULL);
                 
                 if (caretDataFile != NULL) {
-                    readImageLabel->updateIconText(m_iconReloadFile,
+                    readImageLabel->updateIconText(m_iconReloadFile.get(),
                                                    "Reload");
                     readImageLabel->setToolTip("Reload this file");
                 }
                 else {
-                    readImageLabel->updateIconText(m_iconOpenFile,
+                    readImageLabel->updateIconText(m_iconOpenFile.get(),
                                                    "Load");
                     readImageLabel->setToolTip("Load this file");
                 }

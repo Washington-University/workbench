@@ -323,6 +323,7 @@ GuiManager::initializeGuiManager()
      */
     m_helpViewerDialogDisplayAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_HELP,
                                                           this);
+    m_helpViewerDialogDisplayAction->setText("Help");
     m_helpViewerDialogDisplayAction->setToolTip("Show/Hide the Help Window");
     m_helpViewerDialogDisplayAction->setShortcut(QKeySequence::HelpContents);
     QObject::connect(m_helpViewerDialogDisplayAction, &QAction::triggered,

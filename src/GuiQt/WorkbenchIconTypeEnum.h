@@ -125,6 +125,14 @@ public:
         OVERLAY_TOOLBOX_CONSTRUCT,
         /** Overlay Toolbox Wrench */
         OVERLAY_TOOLBOX_WRENCH,
+        /** Spec File Dialog Delete */
+        SPEC_FILE_DIALOG_DELETE,
+        /** Spec File Dialog Load */
+        SPEC_FILE_DIALOG_LOAD,
+        /** Spec File Dialog Options */
+        SPEC_FILE_DIALOG_OPTIONS,
+        /** Spec File Dialog Reload */
+        SPEC_FILE_DIALOG_RELOAD,
         /** Tabbar Data Tooltips */
         TABBAR_DATA_TOOLTIPS,
         /** Tabbar Features */

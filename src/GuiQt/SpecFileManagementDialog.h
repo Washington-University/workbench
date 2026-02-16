@@ -267,13 +267,13 @@ namespace caret {
         
         SpecFileManagementDialogRowContent::Sorting m_fileSorting;
         
-        QIcon* m_iconOptions;
+        std::unique_ptr<QIcon> m_iconOptions;
         
-        QIcon* m_iconOpenFile;
+        std::unique_ptr<QIcon> m_iconOpenFile;
         
-        QIcon* m_iconReloadFile;
+        std::unique_ptr<QIcon> m_iconReloadFile;
         
-        QIcon* m_iconCloseFile;
+        std::unique_ptr<QIcon> m_iconCloseFile;
         
         std::set<const CaretDataFile*> m_displayedDataFiles;
         

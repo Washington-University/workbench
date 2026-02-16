@@ -162,6 +162,14 @@ switch (value) {
         break;
     case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH:
         break;
+    case WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_DELETE:
+        break;
+    case WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_LOAD:
+        break;
+    case WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_OPTIONS:
+        break;
+    case WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_RELOAD:
+        break;
     case WorkbenchIconTypeEnum::TABBAR_DATA_TOOLTIPS:
         break;
     case WorkbenchIconTypeEnum::TABBAR_FEATURES:
@@ -425,6 +433,22 @@ WorkbenchIconTypeEnum::initialize()
     enumData.push_back(WorkbenchIconTypeEnum(OVERLAY_TOOLBOX_WRENCH, 
                                     "OVERLAY_TOOLBOX_WRENCH", 
                                     "Overlay Toolbox Wrench"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(SPEC_FILE_DIALOG_DELETE,
+                                             "SPEC_FILE_DIALOG_DELETE",
+                                             "Spec File Dialog Delete"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(SPEC_FILE_DIALOG_LOAD,
+                                             "SPEC_FILE_DIALOG_LOAD",
+                                             "Spec File Dialog Load"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(SPEC_FILE_DIALOG_OPTIONS,
+                                             "SPEC_FILE_DIALOG_OPTIONS",
+                                             "Spec File Dialog Options"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(SPEC_FILE_DIALOG_RELOAD,
+                                             "SPEC_FILE_DIALOG_RELOAD",
+                                             "Spec File Dialog Reload"));
     
     enumData.push_back(WorkbenchIconTypeEnum(TABBAR_DATA_TOOLTIPS,
                                     "TABBAR_DATA_TOOLTIPS", 

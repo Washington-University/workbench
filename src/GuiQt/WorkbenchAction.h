@@ -26,9 +26,6 @@
 
 #include <QAction>
 
-#include "AnnotationTextAlignHorizontalEnum.h"
-#include "AnnotationTextAlignVerticalEnum.h"
-#include "AnnotationTextOrientationEnum.h"
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "GuiDarkLightThemeModeEnum.h"
@@ -60,67 +57,10 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        enum class ArrowType {
-            DOWN,
-            UP
-        };
-        
-        enum class Origin {
-            CENTER,
-            TOP_LEFT
-        };
-        
-        enum class PixelModification {
-            NONE,
-            REPLACE_BLACK_WITH_DARK_GRAY
-        };
-        
-        void createPixmapPainter(const int32_t width,
-                                 const int32_t height,
-                                 const Origin origin,
-                                 const int32_t fontHeight,
-                                 const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode,
-                                 QPixmap& pixmapOut,
-                                 QSharedPointer<QPainter>& painterOut);
-        
         void updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
-        
-        QPixmap createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconType,
-                                        const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
-        
-        void setFontHeight(QSharedPointer<QPainter>& painter,
-                           const int32_t fontHeight);
-
-        void setPixmapIcon(QPixmap& pixmap,
-                           QPainter* painter,
-                           const AString& imageFileName,
-                           const AString& alternativeTextForPixmap,
-                           const bool darkThemeFlag,
-                           const PixelModification pixelModification);
         
         GuiDarkLightThemeModeEnum::Enum getCurrentDarkLightThemeMode() const;
         
-        void replacePixmapPixelColor(const AString& imageFileName,
-                                     QPixmap& pixmapInOut,
-                                     const QColor& findColor,
-                                     const QColor& replaceColor);
-
-        void createHorizontalAlignmentPixmap(QPixmap& pixmap,
-                                             QPainter* painter,
-                                             const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment);
-        
-        void createVerticalAlignmentPixmap(QPixmap& pixmap,
-                                           QPainter* painter,
-                                           const AnnotationTextAlignVerticalEnum::Enum verticalAlignment);
-        
-        void createTextOrientationPixmap(QPixmap& pixmap,
-                                         QPainter* painter,
-                                         const AnnotationTextOrientationEnum::Enum orientation);
-
-        void createArrowPixmap(QPixmap& pixmap,
-                               QPainter* painter,
-                               const ArrowType arrowType);
-
         const WorkbenchIconTypeEnum::Enum m_iconType;
         
         QPixmap m_lightPixmap;
@@ -128,6 +68,7 @@ namespace caret {
         QPixmap m_darkPixmap;
         
         static std::set<WorkbenchAction*> s_allWorkbenchActions;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
