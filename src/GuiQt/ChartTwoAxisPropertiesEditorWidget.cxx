@@ -50,6 +50,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "ModelChartTwo.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQDoubleSpinBox.h"
@@ -125,11 +126,10 @@ m_axisLocation(axisLocation)
     /*
      * Controls for layer selection and label editing
      */
-    m_axisLabelToolButton = new QToolButton();
+    m_axisLabelToolButton = new WorkbenchToolButton();
     m_axisLabelToolButton->setText("Edit Title...");
     QObject::connect(m_axisLabelToolButton, &QToolButton::clicked,
                      this, &ChartTwoAxisPropertiesEditorWidget::axisLabelToolButtonClicked);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_axisLabelToolButton);
     m_axisLabelToolButton->setToolTip("Edit the axis name for the file in the selected overlay");
     m_axisLabelToolButton->setObjectName(objectNamePrefix
                                                  + "EditAxis");

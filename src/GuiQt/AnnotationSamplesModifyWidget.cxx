@@ -100,7 +100,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     QToolButton* lockToolButton = new WorkbenchToolButton();
     lockToolButton->setDefaultAction(m_lockAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(lockToolButton);
 
     m_moreAction = new QAction(this);
     m_moreAction->setText("More...");
@@ -109,7 +108,6 @@ m_browserWindowIndex(browserWindowIndex)
                      this, &AnnotationSamplesModifyWidget::moreActionTriggered);
     m_moreToolButton = new WorkbenchToolButton();
     m_moreToolButton->setDefaultAction(m_moreAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_moreToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);

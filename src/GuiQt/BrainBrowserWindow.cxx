@@ -1119,7 +1119,6 @@ BrainBrowserWindow::createActionsUsedByToolBar()
      */
     m_toolBarLockWindowAndAllTabAspectRatioButton = new WorkbenchToolButton();
     m_toolBarLockWindowAndAllTabAspectRatioButton->setDefaultAction(m_toolBarLockWindowAndAllTabAspectRatioAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_toolBarLockWindowAndAllTabAspectRatioButton);
     QObject::connect(m_toolBarLockWindowAndAllTabAspectRatioButton, &QToolButton::customContextMenuRequested,
                      this, &BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectMenu);
     m_toolBarLockWindowAndAllTabAspectRatioButton->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -1139,7 +1138,6 @@ BrainBrowserWindow::createActionsUsedByToolBar()
 
     m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton = new WorkbenchToolButton();
     m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton->setDefaultAction(m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton);
 }
 
 /**

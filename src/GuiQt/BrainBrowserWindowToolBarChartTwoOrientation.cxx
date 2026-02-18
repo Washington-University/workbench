@@ -33,6 +33,7 @@
 #include "EventManager.h"
 #include "ModelChartTwo.h"
 #include "SessionManager.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
@@ -56,7 +57,7 @@ BrainBrowserWindowToolBarChartTwoOrientation::BrainBrowserWindowToolBarChartTwoO
     const QString objectNamePrefix(parentObjectName
                                    + ":ChartOrientation");
     
-    QToolButton* orientationResetToolButton = new QToolButton();
+    QToolButton* orientationResetToolButton = new WorkbenchToolButton();
     m_orientationResetToolButtonAction = WuQtUtilities::createAction("Reset",
                                                                          "Reset the view to remove any panning or zooming",
                                                                          orientationResetToolButton,
@@ -70,7 +71,7 @@ BrainBrowserWindowToolBarChartTwoOrientation::BrainBrowserWindowToolBarChartTwoO
     const QString customToolTip = ("Pressing the \"Custom\" button displays a dialog for creating and editing orientations.\n"
                                    "Note that custom orientations are stored in your Workbench's preferences and thus\n"
                                    "will be availble in any concurrent or future instances of Workbench.");
-    m_orientationCustomViewSelectToolButton = new QToolButton();
+    m_orientationCustomViewSelectToolButton = new WorkbenchToolButton();
     m_customViewAction = WuQtUtilities::createAction("Custom",
                                                          customToolTip,
                                                          m_orientationCustomViewSelectToolButton,
@@ -83,12 +84,10 @@ BrainBrowserWindowToolBarChartTwoOrientation::BrainBrowserWindowToolBarChartTwoO
 
     
     orientationResetToolButton->setDefaultAction(m_orientationResetToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(orientationResetToolButton);
     
     m_orientationCustomViewSelectToolButton->setDefaultAction(m_customViewAction);
     m_orientationCustomViewSelectToolButton->setSizePolicy(QSizePolicy::Minimum,
                                                                QSizePolicy::Fixed);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_orientationCustomViewSelectToolButton);
 
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);

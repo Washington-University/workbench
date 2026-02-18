@@ -43,6 +43,7 @@
 #include "EventUpdateYokedWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -485,8 +486,7 @@ ClippingPlanesWidget::createClippingBoxWidget()
     QObject::connect(m_zThicknessDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(clippingValueChanged()));
 
-    QToolButton* resetToolButton = new QToolButton();
-    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
+    QToolButton* resetToolButton = new WorkbenchToolButton();
     resetToolButton->setText("Reset");
     QObject::connect(resetToolButton, &QToolButton::clicked,
                      this, &ClippingPlanesWidget::resetButtonClicked);

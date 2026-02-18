@@ -378,7 +378,6 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                         SLOT(drawFinishButtonClicked()));
     QToolButton* finishToolButton = new WorkbenchToolButton();
     finishToolButton->setDefaultAction(finishAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(finishToolButton);
     
     /*
      * Undo
@@ -396,7 +395,6 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     undoToolButton->setAutoRepeat(true);
     undoToolButton->setAutoRepeatDelay(500);  // 500ms = 1/2 second
     undoToolButton->setAutoRepeatInterval(100);  // 100ms = 1/10 second
-    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
     
     
     QAction* undoFinishAction = WuQtUtilities::createAction("Undo Finish",
@@ -407,7 +405,6 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                       SLOT(drawUndoLastEditButtonClicked()));
     m_undoFinishToolButton = new WorkbenchToolButton();
     m_undoFinishToolButton->setDefaultAction(undoFinishAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_undoFinishToolButton);
     
     /*
      * Reset
@@ -419,7 +416,6 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                        SLOT(drawResetButtonClicked()));
     QToolButton* resetToolButton = new WorkbenchToolButton();
     resetToolButton->setDefaultAction(resetAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
     
     
     QVBoxLayout* modeLayout = new QVBoxLayout();

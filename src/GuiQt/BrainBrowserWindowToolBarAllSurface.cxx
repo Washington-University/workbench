@@ -103,7 +103,6 @@ m_parentToolBar(parentToolBar)
                                                              wholeBrainLeftSurfaceToolButton,
                                                              this,
                                                              SLOT(wholeBrainSurfaceLeftToolButtonTriggered(bool)));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainLeftSurfaceToolButton);
     wholeBrainLeftSurfaceToolButton->setDefaultAction(leftSurfaceAction);
     
     /*
@@ -137,7 +136,6 @@ m_parentToolBar(parentToolBar)
                                                               wholeBrainRightSurfaceToolButton,
                                                               this,
                                                               SLOT(wholeBrainSurfaceRightToolButtonTriggered(bool)));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainRightSurfaceToolButton);
     wholeBrainRightSurfaceToolButton->setDefaultAction(rightSurfaceAction);
     
     /*
@@ -171,7 +169,6 @@ m_parentToolBar(parentToolBar)
                                                                    wholeBrainCerebellumSurfaceToolButton,
                                                                    this,
                                                                    SLOT(wholeBrainSurfaceCerebellumToolButtonTriggered(bool)));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainCerebellumSurfaceToolButton);
     wholeBrainCerebellumSurfaceToolButton->setDefaultAction(cerebellumSurfaceAction);
     
     /*
@@ -200,7 +197,6 @@ m_parentToolBar(parentToolBar)
                                           "Enable all view hippocampus");
     
     m_wholeBrainSurfaceHippocampusToolButton = new WorkbenchToolButton();
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_wholeBrainSurfaceHippocampusToolButton);
     QObject::connect(m_wholeBrainSurfaceHippocampusToolButton, &QToolButton::clicked,
                      this, &BrainBrowserWindowToolBarAllSurface::wholeBrainHippocampusToolButtonClicked);
     m_wholeBrainHippcampusMenu = new QMenu();

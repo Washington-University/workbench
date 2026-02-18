@@ -46,6 +46,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "ModelChart.h"
+#include "WorkbenchToolButton.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
 #include "WuQWidgetObjectGroup.h"
@@ -372,9 +373,8 @@ EventListenerInterface()
                                                              this,
                                                              this,
                                                              SLOT(resetButtonClicked()));
-    QToolButton* resetToolButton = new QToolButton();
+    QToolButton* resetToolButton = new WorkbenchToolButton();
     resetToolButton->setDefaultAction(resetButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
     resetToolButton->setObjectName(parentObjectName
                                                      + ":Matrix:ResetButton");
     WuQMacroManager::instance()->addMacroSupportToObject(resetToolButton,

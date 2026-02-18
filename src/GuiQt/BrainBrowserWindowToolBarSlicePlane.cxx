@@ -123,22 +123,18 @@ m_parentToolBar(parentToolBar)
         
     QToolButton* volumePlaneParasagittalToolButton = new WorkbenchToolButton();
     volumePlaneParasagittalToolButton->setDefaultAction(m_volumePlaneParasagittalToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneParasagittalToolButton);
     m_volumePlaneParasagittalToolButtonAction->setParent(volumePlaneParasagittalToolButton);
     
     QToolButton* volumePlaneCoronalToolButton = new WorkbenchToolButton();
     volumePlaneCoronalToolButton->setDefaultAction(m_volumePlaneCoronalToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneCoronalToolButton);
     m_volumePlaneCoronalToolButtonAction->setParent(volumePlaneCoronalToolButton);
     
     QToolButton* volumePlaneAxialToolButton = new WorkbenchToolButton();
     volumePlaneAxialToolButton->setDefaultAction(m_volumePlaneAxialToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneAxialToolButton);
     m_volumePlaneAxialToolButtonAction->setParent(volumePlaneAxialToolButton);
     
     QToolButton* volumePlaneAllToolButton = new WorkbenchToolButton();
     volumePlaneAllToolButton->setDefaultAction(m_volumePlaneAllToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneAllToolButton);
     m_volumePlaneAllToolButtonAction->setParent(volumePlaneAllToolButton);
     
     WuQtUtilities::matchWidgetHeights(volumePlaneParasagittalToolButton,

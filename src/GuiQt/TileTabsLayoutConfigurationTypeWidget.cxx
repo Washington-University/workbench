@@ -492,7 +492,6 @@ TileTabsLayoutConfigurationTypeWidget::createManualConfigurationSetToolButton()
     toolButton->setToolTip(toolTipText);
     QObject::connect(toolButton, &QToolButton::clicked,
                      this, &TileTabsLayoutConfigurationTypeWidget::setToolButtonClicked);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     return toolButton;
 }
 
@@ -513,7 +512,6 @@ TileTabsLayoutConfigurationTypeWidget::createUndoToolButton()
     
     QToolButton* toolButton(new WorkbenchToolButton());
     toolButton->setDefaultAction(m_undoConfigurationChangeAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }

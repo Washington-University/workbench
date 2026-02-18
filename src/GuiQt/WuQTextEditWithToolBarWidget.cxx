@@ -33,6 +33,7 @@
 
 #include "CaretAssert.h"
 #include "UnicodeCharacterEntryDialog.h"
+#include "WorkbenchToolButton.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -227,9 +228,8 @@ WuQTextEditWithToolBarWidget::createInsertItemAction(const InsertItem item,
     QObject::connect(action, &QAction::triggered,
                      [=]() { insertItemSelected(item); });
     
-    QToolButton* toolButton(new QToolButton());
+    QToolButton* toolButton(new WorkbenchToolButton());
     toolButton->setDefaultAction(action);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }
@@ -272,9 +272,8 @@ WuQTextEditWithToolBarWidget::createInsertUnicodeAction(const short unicodeValue
     QObject::connect(action, &QAction::triggered,
                      [=]() { insertUnicodeCharacterSelected(unicodeCharacter); });
     
-    QToolButton* toolButton(new QToolButton());
+    QToolButton* toolButton(new WorkbenchToolButton());
     toolButton->setDefaultAction(action);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     
     return toolButton;
 }

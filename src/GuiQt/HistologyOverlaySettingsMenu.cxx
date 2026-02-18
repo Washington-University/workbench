@@ -33,6 +33,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "HistologyOverlay.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
@@ -74,9 +75,8 @@ m_histologyOverlay(histologyOverlay)
                                                          "Reload CZI Image");
     
     
-    QToolButton* reloadToolButton = new QToolButton();
+    QToolButton* reloadToolButton = new WorkbenchToolButton();
     reloadToolButton->setDefaultAction(m_reloadAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(reloadToolButton);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);

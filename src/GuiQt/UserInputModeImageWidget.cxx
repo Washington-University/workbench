@@ -57,6 +57,7 @@
 #include "Surface.h"
 #include "UserInputModeImage.h"
 #include "VolumeFile.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -130,9 +131,8 @@ UserInputModeImageWidget::UserInputModeImageWidget(UserInputModeImage* inputMode
                                                          this,
                                                          SLOT(convertActionTriggered()));
     convertAction->setCheckable(false);
-    m_convertToolButton = new QToolButton();
+    m_convertToolButton = new WorkbenchToolButton();
     m_convertToolButton->setDefaultAction(convertAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_convertToolButton);
     
     /*
      * Delete all button
@@ -144,9 +144,8 @@ UserInputModeImageWidget::UserInputModeImageWidget(UserInputModeImage* inputMode
                                                            this,
                                                            SLOT(deleteAllActionTriggered()));
     deleteAllAction->setCheckable(false);
-    m_deleteAllToolButton = new QToolButton();
+    m_deleteAllToolButton = new WorkbenchToolButton();
     m_deleteAllToolButton->setDefaultAction(deleteAllAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_deleteAllToolButton);
     
     QLabel* mouseModeLabel = new QLabel("Control Points:");
     

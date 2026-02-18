@@ -105,7 +105,6 @@ AnnotationFormatWidget::createArrangeMenuToolButton()
     
     QToolButton* arrangeToolButton = new WorkbenchToolButton();
     arrangeToolButton->setDefaultAction(arrangeAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(arrangeToolButton);
     
     return arrangeToolButton;
 }

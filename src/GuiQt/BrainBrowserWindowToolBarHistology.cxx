@@ -155,7 +155,6 @@ m_parentToolBar(parentToolBar)
                      this, &BrainBrowserWindowToolBarHistology::identificationMovesSlicesActionTriggered);
     QToolButton* identificationMovesSlicesToolButton = new WorkbenchToolButton();
     identificationMovesSlicesToolButton->setDefaultAction(m_identificationMovesSlicesAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(identificationMovesSlicesToolButton);
     m_identificationMovesSlicesAction->setObjectName(objectNamePrefix
                                                              + "MoveSliceToID");
     macroManager->addMacroSupportToObject(m_identificationMovesSlicesAction,
@@ -175,7 +174,6 @@ m_parentToolBar(parentToolBar)
                                           "Moves to center of slices");
     QToolButton* moveToCenterToolButton = new WorkbenchToolButton();
     moveToCenterToolButton->setDefaultAction(m_moveToCenterAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(moveToCenterToolButton);
         
     /*
      * Yoke orientation check box

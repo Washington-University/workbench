@@ -197,7 +197,6 @@ m_parentToolBar(parentToolBar)
 
     QToolButton* showSliceCoordToolButton = new WorkbenchToolButton;
     showSliceCoordToolButton->setDefaultAction(m_showSliceCoordinateAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(showSliceCoordToolButton);
 
     QToolButton* montageEnabledToolButton = new WorkbenchToolButton();
     m_montageEnabledAction = WuQtUtilities::createAction("On",
@@ -207,7 +206,6 @@ m_parentToolBar(parentToolBar)
                                                          SLOT(montageEnabledActionToggled(bool)));
     m_montageEnabledAction->setCheckable(true);
     montageEnabledToolButton->setDefaultAction(m_montageEnabledAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(montageEnabledToolButton);
     m_montageEnabledAction->setObjectName(objectNamePrefix
                                           + "Enable");
     WuQMacroManager::instance()->addMacroSupportToObject(m_montageEnabledAction,

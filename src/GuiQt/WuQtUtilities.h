@@ -68,12 +68,6 @@ namespace caret {
             TransparentBackground = 1
         };
         
-        static QToolButton* createToolButtonWithIcon(const QString& text,
-                                                     const QString& iconFileName,
-                                                     const QString& toolTip,
-                                                     QObject* receiver,
-                                                     const char* method);
-        
         static QAction* createAction(const QString& text,
                                      const QString& toolAndStatusTipText,
                                      const QKeySequence& shortcut,
@@ -234,8 +228,6 @@ namespace caret {
         static bool checkStateToBool(const Qt::CheckState checkState);
         
         static Qt::CheckState boolToCheckState(const bool value);
-        
-        static void setToolButtonStyleForQt5Mac(QToolButton* toolButton);
         
         static void replaceComboBoxItemNames(QComboBox* comboBox,
                                              const QString& before,

@@ -252,7 +252,7 @@ m_parentObjectName(parentObjectName)
     QWidgetAction* normalizationWidgetAction = new QWidgetAction(this);
     normalizationWidgetAction->setDefaultWidget(m_lineLayerNormalizationWidget);
     
-    m_lineLayerNormalizationToolButton = new QToolButton();
+    m_lineLayerNormalizationToolButton = new WorkbenchToolButton();
     m_lineLayerNormalizationMenu = new QMenu(m_lineLayerNormalizationToolButton);
     m_lineLayerNormalizationMenu->addAction(normalizationWidgetAction);
     QObject::connect(m_lineLayerNormalizationMenu, &QMenu::aboutToShow,
@@ -277,7 +277,6 @@ m_parentObjectName(parentObjectName)
     WuQMacroManager::instance()->addMacroSupportToObject(m_lineLayerNormalizationToolButton,
                                                          "Adjust Line Layer Normalization");
 
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_lineLayerNormalizationToolButton);
     QObject::connect(m_lineLayerNormalizationToolButton, &QToolButton::clicked,
                      this, &ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked);
     

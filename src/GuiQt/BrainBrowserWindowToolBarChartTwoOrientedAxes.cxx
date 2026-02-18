@@ -133,7 +133,6 @@ m_objectNamePrefix(parentObjectName
     m_titleEditToolButton = new WorkbenchToolButton();
     m_titleEditToolButton->setText("Edit");
     m_titleEditToolButton->setToolTip("Edit the chart title");
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_titleEditToolButton);
     QObject::connect(m_titleEditToolButton, &QToolButton::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoOrientedAxes::titleEditToolButtonClicked);
 
@@ -344,7 +343,6 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
                                 "   USER - Resets to range of DATA in axis<br>"
                                 "   YOKE - Resets to range of DATA from all yoked axes"
                                 "</html>");
-    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
     switch (orientation) {
         case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
             QObject::connect(resetToolButton, &QToolButton::clicked,
@@ -401,7 +399,6 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxisEditing(const ChartAxis
                                           checkBox->toolTip());
 
     QToolButton* toolButton = new WorkbenchToolButton();
-    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     toolButton->setText("Edit");
     toolButton->setToolTip("Edit the attributes of the "
                          + ChartAxisLocationEnum::toGuiName(axis)

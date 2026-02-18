@@ -37,6 +37,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "MediaOverlay.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
@@ -124,9 +125,8 @@ m_mediaOverlay(mediaOverlay)
     WuQMacroManager::instance()->addMacroSupportToObject(m_reloadAction,
                                                          "Reload CZI Image");
     
-    QToolButton* reloadToolButton = new QToolButton();
+    QToolButton* reloadToolButton = new WorkbenchToolButton();
     reloadToolButton->setDefaultAction(m_reloadAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(reloadToolButton);
     
     m_pyramidLayerDimensionsLabel = new QLabel();
     

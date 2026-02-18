@@ -52,6 +52,7 @@
 #include "CaretLogger.h"
 #include "GuiManager.h"
 #include "SurfaceProjector.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
@@ -201,9 +202,8 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
                                                          this, 
                                                          this,
                                                          SLOT(newFociFileButtonClicked()));
-    QToolButton* newFileToolButton = new QToolButton();
+    QToolButton* newFileToolButton = new WorkbenchToolButton();
     newFileToolButton->setDefaultAction(newFileAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(newFileToolButton);
     
     /*
      * Completer for name
@@ -222,9 +222,8 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
                                                                         this,
                                                                         this,
                                                                         SLOT(displayNameEditor()));
-    QToolButton* displayNameColorEditorToolButton = new QToolButton();
+    QToolButton* displayNameColorEditorToolButton = new WorkbenchToolButton();
     displayNameColorEditorToolButton->setDefaultAction(displayNameColorEditorAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(displayNameColorEditorToolButton);
 
     /*
      * Class
@@ -240,9 +239,8 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
                                                                     this, 
                                                                     this, 
                                                                     SLOT(displayClassEditor()));
-    QToolButton* displayClassEditorToolButton = new QToolButton();
+    QToolButton* displayClassEditorToolButton = new WorkbenchToolButton();
     displayClassEditorToolButton->setDefaultAction(displayClassEditorAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(displayClassEditorToolButton);
     
     /*
      * Coordinates

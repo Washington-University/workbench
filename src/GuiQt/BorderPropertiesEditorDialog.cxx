@@ -47,6 +47,7 @@
 #include "GiftiLabelTableSelectionComboBox.h"
 #include "GuiManager.h"
 #include "SurfaceFile.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -170,9 +171,8 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
                                                          this, 
                                                          this,
                                                          SLOT(newBorderFileButtonClicked()));
-    QToolButton* newFileToolButton = new QToolButton();
+    QToolButton* newFileToolButton = new WorkbenchToolButton();
     newFileToolButton->setDefaultAction(newFileAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(newFileToolButton);
     
     /*
      * Completer for name
@@ -190,9 +190,8 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
                                                                     this,
                                                                     this,
                                                                     SLOT(displayNameEditor()));
-    QToolButton* displayNameColorEditorToolButton = new QToolButton();
+    QToolButton* displayNameColorEditorToolButton = new WorkbenchToolButton();
     displayNameColorEditorToolButton->setDefaultAction(displayNameColorEditorAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(displayNameColorEditorToolButton);
     
     /*
      * Class
@@ -208,9 +207,8 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
                                                                     this, 
                                                                     this, 
                                                                     SLOT(displayClassEditor()));
-    QToolButton* displayClassEditorToolButton = new QToolButton();
+    QToolButton* displayClassEditorToolButton = new WorkbenchToolButton();
     displayClassEditorToolButton->setDefaultAction(displayClassEditorAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(displayClassEditorToolButton);
     
     /*
      * Closed

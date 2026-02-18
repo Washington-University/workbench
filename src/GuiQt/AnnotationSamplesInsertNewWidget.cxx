@@ -111,7 +111,6 @@ m_browserWindowIndex(browserWindowIndex)
                      this, &AnnotationSamplesInsertNewWidget::newFileActionTriggered);
     QToolButton* newFileToolButton(new WorkbenchToolButton());
     newFileToolButton->setDefaultAction(newFileAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(newFileToolButton);
 
     const AString saveToolTip("<html>"
                               "Save the selected Samples File.<br>"
@@ -125,7 +124,6 @@ m_browserWindowIndex(browserWindowIndex)
                      this, &AnnotationSamplesInsertNewWidget::saveFileActionTriggered);
     QToolButton* saveFileToolButton(new WorkbenchToolButton());
     saveFileToolButton->setDefaultAction(m_saveFileAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(saveFileToolButton);
 
     QLabel* newLabel(new QLabel("New "));
     
@@ -135,7 +133,6 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_newProspectiveSampleAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::newProspectiveSampleActionTriggered);
     m_newProspectiveSampleToolButton = new WorkbenchToolButton();
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_newProspectiveSampleToolButton);
     m_newProspectiveSampleToolButton->setDefaultAction(m_newProspectiveSampleAction);
     
     m_samplesDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
@@ -150,7 +147,6 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_newRetrospectiveSampleAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::newRetrospectiveSampleActionTriggered);
     m_newRetrospectiveSampleToolButton = new WorkbenchToolButton();
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_newRetrospectiveSampleToolButton);
     m_newRetrospectiveSampleToolButton->setDefaultAction(m_newRetrospectiveSampleAction);
     
     m_samplesDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
@@ -190,7 +186,6 @@ m_browserWindowIndex(browserWindowIndex)
                      this, &AnnotationSamplesInsertNewWidget::selectActionTriggered);
     m_selectToolButton = new WorkbenchToolButton();
     m_selectToolButton->setDefaultAction(m_selectAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_selectToolButton);
     
     QWidget* samplesWidget(new QWidget());
     QHBoxLayout* samplesLayout(new QHBoxLayout(samplesWidget));

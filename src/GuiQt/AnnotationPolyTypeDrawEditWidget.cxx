@@ -80,7 +80,6 @@ m_browserWindowIndex(browserWindowIndex)
     m_finishToolButton = new WorkbenchToolButton();
     m_finishToolButton->setSpecialBackgroundColor(QColor(0, 200, 0));
     m_finishToolButton->setDefaultAction(m_finishAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_finishToolButton);
     QObject::connect(m_finishAction, &QAction::triggered,
                      this, &AnnotationPolyTypeDrawEditWidget::finishActionTriggered);
     
@@ -94,7 +93,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     QToolButton* cancelToolButton = new WorkbenchToolButton();
     cancelToolButton->setDefaultAction(m_cancelAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(cancelToolButton);
     
     WuQtUtilities::matchWidgetWidths(m_finishToolButton,
                                      cancelToolButton);
@@ -108,7 +106,6 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_eraseLastCoordinateAction, &QAction::triggered,
                      this, &AnnotationPolyTypeDrawEditWidget::eraseLastCoordinateActionTriggered);
     eraseLastCoordinateToolButton->setDefaultAction(m_eraseLastCoordinateAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(eraseLastCoordinateToolButton);
 
     /*
      * Add button
@@ -131,7 +128,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     QToolButton* addCoordinatesToolButton(new WorkbenchToolButton());
     addCoordinatesToolButton->setDefaultAction(m_addCoordinatesAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(addCoordinatesToolButton);
     
     /*
      * Remove button
@@ -152,7 +148,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     QToolButton* removeCoordinatesToolButton(new WorkbenchToolButton());
     removeCoordinatesToolButton->setDefaultAction(m_removeCoordinatesAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(removeCoordinatesToolButton);
     
     /*
      * Insert button
@@ -173,7 +168,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     QToolButton* insertCoordinatesToolButton(new WorkbenchToolButton());
     insertCoordinatesToolButton->setDefaultAction(m_insertCoordinatesAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(insertCoordinatesToolButton);
     
     QToolButton* movePolygonCoordinatesToolButton(NULL);
     if (m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
@@ -194,7 +188,6 @@ m_browserWindowIndex(browserWindowIndex)
         
         movePolygonCoordinatesToolButton = new WorkbenchToolButton();
         movePolygonCoordinatesToolButton->setDefaultAction(m_movePolygonCoordinatesAction);
-        WuQtUtilities::setToolButtonStyleForQt5Mac(movePolygonCoordinatesToolButton);
     }
     
     QToolButton* resizePolygonCoordinatesToolButton(NULL);
@@ -217,7 +210,6 @@ m_browserWindowIndex(browserWindowIndex)
         
         resizePolygonCoordinatesToolButton = new WorkbenchToolButton();
         resizePolygonCoordinatesToolButton->setDefaultAction(m_resizePolygonCoordinatesAction);
-        WuQtUtilities::setToolButtonStyleForQt5Mac(resizePolygonCoordinatesToolButton);
         
         if (movePolygonCoordinatesToolButton != NULL) {
             WuQtUtilities::matchWidgetWidths(resizePolygonCoordinatesToolButton,
@@ -261,7 +253,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     QToolButton* moveOneCoordinateToolButton(new WorkbenchToolButton());
     moveOneCoordinateToolButton->setDefaultAction(m_moveOneCoordinateAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(moveOneCoordinateToolButton);
     
     m_moveTwoCoordinatesAction = NULL;
     QToolButton* moveTwoCoordinatesToolButton(NULL);
@@ -289,7 +280,6 @@ m_browserWindowIndex(browserWindowIndex)
         
         moveTwoCoordinatesToolButton = new WorkbenchToolButton();
         moveTwoCoordinatesToolButton->setDefaultAction(m_moveTwoCoordinatesAction);
-        WuQtUtilities::setToolButtonStyleForQt5Mac(moveTwoCoordinatesToolButton);
     }
     
     /*
