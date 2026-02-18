@@ -257,15 +257,12 @@ m_specFile(specFile)
     m_fileSorting = SpecFileManagementDialogRowContent::SORTING_TYPE_STRUCTURE_NAME;
 
     /*
-     * Load icons.
+     * Load icons using current theme.  Dialog is modal so user cannot change theme
+     * while dialog is open.
      */
     m_iconOpenFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_LOAD)));
-//    m_iconOpenFile   = WuQtUtilities::loadIcon(":/SpecFileDialog/load_icon.png");
     m_iconOptions.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_OPTIONS)));
-//    m_iconOptions    = WuQtUtilities::loadIcon(":/SpecFileDialog/options_icon.png");
-//    m_iconReloadFile = WuQtUtilities::loadIcon(":/SpecFileDialog/reload_icon.png");
     m_iconReloadFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_RELOAD)));
-//    m_iconCloseFile = WuQtUtilities::loadIcon(":/SpecFileDialog/delete_icon.png");
     m_iconCloseFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_DELETE)));
 
     /*
@@ -498,19 +495,6 @@ m_specFile(specFile)
 SpecFileManagementDialog::~SpecFileManagementDialog()
 {
     clearSpecFileManagementDialogRowContent();
-    
-//    if (m_iconOpenFile != NULL) {
-//        delete m_iconOpenFile;
-//    }
-//    if (m_iconOptions != NULL) {
-//        delete m_iconOptions;
-//    }
-//    if (m_iconReloadFile != NULL) {
-//        delete m_iconReloadFile;
-//    }
-//    if (m_iconCloseFile != NULL) {
-//        delete m_iconCloseFile;
-//    }
 }
 
 /**

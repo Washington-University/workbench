@@ -42,6 +42,7 @@
 #include "RecentFileItem.h"
 #include "RecentFileItemsContainer.h"
 #include "RecentFileItemsFilter.h"
+#include "WorkbenchIconTypeLoader.h"
 #include "WuQImageLabel.h"
 #include "WuQtUtilities.h"
 
@@ -78,12 +79,12 @@ RecentFilesTableWidget::RecentFilesTableWidget()
     QObject::connect(this, &QTableWidget::cellDoubleClicked,
                      this, &RecentFilesTableWidget::tableCellDoubleClicked);
 
-    m_favoriteFilledIcon  = loadIcon(":/RecentFilesDialog/favorite_filled.png");
-    m_favoriteOutlineIcon = loadIcon(":/RecentFilesDialog/favorite_outline.png");
-    m_forgetIcon          = loadIcon(":/RecentFilesDialog/forget_black.png");
-    m_forgetOnIcon        = loadIcon(":/RecentFilesDialog/forget_red.png");
-    m_shareIcon           = loadIcon(":/RecentFilesDialog/share.png");
-    
+    m_favoriteFilledIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_FILLED)));
+    m_favoriteOutlineIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_OUTLINE)));
+    m_forgetIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_BLACK)));
+    m_forgetOnIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_RED)));
+    m_shareIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_SHARE)));
+
     setContextMenuPolicy(Qt::DefaultContextMenu);
     
     QPalette myPalette = QGuiApplication::palette();
@@ -845,25 +846,6 @@ RecentFilesTableWidget::tableCellDoubleClicked(int row, int column)
             emit selectedItemDoubleClicked(selectedItem);
         }
     }
-}
-
-/**
- * @return Pointer to icon read from the given file name (NULL) if failure to load icon file
- * @param iconFileName
- *  Name of file containing icon
- */
-std::unique_ptr<QIcon>
-RecentFilesTableWidget::loadIcon(const AString& iconFileName) const
-{
-    std::unique_ptr<QIcon> iconOut;
-
-    QIcon icon;
-    if (WuQtUtilities::loadIcon(iconFileName,
-                                icon)) {
-        iconOut.reset(new QIcon(icon));
-    }
-    
-    return iconOut;
 }
 
 /*

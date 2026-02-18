@@ -64,6 +64,7 @@
 #include "PalettePixmapPainter.h"
 #include "ThresholdingSetMapsDialog.h"
 #include "VolumeFile.h"
+#include "WorkbenchIconTypeLoader.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQDoubleSlider.h"
 #include "WuQDoubleSpinBox.h"
@@ -867,18 +868,15 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     this->m_histogramHorizontalRangeComboBox->setup<PaletteHistogramRangeModeEnum, PaletteHistogramRangeModeEnum::Enum>();
     this->m_histogramHorizontalRangeComboBox->getWidget()->setToolTip("Horizontal range of histogram");
 
-    QIcon colorBarIcon;
-    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
-                                                           colorBarIcon);
+    QIcon colorBarIcon = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_COLOR_BAR,
+                                                                        GuiDarkLightThemeModeEnum::LIGHT);
     
     QLabel* barsColorLabel = new QLabel("Bars Color");
     m_histogramBarsColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::FIXED,
                                                               CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
                                                               this);
     m_histogramBarsColorComboBox->setCustomColorName("Palette");
-    if (colorBarIconValid) {
-        m_histogramBarsColorComboBox->setCustomColorIcon(colorBarIcon);
-    }
+    m_histogramBarsColorComboBox->setCustomColorIcon(colorBarIcon);
     WuQtUtilities::setToolTipAndStatusTip(m_histogramBarsColorComboBox->getWidget(),
                                           "Set histogram bars coloring");
     QObject::connect(m_histogramBarsColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
@@ -889,9 +887,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
                                                                   CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
                                                                   this);
     m_histogramEnvelopeColorComboBox->setCustomColorName("Palette");
-    if (colorBarIconValid) {
-        m_histogramEnvelopeColorComboBox->setCustomColorIcon(colorBarIcon);
-    }
+    m_histogramEnvelopeColorComboBox->setCustomColorIcon(colorBarIcon);
     WuQtUtilities::setToolTipAndStatusTip(m_histogramEnvelopeColorComboBox->getWidget(),
                                           "Set histogram envelope coloring");
     QObject::connect(m_histogramEnvelopeColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),

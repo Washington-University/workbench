@@ -33,6 +33,7 @@
 #include <QToolButton>
 
 #include "CaretAssert.h"
+#include "WorkbenchToolButton.h"
 #include "WuQGridLayoutGroup.h"
 #include "WuQtUtilities.h"
 
@@ -224,16 +225,7 @@ PaletteEditorRangeRow::createConstructionToolButton()
     m_constructionInsertBelowAction = menu->addAction("Insert Control Point Below");
     m_constructionRemoveAction      = menu->addAction("Remove this Control Point");
     
-    QIcon constructionIcon;
-    const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
-                                                               constructionIcon);
-    QToolButton* toolButton = new QToolButton();
-   if (constructionIconValid) {
-        toolButton->setIcon(constructionIcon);
-    }
-    else {
-        toolButton->setText("C");
-    }
+    QToolButton* toolButton = new WorkbenchToolButton(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT);
     toolButton->setPopupMode(QToolButton::InstantPopup);
     toolButton->setMenu(menu);
     

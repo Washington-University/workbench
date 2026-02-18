@@ -67,6 +67,8 @@
 #include "MapYokingGroupComboBox.h"
 #include "ProgressReportingDialog.h"
 #include "UsernamePasswordWidget.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
@@ -151,19 +153,12 @@ m_parentObjectName(parentObjectName)
     /*
      * Settings Tool Button
      */
-    QIcon settingsIcon;
-    const bool settingsIconValid = WuQtUtilities::loadIcon(":/LayersPanel/wrench.png",
-                                                           settingsIcon);
-    
-    m_settingsToolButton = new QToolButton();
-    m_settingsAction = WuQtUtilities::createAction("S",
-                                                   "Edit settings for this chart",
-                                                   m_settingsToolButton,
-                                                   this,
-                                                   SLOT(settingsActionTriggered()));
-    if (settingsIconValid) {
-        m_settingsAction->setIcon(settingsIcon);
-    }
+    m_settingsAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH,
+                                           this);
+    m_settingsAction->setToolTip("Edit settings for this chart");
+    QObject::connect(m_settingsAction, &QAction::triggered,
+                     this, &ChartTwoOverlayViewController::settingsActionTriggered);
+    m_settingsToolButton = new WorkbenchToolButton();
     m_settingsAction->setObjectName(objectNamePrefix
                                     + "ShowSettingsDialog");
     macroManager->addMacroSupportToObject(m_settingsAction,
@@ -173,19 +168,13 @@ m_parentObjectName(parentObjectName)
     /*
      * ColorBar Tool Button
      */
-    QIcon colorBarIcon;
-    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
-                                                           colorBarIcon);
-    m_colorBarToolButton = new QToolButton();
-    m_colorBarAction = WuQtUtilities::createAction("CB",
-                                                       "Display color bar for this overlay",
-                                                       m_colorBarToolButton,
-                                                       this,
-                                                       SLOT(colorBarActionTriggered(bool)));
+    m_colorBarAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_COLOR_BAR,
+                                                       this);
+    m_colorBarAction->setToolTip("Display color bar for this overlay");
+    QObject::connect(m_colorBarAction, &QAction::triggered,
+                     this, &ChartTwoOverlayViewController::colorBarActionTriggered);
+    m_colorBarToolButton = new WorkbenchToolButton();
     m_colorBarAction->setCheckable(true);
-    if (colorBarIconValid) {
-        m_colorBarAction->setIcon(colorBarIcon);
-    }
     m_colorBarAction->setObjectName(objectNamePrefix
                                         + "ShowColorBar");
     macroManager->addMacroSupportToObject(m_colorBarAction,
@@ -196,17 +185,8 @@ m_parentObjectName(parentObjectName)
      * Construction Tool Button
      * Note: macro support is on each action in menu in 'createConstructionMenu'
      */
-    QIcon constructionIcon;
-    const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
-                                                               constructionIcon);
-    m_constructionToolButton = new QToolButton();
+    m_constructionToolButton = new WorkbenchToolButton(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT);
     m_constructionToolButton->setToolTip("Add/Move/Remove Layers");
-    if (constructionIconValid) {
-        m_constructionToolButton->setIcon(constructionIcon);
-    }
-    else {
-        m_constructionToolButton->setText("C");
-    }
     m_constructionMenu = createConstructionMenu(m_constructionToolButton,
                                                      (objectNamePrefix
                                                       + "ConstructionMenu:"),

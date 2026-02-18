@@ -62,6 +62,7 @@
 #include "SceneClass.h"
 #include "SceneStringArray.h"
 #include "SessionManager.h"
+#include "WorkbenchIconTypeLoader.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBoxTwo.h"
 #include "WuQtUtilities.h"
@@ -407,10 +408,7 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
     /*
      * Crosshair/pointer icon
      */
-    QIcon volumeCrossHairIcon;
-    const bool volumeCrossHairIconValid =
-    WuQtUtilities::loadIcon(":/ToolBar/volume-crosshair-pointer.png",
-                            volumeCrossHairIcon);
+    QIcon volumeCrossHairIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS));
 
     /*
      * My clusters
@@ -423,10 +421,8 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
         const std::vector<const LabelSelectionItem::COG*> cogs(allCogSet->getCOGs());
         for (const LabelSelectionItem::COG* c : cogs) {
             QAction* a(menu.addAction(c->getTitle()));
-            if (volumeCrossHairIconValid) {
-                a->setIcon(volumeCrossHairIcon);
-                a->setIconVisibleInMenu(true);
-            }
+            a->setIcon(volumeCrossHairIcon);
+            a->setIconVisibleInMenu(true);
             clusterActions.push_back(a);
             clusterXYZs.push_back(c->getXYZ());
             clusterTypes.push_back(c->getClusterType());
@@ -442,10 +438,8 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
         const std::vector<const LabelSelectionItem::COG*> cogs(cogSet->getCOGs());
         for (const LabelSelectionItem::COG* c : cogs) {
             QAction* a(menu.addAction(c->getTitle()));
-            if (volumeCrossHairIconValid) {
-                a->setIcon(volumeCrossHairIcon);
-                a->setIconVisibleInMenu(true);
-            }
+            a->setIcon(volumeCrossHairIcon);
+            a->setIconVisibleInMenu(true);
             clusterActions.push_back(a);
             clusterXYZs.push_back(c->getXYZ());
             clusterTypes.push_back(c->getClusterType());

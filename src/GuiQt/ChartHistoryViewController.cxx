@@ -48,6 +48,7 @@
 #include "EventGraphicsPaintSoonOneWindow.h"
 #include "GuiManager.h"
 #include "ModelChart.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
@@ -348,16 +349,7 @@ ChartHistoryViewController::updateHistoryViewController()
             /*
              * Construction Tool Button
              */
-            QIcon constructionIcon;
-            const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
-                                                                       constructionIcon);
-            QToolButton* constructionToolButton = new QToolButton();
-            if (constructionIconValid) {
-                constructionToolButton->setIcon(constructionIcon);
-            }
-            else {
-                constructionToolButton->setText("M");
-            }
+            QToolButton* constructionToolButton = new WorkbenchToolButton(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT);
             m_chartDataContructionToolButtons.push_back(constructionToolButton);
             QObject::connect(constructionToolButton, SIGNAL(clicked()),
                              m_chartDataColorConstructionButtonSignalMapper, SLOT(map()));

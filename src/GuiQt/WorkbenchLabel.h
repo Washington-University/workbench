@@ -1,5 +1,5 @@
-#ifndef __WORKBENCH_ACTION_H__
-#define __WORKBENCH_ACTION_H__
+#ifndef __WORKBENCH_LABEL_H__
+#define __WORKBENCH_LABEL_H__
 
 /*LICENSE_START*/
 /*
@@ -21,42 +21,36 @@
  */
 /*LICENSE_END*/
 
-#include <set>
-#include <utility>
 
-#include <QAction>
 
-#include "CaretObject.h"
+#include <memory>
+
+#include <QLabel>
+
 #include "EventListenerInterface.h"
 #include "GuiDarkLightThemeModeEnum.h"
 #include "WorkbenchIconTypeEnum.h"
 
 namespace caret {
 
-    class WorkbenchAction :
-    public QAction,
-    public CaretObject,
-    public EventListenerInterface {
+    class WorkbenchLabel : public QLabel, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        WorkbenchAction(const WorkbenchIconTypeEnum::Enum iconType,
-                        QObject* parent);
+        WorkbenchLabel(const WorkbenchIconTypeEnum::Enum iconType,
+                       QWidget* parent = 0);
         
-        virtual ~WorkbenchAction();
+        virtual ~WorkbenchLabel();
         
-        WorkbenchAction(const WorkbenchAction&) = delete;
+        WorkbenchLabel(const WorkbenchLabel&) = delete;
 
-        WorkbenchAction& operator=(const WorkbenchAction&) = delete;
-
-        virtual void receiveEvent(Event* event) override;
-
-        static void printLeftoverWorkbenchActions();
+        WorkbenchLabel& operator=(const WorkbenchLabel&) = delete;
         
-        static bool isColorIcon(const WorkbenchIconTypeEnum::Enum iconType);
-        
+
         // ADD_NEW_METHODS_HERE
+
+        virtual void receiveEvent(Event* event);
 
     private:
         void updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
@@ -69,15 +63,13 @@ namespace caret {
         
         QPixmap m_darkPixmap;
         
-        static std::set<WorkbenchAction*> s_allWorkbenchActions;
-        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __WORKBENCH_ACTION_DECLARE__
-    std::set<WorkbenchAction*> WorkbenchAction::s_allWorkbenchActions;
-#endif // __WORKBENCH_ACTION_DECLARE__
+#ifdef __WORKBENCH_LABEL_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __WORKBENCH_LABEL_DECLARE__
 
 } // namespace
-#endif  //__WORKBENCH_ACTION_H__
+#endif  //__WORKBENCH_LABEL_H__

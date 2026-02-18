@@ -283,6 +283,7 @@ ELSE()
 	WbMacroWidgetActionsManager.h
         WorkbenchAction.h
 	WorkbenchInstallationAssistantDialog.h
+	WorkbenchLabel.h
 	WorkbenchToolButton.h
         WuQCollapsibleWidget.h
 	WuQColorEditorWidget.h
@@ -659,6 +660,7 @@ WorkbenchAction.h
 WorkbenchIconTypeEnum.h
 WorkbenchIconTypeLoader.h
 WorkbenchInstallationAssistantDialog.h
+WorkbenchLabel.h
 WorkbenchToolButton.h
 WuQCollapsibleWidget.h
 WuQColorEditorWidget.h
@@ -1026,6 +1028,7 @@ WorkbenchAction.cxx
 WorkbenchIconTypeEnum.cxx
 WorkbenchIconTypeLoader.cxx
 WorkbenchInstallationAssistantDialog.cxx
+WorkbenchLabel.cxx
 WorkbenchToolButton.cxx
 WuQCollapsibleWidget.cxx
 WuQColorEditorWidget.cxx

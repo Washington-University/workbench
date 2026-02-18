@@ -247,6 +247,8 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
     const int32_t height12(12);
     const int32_t width24(24);
     const int32_t height30(30);
+    const int32_t width32(32);
+    const int32_t height32(32);
 
     switch (iconType) {
         case WorkbenchIconTypeEnum::NO_ICON:
@@ -666,24 +668,109 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_COLOR_BAR:
             setPixmapIcon(pixmap,
                           painter.get(),
-                          ":/ToolBar/LayersPanel/colorbar.png",
-                          "F",
+                          ":/LayersPanel/colorbar.png",
+                          "C",
                           darkThemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT:
+            createPixmapPainter(width32,
+                                height32,
+                                Origin::TOP_LEFT,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
             setPixmapIcon(pixmap,
                           painter.get(),
-                          ":/ToolBar/LayersPanel/construction.png",
-                          "F",
+                          ":/LayersPanel/construction.png",
+                          "C",
                           darkThemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH:
             setPixmapIcon(pixmap,
                           painter.get(),
-                          ":/ToolBar/LayersPanel/wrench.png",
+                          ":/LayersPanel/wrench.png",
+                          "S",
+                          darkThemeFlag,
+                          PixelModification::NONE);
+            break;
+        case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_FILLED:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/RecentFilesDialog/favorite_filled.png",
                           "F",
+                          darkThemeFlag,
+                          PixelModification::NONE);
+            break;
+        case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_OUTLINE:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/RecentFilesDialog/favorite_outline.png",
+                          "F",
+                          darkThemeFlag,
+                          PixelModification::NONE);
+            break;
+        case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_BLACK:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/RecentFilesDialog/forget_black.png",
+                          "F",
+                          darkThemeFlag,
+                          PixelModification::NONE);
+            break;
+        case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_RED:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/RecentFilesDialog/forget_red.png",
+                          "F",
+                          darkThemeFlag,
+                          PixelModification::NONE);
+            break;
+        case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_SHARE:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/RecentFilesDialog/share.png",
+                          "S",
+                          darkThemeFlag,
+                          PixelModification::NONE);
+            break;
+        case WorkbenchIconTypeEnum::RECENT_FILES_HCP_IMAGE:
+            createPixmapPainter(width32,
+                                height32,
+                                Origin::TOP_LEFT,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/RecentFilesDialog/hcp_image.png",
+                          "C",
+                          darkThemeFlag,
+                          PixelModification::NONE);
+            break;
+        case WorkbenchIconTypeEnum::RECENT_FILES_X_IMAGE:
+            createPixmapPainter(width32,
+                                height32,
+                                Origin::TOP_LEFT,
+                                fontHeight20,
+                                darkLightThemeMode,
+                                pixmap,
+                                painter);
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/RecentFilesDialog/x_image.png",
+                          "C",
+                          darkThemeFlag,
+                          PixelModification::NONE);
+            break;
+        case WorkbenchIconTypeEnum::SCENE_DIALOG_CAUTION:
+            setPixmapIcon(pixmap,
+                          painter.get(),
+                          ":/SceneFileDialog/caution.png",
+                          "D",
                           darkThemeFlag,
                           PixelModification::NONE);
             break;
@@ -721,10 +808,8 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
             break;
         case WorkbenchIconTypeEnum::TABBAR_DATA_TOOLTIPS:
         {
-            const int32_t pixmapWidth(32);
-            const int32_t pixmapHeight(32);
-            createPixmapPainter(pixmapWidth,
-                                pixmapHeight,
+            createPixmapPainter(width32,
+                                height32,
                                 Origin::CENTER,
                                 fontHeight20,
                                 darkLightThemeMode,

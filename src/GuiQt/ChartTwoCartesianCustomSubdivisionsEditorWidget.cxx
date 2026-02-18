@@ -36,6 +36,7 @@
 #include "ChartTwoCartesianCustomSubdivisionsLabel.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
+#include "WorkbenchToolButton.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQtUtilities.h"
 
@@ -104,17 +105,8 @@ ChartTwoCartesianCustomSubdivisionsEditorWidget::loadAxisIntoWidgets()
          * Construction Tool Button
          * Note: macro support is on each action in menu in 'createConstructionMenu'
          */
-        QIcon constructionIcon;
-        const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
-                                                                   constructionIcon);
-        QToolButton* constructionToolButton = new QToolButton();
+        QToolButton* constructionToolButton = new WorkbenchToolButton(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT);
         constructionToolButton->setToolTip("Add/Move/Remove Layers");
-        if (constructionIconValid) {
-            constructionToolButton->setIcon(constructionIcon);
-        }
-        else {
-            constructionToolButton->setText("C");
-        }
         QMenu* constructionMenu = createConstructionMenu(iRow);
         QObject::connect(constructionToolButton, &QToolButton::clicked,
                          [=]() { constructionMenu->exec(constructionToolButton->mapToGlobal(QPoint(0, 0))); } );

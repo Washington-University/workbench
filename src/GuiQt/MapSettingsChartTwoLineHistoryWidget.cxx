@@ -45,6 +45,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "MapFileDataSelector.h"
+#include "WorkbenchLabel.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQImageLabel.h"
 #include "WuQMessageBox.h"
@@ -72,8 +73,6 @@ MapSettingsChartTwoLineHistoryWidget::MapSettingsChartTwoLineHistoryWidget(QWidg
                                         "As new items are added, older items are disabled for viewing\n"
                                         "The number of history items retained (including those not\n"
                                         "displayed) is limited to this value or " + maxHistoryString + ", whichever is larger.");
-    
-    m_removeAllHistoryIcon = WuQtUtilities::loadIcon(":/SpecFileDialog/delete_icon.png");
     
     QLabel* defaultColorLabel = new QLabel("Default Color: ");
     defaultColorLabel->setToolTip(defaultColorToolTip);
@@ -327,8 +326,7 @@ MapSettingsChartTwoLineHistoryWidget::loadHistoryIntoTableWidget(ChartTwoLineSer
                 m_tableWidget->setItem(iRow, j, item);
             }
             else if (j == COLUMN_REMOVE) {
-                WuQImageLabel* removeHistoryLabel = new WuQImageLabel(m_removeAllHistoryIcon,
-                                                                      "Remove");
+                WorkbenchLabel* removeHistoryLabel(new WorkbenchLabel(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_DELETE));
                 QObject::connect(removeHistoryLabel, SIGNAL(clicked()),
                                  m_removeHistoryItemSignalMapper, SLOT(map()));
                 m_removeHistoryItemSignalMapper->setMapping(removeHistoryLabel, iRow);

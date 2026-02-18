@@ -100,7 +100,7 @@ namespace caret {
         
         void hcpWebsiteButtonClicked();
         
-        void twitterButtonClicked();
+        void xButtonClicked();
         
         void tableWidgetItemClicked(RecentFileItem* item);
         

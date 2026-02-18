@@ -125,6 +125,22 @@ public:
         OVERLAY_TOOLBOX_CONSTRUCT,
         /** Overlay Toolbox Wrench */
         OVERLAY_TOOLBOX_WRENCH,
+        /** Recent Files Dialog  Favorite Filled */
+        RECENT_FILES_DIALOG_FAVORITE_FILLED,
+        /** Recent Files Dialog Favorite Outline */
+        RECENT_FILES_DIALOG_FAVORITE_OUTLINE,
+        /** Recent Files Dialog Forget Black*/
+        RECENT_FILES_DIALOG_FORGET_BLACK,
+        /** Recent Files Dialog Forget Red */
+        RECENT_FILES_DIALOG_FORGET_RED,
+        /** Recent Files Dialog Share */
+        RECENT_FILES_DIALOG_SHARE,
+        /** Recent Files HCP Image */
+        RECENT_FILES_HCP_IMAGE,
+        /** Recent Files X Image */
+        RECENT_FILES_X_IMAGE,
+        /** Scene dialog caution */
+        SCENE_DIALOG_CAUTION,
         /** Spec File Dialog Delete */
         SPEC_FILE_DIALOG_DELETE,
         /** Spec File Dialog Load */

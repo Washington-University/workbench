@@ -34,6 +34,8 @@
 #include "TileTabsConfigurationDialog.h"
 #include "TileTabsGridRowColumnElement.h"
 #include "TileTabsLayoutGridConfiguration.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQGridLayoutGroup.h"
 #include "WuQtUtilities.h"
 
@@ -91,16 +93,10 @@ m_element(NULL)
     /*
      * Construction Tool Button
      */
-    QIcon constructionIcon;
-    const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
-                                                               constructionIcon);
-    m_constructionAction = WuQtUtilities::createAction("M",
-                                                       "Add/Move/Remove",
-                                                       this);
-    if (constructionIconValid) {
-        m_constructionAction->setIcon(constructionIcon);
-    }
-    m_constructionToolButton = new QToolButton();
+    m_constructionAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT,
+                                               this);
+    m_constructionAction->setToolTip("Add/Move/Remove");
+    m_constructionToolButton = new WorkbenchToolButton();
     QMenu* constructionMenu = createConstructionMenu(m_constructionToolButton);
     QObject::connect(constructionMenu, &QMenu::aboutToShow,
                      this, &TileTabGridRowColumnWidgets::constructionMenuAboutToShow);

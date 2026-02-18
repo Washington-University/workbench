@@ -365,6 +365,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
      */
     this->toolBarToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_TOOLBAR,
                                                         this);
+    this->toolBarToolButtonAction->setText("Toolbar");
     this->toolBarToolButtonAction->setToolTip("Show or hide the toolbar JWH");
     this->toolBarToolButtonAction->setIconVisibleInMenu(false);
     QObject::connect(this->toolBarToolButtonAction, &QAction::triggered,

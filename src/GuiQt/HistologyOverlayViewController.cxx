@@ -57,6 +57,8 @@
 #include "HistologyOverlaySettingsMenu.h"
 #include "HistologySlicesFile.h"
 #include "UsernamePasswordWidget.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
@@ -195,21 +197,14 @@ HistologyOverlayViewController::HistologyOverlayViewController(const Qt::Orienta
     /*
      * Settings Tool Button
      */
-    QIcon settingsIcon;
-    const bool settingsIconValid = WuQtUtilities::loadIcon(":/LayersPanel/wrench.png",
-                                                           settingsIcon);
-
-    m_settingsAction = WuQtUtilities::createAction("S",
-                                                   "Edit settings for this slice and overlay",
-                                                   this,
-                                                   this,
-                                                   SLOT(settingsActionTriggered()));
+    m_settingsAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH,
+                                           this);
+    m_settingsAction->setToolTip("Edit settings for this slice and overlay");
+    QObject::connect(m_settingsAction, &QAction::triggered,
+                     this, &HistologyOverlayViewController::settingsActionTriggered);
     m_settingsAction->setObjectName(objectNamePrefix
                                         + "ShowSettingsDialog");
-    if (settingsIconValid) {
-        m_settingsAction->setIcon(settingsIcon);
-    }
-    m_settingsToolButton = new QToolButton();
+    m_settingsToolButton = new WorkbenchToolButton();
     m_settingsToolButton->setDefaultAction(m_settingsAction);
     macroManager->addMacroSupportToObject(m_settingsAction,
                                           ("Display " + descriptivePrefix + " palette settings"));
@@ -218,16 +213,10 @@ HistologyOverlayViewController::HistologyOverlayViewController(const Qt::Orienta
      * Construction Tool Button
      * Note: macro support is on each action in menu in 'createConstructionMenu'
      */
-    QIcon constructionIcon;
-    const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
-                                                           constructionIcon);
-    m_constructionAction = WuQtUtilities::createAction("M",
-                                                           "Add/Move/Remove Overlays", 
-                                                           this);
-    if (constructionIconValid) {
-        m_constructionAction->setIcon(constructionIcon);
-    }
-    m_constructionToolButton = new QToolButton();
+    m_constructionAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT,
+                                               this);
+    m_constructionAction->setToolTip("Add/Move/Remove Overlays");
+    m_constructionToolButton = new WorkbenchToolButton();
     QMenu* constructionMenu = createConstructionMenu(m_constructionToolButton,
                                                      descriptivePrefix,
                                                      (objectNamePrefix

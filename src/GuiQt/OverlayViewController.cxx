@@ -53,6 +53,8 @@
 #include "MapYokingGroupComboBox.h"
 #include "Overlay.h"
 #include "UsernamePasswordWidget.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
@@ -186,35 +188,30 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     /*
      * ColorBar Tool Button
      */
-    m_colorBarToolButton = WuQtUtilities::createToolButtonWithIcon("CB",
-                                                                   ":/LayersPanel/colorbar.png",
-                                                                   "Display color bar for this overlay",
-                                                                   this,
-                                                                   SLOT(colorBarActionTriggered(bool)));
-    m_colorBarToolButton->setCheckable(true);
-    m_colorBarToolButton->setObjectName(objectNamePrefix
+    m_colorBarAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_COLOR_BAR,
+                                           this);
+    m_colorBarAction->setToolTip("Display color bar for this overlay");
+    QObject::connect(m_colorBarAction, &QAction::triggered,
+                     this, &OverlayViewController::colorBarActionTriggered);
+    m_colorBarAction->setCheckable(true);
+    m_colorBarAction->setObjectName(objectNamePrefix
                                         + "ShowColorBar");
-    macroManager->addMacroSupportToObject(m_colorBarToolButton,
+    macroManager->addMacroSupportToObject(m_colorBarAction,
                                           ("Enable " + descriptivePrefix + " colorbar"));
+    QToolButton* colorBarToolButton(new WorkbenchToolButton());
+    colorBarToolButton->setDefaultAction(m_colorBarAction);
         
     /*
      * Settings Tool Button
      */
-    QIcon settingsIcon;
-    const bool settingsIconValid = WuQtUtilities::loadIcon(":/LayersPanel/wrench.png",
-                                                           settingsIcon);
-
-    this->settingsAction = WuQtUtilities::createAction("S",
-                                                          "Edit settings for this map and overlay", 
-                                                          this, 
-                                                          this, 
-                                                          SLOT(settingsActionTriggered()));
+    this->settingsAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH,
+                                               this);
+    this->settingsAction->setToolTip("Edit settings for this map and overlay");
+    QObject::connect(this->settingsAction, &QAction::triggered,
+                     this, &OverlayViewController::settingsActionTriggered);
     this->settingsAction->setObjectName(objectNamePrefix
                                         + "ShowSettingsDialog");
-    if (settingsIconValid) {
-        this->settingsAction->setIcon(settingsIcon);
-    }
-    QToolButton* settingsToolButton = new QToolButton();
+    QToolButton* settingsToolButton = new WorkbenchToolButton();
     settingsToolButton->setDefaultAction(this->settingsAction);
     macroManager->addMacroSupportToObject(this->settingsAction,
                                           ("Display " + descriptivePrefix + " palette settings"));
@@ -223,16 +220,10 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
      * Construction Tool Button
      * Note: macro support is on each action in menu in 'createConstructionMenu'
      */
-    QIcon constructionIcon;
-    const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
-                                                           constructionIcon);
-    this->constructionAction = WuQtUtilities::createAction("M", 
-                                                           "Add/Move/Remove Overlays", 
-                                                           this);
-    if (constructionIconValid) {
-        this->constructionAction->setIcon(constructionIcon);
-    }
-    m_constructionToolButton = new QToolButton();
+    this->constructionAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT,
+                                                   this);
+    this->constructionAction->setToolTip("Add/Move/Remove Overlays");
+    m_constructionToolButton = new WorkbenchToolButton();
     QMenu* constructionMenu = createConstructionMenu(m_constructionToolButton,
                                                      descriptivePrefix,
                                                      (objectNamePrefix
@@ -276,7 +267,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         this->gridLayoutGroup->addWidget(settingsToolButton,
                                          row, 1,
                                          Qt::AlignHCenter);
-        this->gridLayoutGroup->addWidget(m_colorBarToolButton,
+        this->gridLayoutGroup->addWidget(colorBarToolButton,
                                          row, 2);
         this->gridLayoutGroup->addWidget(m_constructionToolButton,
                                          row, 3);
@@ -307,7 +298,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          row, 0);
         this->gridLayoutGroup->addWidget(settingsToolButton,
                                          row, 1);
-        this->gridLayoutGroup->addWidget(m_colorBarToolButton,
+        this->gridLayoutGroup->addWidget(colorBarToolButton,
                                          row, 2);
         this->gridLayoutGroup->addWidget(m_constructionToolButton,
                                          row, 3);
@@ -736,7 +727,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
     
     m_mapYokingGroupComboBox->setMapYokingGroup(overlay->getMapYokingGroup());
     
-    m_colorBarToolButton->setChecked(overlay->getColorBar()->isDisplayed());
+    m_colorBarAction->setChecked(overlay->getColorBar()->isDisplayed());
     
     this->opacityDoubleSpinBox->blockSignals(true);
     this->opacityDoubleSpinBox->setValue(overlay->getOpacity());
@@ -805,7 +796,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
     this->constructionAction->setEnabled(true);
     this->opacityDoubleSpinBox->setEnabled(haveOpacity);
     this->m_mapYokingGroupComboBox->getWidget()->setEnabled(haveYoking);
-    this->m_colorBarToolButton->setEnabled(dataIsMappedWithPalette);
+    this->m_colorBarAction->setEnabled(dataIsMappedWithPalette);
     this->settingsAction->setEnabled(true);
 }
 

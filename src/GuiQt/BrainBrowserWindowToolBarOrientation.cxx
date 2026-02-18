@@ -35,6 +35,8 @@ using namespace caret;
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretUndoStack.h"
+#include "EventDarkLightThemeModeChanged.h"
+#include "EventDarkLightThemeModeGet.h"
 #include "EventGraphicsPaintNowAllWindows.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
@@ -49,6 +51,7 @@ using namespace caret;
 #include "StructureEnum.h"
 #include "ViewingTransformations.h"
 #include "WorkbenchAction.h"
+#include "WorkbenchIconTypeLoader.h"
 #include "WorkbenchToolButton.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
@@ -77,13 +80,37 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     const QString objectNamePrefix(parentObjectName
                                    + ":Orientation:");
     
-    this->viewOrientationLeftIcon = WuQtUtilities::loadIcon(":/ToolBar/view-left.png");
-    this->viewOrientationRightIcon = WuQtUtilities::loadIcon(":/ToolBar/view-right.png");
-    this->viewOrientationLeftLateralIcon = WuQtUtilities::loadIcon(":/ToolBar/view-left-lateral.png");
-    this->viewOrientationLeftMedialIcon = WuQtUtilities::loadIcon(":/ToolBar/view-left-medial.png");
-    this->viewOrientationRightLateralIcon = WuQtUtilities::loadIcon(":/ToolBar/view-right-lateral.png");
-    this->viewOrientationRightMedialIcon = WuQtUtilities::loadIcon(":/ToolBar/view-right-medial.png");
+    this->viewOrientationLeftDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT,
+                                                                                       GuiDarkLightThemeModeEnum::DARK);
+    this->viewOrientationLeftLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT,
+                                                                                        GuiDarkLightThemeModeEnum::LIGHT);
+
+    this->viewOrientationRightDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT,
+                                                                                         GuiDarkLightThemeModeEnum::DARK);
+    this->viewOrientationRightLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT,
+                                                                                          GuiDarkLightThemeModeEnum::LIGHT);
+
+    this->viewOrientationLeftLateralDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL,
+                                                                                                GuiDarkLightThemeModeEnum::DARK);
+    this->viewOrientationLeftLateralLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL,
+                                                                                                 GuiDarkLightThemeModeEnum::LIGHT);
+
     
+    this->viewOrientationLeftMedialDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT_MEDIAL,
+                                                                                                 GuiDarkLightThemeModeEnum::DARK);
+    this->viewOrientationLeftMedialLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT_MEDIAL,
+                                                                                                 GuiDarkLightThemeModeEnum::LIGHT);
+
+    this->viewOrientationRightLateralDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT_LATERAL,
+                                                                                                 GuiDarkLightThemeModeEnum::DARK);
+    this->viewOrientationRightLateralLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT_LATERAL,
+                                                                                                  GuiDarkLightThemeModeEnum::LIGHT);
+
+    this->viewOrientationRightMedialDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT_MEDIAL,
+                                                                                                GuiDarkLightThemeModeEnum::DARK);
+    this->viewOrientationRightMedialLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT_MEDIAL,
+                                                                                                 GuiDarkLightThemeModeEnum::LIGHT);
+
     this->orientationLeftOrLateralToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL,
                                                                          this);
     this->orientationLeftOrLateralToolButtonAction->setToolTip("View from a LEFT perspective");
@@ -319,6 +346,9 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     addToWidgetGroup(this->orientationDorsalToolButtonAction);
     addToWidgetGroup(this->orientationVentralToolButtonAction);
     addToWidgetGroup(this->orientationResetToolButtonAction);
+    
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
 }
 
 /**
@@ -326,35 +356,26 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
  */
 BrainBrowserWindowToolBarOrientation::~BrainBrowserWindowToolBarOrientation()
 {
-    if (this->viewOrientationLeftIcon != NULL) {
-        delete this->viewOrientationLeftIcon;
-        this->viewOrientationLeftIcon = NULL;
-    }
-    if (this->viewOrientationRightIcon != NULL) {
-        delete this->viewOrientationRightIcon;
-        this->viewOrientationRightIcon = NULL;
-    }
-    
-    if (this->viewOrientationLeftLateralIcon != NULL) {
-        delete this->viewOrientationLeftLateralIcon;
-        this->viewOrientationLeftLateralIcon = NULL;
-    }
-    
-    if (this->viewOrientationLeftMedialIcon != NULL) {
-        delete this->viewOrientationLeftMedialIcon;
-        this->viewOrientationLeftMedialIcon = NULL;
-    }
-    
-    if (this->viewOrientationRightLateralIcon != NULL) {
-        delete this->viewOrientationRightLateralIcon;
-        this->viewOrientationRightLateralIcon = NULL;
-    }
-    
-    if (this->viewOrientationRightMedialIcon != NULL) {
-        delete this->viewOrientationRightMedialIcon;
-        this->viewOrientationRightMedialIcon = NULL;
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *    An event for which this instance is listening.
+ */
+void
+BrainBrowserWindowToolBarOrientation::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED) {
+        EventDarkLightThemeModeChanged* darkLightThemeEvent(dynamic_cast<EventDarkLightThemeModeChanged*>(event));
+        CaretAssert(darkLightThemeEvent);
+        darkLightThemeEvent->setEventProcessed();
+        
+        updateContent(m_browserTabContent);
     }
 }
+
 
 /**
  * Update the surface montage options widget.
@@ -366,7 +387,15 @@ void
 BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTabContent)
 {
     m_browserTabContent = browserTabContent;
+    if (m_browserTabContent == NULL) {
+        return;
+    }
+    
     const int32_t tabIndex = browserTabContent->getTabNumber();
+ 
+    EventDarkLightThemeModeGet darkLightThemeEvent;
+    EventManager::get()->sendEvent(darkLightThemeEvent.getPointer());
+    const bool darkFlag(darkLightThemeEvent.getDarkLightThemeMode() == GuiDarkLightThemeModeEnum::DARK);
     
     blockAllSignals(true);
     
@@ -447,31 +476,23 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
         
         if (rightFlag || leftFlag) {
             if (rightFlag) {
-                if (this->viewOrientationRightLateralIcon != NULL) {
-                    this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationRightLateralIcon);
+                if (darkFlag) {
+                    this->orientationLeftOrLateralToolButtonAction->setIcon(this->viewOrientationRightLateralDarkPixmap);
+                    this->orientationRightOrMedialToolButtonAction->setIcon(this->viewOrientationRightMedialDarkPixmap);
                 }
                 else {
-                    this->orientationLeftOrLateralToolButtonAction->setIconText("L");
-                }
-                if (this->viewOrientationRightMedialIcon != NULL) {
-                    this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationRightMedialIcon);
-                }
-                else {
-                    this->orientationRightOrMedialToolButtonAction->setIconText("M");
+                    this->orientationLeftOrLateralToolButtonAction->setIcon(this->viewOrientationRightLateralLightPixmap);
+                    this->orientationRightOrMedialToolButtonAction->setIcon(this->viewOrientationRightMedialLightPixmap);
                 }
             }
             else if (leftFlag) {
-                if (this->viewOrientationLeftLateralIcon != NULL) {
-                    this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationLeftLateralIcon);
+                if (darkFlag) {
+                    this->orientationLeftOrLateralToolButtonAction->setIcon(this->viewOrientationLeftLateralDarkPixmap);
+                    this->orientationRightOrMedialToolButtonAction->setIcon(this->viewOrientationLeftMedialDarkPixmap);
                 }
                 else {
-                    this->orientationLeftOrLateralToolButtonAction->setIconText("L");
-                }
-                if (this->viewOrientationLeftMedialIcon != NULL) {
-                    this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationLeftMedialIcon);
-                }
-                else {
-                    this->orientationRightOrMedialToolButtonAction->setIconText("M");
+                    this->orientationLeftOrLateralToolButtonAction->setIcon(this->viewOrientationLeftLateralLightPixmap);
+                    this->orientationRightOrMedialToolButtonAction->setIcon(this->viewOrientationLeftMedialLightPixmap);
                 }
             }
             WuQtUtilities::setToolTipAndStatusTip(this->orientationLeftOrLateralToolButtonAction,
@@ -480,17 +501,13 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
                                                   "View from a MEDIAL perspective");
         }
         else if (leftRightFlag) {
-            if (this->viewOrientationLeftIcon != NULL) {
-                this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationLeftIcon);
+            if (darkFlag) {
+                this->orientationLeftOrLateralToolButtonAction->setIcon(this->viewOrientationLeftDarkPixmap);
+                this->orientationRightOrMedialToolButtonAction->setIcon(this->viewOrientationRightDarkPixmap);
             }
             else {
-                this->orientationLeftOrLateralToolButtonAction->setIconText("L");
-            }
-            if (this->viewOrientationRightIcon != NULL) {
-                this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationRightIcon);
-            }
-            else {
-                this->orientationRightOrMedialToolButtonAction->setIconText("R");
+                this->orientationLeftOrLateralToolButtonAction->setIcon(this->viewOrientationLeftLightPixmap);
+                this->orientationRightOrMedialToolButtonAction->setIcon(this->viewOrientationRightLightPixmap);
             }
             WuQtUtilities::setToolTipAndStatusTip(this->orientationLeftOrLateralToolButtonAction,
                                                   "View from a LEFT perspective");

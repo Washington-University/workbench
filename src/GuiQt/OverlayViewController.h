@@ -144,8 +144,7 @@ namespace caret {
         
         QAction* constructionAction;
 
-        QToolButton* m_colorBarToolButton;
-        //QAction* colorBarAction;
+        QAction* m_colorBarAction;
         
         QAction* settingsAction;
         

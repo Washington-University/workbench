@@ -93,6 +93,7 @@
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "UsernamePasswordWidget.h"
+#include "WorkbenchIconTypeLoader.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDialogNonModal.h"
 #include "WuQMessageBox.h"
@@ -146,8 +147,8 @@ SceneDialog::SceneDialog(QWidget* parent)
     /*
      * Icons
      */
-    m_cautionIconValid = WuQtUtilities::loadIcon(":/SceneFileDialog/caution.png",
-                                                 m_cautionIcon);
+    m_cautionIcon = WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SCENE_DIALOG_CAUTION);
+    m_cautionIconValid = true;
     
     /*
      * Set the dialog's widget

@@ -106,8 +106,6 @@ namespace caret {
         
         QTableWidget* m_tableWidget;
         
-        QIcon* m_removeAllHistoryIcon;
-        
         QIcon* m_downArrowIcon;
         
         QIcon* m_upArrowIcon;

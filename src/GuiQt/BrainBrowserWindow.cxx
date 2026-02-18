@@ -83,6 +83,8 @@
 #include "EventBrowserWindowPixelSizeInfoEvent.h"
 #include "EventBrowserTabIndicesGetAllViewed.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
+#include "EventDarkLightThemeModeChanged.h"
+#include "EventDarkLightThemeModeGet.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
@@ -130,6 +132,7 @@
 #include "VolumeMontageSetupDialog.h"
 #include "WindowTabAspectRatios.h"
 #include "WorkbenchAction.h"
+#include "WorkbenchIconTypeLoader.h"
 #include "WorkbenchInstallationAssistantDialog.h"
 #include "WorkbenchToolButton.h"
 #include "WuQDataEntryDialog.h"
@@ -297,6 +300,7 @@ m_browserWindowIndex(browserWindowIndex)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GET_TABS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_VIEWPORT_SIZE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW);
@@ -326,6 +330,8 @@ m_browserWindowIndex(browserWindowIndex)
     gapsAndMargins->setSurfaceMontageVerticalGapForWindow(m_browserWindowIndex, 0.0f);
     gapsAndMargins->setVolumeMontageHorizontalGapForWindow(m_browserWindowIndex, 0.0f);
     gapsAndMargins->setVolumeMontageVerticalGapForWindow(m_browserWindowIndex, 0.0f);
+    
+    updateIconsForCurrentDarkLightTheme();
     
     /*
      * Allows keyboard events
@@ -424,6 +430,12 @@ BrainBrowserWindow::receiveEvent(Event* event)
         for (auto btc : tabContent) {
             btc->getFilesAndMapIndicesInOverlays(filesEvent);
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED) {
+        EventDarkLightThemeModeChanged* darkLightThemeEvent(dynamic_cast<EventDarkLightThemeModeChanged*>(event));
+        CaretAssert(darkLightThemeEvent);
+        updateIconsForCurrentDarkLightTheme();
+        darkLightThemeEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GET_VIEWPORT_SIZE) {
         EventGetViewportSize* viewportSizeEvent = dynamic_cast<EventGetViewportSize*>(event);
@@ -1023,34 +1035,19 @@ BrainBrowserWindow::keyPressEvent(QKeyEvent* event)
 void 
 BrainBrowserWindow::createActionsUsedByToolBar()
 {
-    QIcon featuresToolBoxIcon;
-    const bool featuresToolBoxIconValid = WuQtUtilities::loadIcon(":/ToolBar/features_toolbox.png", 
-                                                         featuresToolBoxIcon);
-    
-    QIcon overlayToolBoxIcon;
-    const bool overlayToolBoxIconValid = WuQtUtilities::loadIcon(":/ToolBar/overlay_toolbox.png",
-                                                                  overlayToolBoxIcon);
-    
     /*
      * Note: The name of a dock widget becomes its
      * name in the toggleViewAction().  So, use
      * a separate action here so that the name in 
      * the menu is as set here.
      */
-    m_overlayToolBoxAction = 
-    WuQtUtilities::createAction("Overlay ToolBox",
-                                "Overlay ToolBox",
-                                this,
-                                this,
-                                SLOT(processShowOverlayToolBox(bool)));
+    m_overlayToolBoxAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_OVERLAYS,
+                                                 this);
+    QObject::connect(m_overlayToolBoxAction, &WorkbenchAction::triggered,
+                     this, &BrainBrowserWindow::processShowOverlayToolBox);
     m_overlayToolBoxAction->setCheckable(true);
-    if (overlayToolBoxIconValid) {
-        m_overlayToolBoxAction->setIcon(overlayToolBoxIcon);
-        m_overlayToolBoxAction->setIconVisibleInMenu(false);
-    }
-    else {
-        m_overlayToolBoxAction->setIconText("OT");
-    }
+    m_overlayToolBoxAction->setIconVisibleInMenu(false);
+    m_overlayToolBoxAction->setToolTip("Show Overlay Toolbox");
     m_overlayToolBoxAction->setObjectName(m_objectNamePrefix
                                            + ":ToolBar:ShowOverlayToolBox");
     WuQMacroManager::instance()->addMacroSupportToObject(m_overlayToolBoxAction,
@@ -1062,17 +1059,16 @@ BrainBrowserWindow::createActionsUsedByToolBar()
      * a separate action here so that the name in 
      * the menu is as set here.
      */
+    m_featuresToolBoxActionDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::TABBAR_FEATURES,
+                                                                                       GuiDarkLightThemeModeEnum::DARK);
+    m_featuresToolBoxActionLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::TABBAR_FEATURES,
+                                                                                        GuiDarkLightThemeModeEnum::LIGHT);
+
     m_featuresToolBoxAction = m_featuresToolBox->toggleViewAction();
     m_featuresToolBoxAction->setCheckable(true);
     QObject::connect(m_featuresToolBoxAction, SIGNAL(triggered(bool)),
                      this, SLOT(processShowFeaturesToolBox(bool)));
-    if (featuresToolBoxIconValid) {
-        m_featuresToolBoxAction->setIcon(featuresToolBoxIcon);
-        m_featuresToolBoxAction->setIconVisibleInMenu(false);
-    }
-    else {
-        m_featuresToolBoxAction->setIconText("LT");
-    }
+    m_featuresToolBoxAction->setIconVisibleInMenu(false);
     m_featuresToolBoxAction->setObjectName(m_objectNamePrefix
                                            + ":ToolBar:ShowFeaturesToolBox");
     WuQMacroManager::instance()->addMacroSupportToObject(m_featuresToolBoxAction,
@@ -5769,3 +5765,33 @@ BrainBrowserWindow::showDataFileReadWarningsDialog()
                                          this);
     }
 }
+
+/**
+ * Update icons for current dark / light theme
+ */
+void
+BrainBrowserWindow::updateIconsForCurrentDarkLightTheme()
+{
+    EventDarkLightThemeModeGet themeEvent;
+    EventManager::get()->sendEvent(themeEvent.getPointer());
+    const GuiDarkLightThemeModeEnum::Enum darkLightTheme(themeEvent.getDarkLightThemeMode());
+    
+    bool darkFlag(false);
+    switch (darkLightTheme) {
+        case GuiDarkLightThemeModeEnum::SYSTEM:
+            break;
+        case GuiDarkLightThemeModeEnum::DARK:
+            darkFlag = true;
+            break;
+        case GuiDarkLightThemeModeEnum::LIGHT:
+            break;
+    }
+    
+    if (darkFlag) {
+        m_featuresToolBoxAction->setIcon(m_featuresToolBoxActionDarkPixmap);
+    }
+    else {
+        m_featuresToolBoxAction->setIcon(m_featuresToolBoxActionLightPixmap);
+    }
+}
+

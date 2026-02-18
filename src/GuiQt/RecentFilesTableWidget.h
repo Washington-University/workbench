@@ -107,8 +107,6 @@ namespace caret {
         
         void updateRow(const int32_t rowIndex);
         
-        std::unique_ptr<QIcon> loadIcon(const AString& iconFileName) const;
-        
         void clearSelectedItem();
         
         void sortRecentItems();

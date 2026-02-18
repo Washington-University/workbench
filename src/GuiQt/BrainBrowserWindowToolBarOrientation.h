@@ -50,6 +50,8 @@ namespace caret {
 
         BrainBrowserWindowToolBarOrientation& operator=(const BrainBrowserWindowToolBarOrientation&) = delete;
         
+        virtual void receiveEvent(Event* event) override;
+        
         virtual void updateContent(BrowserTabContent* browserTabContent) override;
         
 
@@ -104,13 +106,18 @@ namespace caret {
         QAction* orientationResetToolButtonAction;
         QToolButton* orientationCustomViewSelectToolButton;
         
-        QIcon* viewOrientationLeftIcon;
-        QIcon* viewOrientationRightIcon;
-        QIcon* viewOrientationPosteriorIcon;
-        QIcon* viewOrientationLeftLateralIcon;
-        QIcon* viewOrientationLeftMedialIcon;
-        QIcon* viewOrientationRightLateralIcon;
-        QIcon* viewOrientationRightMedialIcon;
+        QPixmap viewOrientationLeftDarkPixmap;
+        QPixmap viewOrientationLeftLightPixmap;
+        QPixmap viewOrientationRightDarkPixmap;
+        QPixmap viewOrientationRightLightPixmap;
+        QPixmap viewOrientationLeftLateralDarkPixmap;
+        QPixmap viewOrientationLeftLateralLightPixmap;
+        QPixmap viewOrientationLeftMedialDarkPixmap;
+        QPixmap viewOrientationLeftMedialLightPixmap;
+        QPixmap viewOrientationRightLateralDarkPixmap;
+        QPixmap viewOrientationRightLateralLightPixmap;
+        QPixmap viewOrientationRightMedialDarkPixmap;
+        QPixmap viewOrientationRightMedialLightPixmap;
 
         QAction* m_redoAction;
         QAction* m_undoAction;

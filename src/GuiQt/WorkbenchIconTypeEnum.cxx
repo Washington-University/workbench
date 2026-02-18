@@ -162,6 +162,22 @@ switch (value) {
         break;
     case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH:
         break;
+    case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_FILLED:
+        break;
+    case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_OUTLINE:
+        break;
+    case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_BLACK:
+        break;
+    case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_RED:
+        break;
+    case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_SHARE:
+        break;
+    case WorkbenchIconTypeEnum::RECENT_FILES_HCP_IMAGE:
+        break;
+    case WorkbenchIconTypeEnum::RECENT_FILES_X_IMAGE:
+        break;
+    case WorkbenchIconTypeEnum::SCENE_DIALOG_CAUTION:
+        break;
     case WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_DELETE:
         break;
     case WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_LOAD:
@@ -433,6 +449,38 @@ WorkbenchIconTypeEnum::initialize()
     enumData.push_back(WorkbenchIconTypeEnum(OVERLAY_TOOLBOX_WRENCH, 
                                     "OVERLAY_TOOLBOX_WRENCH", 
                                     "Overlay Toolbox Wrench"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(RECENT_FILES_DIALOG_FAVORITE_FILLED,
+                                             "RECENT_FILES_DIALOG_FAVORITE_FILLED",
+                                             "Recent Files Dialog Favorite Filled"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(RECENT_FILES_DIALOG_FAVORITE_OUTLINE,
+                                             "RECENT_FILES_DIALOG_FAVORITE_OUTLINE",
+                                             "Recent Files Dialog Favorite Outline"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(RECENT_FILES_DIALOG_FORGET_BLACK,
+                                             "RECENT_FILES_DIALOG_FORGET_BLACK",
+                                             "Recent Files Dialog Forget Black"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(RECENT_FILES_DIALOG_FORGET_RED,
+                                             "RECENT_FILES_DIALOG_FORGET_RED",
+                                             "Recent Files Dialog Forget Red"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(RECENT_FILES_DIALOG_SHARE,
+                                             "RECENT_FILES_DIALOG_SHARE",
+                                             "Recent Files Dialog Share"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(RECENT_FILES_HCP_IMAGE,
+                                             "RECENT_FILES_HCP_IMAGE",
+                                             "Recent Files HCP Image"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(RECENT_FILES_X_IMAGE,
+                                             "RECENT_FILES_X_IMAGE",
+                                             "Recent Files X"));
+    
+    enumData.push_back(WorkbenchIconTypeEnum(SCENE_DIALOG_CAUTION,
+                                             "SCENE_DIALOG_CAUTION",
+                                             "Scene Dialog Caution"));
     
     enumData.push_back(WorkbenchIconTypeEnum(SPEC_FILE_DIALOG_DELETE,
                                              "SPEC_FILE_DIALOG_DELETE",

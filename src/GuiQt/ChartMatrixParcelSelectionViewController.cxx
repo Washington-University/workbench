@@ -60,6 +60,8 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ModelChart.h"
+#include "WorkbenchAction.h"
+#include "WorkbenchToolButton.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -343,38 +345,25 @@ ChartMatrixParcelSelectionViewController::createMatrixParcelChartWidget(const Qt
     /*
      * ColorBar Tool Button
      */
-    QIcon colorBarIcon;
-    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
-                                                           colorBarIcon);
-    m_matrixParcelColorBarAction = WuQtUtilities::createAction("CB",
-                                                       "Display color bar for this overlay",
-                                                       this,
-                                                       this,
-                                                       SLOT(matrixParcelColorBarActionTriggered(bool)));
+    m_matrixParcelColorBarAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_COLOR_BAR,
+                                                       this);
+    m_matrixParcelColorBarAction->setToolTip("Display color bar for this overlay");
+    QObject::connect(m_matrixParcelColorBarAction, &QAction::triggered,
+                     this, &ChartMatrixParcelSelectionViewController::matrixParcelColorBarActionTriggered);
     m_matrixParcelColorBarAction->setCheckable(true);
-    if (colorBarIconValid) {
-        m_matrixParcelColorBarAction->setIcon(colorBarIcon);
-    }
-    QToolButton* colorBarToolButton = new QToolButton();
+    QToolButton* colorBarToolButton = new WorkbenchToolButton();
     colorBarToolButton->setDefaultAction(m_matrixParcelColorBarAction);
     
     /*
      * Settings Tool Button
      */
     QLabel* settingsLabel = new QLabel("Settings");
-    QIcon settingsIcon;
-    const bool settingsIconValid = WuQtUtilities::loadIcon(":/LayersPanel/wrench.png",
-                                                           settingsIcon);
-    
-    m_matrixParcelSettingsAction = WuQtUtilities::createAction("S",
-                                                       "Edit settings for this map and overlay",
-                                                       this,
-                                                       this,
-                                                       SLOT(matrixParcelSettingsActionTriggered()));
-    if (settingsIconValid) {
-        m_matrixParcelSettingsAction->setIcon(settingsIcon);
-    }
-    QToolButton* settingsToolButton = new QToolButton();
+    m_matrixParcelSettingsAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH,
+                                                       this);
+    m_matrixParcelSettingsAction->setToolTip("Edit settings for this map and overlay");
+    QObject::connect(m_matrixParcelSettingsAction, &QAction::triggered,
+                     this, &ChartMatrixParcelSelectionViewController::matrixParcelSettingsActionTriggered);
+    QToolButton* settingsToolButton = new WorkbenchToolButton();
     settingsToolButton->setDefaultAction(m_matrixParcelSettingsAction);
     
     

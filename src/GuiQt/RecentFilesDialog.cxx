@@ -51,6 +51,7 @@
 #include "SceneFile.h"
 #include "SessionManager.h"
 #include "UsernamePasswordWidget.h"
+#include "WorkbenchToolButton.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -557,38 +558,25 @@ RecentFilesDialog::showFilePathsCheckBoxClicked(bool /*checked*/)
 QWidget*
 RecentFilesDialog::createInternetButtonsWidget()
 {
-    QToolButton* hcpToolButton = new QToolButton();
-    QIcon hcpImage;
-    if (WuQtUtilities::loadIcon(":/RecentFilesDialog/hcp_image.png", hcpImage)) {
-        hcpToolButton->setIconSize(QSize(32, 32));
-        hcpToolButton->setIcon(hcpImage);
-    }
-    else {
-        hcpToolButton->setText("H");
-    }
-    hcpToolButton->setToolTip("Visit HCP Website");
-    QObject::connect(hcpToolButton, &QToolButton::clicked,
+    QToolButton* hcpToolButton = new WorkbenchToolButton(WorkbenchIconTypeEnum::RECENT_FILES_HCP_IMAGE);
+    hcpToolButton->setIconSize(QSize(32, 32));
+    QAction* hcpAction(hcpToolButton->defaultAction());
+    hcpAction->setToolTip("Visit HCP Website");
+    QObject::connect(hcpAction, &QAction::triggered,
                      this, &RecentFilesDialog::hcpWebsiteButtonClicked);
     
-    QToolButton* twitterToolButton = new QToolButton();
-    QIcon twitterIcon;
-    if (WuQtUtilities::loadIcon(":/RecentFilesDialog/twitter_image.png",
-                                twitterIcon)) {
-        twitterToolButton->setIconSize(QSize(32, 32));
-        twitterToolButton->setIcon(twitterIcon);
-    }
-    else {
-        twitterToolButton->setText("T");
-    }
-    twitterToolButton->setToolTip("Visit HCP Twitter Feed");
-    QObject::connect(twitterToolButton, &QToolButton::clicked,
-                     this, &RecentFilesDialog::twitterButtonClicked);
+    QToolButton* xToolButton = new WorkbenchToolButton(WorkbenchIconTypeEnum::RECENT_FILES_X_IMAGE);
+    xToolButton->setIconSize(QSize(32, 32));
+    QAction* xAction(xToolButton->defaultAction());
+    xAction->setToolTip("Visit HCP X Feed");
+    QObject::connect(xAction, &QAction::triggered,
+                     this, &RecentFilesDialog::xButtonClicked);
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     layout->addStretch();
     layout->addWidget(hcpToolButton);
-    layout->addWidget(twitterToolButton);
+    layout->addWidget(xToolButton);
     layout->addStretch();
     
     return widget;
@@ -604,12 +592,12 @@ RecentFilesDialog::hcpWebsiteButtonClicked()
 }
 
 /**
- * Called when the Twitter button is clicked
+ * Called when the X button is clicked
  */
 void
-RecentFilesDialog::twitterButtonClicked()
+RecentFilesDialog::xButtonClicked()
 {
-    websiteLinkActivated("http://twitter.com/#!/HumanConnectome");
+    websiteLinkActivated("http://x.com/#!/HumanConnectome");
 }
 
 /**

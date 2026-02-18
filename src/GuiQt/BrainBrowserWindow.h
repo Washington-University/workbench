@@ -379,6 +379,8 @@ namespace caret {
         
         void modifyTileTabsConfiguration(EventTileTabsGridConfigurationModification* modEvent);
 
+        void updateIconsForCurrentDarkLightTheme();
+        
         /** Index of this window */
         const int32_t m_browserWindowIndex;
         
@@ -487,6 +489,8 @@ namespace caret {
         QToolButton* m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton;
 
         QAction* m_featuresToolBoxAction;
+        QPixmap m_featuresToolBoxActionDarkPixmap;
+        QPixmap m_featuresToolBoxActionLightPixmap;
 
         QAction* m_dataAnnotationsEditAction;
         QAction* m_dataBordersEditAction;
