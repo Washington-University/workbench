@@ -1,5 +1,5 @@
-#ifndef __EVENT_DARK_LIGHT_THEME_MODE_GET_H__
-#define __EVENT_DARK_LIGHT_THEME_MODE_GET_H__
+#ifndef __EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET_H__
+#define __EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET_H__
 
 /*LICENSE_START*/
 /*
@@ -26,29 +26,29 @@
 #include <memory>
 
 #include "Event.h"
-#include "GuiDarkLightThemeModeEnum.h"
+#include "GuiDarkLightColorSchemeModeEnum.h"
 
 namespace caret {
 
-    class EventDarkLightThemeModeGet : public Event {
+    class EventDarkLightColorSchemeModeGet : public Event {
         
     public:
-        EventDarkLightThemeModeGet();
+        EventDarkLightColorSchemeModeGet();
         
-        virtual ~EventDarkLightThemeModeGet();
+        virtual ~EventDarkLightColorSchemeModeGet();
         
-        EventDarkLightThemeModeGet(const EventDarkLightThemeModeGet&) = delete;
+        EventDarkLightColorSchemeModeGet(const EventDarkLightColorSchemeModeGet&) = delete;
 
-        EventDarkLightThemeModeGet& operator=(const EventDarkLightThemeModeGet&) = delete;
+        EventDarkLightColorSchemeModeGet& operator=(const EventDarkLightColorSchemeModeGet&) = delete;
         
-        GuiDarkLightThemeModeEnum::Enum getDarkLightThemeMode() const;
+        GuiDarkLightColorSchemeModeEnum::Enum getDarkLightColorSchemeMode() const;
         
-        void setDarkLightThemeMode(const GuiDarkLightThemeModeEnum::Enum mode);
+        void setDarkLightColorSchemeMode(const GuiDarkLightColorSchemeModeEnum::Enum mode);
 
         // ADD_NEW_METHODS_HERE
 
     private:
-        GuiDarkLightThemeModeEnum::Enum m_mode = GuiDarkLightThemeModeEnum::LIGHT;
+        GuiDarkLightColorSchemeModeEnum::Enum m_mode = GuiDarkLightColorSchemeModeEnum::LIGHT;
         
         bool m_modeSetFlag = false;
         
@@ -56,9 +56,9 @@ namespace caret {
 
     };
     
-#ifdef __EVENT_DARK_LIGHT_THEME_MODE_GET_DECLARE__
+#ifdef __EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_DARK_LIGHT_THEME_MODE_GET_DECLARE__
+#endif // __EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET_DECLARE__
 
 } // namespace
-#endif  //__EVENT_DARK_LIGHT_THEME_MODE_GET_H__
+#endif  //__EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET_H__

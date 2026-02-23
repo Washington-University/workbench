@@ -51,7 +51,7 @@ namespace caret {
     class CustomViewDialog;
     class EventOperatingSystemRequestOpenDataFile;
     class GapsAndMarginsDialog;
-    class GuiDarkLightThemeManager;
+    class GuiDarkLightColorSchemeManager;
     class HelpViewerDialog;
     class IdentifyBrainordinateDialog;
     class IdentificationDisplayDialog;
@@ -139,7 +139,7 @@ namespace caret {
 
         const CursorManager* getCursorManager() const;
         
-        GuiDarkLightThemeManager* getGuiDarkLightThemeManager();
+        GuiDarkLightColorSchemeManager* getGuiDarkLightColorSchemeManager();
         
         QAction* getInformationDisplayDialogEnabledAction();
         
@@ -287,7 +287,7 @@ namespace caret {
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
         
-        std::unique_ptr<GuiDarkLightThemeManager> m_guiDarkLightThemeManager;
+        std::unique_ptr<GuiDarkLightColorSchemeManager> m_guiDarkLightColorSchemeManager;
         
         /** Contains pointers to Brain Browser windows */
         std::vector<BrainBrowserWindow*> m_brainBrowserWindows;

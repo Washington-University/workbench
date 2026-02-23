@@ -869,7 +869,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     this->m_histogramHorizontalRangeComboBox->getWidget()->setToolTip("Horizontal range of histogram");
 
     QIcon colorBarIcon = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_COLOR_BAR,
-                                                                        GuiDarkLightThemeModeEnum::LIGHT);
+                                                                        GuiDarkLightColorSchemeModeEnum::LIGHT);
     
     QLabel* barsColorLabel = new QLabel("Bars Color");
     m_histogramBarsColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::FIXED,

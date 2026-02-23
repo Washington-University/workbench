@@ -257,13 +257,13 @@ m_specFile(specFile)
     m_fileSorting = SpecFileManagementDialogRowContent::SORTING_TYPE_STRUCTURE_NAME;
 
     /*
-     * Load icons using current theme.  Dialog is modal so user cannot change theme
+     * Load icons using current color scheme.  Dialog is modal so user cannot change color scheme
      * while dialog is open.
      */
-    m_iconOpenFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_LOAD)));
-    m_iconOptions.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_OPTIONS)));
-    m_iconReloadFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_RELOAD)));
-    m_iconCloseFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_DELETE)));
+    m_iconOpenFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_LOAD)));
+    m_iconOptions.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_OPTIONS)));
+    m_iconReloadFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_RELOAD)));
+    m_iconCloseFile.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_DELETE)));
 
     /*
      * Open Spec File or Manage Files?

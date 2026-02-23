@@ -28,7 +28,7 @@
 
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
-#include "GuiDarkLightThemeModeEnum.h"
+#include "GuiDarkLightColorSchemeModeEnum.h"
 #include "WorkbenchIconTypeEnum.h"
 
 namespace caret {
@@ -78,11 +78,11 @@ namespace caret {
     private:
         void initialize();
         
-        void updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
+        void updateForDarkLightColorScheme(const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode);
         
-        void updateButtonForMacOS(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
+        void updateButtonForMacOS(const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode);
         
-        GuiDarkLightThemeModeEnum::Enum getCurrentDarkLightThemeMode() const;
+        GuiDarkLightColorSchemeModeEnum::Enum getCurrentDarkLightColorSchemeMode() const;
         
         const MenuStatus m_menuStatus;
         

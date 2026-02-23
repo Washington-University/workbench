@@ -27,8 +27,8 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "EventDarkLightThemeModeChanged.h"
-#include "EventDarkLightThemeModeGet.h"
+#include "EventDarkLightColorSchemeModeChanged.h"
+#include "EventDarkLightColorSchemeModeGet.h"
 #include "EventManager.h"
 #include "WorkbenchAction.h"
 
@@ -56,7 +56,7 @@ m_menuStatus(menuStatus)
 {
     initialize();
     
-    updateForDarkLightTheme(getCurrentDarkLightThemeMode());
+    updateForDarkLightColorScheme(getCurrentDarkLightColorSchemeMode());
 }
 
 /**
@@ -79,7 +79,7 @@ m_menuStatus(menuStatus)
     setDefaultAction(new WorkbenchAction(iconType,
                                          this));
     
-    updateForDarkLightTheme(getCurrentDarkLightThemeMode());
+    updateForDarkLightColorScheme(getCurrentDarkLightColorSchemeMode());
 }
 
 /**
@@ -98,7 +98,7 @@ void
 WorkbenchToolButton::initialize()
 {
     EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
+                                          EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED);
 //    std::cout << (ptrdiff_t)this << " " << s_allWorkbenchButtonsCounter << std::endl;
     s_allWorkbenchToolButtons[this] = s_allWorkbenchButtonsCounter;
     ++s_allWorkbenchButtonsCounter;
@@ -113,33 +113,33 @@ WorkbenchToolButton::initialize()
 void
 WorkbenchToolButton::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED) {
-        EventDarkLightThemeModeChanged* themeChangedEvent(dynamic_cast<EventDarkLightThemeModeChanged*>(event));
-        CaretAssert(themeChangedEvent);
+    if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED) {
+        EventDarkLightColorSchemeModeChanged* colorSchemeChangedEvent(dynamic_cast<EventDarkLightColorSchemeModeChanged*>(event));
+        CaretAssert(colorSchemeChangedEvent);
         
-        const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode(themeChangedEvent->getDarkLightThemeMode());
-        updateForDarkLightTheme(darkLightThemeMode);
+        const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode(colorSchemeChangedEvent->getDarkLightColorSchemeMode());
+        updateForDarkLightColorScheme(darkLightColorSchemeMode);
     }
 }
 
 void
 WorkbenchToolButton::updateStyleSheet()
 {
-    updateForDarkLightTheme(getCurrentDarkLightThemeMode());
+    updateForDarkLightColorScheme(getCurrentDarkLightColorSchemeMode());
 }
 
 
 /**
- * Update the button for the given dark / light theme
+ * Update the button for the given dark / light color scheme
  *
- * @param darkLightThemeMode
- *    The dark / light theme for the button
+ * @param darkLightColorSchemeMode
+ *    The dark / light color scheme for the button
  */
 void
-WorkbenchToolButton::updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+WorkbenchToolButton::updateForDarkLightColorScheme(const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode)
 {
 #ifdef CARET_OS_MACOSX
-    updateButtonForMacOS(darkLightThemeMode);
+    updateButtonForMacOS(darkLightColorSchemeMode);
 #endif
 }
 
@@ -168,29 +168,29 @@ WorkbenchToolButton::setSpecialBackgroundColorEnabled(const bool enabled)
 
 /**
  * Update the button for MacOS that does not properly decorate the button
- * @param darkLightThemeMode
- *    The dark / light theme for the button
+ * @param darkLightColorSchemeMode
+ *    The dark / light color scheme for the button
  */
 void
-WorkbenchToolButton::updateButtonForMacOS(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+WorkbenchToolButton::updateButtonForMacOS(const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode)
 {
     QColor backgroundColor(52, 52, 52, 255);
     QColor borderColor(85, 85, 85, 255);
     QColor checkedPressedColor(74, 74, 74, 255);
 
-    switch (darkLightThemeMode) {
-        case GuiDarkLightThemeModeEnum::SYSTEM:
+    switch (darkLightColorSchemeMode) {
+        case GuiDarkLightColorSchemeModeEnum::SYSTEM:
             CaretAssert(0);
             backgroundColor.setRgb(255, 255, 255);
             borderColor.setRgb(196, 196, 196);
             checkedPressedColor.setRgb(222, 222, 222);
             break;
-        case GuiDarkLightThemeModeEnum::DARK:
+        case GuiDarkLightColorSchemeModeEnum::DARK:
             backgroundColor.setRgb(52, 52, 52);
             borderColor.setRgb(85, 85, 85);
             checkedPressedColor.setRgb(74, 74, 74);
             break;
-        case GuiDarkLightThemeModeEnum::LIGHT:
+        case GuiDarkLightColorSchemeModeEnum::LIGHT:
             backgroundColor.setRgb(255, 255, 255);
             borderColor.setRgb(196, 196, 196);
             checkedPressedColor.setRgb(222, 222, 222);
@@ -249,14 +249,14 @@ WorkbenchToolButton::showEvent(QShowEvent *event)
 }
 
 /**
- * @return The current dark/light theme
+ * @return The current dark/light color scheme
  */
-GuiDarkLightThemeModeEnum::Enum
-WorkbenchToolButton::getCurrentDarkLightThemeMode() const
+GuiDarkLightColorSchemeModeEnum::Enum
+WorkbenchToolButton::getCurrentDarkLightColorSchemeMode() const
 {
-    EventDarkLightThemeModeGet themeGetEvent;
-    EventManager::get()->sendEvent(themeGetEvent.getPointer());
-    return themeGetEvent.getDarkLightThemeMode();
+    EventDarkLightColorSchemeModeGet colorSchemeGetEvent;
+    EventManager::get()->sendEvent(colorSchemeGetEvent.getPointer());
+    return colorSchemeGetEvent.getDarkLightColorSchemeMode();
 }
 
 void

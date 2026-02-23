@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __EVENT_DARK_LIGHT_THEME_MODE_GET_DECLARE__
-#include "EventDarkLightThemeModeGet.h"
-#undef __EVENT_DARK_LIGHT_THEME_MODE_GET_DECLARE__
+#define __EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET_DECLARE__
+#include "EventDarkLightColorSchemeModeGet.h"
+#undef __EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET_DECLARE__
 
 #include "CaretAssert.h"
 #include "EventTypeEnum.h"
@@ -31,16 +31,16 @@ using namespace caret;
 
     
 /**
- * \class caret::EventDarkLightThemeModeGet 
- * \brief Get the active dark light theme mode
+ * \class caret::EventDarkLightColorSchemeModeGet 
+ * \brief Get the active dark light color scheme mode
  * \ingroup Common
  */
 
 /**
  * Constructor.
  */
-EventDarkLightThemeModeGet::EventDarkLightThemeModeGet()
-: Event(EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_GET)
+EventDarkLightColorSchemeModeGet::EventDarkLightColorSchemeModeGet()
+: Event(EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET)
 {
     
 }
@@ -48,15 +48,15 @@ EventDarkLightThemeModeGet::EventDarkLightThemeModeGet()
 /**
  * Destructor.
  */
-EventDarkLightThemeModeGet::~EventDarkLightThemeModeGet()
+EventDarkLightColorSchemeModeGet::~EventDarkLightColorSchemeModeGet()
 {
 }
 
 /**
- * @return The dark / light theme mode
+ * @return The dark / light color scheme mode
  */
-GuiDarkLightThemeModeEnum::Enum
-EventDarkLightThemeModeGet::getDarkLightThemeMode() const
+GuiDarkLightColorSchemeModeEnum::Enum
+EventDarkLightColorSchemeModeGet::getDarkLightColorSchemeMode() const
 {
     if ( ! m_modeSetFlag) {
         CaretAssertMessage(0, "Mode has not been set, m_modeSetFlag is false");
@@ -65,12 +65,12 @@ EventDarkLightThemeModeGet::getDarkLightThemeMode() const
 }
 
 /**
- * Set the dark / light theme mode
+ * Set the dark / light color scheme mode
  * @param mode
- *    The dark / light theme mode
+ *    The dark / light color scheme mode
  */
 void
-EventDarkLightThemeModeGet::setDarkLightThemeMode(const GuiDarkLightThemeModeEnum::Enum mode)
+EventDarkLightColorSchemeModeGet::setDarkLightColorSchemeMode(const GuiDarkLightColorSchemeModeEnum::Enum mode)
 {
     m_mode = mode;
     m_modeSetFlag = true;

@@ -83,8 +83,8 @@
 #include "EventBrowserWindowPixelSizeInfoEvent.h"
 #include "EventBrowserTabIndicesGetAllViewed.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
-#include "EventDarkLightThemeModeChanged.h"
-#include "EventDarkLightThemeModeGet.h"
+#include "EventDarkLightColorSchemeModeChanged.h"
+#include "EventDarkLightColorSchemeModeGet.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
@@ -99,7 +99,7 @@
 #include "FileInformation.h"
 #include "FociProjectionDialog.h"
 #include "GapsAndMargins.h"
-#include "GuiDarkLightThemeManager.h"
+#include "GuiDarkLightColorSchemeManager.h"
 #include "GuiManager.h"
 #include "LockAspectWarningDialog.h"
 #include "ModelSurface.h"
@@ -300,7 +300,7 @@ m_browserWindowIndex(browserWindowIndex)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GET_TABS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_VIEWPORT_SIZE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW);
@@ -331,7 +331,7 @@ m_browserWindowIndex(browserWindowIndex)
     gapsAndMargins->setVolumeMontageHorizontalGapForWindow(m_browserWindowIndex, 0.0f);
     gapsAndMargins->setVolumeMontageVerticalGapForWindow(m_browserWindowIndex, 0.0f);
     
-    updateIconsForCurrentDarkLightTheme();
+    updateIconsForCurrentDarkLightColorScheme();
     
     /*
      * Allows keyboard events
@@ -431,11 +431,11 @@ BrainBrowserWindow::receiveEvent(Event* event)
             btc->getFilesAndMapIndicesInOverlays(filesEvent);
         }
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED) {
-        EventDarkLightThemeModeChanged* darkLightThemeEvent(dynamic_cast<EventDarkLightThemeModeChanged*>(event));
-        CaretAssert(darkLightThemeEvent);
-        updateIconsForCurrentDarkLightTheme();
-        darkLightThemeEvent->setEventProcessed();
+    else if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED) {
+        EventDarkLightColorSchemeModeChanged* darkLightColorSchemeEvent(dynamic_cast<EventDarkLightColorSchemeModeChanged*>(event));
+        CaretAssert(darkLightColorSchemeEvent);
+        updateIconsForCurrentDarkLightColorScheme();
+        darkLightColorSchemeEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GET_VIEWPORT_SIZE) {
         EventGetViewportSize* viewportSizeEvent = dynamic_cast<EventGetViewportSize*>(event);
@@ -919,9 +919,11 @@ BrainBrowserWindow::changeEvent(QEvent *event)
         }
     }
     else if (event->type() == QEvent::PaletteChange) {
-        GuiDarkLightThemeManager* darkLightThemeManager(GuiManager::get()->getGuiDarkLightThemeManager());
-        CaretAssert(darkLightThemeManager);
-        darkLightThemeManager->darkLightThemeChangedByPaletteChangeEventInBrowserWindow();
+#ifdef WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
+        GuiDarkLightColorSchemeManager* darkLightColorSchemeManager(GuiManager::get()->getGuiDarkLightColorSchemeManager());
+        CaretAssert(darkLightColorSchemeManager);
+        darkLightColorSchemeManager->darkLightColorSchemeChangedByPaletteChangeEventInBrowserWindow();
+#endif
     }
     
     m_restoringSceneNoSaveWindowCompontentStatusFlag = false;
@@ -1060,9 +1062,9 @@ BrainBrowserWindow::createActionsUsedByToolBar()
      * the menu is as set here.
      */
     m_featuresToolBoxActionDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::TABBAR_FEATURES,
-                                                                                       GuiDarkLightThemeModeEnum::DARK);
+                                                                                       GuiDarkLightColorSchemeModeEnum::DARK);
     m_featuresToolBoxActionLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::TABBAR_FEATURES,
-                                                                                        GuiDarkLightThemeModeEnum::LIGHT);
+                                                                                        GuiDarkLightColorSchemeModeEnum::LIGHT);
 
     m_featuresToolBoxAction = m_featuresToolBox->toggleViewAction();
     m_featuresToolBoxAction->setCheckable(true);
@@ -5765,23 +5767,23 @@ BrainBrowserWindow::showDataFileReadWarningsDialog()
 }
 
 /**
- * Update icons for current dark / light theme
+ * Update icons for current dark / light color scheme
  */
 void
-BrainBrowserWindow::updateIconsForCurrentDarkLightTheme()
+BrainBrowserWindow::updateIconsForCurrentDarkLightColorScheme()
 {
-    EventDarkLightThemeModeGet themeEvent;
-    EventManager::get()->sendEvent(themeEvent.getPointer());
-    const GuiDarkLightThemeModeEnum::Enum darkLightTheme(themeEvent.getDarkLightThemeMode());
+    EventDarkLightColorSchemeModeGet colorSchemeEvent;
+    EventManager::get()->sendEvent(colorSchemeEvent.getPointer());
+    const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorScheme(colorSchemeEvent.getDarkLightColorSchemeMode());
     
     bool darkFlag(false);
-    switch (darkLightTheme) {
-        case GuiDarkLightThemeModeEnum::SYSTEM:
+    switch (darkLightColorScheme) {
+        case GuiDarkLightColorSchemeModeEnum::SYSTEM:
             break;
-        case GuiDarkLightThemeModeEnum::DARK:
+        case GuiDarkLightColorSchemeModeEnum::DARK:
             darkFlag = true;
             break;
-        case GuiDarkLightThemeModeEnum::LIGHT:
+        case GuiDarkLightColorSchemeModeEnum::LIGHT:
             break;
     }
     

@@ -319,13 +319,13 @@ EventTypeEnum::initialize()
                                      "EVENT_CHART_TWO_OVERLAY_VALIDATE",
                                      "Validate a chart two overlay for validity (it exists)"));
     
-    enumData.push_back(EventTypeEnum(EVENT_DARK_LIGHT_THEME_MODE_CHANGED,
-                                     "EVENT_DARK_LIGHT_THEME_MODE_CHANGED",
-                                     "Dark / Light theme mode changed"));
+    enumData.push_back(EventTypeEnum(EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED,
+                                     "EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED",
+                                     "Dark / Light color scheme mode changed"));
 
-    enumData.push_back(EventTypeEnum(EVENT_DARK_LIGHT_THEME_MODE_GET,
-                                     "EVENT_DARK_LIGHT_THEME_MODE_GET",
-                                     "Get the Dark / Light theme mode"));
+    enumData.push_back(EventTypeEnum(EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET,
+                                     "EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET",
+                                     "Get the Dark / Light color scheme mode"));
     
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_ADD,
                                      "EVENT_DATA_FILE_ADD",

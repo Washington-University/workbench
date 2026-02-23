@@ -35,8 +35,8 @@ using namespace caret;
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretUndoStack.h"
-#include "EventDarkLightThemeModeChanged.h"
-#include "EventDarkLightThemeModeGet.h"
+#include "EventDarkLightColorSchemeModeChanged.h"
+#include "EventDarkLightColorSchemeModeGet.h"
 #include "EventGraphicsPaintNowAllWindows.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
@@ -81,35 +81,35 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
                                    + ":Orientation:");
     
     this->viewOrientationLeftDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT,
-                                                                                       GuiDarkLightThemeModeEnum::DARK);
+                                                                                       GuiDarkLightColorSchemeModeEnum::DARK);
     this->viewOrientationLeftLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT,
-                                                                                        GuiDarkLightThemeModeEnum::LIGHT);
+                                                                                        GuiDarkLightColorSchemeModeEnum::LIGHT);
 
     this->viewOrientationRightDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT,
-                                                                                         GuiDarkLightThemeModeEnum::DARK);
+                                                                                         GuiDarkLightColorSchemeModeEnum::DARK);
     this->viewOrientationRightLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT,
-                                                                                          GuiDarkLightThemeModeEnum::LIGHT);
+                                                                                          GuiDarkLightColorSchemeModeEnum::LIGHT);
 
     this->viewOrientationLeftLateralDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL,
-                                                                                                GuiDarkLightThemeModeEnum::DARK);
+                                                                                                GuiDarkLightColorSchemeModeEnum::DARK);
     this->viewOrientationLeftLateralLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL,
-                                                                                                 GuiDarkLightThemeModeEnum::LIGHT);
+                                                                                                 GuiDarkLightColorSchemeModeEnum::LIGHT);
 
     
     this->viewOrientationLeftMedialDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT_MEDIAL,
-                                                                                                 GuiDarkLightThemeModeEnum::DARK);
+                                                                                                 GuiDarkLightColorSchemeModeEnum::DARK);
     this->viewOrientationLeftMedialLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_LEFT_MEDIAL,
-                                                                                                 GuiDarkLightThemeModeEnum::LIGHT);
+                                                                                                 GuiDarkLightColorSchemeModeEnum::LIGHT);
 
     this->viewOrientationRightLateralDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT_LATERAL,
-                                                                                                 GuiDarkLightThemeModeEnum::DARK);
+                                                                                                 GuiDarkLightColorSchemeModeEnum::DARK);
     this->viewOrientationRightLateralLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT_LATERAL,
-                                                                                                  GuiDarkLightThemeModeEnum::LIGHT);
+                                                                                                  GuiDarkLightColorSchemeModeEnum::LIGHT);
 
     this->viewOrientationRightMedialDarkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT_MEDIAL,
-                                                                                                GuiDarkLightThemeModeEnum::DARK);
+                                                                                                GuiDarkLightColorSchemeModeEnum::DARK);
     this->viewOrientationRightMedialLightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(WorkbenchIconTypeEnum::ORIENTATION_RIGHT_MEDIAL,
-                                                                                                 GuiDarkLightThemeModeEnum::LIGHT);
+                                                                                                 GuiDarkLightColorSchemeModeEnum::LIGHT);
 
     this->orientationLeftOrLateralToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL,
                                                                          this);
@@ -348,7 +348,7 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     addToWidgetGroup(this->orientationResetToolButtonAction);
     
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED);
 }
 
 /**
@@ -367,10 +367,10 @@ BrainBrowserWindowToolBarOrientation::~BrainBrowserWindowToolBarOrientation()
 void
 BrainBrowserWindowToolBarOrientation::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED) {
-        EventDarkLightThemeModeChanged* darkLightThemeEvent(dynamic_cast<EventDarkLightThemeModeChanged*>(event));
-        CaretAssert(darkLightThemeEvent);
-        darkLightThemeEvent->setEventProcessed();
+    if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED) {
+        EventDarkLightColorSchemeModeChanged* darkLightColorSchemeEvent(dynamic_cast<EventDarkLightColorSchemeModeChanged*>(event));
+        CaretAssert(darkLightColorSchemeEvent);
+        darkLightColorSchemeEvent->setEventProcessed();
         
         updateContent(m_browserTabContent);
     }
@@ -393,9 +393,9 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
     
     const int32_t tabIndex = browserTabContent->getTabNumber();
  
-    EventDarkLightThemeModeGet darkLightThemeEvent;
-    EventManager::get()->sendEvent(darkLightThemeEvent.getPointer());
-    const bool darkFlag(darkLightThemeEvent.getDarkLightThemeMode() == GuiDarkLightThemeModeEnum::DARK);
+    EventDarkLightColorSchemeModeGet darkLightColorSchemeEvent;
+    EventManager::get()->sendEvent(darkLightColorSchemeEvent.getPointer());
+    const bool darkFlag(darkLightColorSchemeEvent.getDarkLightColorSchemeMode() == GuiDarkLightColorSchemeModeEnum::DARK);
     
     blockAllSignals(true);
     

@@ -408,7 +408,7 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
     /*
      * Crosshair/pointer icon
      */
-    QIcon volumeCrossHairIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS));
+    QIcon volumeCrossHairIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS));
 
     /*
      * My clusters

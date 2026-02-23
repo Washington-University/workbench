@@ -32,7 +32,7 @@
 #include "AnnotationTextOrientationEnum.h"
 #include "CaretObject.h"
 #include "FunctionResult.h"
-#include "GuiDarkLightThemeModeEnum.h"
+#include "GuiDarkLightColorSchemeModeEnum.h"
 #include "WorkbenchIconTypeEnum.h"
 
 namespace caret {
@@ -47,9 +47,9 @@ namespace caret {
         WorkbenchIconTypeLoader& operator=(const WorkbenchIconTypeLoader&) = delete;
 
         static QPixmap loadPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconType,
-                                             const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
+                                             const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode);
         
-        static QPixmap loadPixmapForIconTypeForCurrrentDarkLightTheme(const WorkbenchIconTypeEnum::Enum iconType);
+        static QPixmap loadPixmapForIconTypeForCurrrentDarkLightColorScheme(const WorkbenchIconTypeEnum::Enum iconType);
 
         // ADD_NEW_METHODS_HERE
 
@@ -75,12 +75,12 @@ namespace caret {
                                  const int32_t height,
                                  const Origin origin,
                                  const int32_t fontHeight,
-                                 const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode,
+                                 const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode,
                                  QPixmap& pixmapOut,
                                  QSharedPointer<QPainter>& painterOut);
         
         static QPixmap createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconType,
-                                               const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
+                                               const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode);
         
         static void setFontHeight(QSharedPointer<QPainter>& painter,
                            const int32_t fontHeight);
@@ -89,7 +89,7 @@ namespace caret {
                                   QPainter* painter,
                                   const AString& imageFileName,
                                   const AString& alternativeTextForPixmap,
-                                  const bool darkThemeFlag,
+                                  const bool darkColorSchemeFlag,
                                   const PixelModification pixelModification);
 
         static void replacePixmapPixelColor(const AString& imageFileName,

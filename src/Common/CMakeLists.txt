@@ -127,8 +127,8 @@ EventBrowserTabReopenClosed.h
 EventBrowserTabSelectInWindow.h
 EventBrowserWindowPixelSizeInfoEvent.h
 EventCaretPreferencesGet.h
-EventDarkLightThemeModeChanged.h
-EventDarkLightThemeModeGet.h
+EventDarkLightColorSchemeModeChanged.h
+EventDarkLightColorSchemeModeGet.h
 EventGetViewportSize.h
 EventListenerInterface.h
 EventManager.h
@@ -146,7 +146,7 @@ FileInformation.h
 FileOpenFromOpSysTypeEnum.h
 FloatMatrix.h
 FunctionResult.h
-GuiDarkLightThemeModeEnum.h
+GuiDarkLightColorSchemeModeEnum.h
 HemisphereEnum.h
 Histogram.h
 HtmlStringBuilder.h
@@ -306,8 +306,8 @@ EventBrowserTabReopenClosed.cxx
 EventBrowserTabSelectInWindow.cxx
 EventBrowserWindowPixelSizeInfoEvent.cxx
 EventCaretPreferencesGet.cxx
-EventDarkLightThemeModeChanged.cxx
-EventDarkLightThemeModeGet.cxx
+EventDarkLightColorSchemeModeChanged.cxx
+EventDarkLightColorSchemeModeGet.cxx
 EventGetViewportSize.cxx
 EventListenerInterface.cxx
 EventManager.cxx
@@ -324,7 +324,7 @@ FileAdapter.cxx
 FileInformation.cxx
 FileOpenFromOpSysTypeEnum.cxx
 FloatMatrix.cxx
-GuiDarkLightThemeModeEnum.cxx
+GuiDarkLightColorSchemeModeEnum.cxx
 HemisphereEnum.cxx
 Histogram.cxx
 HtmlStringBuilder.cxx

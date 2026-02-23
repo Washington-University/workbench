@@ -28,7 +28,7 @@
 #include <QLabel>
 
 #include "EventListenerInterface.h"
-#include "GuiDarkLightThemeModeEnum.h"
+#include "GuiDarkLightColorSchemeModeEnum.h"
 #include "WorkbenchIconTypeEnum.h"
 
 namespace caret {
@@ -53,9 +53,9 @@ namespace caret {
         virtual void receiveEvent(Event* event);
 
     private:
-        void updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
+        void updateForDarkLightColorScheme(const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode);
         
-        GuiDarkLightThemeModeEnum::Enum getCurrentDarkLightThemeMode() const;
+        GuiDarkLightColorSchemeModeEnum::Enum getCurrentDarkLightColorSchemeMode() const;
         
         const WorkbenchIconTypeEnum::Enum m_iconType;
         

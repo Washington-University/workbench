@@ -27,8 +27,8 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "EventDarkLightThemeModeChanged.h"
-#include "EventDarkLightThemeModeGet.h"
+#include "EventDarkLightColorSchemeModeChanged.h"
+#include "EventDarkLightColorSchemeModeGet.h"
 #include "EventManager.h"
 #include "WorkbenchIconTypeLoader.h"
 
@@ -62,19 +62,19 @@ m_iconType(iconType)
          * Color icons are the same for both light and dark
          */
         m_darkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(iconType,
-                                                                      GuiDarkLightThemeModeEnum::LIGHT);
+                                                                      GuiDarkLightColorSchemeModeEnum::LIGHT);
     }
     else {
         m_darkPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(iconType,
-                                                                      GuiDarkLightThemeModeEnum::DARK);
+                                                                      GuiDarkLightColorSchemeModeEnum::DARK);
     }
     m_lightPixmap = WorkbenchIconTypeLoader::loadPixmapForIconType(iconType,
-                                                                  GuiDarkLightThemeModeEnum::LIGHT);
+                                                                  GuiDarkLightColorSchemeModeEnum::LIGHT);
 
-    updateForDarkLightTheme(getCurrentDarkLightThemeMode());
+    updateForDarkLightColorScheme(getCurrentDarkLightColorSchemeMode());
     
     EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED);
+                                          EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED);
     
     s_allWorkbenchActions.insert(this);
 }
@@ -97,47 +97,47 @@ WorkbenchAction::~WorkbenchAction()
 void
 WorkbenchAction::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED) {
-        EventDarkLightThemeModeChanged* themeChangedEvent(dynamic_cast<EventDarkLightThemeModeChanged*>(event));
-        CaretAssert(themeChangedEvent);
+    if (event->getEventType() == EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED) {
+        EventDarkLightColorSchemeModeChanged* colorSchemeChangedEvent(dynamic_cast<EventDarkLightColorSchemeModeChanged*>(event));
+        CaretAssert(colorSchemeChangedEvent);
         
-        const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode(themeChangedEvent->getDarkLightThemeMode());
-        updateForDarkLightTheme(darkLightThemeMode);
+        const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode(colorSchemeChangedEvent->getDarkLightColorSchemeMode());
+        updateForDarkLightColorScheme(darkLightColorSchemeMode);
     }
 }
 
 /**
- * Update the button for the given dark / light theme
+ * Update the button for the given dark / light color scheme
  *
- * @param darkLightThemeMode
- *    The dark / light theme for the button
+ * @param darkLightColorSchemeMode
+ *    The dark / light color scheme for the button
  */
 void
-WorkbenchAction::updateForDarkLightTheme(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+WorkbenchAction::updateForDarkLightColorScheme(const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode)
 {
-    switch (darkLightThemeMode) {
-        case GuiDarkLightThemeModeEnum::SYSTEM:
+    switch (darkLightColorSchemeMode) {
+        case GuiDarkLightColorSchemeModeEnum::SYSTEM:
             CaretAssert(0);
             setIcon(m_lightPixmap);
             break;
-        case GuiDarkLightThemeModeEnum::DARK:
+        case GuiDarkLightColorSchemeModeEnum::DARK:
             setIcon(m_darkPixmap);
             break;
-        case GuiDarkLightThemeModeEnum::LIGHT:
+        case GuiDarkLightColorSchemeModeEnum::LIGHT:
             setIcon(m_lightPixmap);
             break;
     }
 }
 
 /**
- * @return The current dark/light theme
+ * @return The current dark/light color scheme
  */
-GuiDarkLightThemeModeEnum::Enum
-WorkbenchAction::getCurrentDarkLightThemeMode() const
+GuiDarkLightColorSchemeModeEnum::Enum
+WorkbenchAction::getCurrentDarkLightColorSchemeMode() const
 {
-    EventDarkLightThemeModeGet themeGetEvent;
-    EventManager::get()->sendEvent(themeGetEvent.getPointer());
-    return themeGetEvent.getDarkLightThemeMode();
+    EventDarkLightColorSchemeModeGet colorSchemeGetEvent;
+    EventManager::get()->sendEvent(colorSchemeGetEvent.getPointer());
+    return colorSchemeGetEvent.getDarkLightColorSchemeMode();
 }
 
 void
@@ -153,8 +153,8 @@ WorkbenchAction::printLeftoverWorkbenchActions()
 
 /**
  * @return True if the icon is a color icon and the same for light and dark
- * @param darkLightThemeMode
- *    The dark / light theme for the button
+ * @param iconType
+ *    The icon type
  */
 bool
 WorkbenchAction::isColorIcon(const WorkbenchIconTypeEnum::Enum iconType)

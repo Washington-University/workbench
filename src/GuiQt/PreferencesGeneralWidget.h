@@ -26,9 +26,9 @@
 
 #include <memory>
 
-class QComboBox;
+class QLabel;
 
-#include "GuiDarkLightThemeModeEnum.h"
+#include "GuiDarkLightColorSchemeModeEnum.h"
 
 namespace caret {
     class CaretPreferences;
@@ -55,9 +55,8 @@ namespace caret {
     signals:
         void updateDialog();
         
-        
     private slots:
-        void darkLightThemeModeEnumComboBoxItemActivated();
+        void darkLightColorSchemeModeEnumComboBoxItemActivated();
 
     private:
         void updateGraphicsAndUserInterface();
@@ -65,7 +64,9 @@ namespace caret {
         /* DO NOT delete */
         CaretPreferences* m_preferences = NULL;
         
-        EnumComboBoxTemplate* m_darkLightThemeModeEnumComboBox = NULL;
+        EnumComboBoxTemplate* m_darkLightColorSchemeModeEnumComboBox = NULL;
+        
+        QLabel* m_qtColorSchemeLabel;
         
         // ADD_NEW_MEMBERS_HERE
 

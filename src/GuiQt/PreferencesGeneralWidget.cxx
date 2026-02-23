@@ -31,7 +31,11 @@
  */
 #include <QComboBox>
 #include <QGridLayout>
+#include <QGuiApplication>
 #include <QLabel>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+#include <QStyleHints>
+#endif
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -41,7 +45,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
-#include "GuiDarkLightThemeManager.h"
+#include "GuiDarkLightColorSchemeManager.h"
 #include "GuiManager.h"
 #include "PreferencesDialog.h"
 #include "SessionManager.h"
@@ -61,39 +65,29 @@ PreferencesGeneralWidget::PreferencesGeneralWidget(QWidget* parent)
     /*
      * Image texture minification filter
      */
-    m_darkLightThemeModeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_darkLightColorSchemeModeEnumComboBox = new EnumComboBoxTemplate(this);
     
-#ifdef CARET_OS_MACOSX
     /*
      * System, Dark, and Light on macOS
      */
-    m_darkLightThemeModeEnumComboBox->setup<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
-#else
-    /*
-     * Dark and Light only on Linux and Windows
-     */
-    std::vector<GuiDarkLightThemeModeEnum::Enum> themes;
-    themes.push_back(GuiDarkLightThemeModeEnum::DARK);
-    themes.push_back(GuiDarkLightThemeModeEnum::LIGHT);
-    m_darkLightThemeModeEnumComboBox->setupWithItems<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>(themes);
-#endif
+    m_darkLightColorSchemeModeEnumComboBox->setup<GuiDarkLightColorSchemeModeEnum,GuiDarkLightColorSchemeModeEnum::Enum>();
+    QObject::connect(m_darkLightColorSchemeModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &PreferencesGeneralWidget::darkLightColorSchemeModeEnumComboBoxItemActivated);
 
-    QObject::connect(m_darkLightThemeModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &PreferencesGeneralWidget::darkLightThemeModeEnumComboBoxItemActivated);
+    m_qtColorSchemeLabel = new QLabel();
+
     PreferencesDialog::addWidgetToLayout(gridLayout,
-                                         "Appearance",
-                                         m_darkLightThemeModeEnumComboBox->getWidget());
+                                         "Color Scheme",
+                                         m_darkLightColorSchemeModeEnumComboBox->getWidget());
 
-    const AString msg("When the appearance is changed, some toolbar buttons in open windows "
-                      "may not correctly change to the correct colors.  This can be fixed by "
-                      "opening a new window and closing the existing window or restarting "
-                      "wb_view.");
+    PreferencesDialog::addWidgetToLayout(gridLayout,
+                                         "QT Scheme",
+                                         m_qtColorSchemeLabel);
+    
+    const AString msg("Note: Color scheme may not work on all computers");
     QLabel* msgLabel(new QLabel(msg));
     msgLabel->setWordWrap(true);
     
-    /*
-     * Layouts
-     */
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(gridLayout);
     layout->addWidget(msgLabel);
@@ -118,25 +112,51 @@ PreferencesGeneralWidget::updateContent(CaretPreferences* caretPreferences)
     m_preferences = caretPreferences;
     CaretAssert(m_preferences);
     
-    const GuiDarkLightThemeModeEnum::Enum darkLightMode = m_preferences->getDarkLightThemeMode();
-    m_darkLightThemeModeEnumComboBox->setSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>(darkLightMode);
+    const GuiDarkLightColorSchemeModeEnum::Enum darkLightMode = m_preferences->getDarkLightColorSchemeMode();
+    m_darkLightColorSchemeModeEnumComboBox->setSelectedItem<GuiDarkLightColorSchemeModeEnum,GuiDarkLightColorSchemeModeEnum::Enum>(darkLightMode);
+    
+    AString colorSchemeName;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+    const QStyleHints* styleHints(QGuiApplication::styleHints());
+    CaretAssert(styleHints);
+    const Qt::ColorScheme colorScheme(styleHints->colorScheme());
+    colorSchemeName = "Invalid";
+    switch (colorScheme) {
+        case Qt::ColorScheme::Unknown:
+            colorSchemeName = "Unknown";
+            break;
+        case Qt::ColorScheme::Light:
+            colorSchemeName = "Light";
+            break;
+        case Qt::ColorScheme::Dark:
+            colorSchemeName = "Dark";
+            break;
+    }
+#else
+    colorSchemeName = "Not supported Qt Version < 6.8.0";
+#endif
+    m_qtColorSchemeLabel->setText(colorSchemeName);
 }
 
 /**
  * Called when graphics minification filter changed
  */
 void
-PreferencesGeneralWidget::darkLightThemeModeEnumComboBoxItemActivated()
+PreferencesGeneralWidget::darkLightColorSchemeModeEnumComboBoxItemActivated()
 {
     CaretAssert(m_preferences);
 
-    const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode = m_darkLightThemeModeEnumComboBox->getSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
+    const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode = m_darkLightColorSchemeModeEnumComboBox->getSelectedItem<GuiDarkLightColorSchemeModeEnum,GuiDarkLightColorSchemeModeEnum::Enum>();
     
-    m_preferences->setDarkLightThemMode(darkLightThemeMode);
+    m_preferences->setDarkLightColorSchemeMode(darkLightColorSchemeMode);
     
-    GuiDarkLightThemeManager* darkLightThemeManager(GuiManager::get()->getGuiDarkLightThemeManager());
-    CaretAssert(darkLightThemeManager);
-    darkLightThemeManager->darkLightThemeChangedByPreferencesGeneralWidget();
+    GuiDarkLightColorSchemeManager* darkLightColorSchemeManager(GuiManager::get()->getGuiDarkLightColorSchemeManager());
+    CaretAssert(darkLightColorSchemeManager);
+    darkLightColorSchemeManager->darkLightColorSchemeChangedByPreferencesGeneralWidget();
+    
+    updateGraphicsAndUserInterface();
+    
+    updateContent(m_preferences);
 }
 
 /**
@@ -149,4 +169,6 @@ PreferencesGeneralWidget::updateGraphicsAndUserInterface()
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
+
+
 

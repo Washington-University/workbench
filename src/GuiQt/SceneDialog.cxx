@@ -147,7 +147,7 @@ SceneDialog::SceneDialog(QWidget* parent)
     /*
      * Icons
      */
-    m_cautionIcon = WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::SCENE_DIALOG_CAUTION);
+    m_cautionIcon = WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::SCENE_DIALOG_CAUTION);
     m_cautionIconValid = true;
     
     /*

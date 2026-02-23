@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __GUI_DARK_LIGHT_THEME_MODE_ENUM_DECLARE__
-#include "GuiDarkLightThemeModeEnum.h"
-#undef __GUI_DARK_LIGHT_THEME_MODE_ENUM_DECLARE__
+#define __GUI_DARK_LIGHT_COLOR_SCHEME_MODE_ENUM_DECLARE__
+#include "GuiDarkLightColorSchemeModeEnum.h"
+#undef __GUI_DARK_LIGHT_COLOR_SCHEME_MODE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::GuiDarkLightThemeModeEnum 
+ * \class caret::GuiDarkLightColorSchemeModeEnum 
  * \brief 
  *
  *
@@ -41,40 +41,40 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_guiDarkLightThemeModeEnumComboBox;
+ *         EnumComboBoxTemplate* m_GuiDarkLightColorSchemeModeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void guiDarkLightThemeModeEnumComboBoxItemActivated();
+ *             void GuiDarkLightColorSchemeModeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "GuiDarkLightThemeModeEnum.h"
+ *         #include "GuiDarkLightColorSchemeModeEnum.h"
  * 
  *     Instatiate:
- *         m_guiDarkLightThemeModeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_guiDarkLightThemeModeEnumComboBox->setup<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
+ *         m_GuiDarkLightColorSchemeModeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_GuiDarkLightColorSchemeModeEnumComboBox->setup<GuiDarkLightColorSchemeModeEnum,GuiDarkLightColorSchemeModeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_guiDarkLightThemeModeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(guiDarkLightThemeModeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_GuiDarkLightColorSchemeModeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(GuiDarkLightColorSchemeModeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_guiDarkLightThemeModeEnumComboBox->setSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>(NEW_VALUE);
+ *         m_GuiDarkLightColorSchemeModeEnumComboBox->setSelectedItem<GuiDarkLightColorSchemeModeEnum,GuiDarkLightColorSchemeModeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const GuiDarkLightThemeModeEnum::Enum VARIABLE = m_guiDarkLightThemeModeEnumComboBox->getSelectedItem<GuiDarkLightThemeModeEnum,GuiDarkLightThemeModeEnum::Enum>();
+ *         const GuiDarkLightColorSchemeModeEnum::Enum VARIABLE = m_GuiDarkLightColorSchemeModeEnumComboBox->getSelectedItem<GuiDarkLightColorSchemeModeEnum,GuiDarkLightColorSchemeModeEnum::Enum>();
  * 
  */
 
 /*
 switch (value) {
-    case GuiDarkLightThemeModeEnum::SYSTEM:
+    case GuiDarkLightColorSchemeModeEnum::SYSTEM:
         break;
-    case GuiDarkLightThemeModeEnum::DARK:
+    case GuiDarkLightColorSchemeModeEnum::DARK:
         break;
-    case GuiDarkLightThemeModeEnum::LIGHT:
+    case GuiDarkLightColorSchemeModeEnum::LIGHT:
         break;
 }
 */
@@ -90,7 +90,7 @@ switch (value) {
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-GuiDarkLightThemeModeEnum::GuiDarkLightThemeModeEnum(const Enum enumValue,
+GuiDarkLightColorSchemeModeEnum::GuiDarkLightColorSchemeModeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -103,7 +103,7 @@ GuiDarkLightThemeModeEnum::GuiDarkLightThemeModeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-GuiDarkLightThemeModeEnum::~GuiDarkLightThemeModeEnum()
+GuiDarkLightColorSchemeModeEnum::~GuiDarkLightColorSchemeModeEnum()
 {
 }
 
@@ -111,22 +111,22 @@ GuiDarkLightThemeModeEnum::~GuiDarkLightThemeModeEnum()
  * Initialize the enumerated metadata.
  */
 void
-GuiDarkLightThemeModeEnum::initialize()
+GuiDarkLightColorSchemeModeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(GuiDarkLightThemeModeEnum(SYSTEM, 
+    enumData.push_back(GuiDarkLightColorSchemeModeEnum(SYSTEM, 
                                     "SYSTEM", 
                                     "System"));
     
-    enumData.push_back(GuiDarkLightThemeModeEnum(DARK, 
+    enumData.push_back(GuiDarkLightColorSchemeModeEnum(DARK, 
                                     "DARK", 
                                     "Dark"));
     
-    enumData.push_back(GuiDarkLightThemeModeEnum(LIGHT, 
+    enumData.push_back(GuiDarkLightColorSchemeModeEnum(LIGHT, 
                                     "LIGHT", 
                                     "Light"));
     
@@ -139,14 +139,14 @@ GuiDarkLightThemeModeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const GuiDarkLightThemeModeEnum*
-GuiDarkLightThemeModeEnum::findData(const Enum enumValue)
+const GuiDarkLightColorSchemeModeEnum*
+GuiDarkLightColorSchemeModeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const GuiDarkLightThemeModeEnum* d = &enumData[i];
+        const GuiDarkLightColorSchemeModeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -163,10 +163,10 @@ GuiDarkLightThemeModeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-GuiDarkLightThemeModeEnum::toName(Enum enumValue) {
+GuiDarkLightColorSchemeModeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const GuiDarkLightThemeModeEnum* enumInstance = findData(enumValue);
+    const GuiDarkLightColorSchemeModeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -180,18 +180,18 @@ GuiDarkLightThemeModeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-GuiDarkLightThemeModeEnum::Enum 
-GuiDarkLightThemeModeEnum::fromName(const AString& name, bool* isValidOut)
+GuiDarkLightColorSchemeModeEnum::Enum 
+GuiDarkLightColorSchemeModeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = GuiDarkLightThemeModeEnum::enumData[0].enumValue;
+    Enum enumValue = GuiDarkLightColorSchemeModeEnum::enumData[0].enumValue;
     
-    for (std::vector<GuiDarkLightThemeModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<GuiDarkLightColorSchemeModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const GuiDarkLightThemeModeEnum& d = *iter;
+        const GuiDarkLightColorSchemeModeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -203,7 +203,7 @@ GuiDarkLightThemeModeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type GuiDarkLightThemeModeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type GuiDarkLightColorSchemeModeEnum"));
     }
     return enumValue;
 }
@@ -216,10 +216,10 @@ GuiDarkLightThemeModeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-GuiDarkLightThemeModeEnum::toGuiName(Enum enumValue) {
+GuiDarkLightColorSchemeModeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const GuiDarkLightThemeModeEnum* enumInstance = findData(enumValue);
+    const GuiDarkLightColorSchemeModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -233,18 +233,18 @@ GuiDarkLightThemeModeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-GuiDarkLightThemeModeEnum::Enum 
-GuiDarkLightThemeModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+GuiDarkLightColorSchemeModeEnum::Enum 
+GuiDarkLightColorSchemeModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = GuiDarkLightThemeModeEnum::enumData[0].enumValue;
+    Enum enumValue = GuiDarkLightColorSchemeModeEnum::enumData[0].enumValue;
     
-    for (std::vector<GuiDarkLightThemeModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<GuiDarkLightColorSchemeModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const GuiDarkLightThemeModeEnum& d = *iter;
+        const GuiDarkLightColorSchemeModeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -256,7 +256,7 @@ GuiDarkLightThemeModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type GuiDarkLightThemeModeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type GuiDarkLightColorSchemeModeEnum"));
     }
     return enumValue;
 }
@@ -268,10 +268,10 @@ GuiDarkLightThemeModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-GuiDarkLightThemeModeEnum::toIntegerCode(Enum enumValue)
+GuiDarkLightColorSchemeModeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const GuiDarkLightThemeModeEnum* enumInstance = findData(enumValue);
+    const GuiDarkLightColorSchemeModeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -286,18 +286,18 @@ GuiDarkLightThemeModeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-GuiDarkLightThemeModeEnum::Enum
-GuiDarkLightThemeModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+GuiDarkLightColorSchemeModeEnum::Enum
+GuiDarkLightColorSchemeModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = GuiDarkLightThemeModeEnum::enumData[0].enumValue;
+    Enum enumValue = GuiDarkLightColorSchemeModeEnum::enumData[0].enumValue;
     
-    for (std::vector<GuiDarkLightThemeModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<GuiDarkLightColorSchemeModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const GuiDarkLightThemeModeEnum& enumInstance = *iter;
+        const GuiDarkLightColorSchemeModeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -309,7 +309,7 @@ GuiDarkLightThemeModeEnum::fromIntegerCode(const int32_t integerCode, bool* isVa
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type GuiDarkLightThemeModeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type GuiDarkLightColorSchemeModeEnum"));
     }
     return enumValue;
 }
@@ -322,13 +322,13 @@ GuiDarkLightThemeModeEnum::fromIntegerCode(const int32_t integerCode, bool* isVa
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-GuiDarkLightThemeModeEnum::getAllEnums(std::vector<GuiDarkLightThemeModeEnum::Enum>& allEnums)
+GuiDarkLightColorSchemeModeEnum::getAllEnums(std::vector<GuiDarkLightColorSchemeModeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<GuiDarkLightThemeModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<GuiDarkLightColorSchemeModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -344,16 +344,16 @@ GuiDarkLightThemeModeEnum::getAllEnums(std::vector<GuiDarkLightThemeModeEnum::En
  *     If true, the names are sorted in alphabetical order.
  */
 void
-GuiDarkLightThemeModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+GuiDarkLightColorSchemeModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<GuiDarkLightThemeModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<GuiDarkLightColorSchemeModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(GuiDarkLightThemeModeEnum::toName(iter->enumValue));
+        allNames.push_back(GuiDarkLightColorSchemeModeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -370,16 +370,16 @@ GuiDarkLightThemeModeEnum::getAllNames(std::vector<AString>& allNames, const boo
  *     If true, the names are sorted in alphabetical order.
  */
 void
-GuiDarkLightThemeModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+GuiDarkLightColorSchemeModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<GuiDarkLightThemeModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<GuiDarkLightColorSchemeModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(GuiDarkLightThemeModeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(GuiDarkLightColorSchemeModeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

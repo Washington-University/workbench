@@ -92,7 +92,7 @@
 #include "ExitProgramModifiedFilesDialog.h"
 #include "FociPropertiesEditorDialog.h"
 #include "GapsAndMarginsDialog.h"
-#include "GuiDarkLightThemeManager.h"
+#include "GuiDarkLightColorSchemeManager.h"
 #include "HelpViewerDialog.h"
 #include "HtmlTableBuilder.h"
 #include "IdentificationDisplayDialog.h"
@@ -217,7 +217,7 @@ GuiManager::initializeGuiManager()
     m_paletteEditorDialog = NULL;
     
     this->cursorManager = new CursorManager();
-    m_guiDarkLightThemeManager.reset(new GuiDarkLightThemeManager());
+    m_guiDarkLightColorSchemeManager.reset(new GuiDarkLightColorSchemeManager(this));
     
     /*
      * When running macro commands, some object may be child
@@ -345,7 +345,7 @@ GuiManager::initializeGuiManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ALERT_USER);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_GET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
@@ -2823,13 +2823,13 @@ GuiManager::getCursorManager() const
 }
 
 /**
- * @return The GUI's dark light theme manager
+ * @return The GUI's dark light color scheme manager
  */
-GuiDarkLightThemeManager*
-GuiManager::getGuiDarkLightThemeManager()
+GuiDarkLightColorSchemeManager*
+GuiManager::getGuiDarkLightColorSchemeManager()
 {
-    CaretAssert(m_guiDarkLightThemeManager);
-    return m_guiDarkLightThemeManager.get();
+    CaretAssert(m_guiDarkLightColorSchemeManager);
+    return m_guiDarkLightColorSchemeManager.get();
 }
 
 /**

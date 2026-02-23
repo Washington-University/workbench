@@ -30,7 +30,7 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "EventDarkLightThemeModeGet.h"
+#include "EventDarkLightColorSchemeModeGet.h"
 #include "EventManager.h"
 #include "MathFunctions.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -52,12 +52,6 @@ using namespace caret;
 WorkbenchIconTypeLoader::WorkbenchIconTypeLoader()
 : CaretObject()
 {
-//    m_darkPixmap = createPixmapForIconType(iconType,
-//                                           GuiDarkLightThemeModeEnum::DARK);
-//    m_lightPixmap = createPixmapForIconType(iconType,
-//                                            GuiDarkLightThemeModeEnum::LIGHT);
-
-//    updateForDarkLightTheme(getCurrentDarkLightThemeMode());
 }
 
 /**
@@ -69,8 +63,8 @@ WorkbenchIconTypeLoader::~WorkbenchIconTypeLoader()
 
 /**
  * Load and return the pixmap for the given icon type
- * @param darkLightThemeMode
- *    The dark light theme
+ * @param darkLightColorSchemeMode
+ *    The dark light color scheme
  * @param iconType
  *    Type of icon
  * @return
@@ -78,29 +72,29 @@ WorkbenchIconTypeLoader::~WorkbenchIconTypeLoader()
  */
 QPixmap
 WorkbenchIconTypeLoader::loadPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconType,
-                                               const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+                                               const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode)
 {
     return createPixmapForIconType(iconType,
-                                   darkLightThemeMode);
+                                   darkLightColorSchemeMode);
 }
 
 /**
  * Load and return the pixmap for the given icon type
- * @param darkLightThemeMode
- *    The dark light theme
+ * @param darkLightColorSchemeMode
+ *    The dark light color scheme
  * @param iconType
  *    Type of icon
  * @return
  *    Pixmap loaded for the icon
  */
 QPixmap
-WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(const WorkbenchIconTypeEnum::Enum iconType)
+WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(const WorkbenchIconTypeEnum::Enum iconType)
 {
-    EventDarkLightThemeModeGet themeGetEvent;
-    EventManager::get()->sendEvent(themeGetEvent.getPointer());
+    EventDarkLightColorSchemeModeGet colorSchemeGetEvent;
+    EventManager::get()->sendEvent(colorSchemeGetEvent.getPointer());
 
     return createPixmapForIconType(iconType,
-                                   themeGetEvent.getDarkLightThemeMode());
+                                   colorSchemeGetEvent.getDarkLightColorSchemeMode());
 }
 
 /**
@@ -113,8 +107,8 @@ WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(const Wo
  *    Location of origin in the pixmap
  * @param fontHeight
  *    If greater than zero, sets font height
- * @param darkLightThemeMode
- *    The dark light theme
+ * @param darkLightColorSchemeMode
+ *    The dark light color scheme
  * @param pixmap
  *    The pixmap (output)
  * @param painter
@@ -125,7 +119,7 @@ WorkbenchIconTypeLoader::createPixmapPainter(const int32_t width,
                                      const int32_t height,
                                      const Origin origin,
                                      const int32_t fontHeight,
-                                     const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode,
+                                     const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode,
                                      QPixmap& pixmapOut,
                                      QSharedPointer<QPainter>& painterOut)
 {
@@ -166,15 +160,15 @@ WorkbenchIconTypeLoader::createPixmapPainter(const int32_t width,
     painterOut->setBackgroundMode(Qt::TransparentMode);
     
     QColor foregroundColor(255, 255, 255, 255);
-    switch (darkLightThemeMode) {
-        case GuiDarkLightThemeModeEnum::SYSTEM:
+    switch (darkLightColorSchemeMode) {
+        case GuiDarkLightColorSchemeModeEnum::SYSTEM:
             CaretAssert(0);
             foregroundColor.setRgb(0, 0, 0, 255);
             break;
-        case GuiDarkLightThemeModeEnum::DARK:
+        case GuiDarkLightColorSchemeModeEnum::DARK:
             foregroundColor.setRgb(255, 255, 255);
             break;
-        case GuiDarkLightThemeModeEnum::LIGHT:
+        case GuiDarkLightColorSchemeModeEnum::LIGHT:
             foregroundColor.setRgb(0, 0, 0, 255);
             break;
     }
@@ -191,17 +185,17 @@ WorkbenchIconTypeLoader::createPixmapPainter(const int32_t width,
 }
 
 /**
- * @return Icon for the given icon type and dark/light theme mode
+ * @return Icon for the given icon type and dark/light color scheme mode
  * @param iconType
  *    Type of icon
- * @param darkLightThemeMode
- *    The dark light theme
+ * @param darkLightColorSchemeMode
+ *    The dark light color scheme
  * @return
  *    The pixmap that was created
  */
 QPixmap
 WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconType,
-                                         const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+                                         const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode)
 {
     /*
      * Create a pixmap and attach a painter to the pixmap
@@ -217,7 +211,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                         height,
                         Origin::TOP_LEFT,
                         fontHeight20,
-                        darkLightThemeMode,
+                        darkLightColorSchemeMode,
                         pixmap,
                         painter);
     CaretAssert(pixmap.width() > 0);
@@ -225,23 +219,23 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
     CaretAssert(painter);
     
     QColor textColor(255, 255, 255, 216);  /* on macOS alpha for text is 216 */
-    bool lightThemeFlag(false);
-    switch (darkLightThemeMode) {
-        case GuiDarkLightThemeModeEnum::SYSTEM:
+    bool lightColorSchemeFlag(false);
+    switch (darkLightColorSchemeMode) {
+        case GuiDarkLightColorSchemeModeEnum::SYSTEM:
             CaretAssert(0);
-            lightThemeFlag = true;
+            lightColorSchemeFlag = true;
             textColor.setRgb(0, 0, 0, 216);
             break;
-        case GuiDarkLightThemeModeEnum::DARK:
-            lightThemeFlag = false;
+        case GuiDarkLightColorSchemeModeEnum::DARK:
+            lightColorSchemeFlag = false;
             textColor.setRgb(255, 255, 255, 216);
             break;
-        case GuiDarkLightThemeModeEnum::LIGHT:
-            lightThemeFlag = true;
+        case GuiDarkLightColorSchemeModeEnum::LIGHT:
+            lightColorSchemeFlag = true;
             textColor.setRgb(0, 0, 0, 216);
             break;
     }
-    const bool darkThemeFlag( ! lightThemeFlag);
+    const bool darkColorSchemeFlag( ! lightColorSchemeFlag);
 
     const int32_t width12(12);
     const int32_t height12(12);
@@ -296,7 +290,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
              * Background (sky)
              */
             int blueAsGray = qGray(25,25,255);
-            if (darkThemeFlag) {
+            if (darkColorSchemeFlag) {
                 /*
                  * Dark sky
                  */
@@ -310,7 +304,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
              * Terrain
              */
             int greenAsGray = qGray(0, 255, 0);
-            if (darkThemeFlag) {
+            if (darkColorSchemeFlag) {
                 greenAsGray = qGray(0, 180, 0);
             }
             QColor terrainColor(greenAsGray, greenAsGray, greenAsGray);
@@ -335,7 +329,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
              */
             const int yellowAsGray = qGray(255, 255, 0);
             QColor sunColor(yellowAsGray, yellowAsGray, yellowAsGray);
-            if (darkThemeFlag) {
+            if (darkColorSchemeFlag) {
                 /*
                  * Replace sun with moon
                  */
@@ -470,7 +464,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height30,
                                 Origin::TOP_LEFT,
                                 fontHeightDefault,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             createTextOrientationPixmap(pixmap,
@@ -482,7 +476,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height30,
                                 Origin::TOP_LEFT,
                                 fontHeightDefault,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             createTextOrientationPixmap(pixmap,
@@ -494,7 +488,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height12,
                                 Origin::TOP_LEFT,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             createHorizontalAlignmentPixmap(pixmap,
@@ -506,7 +500,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height12,
                                 Origin::TOP_LEFT,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             createHorizontalAlignmentPixmap(pixmap,
@@ -518,7 +512,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height12,
                                 Origin::TOP_LEFT,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             createHorizontalAlignmentPixmap(pixmap,
@@ -530,7 +524,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height12,
                                 Origin::TOP_LEFT,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             createVerticalAlignmentPixmap(pixmap,
@@ -542,7 +536,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height12,
                                 Origin::TOP_LEFT,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             createVerticalAlignmentPixmap(pixmap,
@@ -554,7 +548,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height12,
                                 Origin::TOP_LEFT,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             createVerticalAlignmentPixmap(pixmap,
@@ -566,7 +560,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-anterior.png",
                           "A",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_DORSAL:
@@ -574,7 +568,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-dorsal.png",
                           "D",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_LEFT:
@@ -582,7 +576,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-left.png",
                           "L",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_LEFT_LATERAL:
@@ -590,7 +584,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-left-lateral.png",
                           "LL",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_LEFT_MEDIAL:
@@ -598,7 +592,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-left-medial.png",
                           "LM",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_POSTERIOR:
@@ -606,7 +600,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-posterior.png",
                           "P",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_REDO:
@@ -614,7 +608,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/redo.png",
                           "R",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_REGION:
@@ -622,7 +616,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/select-region.png",
                           "R",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_RIGHT:
@@ -630,7 +624,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-right.png",
                           "R",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_RIGHT_LATERAL:
@@ -638,7 +632,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-right-lateral.png",
                           "RL",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_RIGHT_MEDIAL:
@@ -646,7 +640,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-right-medial.png",
                           "RM",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_UNDO:
@@ -654,7 +648,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/undo.png",
                           "U",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::ORIENTATION_VENTRAL:
@@ -662,7 +656,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-ventral.png",
                           "V",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_COLOR_BAR:
@@ -670,7 +664,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/LayersPanel/colorbar.png",
                           "C",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT:
@@ -678,14 +672,14 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height32,
                                 Origin::TOP_LEFT,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             setPixmapIcon(pixmap,
                           painter.get(),
                           ":/LayersPanel/construction.png",
                           "C",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_WRENCH:
@@ -693,7 +687,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/LayersPanel/wrench.png",
                           "S",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_FILLED:
@@ -701,7 +695,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/RecentFilesDialog/favorite_filled.png",
                           "F",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_OUTLINE:
@@ -709,7 +703,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/RecentFilesDialog/favorite_outline.png",
                           "F",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_BLACK:
@@ -717,7 +711,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/RecentFilesDialog/forget_black.png",
                           "F",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_RED:
@@ -725,7 +719,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/RecentFilesDialog/forget_red.png",
                           "F",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_SHARE:
@@ -733,7 +727,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/RecentFilesDialog/share.png",
                           "S",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::RECENT_FILES_HCP_IMAGE:
@@ -741,14 +735,14 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height32,
                                 Origin::TOP_LEFT,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             setPixmapIcon(pixmap,
                           painter.get(),
                           ":/RecentFilesDialog/hcp_image.png",
                           "C",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::RECENT_FILES_X_IMAGE:
@@ -756,14 +750,14 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height32,
                                 Origin::TOP_LEFT,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             setPixmapIcon(pixmap,
                           painter.get(),
                           ":/RecentFilesDialog/x_image.png",
                           "C",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::SCENE_DIALOG_CAUTION:
@@ -771,7 +765,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/SceneFileDialog/caution.png",
                           "D",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_DELETE:
@@ -779,7 +773,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/SpecFileDialog/delete_icon.png",
                           "D",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_LOAD:
@@ -787,7 +781,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/SpecFileDialog/load_icon.png",
                           "L",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_OPTIONS:
@@ -795,7 +789,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/SpecFileDialog/options_icon.png",
                           "O",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::SPEC_FILE_DIALOG_RELOAD:
@@ -803,7 +797,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/SpecFileDialog/reload_icon.png",
                           "R",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_DATA_TOOLTIPS:
@@ -812,7 +806,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height32,
                                 Origin::CENTER,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             const int leftX(-14);
@@ -857,7 +851,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/features_toolbox.png",
                           "F",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_HELP:
@@ -865,7 +859,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/help.png",
                           "H",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_IDENTIFY_BRAINORDINATE:
@@ -873,7 +867,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/identify.png",
                           "I",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_INFORMATION:
@@ -881,7 +875,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/info.png",
                           "I",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_MACROS_SCROLL:
@@ -889,7 +883,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/macro.png",
                           "M",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_MOVIE:
@@ -897,7 +891,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/movie.png",
                           "M",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::REPLACE_BLACK_WITH_DARK_GRAY);
             break;
         case WorkbenchIconTypeEnum::TABBAR_OVERLAYS:
@@ -905,7 +899,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/overlay_toolbox.png",
                           "O",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_SCENES_CLAP_BOARD:
@@ -913,7 +907,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/clapboard.png",
                           "S",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TABBAR_TOOLBAR:
@@ -921,7 +915,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/toolbar.png",
                           "T",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_MISC_LIGHT_BULB:
@@ -929,7 +923,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/lighting.png",
                           "L",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_RELOCK_ARROW:
@@ -937,7 +931,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/undo.png",
                           "L",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_MISC_RULER:
@@ -996,7 +990,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/clipping.png",
                           "C",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_SLICE_INDICES_MOVE_CROSSHAIRS:
@@ -1005,7 +999,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height,
                                 Origin::CENTER,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             const int pixmapSize = pixmap.width();
@@ -1041,7 +1035,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-plane-axial.png",
                           "A",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_CROSSHAIRS:
@@ -1052,7 +1046,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height,
                                 Origin::CENTER,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
 
@@ -1076,7 +1070,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                                 height,
                                 Origin::TOP_LEFT,
                                 fontHeight20,
-                                darkLightThemeMode,
+                                darkLightColorSchemeMode,
                                 pixmap,
                                 painter);
             
@@ -1115,7 +1109,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-plane-coronal.png",
                           "A",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
         case WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_PARASAGITTAL:
@@ -1123,7 +1117,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
                           painter.get(),
                           ":/ToolBar/view-plane-parasagittal.png",
                           "A",
-                          darkThemeFlag,
+                          darkColorSchemeFlag,
                           PixelModification::NONE);
             break;
     }
@@ -1202,8 +1196,8 @@ WorkbenchIconTypeLoader::replacePixmapPixelColor(const AString& imageFileName,
  *     Name of the image file (usually a Qt resource path)
  * @param alternativeTextForPixmap
  *     If there is an image failure, set the pixmap to this text (should be one character)
- * @param darkThemeFlag
- *     True if dark theme for pixmap
+ * @param darkColorSchemeFlag
+ *     True if dark color scheme for pixmap
  * @param pixelModification
  *     Optional pixel modification
  */
@@ -1212,7 +1206,7 @@ WorkbenchIconTypeLoader::setPixmapIcon(QPixmap& pixmap,
                                QPainter* painter,
                                const AString& imageFileName,
                                const AString& alternativeTextForPixmap,
-                               const bool darkThemeFlag,
+                               const bool darkColorSchemeFlag,
                                const PixelModification pixelModification)
 {
     CaretAssert(pixmap.width() > 0);
@@ -1239,7 +1233,7 @@ WorkbenchIconTypeLoader::setPixmapIcon(QPixmap& pixmap,
 //                                        imageFilePixmap);
 //        }
         
-        if (darkThemeFlag) {
+        if (darkColorSchemeFlag) {
             /*
              * Invert light pixmap to create dark pixmap
              */

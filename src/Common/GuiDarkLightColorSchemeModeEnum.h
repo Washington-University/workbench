@@ -1,5 +1,5 @@
-#ifndef __GUI_DARK_LIGHT_THEME_MODE_ENUM_H__
-#define __GUI_DARK_LIGHT_THEME_MODE_ENUM_H__
+#ifndef __GUI_DARK_LIGHT_COLOR_SCHEME_MODE_ENUM_H__
+#define __GUI_DARK_LIGHT_COLOR_SCHEME_MODE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class GuiDarkLightThemeModeEnum {
+class GuiDarkLightColorSchemeModeEnum {
 
 public:
     /**
@@ -44,7 +44,7 @@ public:
     };
 
 
-    ~GuiDarkLightThemeModeEnum();
+    ~GuiDarkLightColorSchemeModeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -65,14 +65,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    GuiDarkLightThemeModeEnum(const Enum enumValue, 
+    GuiDarkLightColorSchemeModeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const GuiDarkLightThemeModeEnum* findData(const Enum enumValue);
+    static const GuiDarkLightColorSchemeModeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<GuiDarkLightThemeModeEnum> enumData;
+    static std::vector<GuiDarkLightColorSchemeModeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -96,11 +96,11 @@ private:
     AString guiName;
 };
 
-#ifdef __GUI_DARK_LIGHT_THEME_MODE_ENUM_DECLARE__
-std::vector<GuiDarkLightThemeModeEnum> GuiDarkLightThemeModeEnum::enumData;
-bool GuiDarkLightThemeModeEnum::initializedFlag = false;
-int32_t GuiDarkLightThemeModeEnum::integerCodeCounter = 0; 
-#endif // __GUI_DARK_LIGHT_THEME_MODE_ENUM_DECLARE__
+#ifdef __GUI_DARK_LIGHT_COLOR_SCHEME_MODE_ENUM_DECLARE__
+std::vector<GuiDarkLightColorSchemeModeEnum> GuiDarkLightColorSchemeModeEnum::enumData;
+bool GuiDarkLightColorSchemeModeEnum::initializedFlag = false;
+int32_t GuiDarkLightColorSchemeModeEnum::integerCodeCounter = 0; 
+#endif // __GUI_DARK_LIGHT_COLOR_SCHEME_MODE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__GUI_DARK_LIGHT_THEME_MODE_ENUM_H__
+#endif  //__GUI_DARK_LIGHT_COLOR_SCHEME_MODE_ENUM_H__

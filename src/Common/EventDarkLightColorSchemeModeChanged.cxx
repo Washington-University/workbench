@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __EVENT_DARK_LIGHT_THEME_MODE_CHANGED_DECLARE__
-#include "EventDarkLightThemeModeChanged.h"
-#undef __EVENT_DARK_LIGHT_THEME_MODE_CHANGED_DECLARE__
+#define __EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED_DECLARE__
+#include "EventDarkLightColorSchemeModeChanged.h"
+#undef __EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED_DECLARE__
 
 #include "CaretAssert.h"
 #include "EventTypeEnum.h"
@@ -31,19 +31,19 @@ using namespace caret;
 
     
 /**
- * \class caret::EventDarkLightThemeModeChanged 
- * \brief Event issues when dark / light theme mode changed
+ * \class caret::EventDarkLightColorSchemeModeChanged 
+ * \brief Event issues when dark / light color scheme mode changed
  * \ingroup Common
  */
 
 /**
  * Constructor.
- * @param darkLightThemeMode
- *    The new dark / light theme mode
+ * @param darkLightColorMode
+ *    The new dark / light color scheme mode
  */
-EventDarkLightThemeModeChanged::EventDarkLightThemeModeChanged(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
-: Event(EventTypeEnum::EVENT_DARK_LIGHT_THEME_MODE_CHANGED),
-m_darkLightThemeMode(darkLightThemeMode)
+EventDarkLightColorSchemeModeChanged::EventDarkLightColorSchemeModeChanged(const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode)
+: Event(EventTypeEnum::EVENT_DARK_LIGHT_COLOR_SCHEME_MODE_CHANGED),
+m_darkLightColorSchemeMode(darkLightColorSchemeMode)
 {
     
 }
@@ -51,16 +51,16 @@ m_darkLightThemeMode(darkLightThemeMode)
 /**
  * Destructor.
  */
-EventDarkLightThemeModeChanged::~EventDarkLightThemeModeChanged()
+EventDarkLightColorSchemeModeChanged::~EventDarkLightColorSchemeModeChanged()
 {
 }
 
 /**
- * @return The dark / light theme mode
+ * @return The dark / light color scheme mode
  */
-GuiDarkLightThemeModeEnum::Enum
-EventDarkLightThemeModeChanged::getDarkLightThemeMode() const
+GuiDarkLightColorSchemeModeEnum::Enum
+EventDarkLightColorSchemeModeChanged::getDarkLightColorSchemeMode() const
 {
-    return m_darkLightThemeMode;
+    return m_darkLightColorSchemeMode;
 }
 

@@ -19,6 +19,7 @@
  */
 /*LICENSE_END*/
 
+#ifdef WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
 
 /*
  * Code from https://successfulsoftware.net/2021/03/31/how-to-add-a-dark-theme-to-your-qt-application/
@@ -76,3 +77,6 @@ void macSetToAutoTheme()
         [NSApp setAppearance:nil];
     }
 }
+
+#endif // WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
+

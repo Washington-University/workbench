@@ -379,7 +379,7 @@ namespace caret {
         
         void modifyTileTabsConfiguration(EventTileTabsGridConfigurationModification* modEvent);
 
-        void updateIconsForCurrentDarkLightTheme();
+        void updateIconsForCurrentDarkLightColorScheme();
         
         /** Index of this window */
         const int32_t m_browserWindowIndex;

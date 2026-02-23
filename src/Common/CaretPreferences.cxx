@@ -113,11 +113,11 @@ CaretPreferences::CaretPreferences()
                                                                         0.0));
     m_preferenceStoredInSceneDataValues.push_back(m_volumeSurfaceOutlineSeparation.get());
     
-    m_darkLightThemeMode.reset(new CaretPreferenceDataValue(this->qSettings,
-                                                            "darkLightThemeMode",
+    m_darkLightColorSchemeMode.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                            "darkLightColorSchemeMode",
                                                             CaretPreferenceDataValue::DataType::STRING,
                                                             CaretPreferenceDataValue::SavedInScene::SAVE_NO,
-                                                            GuiDarkLightThemeModeEnum::toName(GuiDarkLightThemeModeEnum::SYSTEM)));
+                                                            GuiDarkLightColorSchemeModeEnum::toName(GuiDarkLightColorSchemeModeEnum::SYSTEM)));
     
     m_identificationStereotaxicDistance.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                                 "m_identificationStereotaxicDistance",
@@ -3743,26 +3743,26 @@ CaretPreferences::getObsoleteMostRecentScenes(std::vector<RecentSceneInfoContain
 }
 
 /**
- * @return The dark light them mode
+ * @return The dark light color scheme mode
  */
-GuiDarkLightThemeModeEnum::Enum
-CaretPreferences::getDarkLightThemeMode() const
+GuiDarkLightColorSchemeModeEnum::Enum
+CaretPreferences::getDarkLightColorSchemeMode() const
 {
-    QString stringValue(m_darkLightThemeMode->getValue().toString());
+    QString stringValue(m_darkLightColorSchemeMode->getValue().toString());
     bool validFlag(false);
-    const GuiDarkLightThemeModeEnum::Enum enumValue =
-       GuiDarkLightThemeModeEnum::fromName(stringValue, &validFlag);
+    const GuiDarkLightColorSchemeModeEnum::Enum enumValue =
+       GuiDarkLightColorSchemeModeEnum::fromName(stringValue, &validFlag);
     return enumValue;
 }
 
 /**
- * Set the dark light theme mode
- * @param darkLightThemeMode
+ * Set the dark light color scheme mode
+ * @param darkLightColorSchemeMode
  *    New value for dark light them mode
  */
 void
-CaretPreferences::setDarkLightThemMode(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode)
+CaretPreferences::setDarkLightColorSchemeMode(const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode)
 {
-    const QString stringValue = GuiDarkLightThemeModeEnum::toName(darkLightThemeMode);
-    m_darkLightThemeMode->setValue(stringValue);
+    const QString stringValue = GuiDarkLightColorSchemeModeEnum::toName(darkLightColorSchemeMode);
+    m_darkLightColorSchemeMode->setValue(stringValue);
 }

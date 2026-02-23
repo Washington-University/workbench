@@ -30,7 +30,7 @@
 #include "CaretObject.h"
 #include "DisplayHighDpiModeEnum.h"
 #include "FileOpenFromOpSysTypeEnum.h"
-#include "GuiDarkLightThemeModeEnum.h"
+#include "GuiDarkLightColorSchemeModeEnum.h"
 #include "IdentificationDisplayModeEnum.h"
 #include "ImageCaptureMethodEnum.h"
 #include "LogLevelEnum.h"
@@ -369,9 +369,9 @@ namespace caret {
         
         bool getVolumeSurfaceOutlineSeparationSceneValue(float& sceneValueOut) const;
         
-        GuiDarkLightThemeModeEnum::Enum  getDarkLightThemeMode() const;
+        GuiDarkLightColorSchemeModeEnum::Enum  getDarkLightColorSchemeMode() const;
         
-        void setDarkLightThemMode(const GuiDarkLightThemeModeEnum::Enum darkLightThemeMode);
+        void setDarkLightColorSchemeMode(const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode);
         
     private:
         CaretPreferences(const CaretPreferences&);
@@ -510,7 +510,7 @@ namespace caret {
         
         std::unique_ptr<CaretPreferenceDataValue> m_volumeSurfaceOutlineSeparation;
 
-        std::unique_ptr<CaretPreferenceDataValue> m_darkLightThemeMode;
+        std::unique_ptr<CaretPreferenceDataValue> m_darkLightColorSchemeMode;
         
         bool splashScreenEnabled;
         

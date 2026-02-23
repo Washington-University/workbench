@@ -79,11 +79,11 @@ RecentFilesTableWidget::RecentFilesTableWidget()
     QObject::connect(this, &QTableWidget::cellDoubleClicked,
                      this, &RecentFilesTableWidget::tableCellDoubleClicked);
 
-    m_favoriteFilledIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_FILLED)));
-    m_favoriteOutlineIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_OUTLINE)));
-    m_forgetIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_BLACK)));
-    m_forgetOnIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_RED)));
-    m_shareIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightTheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_SHARE)));
+    m_favoriteFilledIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_FILLED)));
+    m_favoriteOutlineIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FAVORITE_OUTLINE)));
+    m_forgetIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_BLACK)));
+    m_forgetOnIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_FORGET_RED)));
+    m_shareIcon.reset(new QIcon(WorkbenchIconTypeLoader::loadPixmapForIconTypeForCurrrentDarkLightColorScheme(WorkbenchIconTypeEnum::RECENT_FILES_DIALOG_SHARE)));
 
     setContextMenuPolicy(Qt::DefaultContextMenu);
     

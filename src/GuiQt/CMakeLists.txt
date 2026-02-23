@@ -513,7 +513,7 @@ GiftiLabelTableSelectionComboBox.h
 GlobalShortcutEnum.h
 GroupAndNameHierarchyTreeWidgetItem.h
 GroupAndNameHierarchyViewController.h
-GuiDarkLightThemeManager.h
+GuiDarkLightColorSchemeManager.h
 GuiManager.h
 HelpViewerDialog.h
 HistologyOverlaySetViewController.h
@@ -882,7 +882,7 @@ GiftiLabelTableSelectionComboBox.cxx
 GlobalShortcutEnum.cxx
 GroupAndNameHierarchyTreeWidgetItem.cxx
 GroupAndNameHierarchyViewController.cxx
-GuiDarkLightThemeManager.cxx
+GuiDarkLightColorSchemeManager.cxx
 GuiManager.cxx
 HelpViewerDialog.cxx
 HistologyOverlaySetViewController.cxx

@@ -1,5 +1,5 @@
-#ifndef __GUI_DARK_LIGHT_THEME_MANAGER_H__
-#define __GUI_DARK_LIGHT_THEME_MANAGER_H__
+#ifndef __GUI_DARK_LIGHT_COLOR_SCHEME_MANAGER_H__
+#define __GUI_DARK_LIGHT_COLOR_SCHEME_MANAGER_H__
 
 /*LICENSE_START*/
 /*
@@ -25,43 +25,45 @@
 
 #include <memory>
 
-#include "CaretObject.h"
+#include <QObject>
 
 #include "EventListenerInterface.h"
-#include "GuiDarkLightThemeModeEnum.h"
+#include "GuiDarkLightColorSchemeModeEnum.h"
 
 namespace caret {
 
-    class GuiDarkLightThemeManager : public CaretObject, public EventListenerInterface {
+    class GuiDarkLightColorSchemeManager : public QObject, public EventListenerInterface {
         
     public:
-        GuiDarkLightThemeManager();
+        GuiDarkLightColorSchemeManager(QObject* parent);
         
-        virtual ~GuiDarkLightThemeManager();
+        virtual ~GuiDarkLightColorSchemeManager();
         
-        GuiDarkLightThemeManager(const GuiDarkLightThemeManager&) = delete;
+        GuiDarkLightColorSchemeManager(const GuiDarkLightColorSchemeManager&) = delete;
 
-        GuiDarkLightThemeManager& operator=(const GuiDarkLightThemeManager&) = delete;
+        GuiDarkLightColorSchemeManager& operator=(const GuiDarkLightColorSchemeManager&) = delete;
         
 
         // ADD_NEW_METHODS_HERE
 
-        virtual AString toString() const;
-        
         virtual void receiveEvent(Event* event);
 
+    private slots:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+        void qtColorSchemeChanged(Qt::ColorScheme colorScheme);
+#endif
     private:
-        GuiDarkLightThemeModeEnum::Enum getActiveDarkLightTheme() const;
+        GuiDarkLightColorSchemeModeEnum::Enum getActiveDarkLightColorScheme() const;
         
-        void applyDarkLightThemeOnMacOS();
+        void applyDarkLightColorScheme();
         
-        void darkLightThemeChangedByPaletteChangeEventInBrowserWindow();
+        void darkLightColorSchemeChangedByPaletteChangeEventInBrowserWindow();
         
-        void darkLightThemeChangedByPreferencesGeneralWidget();
+        void darkLightColorSchemeChangedByPreferencesGeneralWidget();
         
-        void setCurrentDarkLightThemeToValueInPreferences();
+        void setCurrentDarkLightColorSchemeToValueInPreferences();
         
-        GuiDarkLightThemeModeEnum::Enum m_currentDarkLightThemeMode = GuiDarkLightThemeModeEnum::LIGHT;
+        GuiDarkLightColorSchemeModeEnum::Enum m_currentDarkLightColorSchemeMode = GuiDarkLightColorSchemeModeEnum::LIGHT;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -69,9 +71,9 @@ namespace caret {
         friend class PreferencesGeneralWidget;
     };
     
-#ifdef __GUI_DARK_LIGHT_THEME_MANAGER_DECLARE__
+#ifdef __GUI_DARK_LIGHT_COLOR_SCHEME_MANAGER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GUI_DARK_LIGHT_THEME_MANAGER_DECLARE__
+#endif // __GUI_DARK_LIGHT_COLOR_SCHEME_MANAGER_DECLARE__
 
 } // namespace
-#endif  //__GUI_DARK_LIGHT_THEME_MANAGER_H__
+#endif  //__GUI_DARK_LIGHT_COLOR_SCHEME_MANAGER_H__

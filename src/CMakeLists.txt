@@ -81,6 +81,12 @@ set (WORKBENCH_USE_Z5 FALSE CACHE BOOL
 set (WORKBENCH_Z5_PATH "" CACHE PATH
      "Optional path for finding Z5 and related packages (gets appended to CMAKE_PREFIX_PATH)")
 
+#
+# Dark / Light color scheme support
+#
+set (WORKBENCH_DARK_LIGHT_COLOR_SCHEME_WITH_MACOS CACHE BOOL
+     "If TRUE, enable macOS support for light /dark color scheme support")
+
 ##########################################################################################
 #
 # Setting the compiler MUST be done before the PROJECT
@@ -249,6 +255,7 @@ ELSE (OPENSSL_FOUND)
     MESSAGE("See: https://cmake.org/cmake/help/v3.5/module/FindOpenSSL.html")
 ENDIF(OPENSSL_FOUND)
 
+
 ##########################################################################################
 #
 # Must have QT 6 or QT 5, recommended 5.6 or later
@@ -321,6 +328,26 @@ ELSEIF (WORKBENCH_USE_QT5)
 ELSE ()
     MESSAGE(SEND_ERROR "QT5 or QT6 REQUIRED")
 ENDIF ()
+
+##########################################################################################
+#
+# Dark / Light Color Scheme Support (must be tested after Qt is found)
+#
+IF (${WORKBENCH_DARK_LIGHT_COLOR_SCHEME_WITH_MACOS})
+    IF (NOT APPLE)
+        message(ERROR "macOS Dark / Light Color Scheme only available on macOS")
+    ENDIF()
+    message("DARK/LIGHT COLOR SCHEME: macOS")
+    add_definitions(-DWORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS)
+ELSE()
+    #
+    # Qt's dark/light support requires Qt 6.8.0 or later
+    #
+    IF (${Qt6_VERSION} VERSION_GREATER_EQUAL "6.8.0")
+        add_definitions(-DWORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_QT)
+        message("DARK/LIGHT COLOR SCHEME: Qt")
+    ENDIF()
+ENDIF()
 
 ##########################################################################################
 #
