@@ -23,6 +23,7 @@
 
 #include "Border.h"
 #include "BorderFile.h"
+#include "CaretLogger.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "SurfaceFile.h"
@@ -89,11 +90,13 @@ AlgorithmBorderResample::AlgorithmBorderResample(ProgressObject* myProgObj, cons
         borderOut->addBorderMetadataKey(borderIn->getBorderMetadataKey(m));//rely on the keys being in order added
     }
     int numBorders = borderIn->getNumberOfBorders();
+    bool structureMatch = false;
     CaretPointer<SignedDistanceHelper> myHelp = newAdjust.getSignedDistanceHelper();
     for (int i = 0; i < numBorders; ++i)
     {
         const Border* inputBorder = borderIn->getBorder(i);
         if (inputBorder->getStructure() != curSphere->getStructure()) continue;
+        structureMatch = true;
         CaretPointer<Border> outputBorder(new Border());//in case something throws
         outputBorder->setName(inputBorder->getName());
         outputBorder->setClassName(inputBorder->getClassName());
@@ -122,6 +125,10 @@ AlgorithmBorderResample::AlgorithmBorderResample(ProgressObject* myProgObj, cons
             AString value = borderIn->getBorderMetadataValue(inputBorder->getName(), inputBorder->getClassName(), m);
             if (value != "") borderOut->setBorderMetadataValue(inputBorder->getName(), inputBorder->getClassName(), m, value);
         }
+    }
+    if (numBorders > 0 && !structureMatch)
+    {
+        CaretLogWarning("no borders in '" + borderIn->getFileName() + "' matched the structure of '" + curSphere->getFileName() + "'");
     }
 }
 
