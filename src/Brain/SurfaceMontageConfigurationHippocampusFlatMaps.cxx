@@ -277,9 +277,10 @@ SurfaceMontageConfigurationHippocampusFlatMaps::updateSurfaceMontageViewports(st
          */
         switch (getLayoutOrientation()) {
             case SurfaceMontageLayoutOrientationEnum::COLUMN_LAYOUT_ORIENTATION:
-                for (int32_t i = 0; i < 4; i++) {
-                    surfaceMontageViewports[i].setRowAndColumn(i, 0);
-                }
+                surfaceMontageViewports[0].setRowAndColumn(1, 0); /* left hipp */
+                surfaceMontageViewports[1].setRowAndColumn(0, 0); /* left dent */
+                surfaceMontageViewports[2].setRowAndColumn(2, 0); /* right hipp */
+                surfaceMontageViewports[3].setRowAndColumn(3, 0); /* right dent */
                 break;
             case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
                 break;
@@ -290,9 +291,10 @@ SurfaceMontageConfigurationHippocampusFlatMaps::updateSurfaceMontageViewports(st
             case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION_TRANSPOSED:
                 break;
             case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:
-                for (int32_t i = 0; i < 4; i++) {
-                    surfaceMontageViewports[i].setRowAndColumn(0, i);
-                }
+                surfaceMontageViewports[0].setRowAndColumn(0, 1); /* left hipp */
+                surfaceMontageViewports[1].setRowAndColumn(0, 0); /* left dent */
+                surfaceMontageViewports[2].setRowAndColumn(0, 2); /* right hipp */
+                surfaceMontageViewports[3].setRowAndColumn(0, 3); /* right dent */
                 break;
         }
     }
