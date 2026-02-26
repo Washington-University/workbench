@@ -4964,7 +4964,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
         return;
     }
     
-    const int32_t sliceIndexStep = m_browserTabContent->getVolumeMontageSliceSpacing();
+    const float sliceIndexStep = m_browserTabContent->getVolumeMontageSliceSpacing();
+    if (m_debugFlag) std::cout << "sliceIndexStep: " << sliceIndexStep << std::endl;
     
     /*
      * Determine a slice offset to selected slices is in
@@ -5060,6 +5061,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
                 continue;
             }
             
+            if (m_debugFlag) std::cout << "   Row: " << i1 << ", Col: " << j1 << " Slice XYZ: " << sliceXYZ.toString() << std::endl;
+            
             if (m_debugFlag) std::cout << "   First montage slice coords: " << sliceXYZ.toString() << std::endl;
             int64_t voxelIJK[3];
             underlayVolume->enclosingVoxel(sliceXYZ[0], sliceXYZ[1], sliceXYZ[2],
@@ -5081,6 +5084,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
                  * Draw coordinates on slice
                  */
                 const float offsetDistance(mprSliceView.getMontageTopLeftSliceDirectionPlane().signedDistanceToPlane(sliceXYZ));
+                if (m_debugFlag) std::cout << "   Offset Distance: " << offsetDistance << std::endl;
                 BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(m_fixedPipelineDrawing,
                                                                            m_browserTabContent,
                                                                            sliceViewPlane,

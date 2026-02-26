@@ -50,7 +50,7 @@ namespace caret {
     private slots:
         void montageRowsSpinBoxValueChanged(int i);
         void montageColumnsSpinBoxValueChanged(int i);
-        void montageSpacingSpinBoxValueChanged(int i);
+        void montageSpacingSpinBoxValueChanged(double f);
         void montageSliceDirectionComboBoxItemActivated();
         
         
@@ -72,7 +72,7 @@ namespace caret {
         
         QSpinBox* m_montageRowsSpinBox;
         QSpinBox* m_montageColumnsSpinBox;
-        QSpinBox* m_montageSpacingSpinBox;
+        QDoubleSpinBox* m_montageSpacingSpinBox;
         EnumComboBoxTemplate* m_montageSliceDirectionComboBox;
         
         QAction* m_showSliceCoordinateAction;

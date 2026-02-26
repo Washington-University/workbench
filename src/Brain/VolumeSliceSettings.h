@@ -81,9 +81,9 @@ namespace caret {
         
         void setMontageNumberOfRows(const int32_t montageNumberOfRows);
         
-        int32_t getMontageSliceSpacing() const;
+        float getMontageSliceSpacing() const;
         
-        void setMontageSliceSpacing(const int32_t montageSliceSpacing);
+        void setMontageSliceSpacing(const float montageSliceSpacing);
         
         VolumeMontageSliceOrderModeEnum::Enum getMontageSliceOrderMode() const;
         
@@ -188,7 +188,7 @@ namespace caret {
         int32_t m_montageNumberOfColumns;
         
         /** Montage slice spacing */
-        int32_t m_montageSliceSpacing;
+        float m_montageSliceSpacing;
         
         VolumeMontageSliceOrderModeEnum::Enum m_montageSliceOrderMode = VolumeMontageSliceOrderModeEnum::WORKBENCH;
 

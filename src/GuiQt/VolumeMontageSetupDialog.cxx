@@ -25,6 +25,7 @@
 
 #include <cmath>
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
@@ -32,16 +33,24 @@
 #include <QLabel>
 #include <QQuaternion>
 #include <QSpinBox>
+#include <QStackedLayout>
 #include <QVBoxLayout>
 
+#include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionModel.h"
 #include "CaretDataFileSelectionComboBox.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventManager.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventUserInterfaceUpdate.h"
+#include "GuiManager.h"
 #include "HistologySlice.h"
 #include "HistologySlicesFile.h"
 #include "Matrix4x4.h"
 #include "MetaVolumeFile.h"
+#include "ModelVolume.h"
 #include "OverlaySet.h"
 #include "VolumeFile.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -59,40 +68,152 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param browserWindowIndex
+ *    Index of browser window
+ * @param browserTabContent
+ *    Content of browser tab content
+ * @param underlayVolumeFile
+ *    The underlay volume file
+ * @param parent
+ *    The parent widget
  */
-VolumeMontageSetupDialog::VolumeMontageSetupDialog(BrowserTabContent* browserTabContent,
+VolumeMontageSetupDialog::VolumeMontageSetupDialog(const int32_t browserWindowIndex,
+                                                   BrowserTabContent* browserTabContent,
+                                                   VolumeFile* underlayVolumeFile,
                                                    QWidget* parent)
 : WuQDialogModal("Setup Volume Montage",
                  parent),
-m_browserTabContent(browserTabContent)
+m_browserWindowIndex(browserWindowIndex),
+m_browserTabContent(browserTabContent),
+m_underlayVolumeFile(underlayVolumeFile)
 {
     CaretAssert(m_browserTabContent);
+    CaretAssert(m_underlayVolumeFile);
     
     m_dialogCreationInProgressFlag = true;
 
+    /*
+     * Get Montage Info
+     */
+    const int32_t numRows(browserTabContent->getVolumeMontageNumberOfRows());
+    const int32_t numCols(browserTabContent->getVolumeMontageNumberOfColumns());
+    m_underlaySliceViewPlane = browserTabContent->getVolumeSliceViewPlane();
+    if (m_underlaySliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
+        m_underlaySliceViewPlane = VolumeSliceViewPlaneEnum::AXIAL;
+    }
+
+    /*
+     * Get histology slices files and volume files
+     */
+    Brain* brain(GuiManager::get()->getBrain());
+    CaretAssert(brain);
+    const int32_t numHistologySlicesFiles(brain->getNumberOfHistologySlicesFiles());
+    
+    /*
+     * Set montage extent using Histology Slices File or Volume File
+     */
+    QLabel* montageExtentFileTypeLabel(new QLabel("Set Using: "));
+    m_montageExtentFileTypeComboBox = new QComboBox();
+    QObject::connect(m_montageExtentFileTypeComboBox, &QComboBox::activated,
+                     this, &VolumeMontageSetupDialog::montageExtentFileTypeComboBoxActivated);
+    if (numHistologySlicesFiles > 0) {
+        m_montageExtentTypeHistologyFileIndex = m_montageExtentFileTypeComboBox->count();
+        m_montageExtentFileTypeComboBox->addItem("Histology Slices File");
+    }
+    else {
+        m_montageExtentTypeHistologyFileIndex = -1;
+    }
+    m_montageExtentTypeVolumeFileIndex = m_montageExtentFileTypeComboBox->count();
+    m_montageExtentFileTypeComboBox->addItem("Volume File");
+
+    /*
+     * Montage Underlay Volume File
+     */
+    QLabel* volumeFileLabel(new QLabel("Underlay Volume File:"));
+    QLabel* underlayVolumeFileNameLabel(new QLabel(""));
+    underlayVolumeFileNameLabel->setText(m_underlayVolumeFile->getFileNameNoPath());
+    
+    /*
+     * Montage Rows/Columns
+     */
+    const int32_t maxVal(100);
+    const int32_t maxWidth(160);
+    QLabel* rowsLabel(new QLabel("Montage Rows:"));
+    m_montageInputRowsSpinBox = new QSpinBox();
+    m_montageInputRowsSpinBox->setRange(1, maxVal);
+    m_montageInputRowsSpinBox->setMaximumWidth(maxWidth);
+    QObject::connect(m_montageInputRowsSpinBox,  static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                     this, &VolumeMontageSetupDialog::montageInputRowsValueChanged);
+    
+    QLabel* columnsLabel(new QLabel(" Columns:"));
+    m_montageInputColumnsSpinBox = new QSpinBox();
+    m_montageInputColumnsSpinBox->setRange(1, maxVal);
+    m_montageInputColumnsSpinBox->setMaximumWidth(maxWidth);
+    QObject::connect(m_montageInputColumnsSpinBox,  static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                     this, &VolumeMontageSetupDialog::montageInputColumnsValueChanged);
+    
+    QLabel* numberOfSlicesLabel(new QLabel(" Slices:"));
+    m_montageInputNumberOfSlicesLabel = new QLabel();
+
+    QLabel* slicePlaneLabel(new QLabel("Slice Plane: "));
+    QLabel* montageSlicePlaneLabel(new QLabel(VolumeSliceViewPlaneEnum::toGuiName(m_underlaySliceViewPlane)));
+    QHBoxLayout* slicePlaneLayout(new QHBoxLayout());
+    slicePlaneLayout->addWidget(slicePlaneLabel);
+    slicePlaneLayout->addWidget(montageSlicePlaneLabel);
+    slicePlaneLayout->addStretch();
+    
+    QHBoxLayout* setExtentLayout(new QHBoxLayout());
+    setExtentLayout->addWidget(montageExtentFileTypeLabel);
+    setExtentLayout->addWidget(m_montageExtentFileTypeComboBox);
+    setExtentLayout->addStretch();
+
+    QHBoxLayout* underlayVolumeLayout(new QHBoxLayout());
+    underlayVolumeLayout->addWidget(volumeFileLabel);
+    underlayVolumeLayout->addWidget(underlayVolumeFileNameLabel);
+    underlayVolumeLayout->addStretch();
+
+    QHBoxLayout* montageSizeLayout(new QHBoxLayout());
+    montageSizeLayout->addWidget(rowsLabel);
+    montageSizeLayout->addWidget(m_montageInputRowsSpinBox);
+    montageSizeLayout->addWidget(columnsLabel);
+    montageSizeLayout->addWidget(m_montageInputColumnsSpinBox);
+    montageSizeLayout->addWidget(numberOfSlicesLabel);
+    montageSizeLayout->addWidget(m_montageInputNumberOfSlicesLabel);
+    montageSizeLayout->addStretch();
+    
+    QGroupBox* montageGroupBox(new QGroupBox("Montage"));
+    montageGroupBox->setAlignment(Qt::AlignHCenter);
+    QVBoxLayout* montageLayout(new QVBoxLayout(montageGroupBox));
+    montageLayout->addLayout(underlayVolumeLayout);
+    montageLayout->addLayout(montageSizeLayout);
+    montageLayout->addLayout(slicePlaneLayout);
+    
+    m_montageExtentVolumeFileWidget    = createVolumeSliceInputWidget();
+    m_montageExtentHistologyFileWidget = createHistologyWidget();
+
+    m_volumeSliceRangeSourceLayout = new QStackedLayout();
+    m_volumeSliceRangeSourceLayout->addWidget(m_montageExtentHistologyFileWidget);
+    m_volumeSliceRangeSourceLayout->addWidget(m_montageExtentVolumeFileWidget);
+
+    QGroupBox* montageExtentWidget(new QGroupBox("Montage Extent"));
+    montageExtentWidget->setAlignment(Qt::AlignHCenter);
+    QVBoxLayout* montageExtentLayout(new QVBoxLayout(montageExtentWidget));
+    montageExtentLayout->setContentsMargins(0, 0, 0, 0);
+    montageExtentLayout->addLayout(setExtentLayout);
+    montageExtentLayout->addSpacing(8);
+    montageExtentLayout->addLayout(m_volumeSliceRangeSourceLayout);
+
+
     QWidget* widget(new QWidget());
     QVBoxLayout* layout(new QVBoxLayout(widget));
-    m_volumeSliceInputWidget = createVolumeSliceInputWidget();
-    m_histologyWidget = createHistologyWidget();
-    layout->addWidget(createMontageInputWidget());
-    layout->addWidget(m_volumeSliceInputWidget);
-    layout->addWidget(m_histologyWidget);
+    layout->addWidget(montageGroupBox);
+    layout->addSpacing(8);
+    layout->addWidget(montageExtentWidget);
+    layout->addSpacing(8);
     layout->addWidget(createMontageOutputWidget());
+    
     setCentralWidget(widget,
                      ScrollAreaStatus::SCROLL_AREA_NEVER);
-    
-    int32_t numRows(5);
-    int32_t numCols(5);
-    VolumeMappableInterface* vmi(browserTabContent->getOverlaySet()->getUnderlayVolume());
-    if (vmi != NULL) {
-        CaretDataFile* caretDataFile(vmi->castToVolumeMappableDataFile());
-        if (caretDataFile != NULL) {
-            m_volumeFileSelectionComboBox->setSelectedFile(caretDataFile);
-        }
-        
-        numRows = browserTabContent->getVolumeMontageNumberOfRows();
-        numCols = browserTabContent->getVolumeMontageNumberOfColumns();
-    }
     
     /*
      * Loads data and sets up dialog
@@ -103,14 +224,14 @@ m_browserTabContent(browserTabContent)
     m_montageInputRowsSpinBox->setValue(numRows);
     QSignalBlocker columnsBlocker(m_montageInputColumnsSpinBox);
     m_montageInputColumnsSpinBox->setValue(numCols);
-    montageInputVolumeSliceAxisComboBoxValueChanged(m_montageInputVolumeSliceAxisComboBox->currentIndex());
     m_dialogCreationInProgressFlag = false;
     montageInputRowOrColumnValueChanged();
     
-    /*
-     * Disable OK button until finished
-     */
-    setOkButtonEnabled(false);
+        m_applyPushButton = addUserPushButton("Apply",
+                                          QDialogButtonBox::ButtonRole::AcceptRole);
+    
+    montageExtentFileTypeComboBoxActivated(m_montageExtentFileTypeComboBox->currentIndex());
+    updateMontageOutputWidget();
 }
 
 /**
@@ -122,29 +243,11 @@ VolumeMontageSetupDialog::~VolumeMontageSetupDialog()
 }
 
 /**
- * @return New instance of the input section
+ * @return New instance of volume slice input widget
  */
 QWidget*
-VolumeMontageSetupDialog::createMontageInputWidget()
+VolumeMontageSetupDialog::createVolumeSliceInputWidget()
 {
-    QLabel* slicePlaneLabel(new QLabel("Volume Montage Axis:"));
-    m_montageInputVolumeSliceAxisComboBox = new QComboBox();
-    m_montageInputVolumeSliceAxisComboBox->addItem("Histology File's Axis");
-    m_montageInputVolumeSliceAxisComboBox->setItemData(m_montageInputVolumeSliceAxisComboBox->count() - 1,
-                                                 static_cast<int32_t>(VolumeSliceViewPlaneEnum::ALL));
-    m_montageInputVolumeSliceAxisComboBox->addItem("Volume's Axial Axis");
-    m_montageInputVolumeSliceAxisComboBox->setItemData(m_montageInputVolumeSliceAxisComboBox->count() - 1,
-                                                 static_cast<int32_t>(VolumeSliceViewPlaneEnum::AXIAL));
-    m_montageInputVolumeSliceAxisComboBox->addItem("Volume's Coronal Axis");
-    m_montageInputVolumeSliceAxisComboBox->setItemData(m_montageInputVolumeSliceAxisComboBox->count() - 1,
-                                                 static_cast<int32_t>(VolumeSliceViewPlaneEnum::CORONAL));
-    m_montageInputVolumeSliceAxisComboBox->addItem("Volume's Parasagittal Axis");
-    m_montageInputVolumeSliceAxisComboBox->setItemData(m_montageInputVolumeSliceAxisComboBox->count() - 1,
-                                                 static_cast<int32_t>(VolumeSliceViewPlaneEnum::PARASAGITTAL));
-    QObject::connect(m_montageInputVolumeSliceAxisComboBox, QOverload<int>::of(&QComboBox::activated),
-                     this, &VolumeMontageSetupDialog::montageInputVolumeSliceAxisComboBoxValueChanged);
-    
-
     QLabel* volumeFileLabel(new QLabel("Volume File:"));
     std::vector<DataFileTypeEnum::Enum> volumeFileTypes { DataFileTypeEnum::VOLUME, DataFileTypeEnum::META_VOLUME };
     std::pair<CaretDataFileSelectionModel*, CaretDataFileSelectionComboBox*> volumeModelAndFileCombo
@@ -152,72 +255,13 @@ VolumeMontageSetupDialog::createMontageInputWidget()
     m_volumeFileSelectionComboBox = volumeModelAndFileCombo.second;
     QObject::connect(m_volumeFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
                      this, &VolumeMontageSetupDialog::volumeFileSelected);
-    
+    volumeModelAndFileCombo.first->setSelectedFile(m_underlayVolumeFile);
 
-    const int32_t maxVal(100);
-    
-    QLabel* rowsLabel(new QLabel("Montage Rows:"));
-    m_montageInputRowsSpinBox = new QSpinBox();
-    m_montageInputRowsSpinBox->setRange(1, maxVal);
-    QObject::connect(m_montageInputRowsSpinBox,  static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                     this, &VolumeMontageSetupDialog::montageInputRowsValueChanged);
-    
-    QLabel* columnsLabel(new QLabel(" Columns:"));
-    m_montageInputColumnsSpinBox = new QSpinBox();
-    m_montageInputColumnsSpinBox->setRange(1, maxVal);
-    QObject::connect(m_montageInputColumnsSpinBox,  static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                     this, &VolumeMontageSetupDialog::montageInputColumnsValueChanged);
-
-    QLabel* numberOfSlicesLabel(new QLabel("Number of Slices:"));
-    m_montageInputNumberOfSlicesLabel = new QLabel();
-
-    QGridLayout* fileAndPlaneLayout(new QGridLayout());
-    fileAndPlaneLayout->addWidget(slicePlaneLabel,
-                                  0, 0);
-    fileAndPlaneLayout->addWidget(m_montageInputVolumeSliceAxisComboBox,
-                                  0, 1, 1, 5, Qt::AlignLeft);
-    fileAndPlaneLayout->addWidget(volumeFileLabel,
-                                  1, 0);
-    fileAndPlaneLayout->addWidget(m_volumeFileSelectionComboBox->getWidget(),
-                                  1, 1);
-
-    
-    const int32_t STRETCH_YES(100);
-    QGridLayout* rowColLayout(new QGridLayout());
-    rowColLayout->setColumnStretch(6, STRETCH_YES);
-    int row(rowColLayout->rowCount());
-    rowColLayout->addWidget(rowsLabel,
-                            row, 0);
-    rowColLayout->addWidget(m_montageInputRowsSpinBox,
-                            row, 1);
-    rowColLayout->addWidget(columnsLabel,
-                            row, 2);
-    rowColLayout->addWidget(m_montageInputColumnsSpinBox,
-                            row, 3);
-    rowColLayout->addWidget(numberOfSlicesLabel,
-                            row, 4);
-    rowColLayout->addWidget(m_montageInputNumberOfSlicesLabel,
-                            row, 5);;
-    ++row;
-
-    QGroupBox* widget(new QGroupBox("Montage Inputs"));
-    QVBoxLayout* layout(new QVBoxLayout(widget));
-    layout->addLayout(fileAndPlaneLayout);
-    layout->addLayout(rowColLayout);
-
-    return widget;
-}
-
-/**
- * @return New instance of volume slice input widget
- */
-QWidget*
-VolumeMontageSetupDialog::createVolumeSliceInputWidget()
-{
     QLabel* startLabel(new QLabel("Start:"));
     QLabel* endLabel(new QLabel("End:"));
+    QLabel* sliceLabel(new QLabel("Slice"));
     QLabel* sliceIndexLabel(new QLabel("Slice Index"));
-    QLabel* coordinateLabel(new QLabel("Coordinate"));
+    QLabel* coordinateLabel(new QLabel("Slice Coordinate"));
     
     m_volumeStartSliceIndexSpinBox = new QSpinBox();
     m_volumeStartSliceIndexSpinBox->setMinimumWidth(s_minimumSpinBoxWidth);
@@ -237,10 +281,17 @@ VolumeMontageSetupDialog::createVolumeSliceInputWidget()
     const int32_t COL_COORD(2);
     const int32_t STRETCH_YES(100);
     
-    QWidget* widget(new QGroupBox("Volume Axis Slices"));
-    QGridLayout* sliceCoordLayout(new QGridLayout(widget));
+    QHBoxLayout* volumeFileLayout(new QHBoxLayout());
+    volumeFileLayout->addWidget(volumeFileLabel);
+    volumeFileLayout->addWidget(m_volumeFileSelectionComboBox->getWidget());
+    volumeFileLayout->addStretch();
+
+    QGridLayout* sliceCoordLayout(new QGridLayout());
+    int row = sliceCoordLayout->rowCount();
     sliceCoordLayout->setColumnStretch(3, STRETCH_YES);
-    int row(sliceCoordLayout->rowCount());
+    sliceCoordLayout->setRowStretch(100, 100);
+    sliceCoordLayout->addWidget(sliceLabel,
+                                row, COL_LABEL, Qt::AlignHCenter);
     sliceCoordLayout->addWidget(sliceIndexLabel,
                                 row, COL_INDEX, Qt::AlignHCenter);
     sliceCoordLayout->addWidget(coordinateLabel,
@@ -261,24 +312,13 @@ VolumeMontageSetupDialog::createVolumeSliceInputWidget()
                                 row, COL_COORD);
     ++row;
 
+    QWidget* widget(new QWidget());
+    QVBoxLayout* layout(new QVBoxLayout(widget));
+    layout->addLayout(volumeFileLayout);
+    layout->addLayout(sliceCoordLayout);
+    layout->addStretch();
+
     return widget;
-}
-
-
-/**
- * @return Selected montage volume axis (ALL implies axis of histology slices)
- */
-VolumeSliceViewPlaneEnum::Enum
-VolumeMontageSetupDialog::getSelectedVolumeMontageAxis() const
-{
-    const int32_t axisInteger(m_montageInputVolumeSliceAxisComboBox->currentData().toInt());
-    bool validFlag(false);
-    VolumeSliceViewPlaneEnum::Enum axis(VolumeSliceViewPlaneEnum::fromIntegerCode(axisInteger,
-                                                                                  &validFlag));
-    if ( ! validFlag) {
-        axis = VolumeSliceViewPlaneEnum::AXIAL;
-    }
-    return axis;
 }
 
 /**
@@ -294,8 +334,14 @@ VolumeMontageSetupDialog::createHistologyWidget()
     QObject::connect(m_histologyFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
                      this, &VolumeMontageSetupDialog::histologyFileSelected);
     
+    m_histologyAlignToFileAxisCheckBox = new QCheckBox("Align to Histology File's Axis");
+    m_histologyAlignToFileAxisCheckBox->setChecked(true);
+    QObject::connect(m_histologyAlignToFileAxisCheckBox, &QCheckBox::clicked,
+                     this, &VolumeMontageSetupDialog::histologyAlignToHistologyFileAxisCheckBoxClicked);
+    
     QLabel* startLabel(new QLabel("Start:"));
     QLabel* endLabel(new QLabel("End:"));
+    QLabel* sliceLabel(new QLabel("Slice"));
     QLabel* sliceNumberLabel(new QLabel("Slice Number"));
     QLabel* coordinateLabel(new QLabel("Coordinate"));
     QLabel* sliceNameLabel(new QLabel("Slice Name"));
@@ -327,20 +373,27 @@ VolumeMontageSetupDialog::createHistologyWidget()
     const int32_t COL_NUMBER(1);
     const int32_t COL_NAME(2);
     const int32_t COL_COORD(3);
-    const int32_t STRETCH_NO(0);
-    const int32_t STRETCH_YES(100);
     
-    QHBoxLayout* fileLayout(new QHBoxLayout());
-    fileLayout->addWidget(histologyFileLabel, STRETCH_NO);
-    fileLayout->addWidget(m_histologyFileSelectionComboBox->getWidget(), STRETCH_YES);
+    QGridLayout* fileAxisLayout(new QGridLayout());
+    fileAxisLayout->setContentsMargins(0, 0, 0, 0);
+    fileAxisLayout->setColumnStretch(1, 100);
+    fileAxisLayout->addWidget(histologyFileLabel,
+                              0, 0);
+    fileAxisLayout->addWidget(m_histologyFileSelectionComboBox->getWidget(),
+                              0, 1);
+    fileAxisLayout->addWidget(m_histologyAlignToFileAxisCheckBox,
+                              1, 0, 1, 2, Qt::AlignLeft);
     
-    QWidget* widget(new QGroupBox("Histology File"));
+    QWidget* widget(new QWidget());
     QGridLayout* layout(new QGridLayout(widget));
-    layout->setColumnStretch(4, STRETCH_YES);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setColumnStretch(4, 100);
     int row(layout->rowCount());
-    layout->addLayout(fileLayout,
+    layout->addLayout(fileAxisLayout,
                       row, COL_LABEL, 1, 5);
     ++row;
+    layout->addWidget(sliceLabel,
+                      row, COL_LABEL);
     layout->addWidget(sliceNumberLabel,
                       row, COL_NUMBER, Qt::AlignHCenter);
     layout->addWidget(sliceNameLabel,
@@ -469,7 +522,8 @@ VolumeMontageSetupDialog::createMontageOutputWidget()
                           stepLayoutRow, 1);
     ++stepLayoutRow;
     
-    QWidget* widget(new QGroupBox("Montage Output"));
+    QGroupBox* widget(new QGroupBox("Montage Output"));
+    widget->setAlignment(Qt::AlignHCenter);
     QHBoxLayout* layout(new QHBoxLayout(widget));
     layout->addLayout(pcaLayout);
     layout->addSpacing(10);
@@ -733,9 +787,7 @@ VolumeMontageSetupDialog::volumeFileSelected(CaretDataFile* caretDataFile)
             int64_t dimI, dimJ, dimK, dimTime, dimCompontents;
             vmi->getDimensions(dimI, dimJ, dimK, dimTime, dimCompontents);
             
-            const int32_t viewPlaneInteger(m_montageInputVolumeSliceAxisComboBox->currentData().toInt());
-            const VolumeSliceViewPlaneEnum::Enum slicePlane(VolumeSliceViewPlaneEnum::fromIntegerCode(viewPlaneInteger, NULL));
-            switch (slicePlane) {
+            switch (m_underlaySliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     minSlice = 0;
                     maxSlice = std::max(dimI, std::max(dimJ, dimK));
@@ -757,11 +809,10 @@ VolumeMontageSetupDialog::volumeFileSelected(CaretDataFile* caretDataFile)
             QSignalBlocker startBlocker(m_volumeStartSliceIndexSpinBox);
             m_volumeStartSliceIndexSpinBox->setRange(minSlice, maxSlice);
             m_volumeStartSliceIndexSpinBox->setValue(0);
-            volumeStartSliceIndexSpinBoxValueChanged(m_volumeStartSliceIndexSpinBox->value());
             QSignalBlocker endBlocker(m_volumeEndSliceIndexSpinBox);
             m_volumeEndSliceIndexSpinBox->setRange(minSlice, maxSlice);
             m_volumeEndSliceIndexSpinBox->setValue(maxSlice);
-            volumeEndSliceIndexSpinBoxValueChanged(m_volumeEndSliceIndexSpinBox->value());
+            updateVolumeSliceCoordinates();
 
             m_montageOutputParagittalSliceIndexSpinBox->setRange(0, dimI - 1);
             m_montageOutputCoronalSliceIndexSpinBox->setRange(0, dimJ - 1);
@@ -790,15 +841,9 @@ VolumeMontageSetupDialog::volumeFileSelected(CaretDataFile* caretDataFile)
  *    New value
  */
 void
-VolumeMontageSetupDialog::volumeStartSliceIndexSpinBoxValueChanged(int value)
+VolumeMontageSetupDialog::volumeStartSliceIndexSpinBoxValueChanged(int /*value*/)
 {
-    FunctionResultValue<Vector3D> result(volumeSliceIndexToCoordinate(value));
-    if (result.isOk()) {
-        m_volumeStartSliceCoordinateLabel->setText(result.getValue().toString());
-    }
-    else {
-        m_volumeStartSliceCoordinateLabel->setText("Invalid");
-    }
+    updateVolumeSliceCoordinates();
     updateMontageOutputWidget();
 }
 
@@ -808,18 +853,34 @@ VolumeMontageSetupDialog::volumeStartSliceIndexSpinBoxValueChanged(int value)
  *    New value
  */
 void
-VolumeMontageSetupDialog::volumeEndSliceIndexSpinBoxValueChanged(int value)
+VolumeMontageSetupDialog::volumeEndSliceIndexSpinBoxValueChanged(int /*value*/)
 {
-    FunctionResultValue<Vector3D> result(volumeSliceIndexToCoordinate(value));
-    if (result.isOk()) {
-        m_volumeEndSliceCoordinateLabel->setText(result.getValue().toString());
+    updateVolumeSliceCoordinates();
+    updateMontageOutputWidget();
+}
+
+/**
+ * Update the volume slice coordinates
+ */
+void
+VolumeMontageSetupDialog::updateVolumeSliceCoordinates()
+{
+    FunctionResultValue<Vector3D> resultStart(volumeSliceIndexToCoordinate(m_volumeStartSliceIndexSpinBox->value()));
+    if (resultStart.isOk()) {
+        m_volumeStartSliceCoordinateLabel->setText(resultStart.getValue().toString());
+    }
+    else {
+        m_volumeStartSliceCoordinateLabel->setText("Invalid");
+    }
+
+    FunctionResultValue<Vector3D> resultEnd(volumeSliceIndexToCoordinate(m_volumeEndSliceIndexSpinBox->value()));
+    if (resultEnd.isOk()) {
+        m_volumeEndSliceCoordinateLabel->setText(resultEnd.getValue().toString());
     }
     else {
         m_volumeEndSliceCoordinateLabel->setText("Invalid");
     }
-    updateMontageOutputWidget();
 }
-
 
 /**
  * Convert a volume slice index to a coordinate for the currently selected axis
@@ -844,11 +905,8 @@ VolumeMontageSetupDialog::volumeSliceIndexToCoordinate(const int32_t sliceIndex)
             const int64_t middleJ((dimJ > 1) ? (dimJ / 2) : dimJ);
             const int64_t middleK((dimK > 1) ? (dimK / 2) : dimK);
 
-            const int32_t selectedIndex(m_montageInputVolumeSliceAxisComboBox->currentIndex());
-            const int32_t viewPlaneInteger(m_montageInputVolumeSliceAxisComboBox->itemData(selectedIndex).toInt());
-            const VolumeSliceViewPlaneEnum::Enum slicePlane(VolumeSliceViewPlaneEnum::fromIntegerCode(viewPlaneInteger, NULL));
             float x(0.0), y(0.0), z(0.0);
-            switch (slicePlane) {
+            switch (m_underlaySliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     break;
                 case VolumeSliceViewPlaneEnum::AXIAL:
@@ -889,9 +947,7 @@ VolumeMontageSetupDialog::volumeCoordinateToSliceIndex(const Vector3D& xyz) cons
             int64_t ijk[3] { 0, 0, 0 };
             vmi->enclosingVoxel(xyz, ijk);
             
-            const int32_t viewPlaneInteger(m_montageInputVolumeSliceAxisComboBox->currentData().toInt());
-            const VolumeSliceViewPlaneEnum::Enum slicePlane(VolumeSliceViewPlaneEnum::fromIntegerCode(viewPlaneInteger, NULL));
-            switch (slicePlane) {
+            switch (m_underlaySliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     break;
                 case VolumeSliceViewPlaneEnum::AXIAL:
@@ -912,18 +968,14 @@ VolumeMontageSetupDialog::volumeCoordinateToSliceIndex(const Vector3D& xyz) cons
 }
 
 /**
- * Called when the volume slice view plane is changed
+ * Called when align to histology file axis checkbox is clicked
+ * @param checked
+ *   New checked status
  */
 void
-VolumeMontageSetupDialog::montageInputVolumeSliceAxisComboBoxValueChanged(int itemIndex)
+VolumeMontageSetupDialog::histologyAlignToHistologyFileAxisCheckBoxClicked(bool /*checked*/)
 {
-    const VolumeSliceViewPlaneEnum::Enum slicePlane(VolumeSliceViewPlaneEnum::fromIntegerCode(itemIndex, NULL));
-    
-    const bool enableHistologyWidgetFlag(slicePlane == VolumeSliceViewPlaneEnum::ALL);
-    m_volumeSliceInputWidget->setEnabled( ! enableHistologyWidgetFlag);
-    m_histologyWidget->setEnabled(enableHistologyWidgetFlag);
-
-    volumeFileSelected(m_volumeFileSelectionComboBox->getSelectedFile());
+    updateMontageOutputWidget();
 }
 
 /**
@@ -936,39 +988,41 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
         return;
     }
     
-    int64_t indexI(0);
-    int64_t indexJ(0);
-    int64_t indexK(0);
+    float indexI(0.0);
+    float indexJ(0.0);
+    float indexK(0.0);
     Vector3D stereoXYZ(0.0, 0.0, 0.0);
     float stepThickness(0.0);
     float numberOfSlicesPerStep(0.0);
     Vector3D rotationAngles(0.0, 0.0, 0.0);
     AString sliceViewPlaneName;
     
-    VolumeSliceViewPlaneEnum::Enum slicePlane(VolumeMontageSetupDialog::getSelectedVolumeMontageAxis());
-    bool histologyFlag(slicePlane == VolumeSliceViewPlaneEnum::ALL);
-    FunctionResultValue<Vector3D> resultStartCoord(Vector3D(), "", false);
-    FunctionResultValue<Vector3D> resultEndCoord(Vector3D(), "", false);
-    if (histologyFlag) {
-        resultStartCoord = histologySliceNumberToCoordinate(m_histologyStartSliceNumberSpinBox->value());
-        resultEndCoord   = histologySliceNumberToCoordinate(m_histologyEndSliceNumberSpinBox->value());
-        if (resultStartCoord.isOk()
-            && resultEndCoord.isOk()) {
-        }
-        
+    bool histologyFlag(false);
+    bool volumeFlag(false);
+    const int32_t setUsingIndex(m_montageExtentFileTypeComboBox->currentIndex());
+    if (setUsingIndex == m_montageExtentTypeHistologyFileIndex) {
+        histologyFlag = true;
+    }
+    else if (setUsingIndex == m_montageExtentTypeVolumeFileIndex) {
+        volumeFlag = true;
     }
     else {
-        switch (slicePlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                break;
-        }
-        
+        CaretAssert(0);
+    }
+    
+    FunctionResultValue<Vector3D> resultStartCoord(Vector3D(), "", false);
+    FunctionResultValue<Vector3D> resultEndCoord(Vector3D(), "", false);
+    
+    VolumeSliceViewPlaneEnum::Enum outputSlicePlane(m_underlaySliceViewPlane);
+    
+    if (histologyFlag) {
+            resultStartCoord = histologySliceNumberToCoordinate(m_histologyStartSliceNumberSpinBox->value());
+            resultEndCoord   = histologySliceNumberToCoordinate(m_histologyEndSliceNumberSpinBox->value());
+            if (resultStartCoord.isOk()
+                && resultEndCoord.isOk()) {
+            }
+    }
+    else if (volumeFlag) {
         const int32_t startSliceIndex(m_volumeStartSliceIndexSpinBox->value());
         const int32_t endSliceIndex(m_volumeEndSliceIndexSpinBox->value());
         
@@ -980,9 +1034,9 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
         && resultEndCoord.isOk()) {
         const Vector3D startCoord(resultStartCoord.getValue());
         const Vector3D endCoord(resultEndCoord.getValue());
-        const Vector3D middleXYZ((endCoord
-                                  + startCoord)
-                                 / 2.0);
+        Vector3D middleXYZ((endCoord
+                            + startCoord)
+                           / 2.0);
         CaretDataFile* cdf(m_volumeFileSelectionComboBox->getSelectedFile());
         if (cdf != NULL) {
             VolumeMappableInterface* vmi(dynamic_cast<VolumeMappableInterface*>(cdf));
@@ -991,16 +1045,19 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
                 const float numMontageSlices(m_montageInputRowsSpinBox->value()
                                              * m_montageInputColumnsSpinBox->value());
                 if (numMontageSlices > 1.0) {
-                    stepThickness = distance / numMontageSlices;
+                    stepThickness = distance / (numMontageSlices - 1);
                 }
                 
-                int64_t ijk[3] { 0, 0, 0 };
-                vmi->enclosingVoxel(middleXYZ, ijk);
-                indexI = ijk[0];
-                indexJ = ijk[1];
-                indexK = ijk[2];
+                float ijk[3] { 0.0, 0.0, 0.0 };
+                m_underlayVolumeFile->spaceToIndex(middleXYZ[0], middleXYZ[1], middleXYZ[2],
+                                                   ijk[0], ijk[1], ijk[2]);
+                indexI = std::round(ijk[0]);
+                indexJ = std::round(ijk[1]);
+                indexK = std::round(ijk[2]);
+                m_underlayVolumeFile->indexToSpace(indexI, indexJ, indexK,
+                                                   middleXYZ[0], middleXYZ[1], middleXYZ[2]);
                 stereoXYZ = middleXYZ;
-                
+
                 int64_t sliceZero[3] { 0, 0, 0 };
                 int64_t sliceOne[3] { 1, 1, 1 };
                 Vector3D xyzZero;
@@ -1008,70 +1065,70 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
                 vmi->indexToSpace(sliceZero, xyzZero);
                 vmi->indexToSpace(sliceOne,  xyzOne);
                 
-                /* ALL is histology axis */
-                switch (slicePlane) {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                    {
-                        FunctionResultValue<std::pair<VolumeSliceViewPlaneEnum::Enum,bool>> slicePlaneResult(histologyOrientationToVolumeSliceViewPlane());
-                        bool flipFlag(false);
-                        if (slicePlaneResult.isOk()) {
-                            slicePlane = slicePlaneResult.getValue().first;
-                            flipFlag   = slicePlaneResult.getValue().second;
-                        }
-                        const Vector3D histologyVector((endCoord - startCoord).normal());
-                        
-                        Vector3D sliceVector(0.0, 0.0, 1.0);
-                        switch (slicePlane) {
-                            case VolumeSliceViewPlaneEnum::ALL:
-                                break;
-                            case VolumeSliceViewPlaneEnum::AXIAL:
-                                sliceVector.set(0.0, 0.0, -1.0);
-                                break;
-                            case VolumeSliceViewPlaneEnum::CORONAL:
-                                sliceVector.set(0.0, 1.0, 0.0);
-                                break;
-                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                sliceVector.set(1.0, 0.0, 0.0);
-                                break;
-                        }
-                        if (flipFlag) {
-                            sliceVector = -sliceVector;
-                        }
-                        
-                        const QVector3D hv(histologyVector[0],
-                                           histologyVector[1],
-                                           histologyVector[2]);
-                        const QVector3D sv(sliceVector[0],
-                                           sliceVector[1],
-                                           sliceVector[2]);
-                        const QQuaternion q(QQuaternion::rotationTo(sv, hv));
-                        QVector3D eulerAngles(q.toEulerAngles());
-                        rotationAngles.set(eulerAngles[0],
-                                           eulerAngles[1],
-                                           -eulerAngles[2]); /* look down Z-axis (positive to negative) */
+                /*
+                 * Align to histology file axis?
+                 */
+                if (histologyFlag
+                    && m_histologyAlignToFileAxisCheckBox->isChecked()) {
+                    FunctionResultValue<std::pair<VolumeSliceViewPlaneEnum::Enum,bool>> slicePlaneResult(histologyOrientationToVolumeSliceViewPlane());
+                    bool flipFlag(false);
+                    if (slicePlaneResult.isOk()) {
+                        outputSlicePlane = slicePlaneResult.getValue().first;
+                        flipFlag   = slicePlaneResult.getValue().second;
                     }
-                        break;
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        rotationAngles.set(0.0, 0.0, 0.0);
-                        break;
+                    const Vector3D histologyVector((endCoord - startCoord).normal());
+                    
+                    Vector3D sliceVector(0.0, 0.0, 1.0);
+                    switch (outputSlicePlane) {
+                        case VolumeSliceViewPlaneEnum::ALL:
+                            break;
+                        case VolumeSliceViewPlaneEnum::AXIAL:
+                            sliceVector.set(0.0, 0.0, -1.0);
+                            break;
+                        case VolumeSliceViewPlaneEnum::CORONAL:
+                            sliceVector.set(0.0, 1.0, 0.0);
+                            break;
+                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                            sliceVector.set(1.0, 0.0, 0.0);
+                            break;
+                    }
+                    if (flipFlag) {
+                        sliceVector = -sliceVector;
+                    }
+                    
+                    const QVector3D hv(histologyVector[0],
+                                       histologyVector[1],
+                                       histologyVector[2]);
+                    const QVector3D sv(sliceVector[0],
+                                       sliceVector[1],
+                                       sliceVector[2]);
+                    const QQuaternion q(QQuaternion::rotationTo(sv, hv));
+                    QVector3D eulerAngles(q.toEulerAngles());
+                    rotationAngles.set(eulerAngles[0],
+                                       eulerAngles[1],
+                                       -eulerAngles[2]); /* look down Z-axis (positive to negative) */
                 }
+                else {
+                    outputSlicePlane = m_underlaySliceViewPlane;
+                    rotationAngles.set(0.0, 0.0, 0.0);
+                    
+                }
+                
                 float sliceThickness(0.0);
-                switch (slicePlane) {
+                switch (outputSlicePlane) {
                     case VolumeSliceViewPlaneEnum::ALL:
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
                         sliceViewPlaneName = "Axial";
-                        sliceThickness = sliceOne[2] - sliceZero[2];
+                        sliceThickness = std::fabs(xyzOne[2] - xyzZero[2]);
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
                         sliceViewPlaneName = "Coronal";
-                        sliceThickness = sliceOne[1] - sliceZero[1];
+                        sliceThickness = std::fabs(xyzOne[1] - xyzZero[1]);
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                         sliceViewPlaneName = "Parasagittal";
-                        sliceThickness = sliceOne[0] - sliceZero[0];
+                        sliceThickness = std::fabs(xyzOne[0] - xyzZero[0]);
                         break;
                 }
                 
@@ -1101,6 +1158,58 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
     
     m_montageOutputRotationAnglesLabel->setText(rotationAngles.toString());
     m_montageOutputSliceViewPlaneLabel->setText(sliceViewPlaneName);
+    
+    m_outputSlicePlane = outputSlicePlane;
+    m_outputParasagittalSliceCoordinate = m_montageOutputParagittalSliceCoordinateSpinBox->value();
+    m_outputCoronalSliceCoordinate = m_montageOutputCoronalSliceCoordinateSpinBox->value();
+    m_outputAxialSliceCoordinate = m_montageOutputAxialSliceCoordinateSpinBox->value();
+    m_outputMontageStep = numberOfSlicesPerStep;
+    m_outputMontageRows = m_montageInputRowsSpinBox->value();
+    m_outputMontageColumns = m_montageInputColumnsSpinBox->value();
+    m_outputMprRotationAngles = rotationAngles;
+}
+
+/**
+ * Called when the montage extent file type combo box is activated
+ * @param index
+ *    Index of item selected
+ */
+void
+VolumeMontageSetupDialog::montageExtentFileTypeComboBoxActivated(int index)
+{
+    if (index == m_montageExtentTypeHistologyFileIndex) {
+        m_volumeSliceRangeSourceLayout->setCurrentWidget(m_montageExtentHistologyFileWidget);
+    }
+    else if (index == m_montageExtentTypeVolumeFileIndex) {
+        m_volumeSliceRangeSourceLayout->setCurrentWidget(m_montageExtentVolumeFileWidget);
+    }
+    else {
+        CaretAssertMessage(0, "Invalid index for source index");
+    }
+    
+    updateMontageOutputWidget();
+}
+
+/**
+ * Apply the montage settings.
+ * @return True if the settings were applied successfully.
+ */
+bool
+VolumeMontageSetupDialog::applyMontageSettings()
+{
+    m_browserTabContent->setVolumeSliceViewPlane(m_outputSlicePlane);
+    m_browserTabContent->setVolumeSliceCoordinateParasagittal(m_outputParasagittalSliceCoordinate);
+    m_browserTabContent->setVolumeSliceCoordinateCoronal(m_outputCoronalSliceCoordinate);
+    m_browserTabContent->setVolumeSliceCoordinateAxial(m_outputAxialSliceCoordinate);
+    m_browserTabContent->setVolumeMontageNumberOfRows(m_outputMontageRows);
+    m_browserTabContent->setVolumeMontageNumberOfColumns(m_outputMontageColumns);
+    m_browserTabContent->setVolumeMontageSliceSpacing(m_outputMontageStep);
+    m_browserTabContent->setMprThreeRotationAngles(m_outputMprRotationAngles);
+    
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+
+    return true;
 }
 
 /**
@@ -1109,4 +1218,26 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
 void
 VolumeMontageSetupDialog::okButtonClicked()
 {
+    if (applyMontageSettings()) {
+        WuQDialogModal::okButtonClicked();
+    }
 }
+
+/**
+ * Called when the apply button is clicked
+ * @param userPushButton
+ *   Button that was clicked
+ * @return Result to close or keep dialog open.
+ */
+VolumeMontageSetupDialog::DialogUserButtonResult
+VolumeMontageSetupDialog::userButtonPressed(QPushButton* userPushButton)
+{
+    if (userPushButton == m_applyPushButton) {
+        applyMontageSettings();
+    }
+    else {
+        CaretAssert(0);
+    }
+    return DialogUserButtonResult::RESULT_NONE;
+}
+

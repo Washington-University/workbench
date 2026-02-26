@@ -431,7 +431,7 @@ VolumeSliceSettings::setMontageNumberOfRows(const int32_t montageNumberOfRows)
 /**
  * @return the montage slice spacing.
  */
-int32_t
+float
 VolumeSliceSettings::getMontageSliceSpacing() const
 {
     return m_montageSliceSpacing;
@@ -443,7 +443,7 @@ VolumeSliceSettings::getMontageSliceSpacing() const
  *    New value for montage slice spacing
  */
 void
-VolumeSliceSettings::setMontageSliceSpacing(const int32_t montageSliceSpacing)
+VolumeSliceSettings::setMontageSliceSpacing(const float montageSliceSpacing)
 {
     m_montageSliceSpacing = montageSliceSpacing;
 }
@@ -483,7 +483,7 @@ VolumeSliceSettings::reset()
     
     m_montageNumberOfColumns = 6;
     m_montageNumberOfRows    = 4;
-    m_montageSliceSpacing    = 5;
+    m_montageSliceSpacing    = 5.0;
     m_montageSliceOrderMode  = VolumeMontageSliceOrderModeEnum::WORKBENCH;
 
     m_sliceCoordinateAxial = 0.0;

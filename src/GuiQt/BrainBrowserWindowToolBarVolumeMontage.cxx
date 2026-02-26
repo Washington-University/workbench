@@ -98,12 +98,14 @@ m_parentToolBar(parentToolBar)
     
     QLabel* spacingLabel = new QLabel("Step:");
     spacingLabel->setToolTip("Select the number of slices stepped (incremented) between displayed montage slices");
-    m_montageSpacingSpinBox = WuQFactory::newSpinBox();
-    m_montageSpacingSpinBox->setRange(1, 2500);
+    m_montageSpacingSpinBox = WuQFactory::newDoubleSpinBox();
+    m_montageSpacingSpinBox->setRange(0.0, 2500.0);
+    m_montageSpacingSpinBox->setSingleStep(0.1);
+    m_montageSpacingSpinBox->setDecimals(2);
     m_montageSpacingSpinBox->setMaximumWidth(spinBoxWidth);
     m_montageSpacingSpinBox->setToolTip(spacingLabel->toolTip());
-    QObject::connect(m_montageSpacingSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(montageSpacingSpinBoxValueChanged(int)));
+    QObject::connect(m_montageSpacingSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(montageSpacingSpinBoxValueChanged(double)));
     m_montageSpacingSpinBox->setObjectName(objectNamePrefix
                                            + "Step");
     WuQMacroManager::instance()->addMacroSupportToObject(m_montageSpacingSpinBox,
@@ -325,7 +327,7 @@ BrainBrowserWindowToolBarVolumeMontage::montageColumnsSpinBoxValueChanged(int /*
  * Called when montage spacing spin box value is changed.
  */
 void
-BrainBrowserWindowToolBarVolumeMontage::montageSpacingSpinBoxValueChanged(int /*i*/)
+BrainBrowserWindowToolBarVolumeMontage::montageSpacingSpinBoxValueChanged(double /*f*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     

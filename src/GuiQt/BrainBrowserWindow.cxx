@@ -104,6 +104,7 @@
 #include "LockAspectWarningDialog.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
+#include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "OpenFileQuicklyDialog.h"
 #include "PlainTextStringBuilder.h"
@@ -1571,9 +1572,33 @@ BrainBrowserWindow::processShowVolumePropertiesDialog()
 void
 BrainBrowserWindow::processShowVolumeMontageSetupDialog()
 {
-    VolumeMontageSetupDialog dialog(getBrowserTabContent(),
-                                    this);
-    dialog.exec();
+    if (getBrowserTabContent() == NULL) {
+        return;
+    }
+    
+    ModelVolume* mv(getBrowserTabContent()->getDisplayedVolumeModel());
+    if (mv != NULL) {
+        VolumeMappableInterface* vmi(mv->getUnderlayVolumeFile(m_browserWindowIndex));
+        VolumeFile* underlayVolumeFile(dynamic_cast<VolumeFile*>(vmi));
+        if (underlayVolumeFile != NULL) {
+            if (getBrowserTabContent()->getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
+                VolumeMontageSetupDialog dialog(m_browserWindowIndex,
+                                                getBrowserTabContent(),
+                                                underlayVolumeFile,
+                                                this);
+                dialog.exec();
+            }
+            else {
+                WuQMessageBox::errorOk(this, "Slice View Plane must NOT be ALL");
+            }
+        }
+        else {
+            WuQMessageBox::errorOk(this, "Underlay must be a volume file");
+        }
+    }
+    else {
+        WuQMessageBox::errorOk(this, "Volume must be selected for Display");
+    }
 }
 
 /**

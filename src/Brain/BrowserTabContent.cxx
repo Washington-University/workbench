@@ -7739,9 +7739,24 @@ BrowserTabContent::setVolumeMontageNumberOfRows(const int32_t montageNumberOfRow
 }
 
 /**
- * @return the montage slice spacing.
+ * @return the montage slice spacing as an integer.  Will always be 1 or greater
  */
 int32_t
+BrowserTabContent::getVolumeMontageSliceSpacingRoundedToInt() const
+{
+    const float spacingFloat(MathFunctions::round(getVolumeMontageSliceSpacing()));
+    int32_t spacingInt(static_cast<int32_t>(spacingFloat));
+    if (spacingInt < 1) {
+        spacingInt = 1;
+    }
+    return spacingInt;
+}
+
+
+/**
+ * @return the montage slice spacing.
+ */
+float
 BrowserTabContent::getVolumeMontageSliceSpacing() const
 {
     return m_volumeSliceSettings->getMontageSliceSpacing();
@@ -7753,7 +7768,7 @@ BrowserTabContent::getVolumeMontageSliceSpacing() const
  *    New value for montage slice spacing
  */
 void
-BrowserTabContent::setVolumeMontageSliceSpacing(const int32_t montageSliceSpacing)
+BrowserTabContent::setVolumeMontageSliceSpacing(const float montageSliceSpacing)
 {
     m_volumeSliceSettings->setMontageSliceSpacing(montageSliceSpacing);
     updateBrainModelYokedBrowserTabs();

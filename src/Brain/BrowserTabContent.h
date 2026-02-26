@@ -564,9 +564,11 @@ namespace caret {
         
         void setVolumeMontageNumberOfRows(const int32_t montageNumberOfRows);
         
-        int32_t getVolumeMontageSliceSpacing() const;
+        int32_t getVolumeMontageSliceSpacingRoundedToInt() const;
         
-        void setVolumeMontageSliceSpacing(const int32_t montageSliceSpacing);
+        float getVolumeMontageSliceSpacing() const;
+        
+        void setVolumeMontageSliceSpacing(const float montageSliceSpacing);
         
         float getVolumeSliceCoordinateAxial() const;
         

@@ -30,23 +30,29 @@
 #include "Vector3D.h"
 #include "WuQDialogModal.h"
 
+class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
 class QSpinBox;
+class QStackedLayout;
 
 namespace caret {
     class BrowserTabContent;
     class CaretDataFile;
     class CaretDataFileSelectionComboBox;
     class EnumComboBoxTemplate;
+    class HistologySlicesFile;
+    class VolumeFile;
     
     class VolumeMontageSetupDialog : public WuQDialogModal {
         
         Q_OBJECT
 
     public:
-        VolumeMontageSetupDialog(BrowserTabContent* browserTabContent,
+        VolumeMontageSetupDialog(const int32_t browserWindowIndex,
+                                 BrowserTabContent* browserTabContent,
+                                 VolumeFile* underlayVolumeFile,
                                  QWidget* parent = 0);
         
         virtual ~VolumeMontageSetupDialog();
@@ -77,11 +83,16 @@ namespace caret {
         
         void volumeEndSliceIndexSpinBoxValueChanged(int value);
         
-        void montageInputVolumeSliceAxisComboBoxValueChanged(int itemIndex);
+        void histologyAlignToHistologyFileAxisCheckBoxClicked(bool checked);
         
         void montageInputRowsValueChanged(int value);
         
         void montageInputColumnsValueChanged(int value);
+        
+        void montageExtentFileTypeComboBoxActivated(int index);
+        
+    protected:
+        virtual DialogUserButtonResult userButtonPressed(QPushButton* userPushButton) override;
         
     private:
         FunctionResultValue<Vector3D> histologySliceNumberToCoordinate(const int32_t sliceIndex) const;
@@ -89,8 +100,6 @@ namespace caret {
         FunctionResultValue<Vector3D> volumeSliceIndexToCoordinate(const int32_t sliceIndex) const;
         
         FunctionResultValue<int32_t> volumeCoordinateToSliceIndex(const Vector3D& xyz) const;
-        
-        QWidget* createMontageInputWidget();
         
         QWidget* createVolumeSliceInputWidget();
         
@@ -106,11 +115,19 @@ namespace caret {
         
         FunctionResultValue<Vector3D> getHistologySlicesNormalVector() const;
         
-        VolumeSliceViewPlaneEnum::Enum getSelectedVolumeMontageAxis() const;
-        
         void updateMontageOutputWidget();
         
+        void updateVolumeSliceCoordinates();
+
+        bool applyMontageSettings();
+        
+        const int32_t m_browserWindowIndex;
+        
         BrowserTabContent* m_browserTabContent = NULL;
+        
+        VolumeFile* m_underlayVolumeFile;
+        
+        VolumeSliceViewPlaneEnum::Enum m_underlaySliceViewPlane;
         
         CaretDataFileSelectionComboBox* m_histologyFileSelectionComboBox = NULL;
         
@@ -128,7 +145,7 @@ namespace caret {
         
         CaretDataFileSelectionComboBox* m_volumeFileSelectionComboBox = NULL;
         
-        QWidget* m_volumeSliceInputWidget = NULL;
+        QWidget* m_montageExtentVolumeFileWidget = NULL;
         
         QSpinBox* m_volumeStartSliceIndexSpinBox = NULL;
         
@@ -138,9 +155,9 @@ namespace caret {
         
         QLabel* m_volumeEndSliceCoordinateLabel = NULL;
         
-        QWidget* m_histologyWidget = NULL;
+        QWidget* m_montageExtentHistologyFileWidget = NULL;
         
-        QComboBox* m_montageInputVolumeSliceAxisComboBox = NULL;
+        QCheckBox* m_histologyAlignToFileAxisCheckBox;
         
         QSpinBox* m_montageInputRowsSpinBox = NULL;
         
@@ -168,7 +185,30 @@ namespace caret {
         
         QLabel* m_montageOutputRotationAnglesLabel = NULL;
         
+        QComboBox* m_montageExtentFileTypeComboBox;
+        
+        int32_t m_montageExtentTypeVolumeFileIndex = -1;
+        
+        int32_t m_montageExtentTypeHistologyFileIndex = -1;
+        
+        QStackedLayout* m_volumeSliceRangeSourceLayout;
+        
         bool m_dialogCreationInProgressFlag = true;
+        
+        VolumeFile* m_montageUnderlayVolumeFile = NULL;
+        
+        QPushButton* m_applyPushButton;
+        
+        
+        VolumeSliceViewPlaneEnum::Enum m_outputSlicePlane = VolumeSliceViewPlaneEnum::ALL;
+        float m_outputParasagittalSliceCoordinate;
+        float m_outputCoronalSliceCoordinate;
+        float m_outputAxialSliceCoordinate;
+        float m_outputMontageStep;
+        int32_t m_outputMontageRows;
+        int32_t m_outputMontageColumns;
+        Vector3D m_outputMprRotationAngles;
+
         
         // ADD_NEW_MEMBERS_HERE
 
