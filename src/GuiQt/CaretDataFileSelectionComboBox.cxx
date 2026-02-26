@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretDataFileSelectionModel.h"
+#include "CaretLogger.h"
 #include "FilePathNamePrefixCompactor.h"
 #include "WuQEventBlockingFilter.h"
 
@@ -55,7 +56,7 @@ CaretDataFileSelectionComboBox::newInstanceForFileType(const DataFileTypeEnum::E
     CaretDataFileSelectionModel* model(CaretDataFileSelectionModel::newInstanceForCaretDataFileType(dataFileType));
     
     CaretDataFileSelectionComboBox* comboBox(new CaretDataFileSelectionComboBox(parent));
-    comboBox->updateComboBox(model);
+    comboBox->updateComboBoxWithDeletion(model);
     
     return std::make_pair(model, comboBox);
 }
@@ -83,6 +84,11 @@ CaretDataFileSelectionComboBox::CaretDataFileSelectionComboBox(QObject* parent)
  */
 CaretDataFileSelectionComboBox::~CaretDataFileSelectionComboBox()
 {
+    if (m_deleteSelectionModelFlag) {
+        if (m_selectionModel != NULL) {
+            delete m_selectionModel;
+        }
+    }
 }
 
 /**
@@ -127,6 +133,15 @@ CaretDataFileSelectionComboBox::slotFileIndexSelected(int indx)
 void
 CaretDataFileSelectionComboBox::updateComboBox(CaretDataFileSelectionModel* selectionModel)
 {
+    if (m_deleteSelectionModelFlag) {
+        if (m_selectionModel != NULL) {
+            const AString msg("Attempting to replace model in CaretDataFileSelectionComboBox but "
+                              "existing model was set for deletion (m_deleteSelectionModelFlag is true).");
+            CaretLogSevere(msg);
+            CaretAssertMessage(0, msg);
+        }
+    }
+    
     m_comboBox->blockSignals(true);
     m_comboBox->clear();
     
@@ -177,6 +192,21 @@ CaretDataFileSelectionComboBox::updateComboBox(CaretDataFileSelectionModel* sele
         }
     }
 }
+
+/**
+ * Update the content of the combo box.  This combo box will take ownership of
+ * the given model and delete it at the appropriate time.
+ *
+ * @param
+ *    Selection model for the combo box that will be deleted by this instance.
+ */
+void
+CaretDataFileSelectionComboBox::updateComboBoxWithDeletion(CaretDataFileSelectionModel* selectionModel)
+{
+    updateComboBox(selectionModel);
+    m_deleteSelectionModelFlag = true;
+}
+
 
 /**
  * @return Selection model in this combo box.

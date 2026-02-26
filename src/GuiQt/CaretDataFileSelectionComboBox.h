@@ -72,14 +72,19 @@ namespace caret {
 
         CaretDataFileSelectionComboBox& operator=(const CaretDataFileSelectionComboBox&);
         
+        void updateComboBoxWithDeletion(CaretDataFileSelectionModel* selectionModel);
+
         QComboBox* m_comboBox;
         
         CaretDataFileSelectionModel* m_selectionModel;
+        
+        bool m_deleteSelectionModelFlag = false;
         
         AString m_noFilesText;
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class CaretDataFileSelectionModel;
     };
     
 #ifdef __CARET_DATA_FILE_SELECTION_COMBO_BOX_DECLARE__
