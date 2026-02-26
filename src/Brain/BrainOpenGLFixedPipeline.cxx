@@ -2344,15 +2344,6 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
     float upY = 0.0;
     float upZ = 0.0;
     
-    /*
-     * Moves dentate flat up to be closer to hippocampus
-     * in flat hippocampus montage
-     * Cannot shrink height of viewport and shift it up
-     * because smaller viewport because surface is
-     * "fit" into viewport based upon width/height
-     */
-    float kludgyDentateFlatTranslationY(0.0);
-    
     bool useGluLookAt = false;
     bool rightCortexFlatFlag = false;
     switch (projectionViewType) {
@@ -2376,7 +2367,6 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
-            kludgyDentateFlatTranslationY = 5.0;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
             break;
@@ -2404,9 +2394,6 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
                     }
                 }
             }
-            if (projectionViewType == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE) {
-                kludgyDentateFlatTranslationY = 5.0;
-            }
             break;
     }
 
@@ -2426,7 +2413,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
                                                           scaling);
     
     glTranslatef(translation[0],
-                 translation[1] + kludgyDentateFlatTranslationY,
+                 translation[1], 
                  translation[2]);
     
     glMultMatrixd(rotationMatrixElements);
