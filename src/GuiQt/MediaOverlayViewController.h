@@ -103,6 +103,8 @@ namespace caret {
         
         void menuConstructionAboutToShow();
         
+        void constructionActionTriggered();
+        
     private:
         MediaOverlayViewController(const MediaOverlayViewController&);
 
@@ -143,6 +145,8 @@ namespace caret {
         QDoubleSpinBox* m_opacityDoubleSpinBox;
         
         QToolButton* m_constructionToolButton;
+        
+        QMenu* m_constructionMenu;
         
         QAction* m_constructionAction;
 

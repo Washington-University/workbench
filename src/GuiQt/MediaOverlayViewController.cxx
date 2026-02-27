@@ -216,14 +216,14 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
     m_constructionAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT,
                                                    this);
     m_constructionAction->setToolTip("Add/Move/Remove Overlays");
+    QObject::connect(m_constructionAction, &QAction::triggered,
+                     this, &MediaOverlayViewController::constructionActionTriggered);
     m_constructionToolButton = new WorkbenchToolButton();
-    QMenu* constructionMenu = createConstructionMenu(m_constructionToolButton,
+    m_constructionMenu = createConstructionMenu(m_constructionToolButton,
                                                      descriptivePrefix,
                                                      (objectNamePrefix
                                                       + "ConstructionMenu:"));
-    m_constructionAction->setMenu(constructionMenu);
     m_constructionToolButton->setDefaultAction(m_constructionAction);
-    m_constructionToolButton->setPopupMode(QToolButton::InstantPopup);
     
     const AString yokeToolTip("Select a yoking group.\n"
                               "\n"
@@ -794,6 +794,15 @@ MediaOverlayViewController::updateGraphicsWindow()
 }
 
 /**
+ * Called when construction action is triggered
+ */
+void
+MediaOverlayViewController::constructionActionTriggered()
+{
+    m_constructionMenu->exec(m_constructionToolButton->mapToGlobal(QPoint(0,0)));
+}
+
+/**
  * Create the construction menu.
  * @param parent
  *    Parent widget.
@@ -895,7 +904,6 @@ MediaOverlayViewController::createConstructionMenu(QWidget* parent,
                                           ("Copy frame namne in " + descriptivePrefix + " to clipboard"));
     
     return menu;
-    
 }
 
 /**

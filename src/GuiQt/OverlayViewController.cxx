@@ -223,14 +223,14 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     this->constructionAction = new WorkbenchAction(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT,
                                                    this);
     this->constructionAction->setToolTip("Add/Move/Remove Overlays");
+    QObject::connect(this->constructionAction, &QAction::triggered,
+                     this, &OverlayViewController::constructionActionTriggered);
     m_constructionToolButton = new WorkbenchToolButton();
-    QMenu* constructionMenu = createConstructionMenu(m_constructionToolButton,
+    this->constructionMenu = createConstructionMenu(m_constructionToolButton,
                                                      descriptivePrefix,
                                                      (objectNamePrefix
                                                       + "ConstructionMenu:"));
-    this->constructionAction->setMenu(constructionMenu);
     m_constructionToolButton->setDefaultAction(this->constructionAction);
-    m_constructionToolButton->setPopupMode(QToolButton::InstantPopup);
     
     const AString yokeToolTip =
     ("Select a yoking group.\n"
@@ -837,6 +837,15 @@ OverlayViewController::updateGraphicsWindow()
     else {
         EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(this->browserWindowIndex).getPointer());
     }
+}
+
+/**
+ * Called when the construction action is triggered
+ */
+void
+OverlayViewController::constructionActionTriggered()
+{
+    this->constructionMenu->exec(m_constructionToolButton->mapToGlobal(QPoint(0, 0)));
 }
 
 /**

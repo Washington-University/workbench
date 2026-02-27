@@ -105,6 +105,8 @@ namespace caret {
         
         void menuConstructionAboutToShow();
         
+        void constructionActionTriggered();
+        
     private:
         OverlayViewController(const OverlayViewController&);
 
@@ -143,6 +145,8 @@ namespace caret {
         QToolButton* m_constructionToolButton;
         
         QAction* constructionAction;
+        
+        QMenu* constructionMenu = NULL;
 
         QAction* m_colorBarAction;
         
