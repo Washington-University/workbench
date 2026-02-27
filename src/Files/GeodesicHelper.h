@@ -22,6 +22,7 @@
  */
 /*LICENSE_END*/
 
+#include <set>
 #include <vector>
 #include <stdint.h>
 
@@ -84,6 +85,7 @@ namespace caret {
         GeodesicHelper(const GeodesicHelper&);//can't use copy constructor
         void dijkstra(const int32_t root, const float maxdist, std::vector<int32_t>& nodes, std::vector<float>& dists, bool smooth);//geodesic distance restricted
         void dijkstra(const int32_t root, bool smooth);//full surface
+        void dijkstra(const std::set<int32_t>& startList, const bool smooth);//full surface from multiple starting points
         void dijkstra(const int32_t root, const std::vector<int32_t>& interested, bool smooth);//partial surface
         int32_t dijkstra(const std::vector<int32_t>& startList, const std::vector<int32_t>& endList, const float& maxDist, bool smooth);//one path that connects lists
         int32_t closest(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smooth);//just closest node
@@ -135,6 +137,9 @@ namespace caret {
         ///get just the closest node in the region and max distance given, returns -1 if no such node found - roi value of 0 means not in region, anything else is in region
         int32_t getClosestNodeInRoi(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smoothflag = true);
         int32_t getClosestNodeInRoi(const int32_t& root, const char* roi, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut, bool smoothflag);
+        
+        ///from list of nodes to the entire surface
+        void getGeoFromNodeList(const std::set<int32_t>& startList, std::vector<float>& valuesOut, std::vector<int32_t>* parentsOut = NULL, const bool smoothFlag = true);
     };
 
 } //namespace caret
