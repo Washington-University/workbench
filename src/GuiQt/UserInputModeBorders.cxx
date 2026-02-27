@@ -93,6 +93,12 @@ UserInputModeBorders::~UserInputModeBorders()
 
 /**
  * Draw a border point at the mouse coordinates.
+ * @param openGLWidget
+ *    The OpenGL widget
+ * @param mouseX
+ *    Mouse X
+ * @param mouseY
+ *    Mouse Y
  */
 void 
 UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
@@ -152,6 +158,72 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
     }
     
     CaretLogFiner(txt);
+}
+
+/**
+ * Move a border point at the mouse coordinates.
+ * @param openGLWidget
+ *    The OpenGL widget
+ * @param mouseX
+ *    Mouse X
+ * @param mouseY
+ *    Mouse Y
+ * @param border
+ *    The border
+ * @param borderPointIndex
+ *    Index of the border point
+ */
+void
+UserInputModeBorders::movePointAtMouseXY(BrainOpenGLWidget* openGLWidget,
+                                         const int32_t mouseX,
+                                         const int32_t mouseY,
+                                         Border* border,
+                                         const int32_t borderPointIndex)
+{
+    if (border == NULL) {
+        return;
+    }
+    if ((borderPointIndex < 0)
+        || (borderPointIndex >= border->getNumberOfPoints())) {
+        return;
+    }
+    
+    SurfaceProjectedItem projectedItem;
+    openGLWidget->performProjection(mouseX,
+                                    mouseY,
+                                    projectedItem);
+    
+    SurfaceProjectedItem* spi = new SurfaceProjectedItem();
+    
+    AString txt;
+    if (projectedItem.getBarycentricProjection()->isValid()) {
+        SurfaceProjectionBarycentric* bp = projectedItem.getBarycentricProjection();
+        
+        txt += ("\nBarycentric Position: "
+                + AString::fromNumbers(bp->getTriangleAreas(), 3, ",")
+                + "   "
+                + AString::fromNumbers(bp->getTriangleNodes(), 3, ","));
+        
+        SurfaceProjectionBarycentric* spb = spi->getBarycentricProjection();
+        spb->setProjectionSurfaceNumberOfNodes(bp->getProjectionSurfaceNumberOfNodes());
+        spb->setTriangleAreas(bp->getTriangleAreas());
+        spb->setTriangleNodes(bp->getTriangleNodes());
+        spb->setSignedDistanceAboveSurface(0.0);
+        spb->setValid(true);
+    }
+    
+    if (spi->isStereotaxicXYZValid()
+        || spi->getBarycentricProjection()->isValid()) {
+        if (m_borderMovePoint->getStructure() == projectedItem.getStructure()) {
+            spi->setStructure(projectedItem.getStructure());
+            SurfaceProjectedItem* borderSPI(m_borderMovePoint->getPoint(m_borderMovePointIndex));
+            CaretAssert(borderSPI);
+            *borderSPI = *spi;
+            border->setModified();
+        }
+    }
+
+    delete spi;
 }
 
 /**
@@ -380,6 +452,8 @@ UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
                             this->updateAfterBordersChanged();
                         }
                             break;
+                        case EDIT_OPERATION_MOVE_POINT:
+                            break;
                         case EDIT_OPERATION_PROPERTIES:
                         {
                             Border* border = idBorder->getBorder();
@@ -489,10 +563,131 @@ UserInputModeBorders::mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent)
             EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
             break;
         case MODE_EDIT:
+            switch (this->editOperation) {
+                case EDIT_OPERATION_DELETE:
+                    break;
+                case EDIT_OPERATION_MOVE_POINT:
+                    break;
+                case EDIT_OPERATION_PROPERTIES:
+                    break;
+            }
             break;
         case MODE_ROI:
             break;
     }
+}
+
+/**
+ * Process a mouse left drag  event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeBorders::mouseLeftDrag(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    const int mouseX = mouseEvent.getX();
+    const int mouseY = mouseEvent.getY();
+    
+    bool dragProcessedFlag(false);
+    
+    switch (this->mode) {
+        case MODE_DRAW:
+            break;
+        case MODE_EDIT:
+            switch (this->editOperation) {
+                case EDIT_OPERATION_DELETE:
+                    break;
+                case EDIT_OPERATION_MOVE_POINT:
+                {
+                    SelectionManager* idManager =
+                    openGLWidget->performIdentificationAll(mouseX,
+                                                           mouseY,
+                                                           true);
+                    SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                    if (idBorder->isValid()) {
+                        BorderFile* borderFile = idBorder->getBorderFile();
+                        if (borderFile->isSingleStructure()) {
+                            movePointAtMouseXY(openGLWidget,
+                                               mouseX,
+                                               mouseY,
+                                               m_borderMovePoint,
+                                               m_borderMovePointIndex);
+                        }
+                    }
+                    dragProcessedFlag = true;
+                }
+                    break;
+                case EDIT_OPERATION_PROPERTIES:
+                    break;
+            }
+            break;
+        case MODE_ROI:
+            break;
+    }
+    
+    if ( ! dragProcessedFlag) {
+        UserInputModeView::mouseLeftDrag(mouseEvent);
+    }
+}
+
+/**
+ * Called when left mouse is pressed
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeBorders::mouseLeftPress(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    const int mouseX = mouseEvent.getX();
+    const int mouseY = mouseEvent.getY();
+    switch (this->mode) {
+        case MODE_DRAW:
+            break;
+        case MODE_EDIT:
+            switch (this->editOperation) {
+                case EDIT_OPERATION_DELETE:
+                    break;
+                case EDIT_OPERATION_MOVE_POINT:
+                {
+                    SelectionManager* idManager =
+                    openGLWidget->performIdentificationAll(mouseX,
+                                                           mouseY,
+                                                           true);
+                    SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                    if (idBorder->isValid()) {
+                        BorderFile* borderFile = idBorder->getBorderFile();
+                        Border* border = idBorder->getBorder();
+                        int32_t borderPointIndex = idBorder->getBorderPointIndex();
+                        if (borderFile->isSingleStructure()) {
+                            m_borderMovePoint = border;
+                            m_borderMovePointIndex = borderPointIndex;
+                        }
+                    }
+                    
+                }
+                    break;
+                case EDIT_OPERATION_PROPERTIES:
+                    break;
+            }
+            break;
+        case MODE_ROI:
+            break;
+    }
+}
+
+/**
+ * Called when left mouse is released
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeBorders::mouseLeftRelease(const MouseEvent& mouseEvent)
+{
+    m_borderMovePoint = NULL;
+    m_borderMovePointIndex = -1;
 }
 
 /**

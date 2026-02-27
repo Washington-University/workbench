@@ -47,6 +47,7 @@ namespace caret {
         
         enum EditOperation {
             EDIT_OPERATION_DELETE,
+            EDIT_OPERATION_MOVE_POINT,
             EDIT_OPERATION_PROPERTIES
         };
         
@@ -69,6 +70,12 @@ namespace caret {
         virtual void mouseLeftClickWithCtrlShift(const MouseEvent& mouseEvent);
         
         virtual void mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDrag(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftPress(const MouseEvent& mouseEvent) override;
+        
+        virtual void mouseLeftRelease(const MouseEvent& mouseEvent) override;
         
         virtual void showContextMenu(const MouseEvent& mouseEvent,
                                      const QPoint& menuPosition,
@@ -106,6 +113,12 @@ namespace caret {
                                 const int32_t mouseX,
                                 const int32_t mouseY);
         
+        void movePointAtMouseXY(BrainOpenGLWidget* openGLWidget,
+                                const int32_t mouseX,
+                                const int32_t mouseY,
+                                Border* border,
+                                const int32_t borderPointIndex);
+        
         void drawOperationFinish();
         
         void drawOperationUndo();
@@ -124,6 +137,9 @@ namespace caret {
         
         Border* borderBeingDrawn;
         
+        Border* m_borderMovePoint = NULL;
+        
+        int32_t m_borderMovePointIndex = -1;
     };
 #ifdef __USER_INPUT_MODE_BORDERS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

@@ -129,6 +129,8 @@ namespace caret {
         
         QRadioButton* m_editDeleteRadioButton;
         
+        QRadioButton* m_editMovePointRadioButton;
+        
         QRadioButton* m_editPropertiesRadioButton;
         
         QWidget* widgetMode;

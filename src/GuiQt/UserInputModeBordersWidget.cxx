@@ -215,6 +215,9 @@ UserInputModeBordersWidget::updateWidget()
         case UserInputModeBorders::EDIT_OPERATION_DELETE:
             m_editDeleteRadioButton->setChecked(true);
             break;
+        case UserInputModeBorders::EDIT_OPERATION_MOVE_POINT:
+            m_editMovePointRadioButton->setChecked(true);
+            break;
         case UserInputModeBorders::EDIT_OPERATION_PROPERTIES:
             m_editPropertiesRadioButton->setChecked(true);
             break;
@@ -1001,7 +1004,12 @@ UserInputModeBordersWidget::createEditOperationWidget()
     WuQtUtilities::setWordWrappedToolTip(m_editDeleteRadioButton,
                                          deleteToolTipText);
     
-    
+    const AString moveToolTip("Press and hold down the left mouse button over a border point; drag the mouse to "
+                              "move the border point; release the left mouse button when done.");
+    m_editMovePointRadioButton = new QRadioButton("Move Point");
+    WuQtUtilities::setWordWrappedToolTip(m_editMovePointRadioButton,
+                                         moveToolTip);
+
     const AString propertiesToolTipText = ("A dialog for editing a border's properties is displayed by "
                                            "clicking any point in a border."
                                            + m_transformToolTipText);
@@ -1011,6 +1019,7 @@ UserInputModeBordersWidget::createEditOperationWidget()
     
     QButtonGroup* editButtonGroup = new QButtonGroup(this);
     editButtonGroup->addButton(m_editDeleteRadioButton);
+    editButtonGroup->addButton(m_editMovePointRadioButton);
     editButtonGroup->addButton(m_editPropertiesRadioButton);
     QObject::connect(editButtonGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
                      this, &UserInputModeBordersWidget::editRadioButtonClicked);
@@ -1019,6 +1028,7 @@ UserInputModeBordersWidget::createEditOperationWidget()
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
     layout->addWidget(m_editDeleteRadioButton);
+    layout->addWidget(m_editMovePointRadioButton);
     layout->addWidget(m_editPropertiesRadioButton);
     layout->addStretch();
     
@@ -1036,6 +1046,9 @@ UserInputModeBordersWidget::editRadioButtonClicked(QAbstractButton* button)
 {
     if (button == m_editDeleteRadioButton) {
         this->inputModeBorders->setEditOperation(UserInputModeBorders::EDIT_OPERATION_DELETE);
+    }
+    else if (button == m_editMovePointRadioButton) {
+        this->inputModeBorders->setEditOperation(UserInputModeBorders::EDIT_OPERATION_MOVE_POINT);
     }
     else if (button == m_editPropertiesRadioButton) {
         this->inputModeBorders->setEditOperation(UserInputModeBorders::EDIT_OPERATION_PROPERTIES);
