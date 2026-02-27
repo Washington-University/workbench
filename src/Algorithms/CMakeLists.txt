@@ -107,6 +107,7 @@ AlgorithmSurfaceCurvature.h
 AlgorithmSurfaceDistortion.h
 AlgorithmSurfaceFlipLR.h
 AlgorithmSurfaceGenerateInflated.h
+AlgorithmSurfaceGeodesicDistanceToROI.h
 AlgorithmSurfaceInflation.h
 AlgorithmSurfaceMatch.h
 AlgorithmSurfaceModifySphere.h
@@ -230,6 +231,7 @@ AlgorithmSurfaceCurvature.cxx
 AlgorithmSurfaceDistortion.cxx
 AlgorithmSurfaceFlipLR.cxx
 AlgorithmSurfaceGenerateInflated.cxx
+AlgorithmSurfaceGeodesicDistanceToROI.cxx
 AlgorithmSurfaceInflation.cxx
 AlgorithmSurfaceMatch.cxx
 AlgorithmSurfaceModifySphere.cxx

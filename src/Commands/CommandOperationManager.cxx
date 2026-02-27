@@ -107,6 +107,7 @@
 #include "AlgorithmSurfaceDistortion.h"
 #include "AlgorithmSurfaceFlipLR.h"
 #include "AlgorithmSurfaceGenerateInflated.h"
+#include "AlgorithmSurfaceGeodesicDistanceToROI.h"
 #include "AlgorithmSurfaceInflation.h"
 #include "AlgorithmSurfaceMatch.h"
 #include "AlgorithmSurfaceModifySphere.h"
@@ -382,6 +383,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceDistortion()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceFlipLR()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceGenerateInflated()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceGeodesicDistanceToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceInflation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceModifySphere()));
