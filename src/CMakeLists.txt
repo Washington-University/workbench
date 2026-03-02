@@ -84,7 +84,7 @@ set (WORKBENCH_Z5_PATH "" CACHE PATH
 #
 # Dark / Light color scheme support
 #
-set (WORKBENCH_DARK_LIGHT_COLOR_SCHEME_WITH_MACOS CACHE BOOL
+set (WORKBENCH_DARK_LIGHT_COLOR_SCHEME_WITH_MACOS FALSE CACHE BOOL
      "If TRUE, enable macOS support for light /dark color scheme support")
 
 ##########################################################################################
