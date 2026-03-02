@@ -114,7 +114,7 @@ m_underlayVolumeFile(underlayVolumeFile)
      */
     QLabel* montageExtentFileTypeLabel(new QLabel("Set Using: "));
     m_montageExtentFileTypeComboBox = new QComboBox();
-    QObject::connect(m_montageExtentFileTypeComboBox, &QComboBox::activated,
+    QObject::connect(m_montageExtentFileTypeComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
                      this, &VolumeMontageSetupDialog::montageExtentFileTypeComboBoxActivated);
     if (numHistologySlicesFiles > 0) {
         m_montageExtentTypeHistologyFileIndex = m_montageExtentFileTypeComboBox->count();
