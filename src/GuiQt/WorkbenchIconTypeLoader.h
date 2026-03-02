@@ -21,11 +21,11 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <set>
 #include <utility>
 
 #include <QPixmap>
-#include <QSharedPointer>
 
 #include "AnnotationTextAlignHorizontalEnum.h"
 #include "AnnotationTextAlignVerticalEnum.h"
@@ -77,12 +77,12 @@ namespace caret {
                                  const int32_t fontHeight,
                                  const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode,
                                  QPixmap& pixmapOut,
-                                 QSharedPointer<QPainter>& painterOut);
+                                 std::shared_ptr<QPainter>& painterOut);
         
         static QPixmap createPixmapForIconType(const WorkbenchIconTypeEnum::Enum iconType,
                                                const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode);
         
-        static void setFontHeight(QSharedPointer<QPainter>& painter,
+        static void setFontHeight(std::shared_ptr<QPainter>& painter,
                            const int32_t fontHeight);
 
         static void setPixmapIcon(QPixmap& pixmap,

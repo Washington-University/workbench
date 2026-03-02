@@ -121,7 +121,7 @@ WorkbenchIconTypeLoader::createPixmapPainter(const int32_t width,
                                      const int32_t fontHeight,
                                      const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode,
                                      QPixmap& pixmapOut,
-                                     QSharedPointer<QPainter>& painterOut)
+                                             std::shared_ptr<QPainter>& painterOut)
 {
     /*
      * If painter is valid, we need to end it before
@@ -202,7 +202,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
      * with the origin at the top left
      */
     QPixmap pixmap;
-    QSharedPointer<QPainter> painter;
+    std::shared_ptr<QPainter> painter;
     int32_t width(24);
     int32_t height(24);
     const int32_t fontHeight20(20);
@@ -1133,7 +1133,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
  *    Hight of the font
  */
 void
-WorkbenchIconTypeLoader::setFontHeight(QSharedPointer<QPainter>& painter,
+WorkbenchIconTypeLoader::setFontHeight(std::shared_ptr<QPainter>& painter,
                              const int32_t fontHeight)
 {
     QFont font = painter->font();
