@@ -342,8 +342,10 @@ IF (${WORKBENCH_DARK_LIGHT_COLOR_SCHEME_WITH_MACOS})
 ELSE()
     #
     # Qt's dark/light support requires Qt 6.8.0 or later
+    # Note: VERSION_GREATER_EQUAL requires CMake 3.7 or later
     #
-    IF (${Qt6_VERSION} VERSION_GREATER_EQUAL "6.8.0")
+    #IF (${Qt6_VERSION} VERSION_GREATER_EQUAL "6.8.0")
+    IF (NOT ${Qt6_VERSION} VERSION_LESS "6.8.0")
         add_definitions(-DWORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_QT)
         message("DARK/LIGHT COLOR SCHEME: Qt")
     ENDIF()
