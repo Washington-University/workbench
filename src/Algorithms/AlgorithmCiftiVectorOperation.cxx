@@ -23,6 +23,8 @@
 
 #include "CiftiFile.h"
 
+#include <algorithm>
+
 using namespace caret;
 using namespace std;
 
@@ -48,8 +50,10 @@ OperationParameters* AlgorithmCiftiVectorOperation::getParameters()
     
     ret->addCiftiOutputParameter(4, "cifti-out", "the output file");
     
+    ret->createOptionalParameter(9, "-match-maps", "expect both input files to have the same number of vectors, and operate pairwise");
+    
     ret->createOptionalParameter(5, "-normalize-a", "normalize vectors of first input");
-
+    
     ret->createOptionalParameter(6, "-normalize-b", "normalize vectors of second input");
     
     ret->createOptionalParameter(7, "-normalize-output", "normalize output vectors (not valid for dot product)");
@@ -79,16 +83,17 @@ void AlgorithmCiftiVectorOperation::useParameters(OperationParameters* myParams,
     VectorOperation::Operation myOper = VectorOperation::stringToOperation(operString, ok);
     if (!ok) throw AlgorithmException("unrecognized operation string: " + operString);
     CiftiFile* myCiftiOut = myParams->getOutputCifti(4);
+    bool matchMaps = myParams->getOptionalParameter(9);
     bool normA = myParams->getOptionalParameter(5)->m_present;
     bool normB = myParams->getOptionalParameter(6)->m_present;
     bool normOut = myParams->getOptionalParameter(7)->m_present;
     bool magOut = myParams->getOptionalParameter(8)->m_present;
-    AlgorithmCiftiVectorOperation(myProgObj, ciftiA, ciftiB, myOper, myCiftiOut, normA, normB, normOut, magOut);
+    AlgorithmCiftiVectorOperation(myProgObj, ciftiA, ciftiB, myOper, myCiftiOut, normA, normB, normOut, magOut, matchMaps);
 }
 
 AlgorithmCiftiVectorOperation::AlgorithmCiftiVectorOperation(ProgressObject* myProgObj, const CiftiFile* ciftiA, const CiftiFile* ciftiB,
                                                              const VectorOperation::Operation& myOper, CiftiFile* myCiftiOut,
-                                                             const bool& normA, const bool& normB, const bool& normOut, const bool& magOut) : AbstractAlgorithm(myProgObj)
+                                                             const bool& normA, const bool& normB, const bool& normOut, const bool& magOut, const bool matchMaps) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& xmlA = ciftiA->getCiftiXML(), &xmlB = ciftiB->getCiftiXML();
@@ -101,50 +106,61 @@ AlgorithmCiftiVectorOperation::AlgorithmCiftiVectorOperation(ProgressObject* myP
         throw AlgorithmException("input cifti files have non-matching mappings along column");
     }
     int64_t numColA = xmlA.getDimensionLength(CiftiXML::ALONG_ROW), numColB = xmlB.getDimensionLength(CiftiXML::ALONG_ROW);
-    if (numColA % 3 != 0) throw AlgorithmException("number of columns of first input is not a multiple of 3");
-    if (numColB % 3 != 0) throw AlgorithmException("number of columns of second input is not a multiple of 3");
-    int numVecA = numColA / 3, numVecB = numColB / 3;
-    if (numVecA > 1 && numVecB > 1) throw AlgorithmException("both inputs have more than 3 columns (more than 1 vector)");
+    if (numColA % 3 != 0) throw AlgorithmException("number of columns of '" + ciftiA->getFileName() + "' is not a multiple of 3");
+    if (numColB % 3 != 0) throw AlgorithmException("number of columns of '" + ciftiB->getFileName() + "' is not a multiple of 3");
+    int64_t numVecA = numColA / 3, numVecB = numColB / 3;
+    if (matchMaps)
+    {
+        if (numVecA != numVecB)
+        {
+            throw AlgorithmException("-match-maps specified, but inputs have different numbers of columns (vectors)");
+        }
+    } else {
+        if (numVecA > 1 && numVecB > 1)
+        {
+            if (numVecA == numVecB)
+            {
+                throw AlgorithmException("both inputs have more than 3 columns (more than 1 vector), did you want -match-maps?");
+            } else {
+                throw AlgorithmException("both inputs have more than 3 columns (more than 1 vector)");
+            }
+        }
+    }
     if (normOut && magOut) throw AlgorithmException("normalizing the output and taking the magnitude is meaningless");
     bool opScalarResult = VectorOperation::operationReturnsScalar(myOper);
     if (opScalarResult && (normOut || magOut)) throw AlgorithmException("cannot normalize or take magnitude of a scalar result (such as a dot product)");
-    bool swapped = false;
-    const CiftiFile* multiVec = ciftiA, *singleVec = ciftiB;
-    int numOutVecs = numVecA;
-    if (numVecB > 1)
-    {
-        multiVec = ciftiB;
-        singleVec = ciftiA;
-        numOutVecs = numVecB;
-        swapped = true;
-    }
-    CiftiXML outXML = multiVec->getCiftiXML();
-    int numColsOut = numOutVecs * 3;
+    int64_t numInVecs = max(numVecA, numVecB);
+    CiftiXML outXML = xmlA;
+    if (numVecB > numVecA) outXML = xmlB;
+    vector<float> outRow;
     if (opScalarResult || magOut)
     {
-        numColsOut = numOutVecs;
-        CiftiScalarsMap outRowMap;
-        outRowMap.setLength(numColsOut);
-        outXML.setMap(CiftiXML::ALONG_ROW, outRowMap);
+        outRow.resize(numInVecs);
+        outXML.setMap(CiftiXML::ALONG_ROW, CiftiScalarsMap(numInVecs));
+    } else {
+        outRow.resize(numInVecs * 3);
     }
     myCiftiOut->setCiftiXML(outXML);
-    vector<float> outRow(numColsOut), multiRow(numOutVecs * 3);
+    vector<float> rowA(numColA), rowB(numColB);
     int64_t numRows = xmlA.getDimensionLength(CiftiXML::ALONG_COLUMN);
     for (int64_t row = 0; row < numRows; ++row)
     {
-        multiVec->getRow(multiRow.data(), row);
-        Vector3D vecSingle;
-        singleVec->getRow(vecSingle, row);
-        for (int64_t v = 0; v < numOutVecs; ++v)
+        ciftiA->getRow(rowA.data(), row);
+        ciftiA->getRow(rowB.data(), row);
+        for (int64_t v = 0; v < numInVecs; ++v)
         {
             Vector3D vecA, vecB;
-            if (swapped)
+            if (numVecA > 1)
             {
-                vecA = multiRow.data() + v * 3;
-                vecB = vecSingle;
+                vecA = Vector3D(rowA.data() + v * 3);
             } else {
-                vecA = vecSingle;
-                vecB = multiRow.data() + v * 3;
+                vecA = Vector3D(rowA.data());
+            }
+            if (numVecB > 1)
+            {
+                vecB = Vector3D(rowB.data() + v * 3);
+            } else {
+                vecB = Vector3D(rowB.data());
             }
             if (normA) vecA = vecA.normal();
             if (normB) vecB = vecB.normal();

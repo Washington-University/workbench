@@ -35,7 +35,9 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmMetricVectorOperation(ProgressObject* myProgObj, const MetricFile* metricA, const MetricFile* metricB, const VectorOperation::Operation& myOper,
-                                       MetricFile* myMetricOut, const bool& normA = false, const bool& normB = false, const bool& normOut = false, const bool& magOut = false);
+                                       MetricFile* myMetricOut,
+                                       const bool& normA = false, const bool& normB = false,
+                                       const bool& normOut = false, const bool& magOut = false, const bool matchMaps = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

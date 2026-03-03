@@ -36,7 +36,8 @@ namespace caret {
     public:
         AlgorithmCiftiVectorOperation(ProgressObject* myProgObj, const CiftiFile* ciftiA, const CiftiFile* ciftiB,
                                       const VectorOperation::Operation& myOper, CiftiFile* myCiftiOut,
-                                      const bool& normA = false, const bool& normB = false, const bool& normOut = false, const bool& magOut = false);
+                                      const bool& normA = false, const bool& normB = false,
+                                      const bool& normOut = false, const bool& magOut = false, const bool matchMaps = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

@@ -36,7 +36,8 @@ namespace caret {
     public:
         AlgorithmVolumeVectorOperation(ProgressObject* myProgObj, const VolumeFile* volumeA, const VolumeFile* volumeB,
                                        const VectorOperation::Operation& myOper, VolumeFile* myVolumeOut,
-                                       const bool& normA = false, const bool& normB = false, const bool& normOut = false, const bool& magOut = false);
+                                       const bool& normA = false, const bool& normB = false,
+                                       const bool& normOut = false, const bool& magOut = false, const bool matchMaps = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

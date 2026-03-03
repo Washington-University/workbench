@@ -25,6 +25,8 @@
 #include "MetricFile.h"
 #include "Vector3D.h"
 
+#include <algorithm>
+
 using namespace caret;
 using namespace std;
 
@@ -50,8 +52,10 @@ OperationParameters* AlgorithmMetricVectorOperation::getParameters()
     
     ret->addMetricOutputParameter(4, "metric-out", "the output file");
     
+    ret->createOptionalParameter(9, "-match-maps", "expect both input files to have the same number of vectors, and operate pairwise");
+    
     ret->createOptionalParameter(5, "-normalize-a", "normalize vectors of first input");
-
+    
     ret->createOptionalParameter(6, "-normalize-b", "normalize vectors of second input");
     
     ret->createOptionalParameter(7, "-normalize-output", "normalize output vectors (not valid for dot product)");
@@ -60,7 +64,7 @@ OperationParameters* AlgorithmMetricVectorOperation::getParameters()
     
     AString myText =
         AString("Does a vector operation on two metric files (that must have a multiple of 3 columns).  ") +
-        "Either of the inputs may have multiple vectors (more than 3 columns), but not both (at least one must have exactly 3 columns).  " +
+        "Without -match-maps, either of the inputs may have multiple vectors (more than 3 columns), but not both (at least one must have exactly 3 columns).  " +
         "The -magnitude and -normalize-output options may not be specified together, or with an operation that returns a scalar (dot product).  " +
         "The <operation> parameter must be one of the following:\n";
     vector<VectorOperation::Operation> opList = VectorOperation::getAllOperations();
@@ -81,25 +85,42 @@ void AlgorithmMetricVectorOperation::useParameters(OperationParameters* myParams
     VectorOperation::Operation myOper = VectorOperation::stringToOperation(operString, ok);
     if (!ok) throw AlgorithmException("unrecognized operation string: " + operString);
     MetricFile* myMetricOut = myParams->getOutputMetric(4);
+    bool matchMaps = myParams->getOptionalParameter(9)->m_present;
     bool normA = myParams->getOptionalParameter(5)->m_present;
     bool normB = myParams->getOptionalParameter(6)->m_present;
     bool normOut = myParams->getOptionalParameter(7)->m_present;
     bool magOut = myParams->getOptionalParameter(8)->m_present;
-    AlgorithmMetricVectorOperation(myProgObj, metricA, metricB, myOper, myMetricOut, normA, normB, normOut, magOut);
+    AlgorithmMetricVectorOperation(myProgObj, metricA, metricB, myOper, myMetricOut, normA, normB, normOut, magOut, matchMaps);
 }
 
 AlgorithmMetricVectorOperation::AlgorithmMetricVectorOperation(ProgressObject* myProgObj, const MetricFile* metricA, const MetricFile* metricB, const VectorOperation::Operation& myOper,
-                                                               MetricFile* myMetricOut, const bool& normA, const bool& normB, const bool& normOut, const bool& magOut) : AbstractAlgorithm(myProgObj)
+                                                               MetricFile* myMetricOut, const bool& normA, const bool& normB, const bool& normOut, const bool& magOut, const bool matchMaps) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     StructureEnum::Enum checkStruct = metricA->getStructure();
     int numNodes = metricA->getNumberOfNodes();
     if (numNodes != metricB->getNumberOfNodes()) throw AlgorithmException("inputs have different numbers of nodes");
     int numColA = metricA->getNumberOfColumns(), numColB = metricB->getNumberOfColumns();
-    if (numColA % 3 != 0) throw AlgorithmException("number of columns of first input is not a multiple of 3");
-    if (numColB % 3 != 0) throw AlgorithmException("number of columns of second input is not a multiple of 3");
+    if (numColA % 3 != 0) throw AlgorithmException("number of columns of '" + metricA->getFileName() + "' is not a multiple of 3");
+    if (numColB % 3 != 0) throw AlgorithmException("number of columns of '" + metricB->getFileName() + "' is not a multiple of 3");
     int numVecA = numColA / 3, numVecB = numColB / 3;
-    if (numVecA > 1 && numVecB > 1) throw AlgorithmException("both inputs have more than 3 columns (more than 1 vector)");
+    if (matchMaps)
+    {
+        if (numVecA != numVecB)
+        {
+            throw AlgorithmException("-match-maps specified, but inputs have different numbers of columns (vectors)");
+        }
+    } else {
+        if (numVecA > 1 && numVecB > 1)
+        {
+            if (numVecA == numVecB)
+            {
+                throw AlgorithmException("both inputs have more than 3 columns (more than 1 vector), did you want -match-maps?");
+            } else {
+                throw AlgorithmException("both inputs have more than 3 columns (more than 1 vector)");
+            }
+        }
+    }
     if (normOut && magOut) throw AlgorithmException("normalizing the output and taking the magnitude is meaningless");
     bool opScalarResult = VectorOperation::operationReturnsScalar(myOper);
     if (opScalarResult && (normOut || magOut)) throw AlgorithmException("cannot normalize or take magnitude of a scalar result (such as a dot product)");
@@ -109,42 +130,44 @@ AlgorithmMetricVectorOperation::AlgorithmMetricVectorOperation(ProgressObject* m
     } else {
         checkStructureMatch(metricB, checkStruct, "second input vector file", "the first has");
     }
-    bool swapped = false;
-    const MetricFile* multiVec = metricA, *singleVec = metricB;
-    int numOutVecs = numVecA;
-    if (numVecB > 1)
+    int numInVecs = max(numVecA, numVecB);
+    vector<vector<float> > outCols;
+    if (opScalarResult || magOut)
     {
-        multiVec = metricB;
-        singleVec = metricA;
-        numOutVecs = numVecB;
-        swapped = true;
+        outCols.resize(1, vector<float>(numNodes));
+        myMetricOut->setNumberOfNodesAndColumns(numNodes, numInVecs);
+    } else {
+        outCols.resize(3, vector<float>(numNodes));
+        myMetricOut->setNumberOfNodesAndColumns(numNodes, numInVecs * 3);
     }
-    int numColsOut = numOutVecs * 3;
-    if (opScalarResult || magOut) numColsOut = numOutVecs;
-    myMetricOut->setNumberOfNodesAndColumns(numNodes, numColsOut);
     myMetricOut->setStructure(checkStruct);
-    vector<float> outCols[3];//let the scalar result case overallocate
-    outCols[0].resize(numNodes);
-    outCols[1].resize(numNodes);
-    outCols[2].resize(numNodes);
-    const float* xColSingle = singleVec->getValuePointerForColumn(0);
-    const float* yColSingle = singleVec->getValuePointerForColumn(1);
-    const float* zColSingle = singleVec->getValuePointerForColumn(2);
-    for (int v = 0; v < numOutVecs; ++v)
+    for (int v = 0; v < numInVecs; ++v)
     {
-        const float* xColMulti = multiVec->getValuePointerForColumn(v * 3);
-        const float* yColMulti = multiVec->getValuePointerForColumn(v * 3 + 1);
-        const float* zColMulti = multiVec->getValuePointerForColumn(v * 3 + 2);
+        const float* vecAx, *vecAy, *vecAz, *vecBx, *vecBy, *vecBz;
+        if (numVecA > 1)
+        {
+            vecAx = metricA->getValuePointerForColumn(v * 3);
+            vecAy = metricA->getValuePointerForColumn(v * 3 + 1);
+            vecAz = metricA->getValuePointerForColumn(v * 3 + 2);
+        } else {
+            vecAx = metricA->getValuePointerForColumn(0);
+            vecAy = metricA->getValuePointerForColumn(1);
+            vecAz = metricA->getValuePointerForColumn(2);
+        }
+        if (numVecB > 1)
+        {
+            vecBx = metricB->getValuePointerForColumn(v * 3);
+            vecBy = metricB->getValuePointerForColumn(v * 3 + 1);
+            vecBz = metricB->getValuePointerForColumn(v * 3 + 2);
+        } else {
+            vecBx = metricB->getValuePointerForColumn(0);
+            vecBy = metricB->getValuePointerForColumn(1);
+            vecBz = metricB->getValuePointerForColumn(2);
+        }
         for (int i = 0; i < numNodes; ++i)
         {
-            Vector3D vecA(xColMulti[i], yColMulti[i], zColMulti[i]);
-            Vector3D vecB(xColSingle[i], yColSingle[i], zColSingle[i]);
-            if (swapped)
-            {
-                Vector3D tempVec = vecA;
-                vecA = vecB;
-                vecB = tempVec;
-            }
+            Vector3D vecA(vecAx[i], vecAy[i], vecAz[i]),
+                     vecB(vecBx[i], vecBy[i], vecBz[i]);
             if (normA) vecA = vecA.normal();
             if (normB) vecB = vecB.normal();
             if (opScalarResult)

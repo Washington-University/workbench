@@ -23,6 +23,8 @@
 
 #include "VolumeFile.h"
 
+#include <algorithm>
+
 using namespace caret;
 using namespace std;
 
@@ -48,8 +50,10 @@ OperationParameters* AlgorithmVolumeVectorOperation::getParameters()
     
     ret->addVolumeOutputParameter(4, "volume-out", "the output file");
     
+    ret->createOptionalParameter(9, "-match-maps", "expect both input files to have the same number of vectors, and operate pairwise");
+    
     ret->createOptionalParameter(5, "-normalize-a", "normalize vectors of first input");
-
+    
     ret->createOptionalParameter(6, "-normalize-b", "normalize vectors of second input");
     
     ret->createOptionalParameter(7, "-normalize-output", "normalize output vectors (not valid for dot product)");
@@ -79,68 +83,87 @@ void AlgorithmVolumeVectorOperation::useParameters(OperationParameters* myParams
     VectorOperation::Operation myOper = VectorOperation::stringToOperation(operString, ok);
     if (!ok) throw AlgorithmException("unrecognized operation string: " + operString);
     VolumeFile* myVolumeOut = myParams->getOutputVolume(4);
+    bool matchMaps = myParams->getOptionalParameter(9);
     bool normA = myParams->getOptionalParameter(5)->m_present;
     bool normB = myParams->getOptionalParameter(6)->m_present;
     bool normOut = myParams->getOptionalParameter(7)->m_present;
     bool magOut = myParams->getOptionalParameter(8)->m_present;
-    AlgorithmVolumeVectorOperation(myProgObj, volumeA, volumeB, myOper, myVolumeOut, normA, normB, normOut, magOut);
+    AlgorithmVolumeVectorOperation(myProgObj, volumeA, volumeB, myOper, myVolumeOut, normA, normB, normOut, magOut, matchMaps);
 }
 
 AlgorithmVolumeVectorOperation::AlgorithmVolumeVectorOperation(ProgressObject* myProgObj, const VolumeFile* volumeA, const VolumeFile* volumeB,
                                                                const VectorOperation::Operation& myOper, VolumeFile* myVolumeOut,
-                                                               const bool& normA, const bool& normB, const bool& normOut, const bool& magOut) : AbstractAlgorithm(myProgObj)
+                                                               const bool& normA, const bool& normB, const bool& normOut, const bool& magOut, const bool matchMaps) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const VolumeSpace& checkSpace = volumeA->getVolumeSpace();
     if (!volumeB->matchesVolumeSpace(checkSpace)) throw AlgorithmException("input files have different volume spaces");
     const vector<int64_t> dimA = volumeA->getDimensions(), dimB = volumeB->getDimensions();
     if (dimA[4] != 1 || dimB[4] != 1) throw AlgorithmException("volumes with multiple components (complex or rgb datatypes) are not supported in vector operations");
-    if (dimA[3] % 3 != 0) throw AlgorithmException("number of subvolumes in first input is not a multiple of 3");
-    if (dimB[3] % 3 != 0) throw AlgorithmException("number of subvolumes in first input is not a multiple of 3");
+    if (dimA[3] % 3 != 0) throw AlgorithmException("number of subvolumes in '" + volumeA->getFileName() + "' is not a multiple of 3");
+    if (dimB[3] % 3 != 0) throw AlgorithmException("number of subvolumes in '" + volumeB->getFileName() + "' is not a multiple of 3");
     int64_t numVecA = dimA[3] / 3, numVecB = dimB[3] / 3;
-    if (numVecA > 1 && numVecB > 1) throw AlgorithmException("both inputs have more than 3 subvolumes (more than 1 vector)");
+    if (matchMaps)
+    {
+        if (numVecA != numVecB)
+        {
+            throw AlgorithmException("-match-maps specified, but inputs have different numbers of subvolumes (vectors)");
+        }
+    } else {
+        if (numVecA > 1 && numVecB > 1)
+        {
+            if (numVecA == numVecB)
+            {
+                throw AlgorithmException("both inputs have more than 3 subvolumes (more than 1 vector), did you want -match-maps?");
+            } else {
+                throw AlgorithmException("both inputs have more than 3 subvolumes (more than 1 vector)");
+            }
+        }
+    }
     if (normOut && magOut) throw AlgorithmException("normalizing the output and taking the magnitude is meaningless");
     bool opScalarResult = VectorOperation::operationReturnsScalar(myOper);
     if (opScalarResult && (normOut || magOut)) throw AlgorithmException("cannot normalize or take magnitude of a scalar result (such as a dot product)");
-    bool swapped = false;
-    const VolumeFile* multiVec = volumeA, *singleVec = volumeB;
-    int64_t numOutVecs = numVecA;
-    if (numVecB > 1)
-    {
-        multiVec = volumeB;
-        singleVec = volumeA;
-        numOutVecs = numVecB;
-        swapped = true;
-    }
-    int64_t numSubvolsOut = numOutVecs * 3;
-    if (opScalarResult || magOut) numSubvolsOut = numOutVecs;
+    int64_t numInVecs = max(numVecA, numVecB);
     vector<int64_t> outDims = dimA;
     outDims.resize(3);
-    if (numSubvolsOut > 1) outDims.push_back(numSubvolsOut);
-    myVolumeOut->reinitialize(outDims, checkSpace.getSform());
     int64_t frameSize = dimA[0] * dimA[1] * dimA[2];
-    vector<float> outFrames[3];//let the scalar result case overallocate
-    outFrames[0].resize(frameSize);
-    outFrames[1].resize(frameSize);
-    outFrames[2].resize(frameSize);
-    const float* xFrameSingle = singleVec->getFrame(0);
-    const float* yFrameSingle = singleVec->getFrame(1);
-    const float* zFrameSingle = singleVec->getFrame(2);
-    for (int64_t v = 0; v < numOutVecs; ++v)
+    vector<vector<float> > outFrames;
+    if (opScalarResult || magOut)
     {
-        const float* xFrameMulti = multiVec->getFrame(v * 3);
-        const float* yFrameMulti = multiVec->getFrame(v * 3 + 1);
-        const float* zFrameMulti = multiVec->getFrame(v * 3 + 2);
+        outFrames.resize(1, vector<float>(frameSize));
+        outDims.push_back(numInVecs);
+    } else {
+        outFrames.resize(3, vector<float>(frameSize));
+        outDims.push_back(numInVecs * 3);
+    }
+    myVolumeOut->reinitialize(outDims, checkSpace.getSform());
+    for (int64_t v = 0; v < numInVecs; ++v)
+    {
+        const float* vecAx, *vecAy, *vecAz, *vecBx, *vecBy, *vecBz;
+        if (numVecA > 1)
+        {
+            vecAx = volumeA->getFrame(v * 3);
+            vecAy = volumeA->getFrame(v * 3 + 1);
+            vecAz = volumeA->getFrame(v * 3 + 2);
+        } else {
+            vecAx = volumeA->getFrame(0);
+            vecAy = volumeA->getFrame(1);
+            vecAz = volumeA->getFrame(2);
+        }
+        if (numVecB > 1)
+        {
+            vecBx = volumeB->getFrame(v * 3);
+            vecBy = volumeB->getFrame(v * 3 + 1);
+            vecBz = volumeB->getFrame(v * 3 + 2);
+        } else {
+            vecBx = volumeB->getFrame(0);
+            vecBy = volumeB->getFrame(1);
+            vecBz = volumeB->getFrame(2);
+        }
         for (int64_t i = 0; i < frameSize; ++i)
         {
-            Vector3D vecA(xFrameMulti[i], yFrameMulti[i], zFrameMulti[i]);
-            Vector3D vecB(xFrameSingle[i], yFrameSingle[i], zFrameSingle[i]);
-            if (swapped)
-            {
-                Vector3D tempVec = vecA;
-                vecA = vecB;
-                vecB = tempVec;
-            }
+            Vector3D vecA(vecAx[i], vecAy[i], vecAz[i]),
+                     vecB(vecBx[i], vecBy[i], vecBz[i]);
             if (normA) vecA = vecA.normal();
             if (normB) vecB = vecB.normal();
             if (opScalarResult)
