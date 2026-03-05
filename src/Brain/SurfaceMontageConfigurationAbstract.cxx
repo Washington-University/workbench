@@ -66,6 +66,8 @@ m_supportsLayoutOrientation(supportsLayoutOrientation)
     m_sceneAssistant->add<SurfaceMontageLayoutOrientationEnum,
                           SurfaceMontageLayoutOrientationEnum::Enum>("m_layoutOrientation",
                                                                      &m_layoutOrientation);
+    m_sceneAssistant->add("m_compactLayoutFlag",
+                          &m_compactLayoutFlag);
 }
 
 /**
@@ -268,6 +270,27 @@ SurfaceMontageConfigurationAbstract::getSurfaceMontageViewportsForTransformation
 }
 
 /**
+ * @return True if compact layout (reduces space between adjacent surfaces in some instances)
+ */
+bool
+SurfaceMontageConfigurationAbstract::isCompactLayout() const
+{
+    return m_compactLayoutFlag;
+}
+
+/**
+ * Set compact layout (reduces space between adjacent surfaces in some instances)
+ * @param status
+ *    New compact layout status
+ */
+void
+SurfaceMontageConfigurationAbstract::setComplactLayout(const bool status)
+{
+    m_compactLayoutFlag = status;
+}
+
+
+/**
  * Copy the given configuration to this configurtion.
  *
  * @param configuration.
@@ -281,6 +304,7 @@ SurfaceMontageConfigurationAbstract::copyConfiguration(SurfaceMontageConfigurati
     m_overlaySet->copyOverlaySet(configuration->m_overlaySet);
     m_layoutOrientation = configuration->m_layoutOrientation;
     m_surfaceMontageViewports = configuration->m_surfaceMontageViewports;
+    m_compactLayoutFlag = configuration->m_compactLayoutFlag;
 }
 
 

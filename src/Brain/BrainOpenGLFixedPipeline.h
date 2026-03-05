@@ -33,6 +33,7 @@
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSymbolTypeEnum.h"
 #include "FiberTrajectoryColorModel.h"
+#include "GraphicsOrthographicProjection.h"
 #include "GraphicsRegionSelectionBox.h"
 #include "HistologySpaceKey.h"
 #include "ProjectionViewTypeEnum.h"
@@ -60,12 +61,10 @@ namespace caret {
     class BrowserTabContent;
     class CaretMappableDataFile;
     class ClippingPlaneGroup;
-    class FastStatistics;
     class DisplayPropertiesFiberOrientation;
+    class FastStatistics;
     class FiberOrientation;
-    class SelectionItem;
-    class SelectionManager;
-    class GraphicsOrthographicProjection;
+    class GraphicsViewport;
     class HistologySlice;
     class IdentificationWithColor;
     class ImageFile;
@@ -81,6 +80,8 @@ namespace caret {
     class Palette;
     class PaletteColorMapping;
     class Plane;
+    class SelectionItem;
+    class SelectionManager;
     class Surface;
     class SurfaceFile;
     class SurfaceMontageConfigurationCerebellar;
@@ -204,6 +205,17 @@ namespace caret {
             StructureEnum::Enum structure;
         };
         
+        /**
+         * Fitting model into window with orthographic projection
+         */
+        enum class OrthoFitMode {
+            /** Fit to window with height (used by hippocampus flat maps) */
+            SET_FROM_WIDTH,
+            /** Fit to window with width */
+            SET_FROM_HEIGHT
+        };
+        
+
         enum class SurfaceTabType {
             SINGLE_SURFACE,
             SURFACE_MONTAGE,
@@ -380,19 +392,18 @@ namespace caret {
                                      ModelSurfaceMontage* surfaceMontageModel,
                                      const int32_t viewport[4]);
         
-        
+        void drawSurfaceMontageModelCompact(BrowserTabContent* browserTabContent,
+                                            ModelSurfaceMontage* surfaceMontageModel,
+                                            const int32_t viewport[4]);
+
+        GraphicsOrthographicProjection getOrthographicProjectionForBoundingBox(const ProjectionViewTypeEnum::Enum projectionType,
+                                                                               const OrthoFitMode orthoFitMode,
+                                                                               const BoundingBox* boundingBox,
+                                                                               GraphicsViewport& viewportInOut,
+                                                                               const bool adjustViewportToFitModelFlag);
+
         void setOrthographicProjection(const int32_t viewport[4],
                                        const ProjectionViewTypeEnum::Enum projectionType);
-        
-        /**
-         * Fitting model into window with orthographic projection
-         */
-        enum class OrthoFitMode {
-            /** Fit to window with height (used by hippocampus flat maps) */
-            SET_FROM_WIDTH,
-            /** Fit to window with width */
-            SET_FROM_HEIGHT
-        };
         
         void setOrthographicProjectionForWithBoundingBox(const int32_t viewport[4],
                                                          const ProjectionViewTypeEnum::Enum projectionType,

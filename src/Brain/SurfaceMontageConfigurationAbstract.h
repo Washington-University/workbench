@@ -75,6 +75,10 @@ namespace caret {
         
         void getSurfaceMontageViewportsForTransformation(std::vector<const SurfaceMontageViewport*>& surfaceMontageViewports) const;
         
+        bool isCompactLayout() const;
+        
+        void setComplactLayout(const bool status);
+        
         virtual void copyConfiguration(SurfaceMontageConfigurationAbstract* configuration);
         
     private:
@@ -124,6 +128,8 @@ namespace caret {
         OverlaySet* m_overlaySet;
         
         std::vector<SurfaceMontageViewport> m_surfaceMontageViewports;
+        
+        bool m_compactLayoutFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
         

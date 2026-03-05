@@ -105,6 +105,10 @@ ProjectionViewTypeEnum::initialize()
                                               "PROJECTION_VIEW_LEFT_FLAT_SURFACE",
                                               "Left Flat"));
     
+    enumData.push_back(ProjectionViewTypeEnum(PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE,
+                                              "PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE",
+                                              "Left Flat Dentate"));
+    
     enumData.push_back(ProjectionViewTypeEnum(PROJECTION_VIEW_RIGHT_LATERAL,
                                     "PROJECTION_VIEW_RIGHT_LATERAL", 
                                     "Right Lateral"));
@@ -117,6 +121,9 @@ ProjectionViewTypeEnum::initialize()
                                               "PROJECTION_VIEW_RIGHT_FLAT_SURFACE",
                                               "Right Flat"));
     
+    enumData.push_back(ProjectionViewTypeEnum(PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE,
+                                              "PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE",
+                                              "Right Flat Dentate"));
 }
 
 /**

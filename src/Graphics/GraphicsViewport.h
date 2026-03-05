@@ -129,6 +129,8 @@ namespace caret {
         /** @return Y-Center  of viewport as float */
         float getCenterYF() const { return ((getBottomF() + getTopF()) / 2.0); }
         
+        float getHeightToWidthAspectRatio() const;
+        
         /**
          * @return Center of viewport
          */
@@ -173,6 +175,14 @@ namespace caret {
                             m_viewport[1] + m_viewport[3],
                             0.0);
         }
+        
+        void setX(const int32_t x);
+        
+        void setY(const int32_t y);
+        
+        void setWidth(const int32_t width);
+        
+        void setHeight(const int32_t height);
         
         bool isValid() const;
         

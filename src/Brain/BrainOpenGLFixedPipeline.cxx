@@ -1974,10 +1974,22 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                                        modelViewport);
             }
             else if (surfaceMontageModel != NULL) {
-                m_mirroredClippingEnabled = true;
-                this->drawSurfaceMontageModel(browserTabContent,
-                                              surfaceMontageModel, 
-                                              modelViewport);
+                const int32_t tabIndex(browserTabContent->getTabNumber());
+                SurfaceMontageConfigurationAbstract* selectedConfiguration = surfaceMontageModel->getSelectedConfiguration(tabIndex);
+                CaretAssert(selectedConfiguration);
+                if (selectedConfiguration != NULL) {
+                    m_mirroredClippingEnabled = true;
+                    if (selectedConfiguration->isCompactLayout()) {
+                        this->drawSurfaceMontageModelCompact(browserTabContent,
+                                                             surfaceMontageModel,
+                                                             modelViewport);
+                    }
+                    else {
+                        this->drawSurfaceMontageModel(browserTabContent,
+                                                      surfaceMontageModel,
+                                                      modelViewport);                        
+                    }
+                }
             }
             else if (volumeModel != NULL) {
                 this->drawVolumeModel(viewportContent,
@@ -7295,6 +7307,291 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                savedVP[3]);
 }
 
+
+
+
+
+
+
+/**
+ * Draw the surface montage model in a compact layout (removes space between adjacent surfaces)
+ * @param browserTabContent
+ *   Content of the window.
+ * @param surfaceMontageModel
+ *   The surface montage displayed in the window.
+ * @param tabViewport
+ *   Region for drawing.
+ */
+void
+BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* browserTabContent,
+                                                         ModelSurfaceMontage* surfaceMontageModel,
+                                                         const int32_t tabViewport[4])
+{
+    const int32_t tabIndex = browserTabContent->getTabNumber();
+    
+    std::vector<SurfaceMontageViewport*> montageViewports;
+    surfaceMontageModel->getSurfaceMontageViewportsForDrawing(tabIndex,
+                                                              montageViewports);
+    if (montageViewports.empty()) {
+        return;
+    }
+    
+    GLint savedVP[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  savedVP);
+    
+    
+    int32_t numberOfRows = 0;
+    int32_t numberOfColumns = 0;
+    SurfaceMontageViewport::getNumberOfRowsAndColumns(montageViewports,
+                                                      numberOfRows,
+                                                      numberOfColumns);
+    
+    const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
+    
+    int32_t subViewportHeight = 0;
+    int32_t verticalGap       = 0;
+    createSubViewportSizeAndGaps(tabViewport[3],
+                                 gapsAndMargins->getSurfaceMontageVerticalGapForWindow(m_windowIndex),
+                                 -1,
+                                 numberOfRows,
+                                 subViewportHeight,
+                                 verticalGap);
+    
+    int32_t subViewportWidth = 0;
+    int32_t horizontalGap    = 0;
+    createSubViewportSizeAndGaps(tabViewport[2],
+                                 gapsAndMargins->getSurfaceMontageHorizontalGapForWindow(m_windowIndex),
+                                 -1,
+                                 numberOfColumns,
+                                 subViewportWidth,
+                                 horizontalGap);
+    
+    EventDrawingViewportContentAdd addViewportEvent;
+    addViewportEvent.addModelSurfaceGrid(m_windowIndex,
+                                         this->windowTabIndex,
+                                         GraphicsViewport(tabViewport),
+                                         numberOfRows,
+                                         numberOfColumns);
+    EventManager::get()->sendEvent(addViewportEvent.getPointer());
+    
+    std::vector<GraphicsViewport> newViewports;
+    std::vector<GraphicsOrthographicProjection> newOrthoProjs;
+    
+    std::vector<int32_t> rowHeights(numberOfRows, 0);
+    std::vector<int32_t> columnWidths(numberOfColumns, 0);
+    
+    /*
+     * First loop
+     * Set orthographic projection and surface viewport to fit the surfaces
+     */
+    const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
+    for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
+        SurfaceMontageViewport* mvp = montageViewports[ivp];
+        float center[3];
+        mvp->getSurface()->getBoundingBox()->getCenter(center);
+        
+        const int32_t rowFromTop    = mvp->getRow();
+        const int32_t rowFromBottom = (numberOfRows - rowFromTop - 1);
+        const int32_t column = mvp->getColumn();
+        
+        int32_t surfaceViewport[4] = {
+            (tabViewport[0] + (column * (subViewportWidth + horizontalGap))),
+            (tabViewport[1] + (rowFromBottom * (subViewportHeight + verticalGap))),
+            subViewportWidth,
+            subViewportHeight
+        };
+        mvp->setViewport(surfaceViewport);
+        
+        const bool ADJUST_VIEWPORT_TO_FIT_MODEL_YES(true);
+        GraphicsViewport gv(surfaceViewport);
+        GraphicsOrthographicProjection orthoProj(getOrthographicProjectionForBoundingBox(mvp->getProjectionViewType(),
+                                                                                         OrthoFitMode::SET_FROM_HEIGHT,
+                                                                                         mvp->getSurface()->getBoundingBox(),
+                                                                                         gv,
+                                                                                         ADJUST_VIEWPORT_TO_FIT_MODEL_YES));
+        surfaceViewport[0] = gv.getX();
+        surfaceViewport[1] = gv.getY();
+        surfaceViewport[2] = gv.getWidth();
+        surfaceViewport[3] = gv.getHeight();
+        
+        newViewports.push_back(gv);
+        newOrthoProjs.push_back(orthoProj);
+        
+        rowHeights[rowFromTop] = std::max(rowHeights[rowFromTop], gv.getHeight());
+        columnWidths[column]   = std::max(columnWidths[column], gv.getWidth());
+    }
+    
+    /*
+     * Total height of rows and columns
+     */
+    int32_t totalSubViewportHeight(0);
+    for (int32_t iRow = 0; iRow < numberOfRows; iRow++) {
+        totalSubViewportHeight += rowHeights[iRow];
+    }
+    int32_t totalSubViewportWidth(0);
+    for (int32_t iCol = 0; iCol < numberOfColumns; iCol++) {
+        totalSubViewportWidth += columnWidths[iCol];
+    }
+    
+    CaretAssert(newViewports.size() == montageViewports.size());
+    CaretAssert(newViewports.size() == newOrthoProjs.size());
+
+    /*
+     * Find extra width on sides of viewports and adjust
+     * where drawing will start
+     */
+    const int32_t extraWidth(tabViewport[2] - totalSubViewportWidth - ((numberOfColumns - 1) * horizontalGap));
+    const int32_t extraHeight(tabViewport[3] - totalSubViewportHeight - ((numberOfRows - 1) * verticalGap));
+    const int32_t startX(extraWidth / 2);
+    const int32_t startY(extraHeight / 2);
+   
+    /*
+     * Set the widths of heights of each viewport
+     * All viewpoints in same row (column) are the same height (width)
+     */
+    int32_t vpY(tabViewport[1] + tabViewport[3] - startY);
+    for (int32_t iRow = 0; iRow < numberOfRows; iRow++) {
+        int32_t vpX(tabViewport[0] + startX);
+        vpY -= (rowHeights[iRow] + verticalGap);
+        for (int32_t jCol = 0; jCol < numberOfColumns; jCol++) {
+            for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
+                const SurfaceMontageViewport* mvp = montageViewports[ivp];
+                if ((mvp->getRow() == iRow)
+                    && (mvp->getColumn() == jCol)) {
+                    GraphicsViewport& viewport(newViewports[ivp]);
+                    viewport.setX(vpX);
+                    viewport.setY(vpY);
+                    viewport.setWidth(columnWidths[jCol]);
+                    viewport.setHeight(rowHeights[iRow]);
+                    
+                    vpX += (columnWidths[jCol] + horizontalGap);
+                    
+                    break;
+                }
+            }
+        }
+    }
+
+    /*
+     * Final Loop
+     * Regenerate orthographics projection for resized viewports
+     * and draw the models
+     */
+    for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
+        SurfaceMontageViewport* mvp = montageViewports[ivp];
+        GraphicsViewport& viewport(newViewports[ivp]);
+        
+        const bool ADJUST_VIEWPORT_TO_FIT_MODEL_NO(false);
+        GraphicsOrthographicProjection orthoProj(getOrthographicProjectionForBoundingBox(mvp->getProjectionViewType(),
+                                                                                         OrthoFitMode::SET_FROM_HEIGHT,
+                                                                                         mvp->getSurface()->getBoundingBox(),
+                                                                                         viewport,
+                                                                                         ADJUST_VIEWPORT_TO_FIT_MODEL_NO));
+        const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel,
+                                                                                     mvp->getSurface(),
+                                                                                     this->windowTabIndex);
+        switch (mvp->getProjectionViewType()) {
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
+                break;
+        }
+
+        const int32_t rowFromTop    = mvp->getRow();
+        const int32_t column = mvp->getColumn();
+
+        EventDrawingViewportContentAdd addViewportEvent;
+        addViewportEvent.addModelSurfaceGridCell(m_windowIndex,
+                                                 this->windowTabIndex,
+                                                 GraphicsViewport(viewport),
+                                                 numberOfRows,
+                                                 numberOfColumns,
+                                                 rowFromTop,
+                                                 column);
+        EventManager::get()->sendEvent(addViewportEvent.getPointer());
+        
+        viewport.applyWithOpenGL();
+        orthoProj.applyWithOpenGL();
+        
+        GraphicsViewport currentVP(GraphicsViewport::newInstanceCurrentViewport());
+        float center[3];
+        mvp->getSurface()->getBoundingBox()->getCenter(center);
+        this->applyViewingTransformations(surfaceMontageModel,
+                                          center,
+                                          mvp->getProjectionViewType());
+        
+        if (ivp == 0) {
+            setupScaleBarDrawingInformation(browserTabContent);
+        }
+        
+        const DisplayPropertiesFiberOrientation* dpf(m_brain->getDisplayPropertiesFiberOrientation());
+        const int32_t tabIndex = browserTabContent->getTabNumber();
+        const DisplayGroupEnum::Enum displayGroup = dpf->getDisplayGroupForTab(tabIndex);
+        const bool drawFiberTrajectoriesInFrontFlag(dpf->isDrawFiberTrajectoriesInFront(displayGroup,
+                                                                                        tabIndex));
+        const StructureEnum::Enum structure(mvp->getSurface()->getStructure());
+        drawSurfaceFiberOrientations(structure);
+        if ( ! drawFiberTrajectoriesInFrontFlag) {
+            drawSurfaceFiberTrajectories(structure);
+        }
+        
+        const bool depthTestingEnabled(true);
+        this->drawSurface(mvp->getSurface(),
+                          SurfaceTabType::SURFACE_MONTAGE,
+                          browserTabContent->getScaling(),
+                          subViewportHeight,
+                          nodeColoringRGBA,
+                          true,
+                          depthTestingEnabled);
+        
+        if (drawFiberTrajectoriesInFrontFlag) {
+            /*
+             * Clear the depth buffer but use the scissor test to only clear
+             * the depth buffer for this tab.
+             */
+            glPushAttrib(GL_SCISSOR_BIT);
+            glEnable(GL_SCISSOR_TEST);
+            glScissor(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            glPopAttrib();
+            
+            drawSurfaceFiberTrajectories(structure);
+        }
+    }
+    
+    glViewport(savedVP[0],
+               savedVP[1],
+               savedVP[2],
+               savedVP[3]);
+}
+
+
+
+
+
 /**
  * While drawing in model space provide information to the scale bar so that it
  * can be drawn in the proper size when it is drawn in tab space
@@ -7879,6 +8176,216 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
 }
 
 /**
+ * Create an orthographic projection for the given projection type and bounding box
+ * @param projectionType
+ *    Type of projection
+ * @param orthoFit
+ *    Fit to width or height
+ * @param boundingBox
+ *    The bounding box of the model
+ * @param viewportInOut
+ *    Viewport that may be modifed to fit the bounding box
+ * @param adjustViewportToFitModelFlag
+ *    If true, adjust the viewport to fit the model
+ */
+GraphicsOrthographicProjection
+BrainOpenGLFixedPipeline::getOrthographicProjectionForBoundingBox(const ProjectionViewTypeEnum::Enum projectionType,
+                                                                  const OrthoFitMode orthoFitMode,
+                                                                  const BoundingBox* boundingBox,
+                                                                  GraphicsViewport& viewportInOut,
+                                                                  const bool adjustViewportToFitModelFlag)
+{
+    CaretAssert(boundingBox);
+    
+    if ( ! viewportInOut.isValid()) {
+        return GraphicsOrthographicProjection();
+    }
+    /*
+     * For a cortical surface, this largest dimension is the Y-Axis.
+     * This worked correctly when the default view was dorsal with
+     * the anterior pole at the top of the display and the posterior
+     * pole at the bottom of the display.
+     */
+    float modelHalfHeight = std::max(std::max(boundingBox->getDifferenceX(),
+                                              boundingBox->getDifferenceY()),
+                                     boundingBox->getDifferenceZ()) / 2.0;
+    float modelHalfWidth = modelHalfHeight;
+    
+    float windowHorizontalSize = boundingBox->getDifferenceY();
+    float windowVerticalSize   = boundingBox->getDifferenceZ();
+    
+    switch (projectionType) {
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
+            windowHorizontalSize = boundingBox->getDifferenceX();
+            windowVerticalSize   = boundingBox->getDifferenceY();
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+            break;
+    }
+    
+    /*
+     * The default view was changed to a lateral view and the above
+     * code results in problems during some window resize operations.
+     * But, the Z-difference of a flat surface is zero.
+     *
+     * See also BrowserTabContent::restoreFromScene() that tries to make
+     * old scenes compatible with this new scaling.
+     */
+    float viewportWidth(viewportInOut.getWidthF());
+    float viewportHeight(viewportInOut.getHeightF());
+    if (windowVerticalSize != 0.0) {
+        modelHalfHeight = windowVerticalSize / 2.0;
+        
+        if ((windowHorizontalSize > 0.0)
+            && (viewportWidth > 0.0)) {
+            /*
+             * Note Z is vertical, Y is horizontal when viewed
+             */
+            const float surfaceAspectRatio  = windowVerticalSize / windowHorizontalSize;
+            const float viewportAspectRatio = (static_cast<float>(viewportInOut.getHeight())
+                                               / static_cast<float>(viewportInOut.getWidth()));
+            
+            if (adjustViewportToFitModelFlag) {
+                const float extraSpace(5.0);  /* allow a little extra space */
+                if (surfaceAspectRatio > viewportAspectRatio) {
+                    const float newVpWidth(viewportHeight / surfaceAspectRatio);
+                    const float diff(std::fabs(viewportWidth - newVpWidth));
+                    if (diff > extraSpace) {
+                        viewportWidth = newVpWidth + extraSpace;
+                        viewportInOut.setWidth(viewportWidth);
+                    }
+                }
+                if ((surfaceAspectRatio < viewportAspectRatio)
+                    && (viewportAspectRatio < 1.0)) {
+                    const float newVpHeight(viewportWidth * surfaceAspectRatio);
+                    const float diff(std::fabs(viewportHeight - newVpHeight));
+                    if (diff > extraSpace) {
+                        viewportHeight = newVpHeight + extraSpace;
+                        viewportInOut.setHeight(viewportHeight);
+                    }
+                }
+            }
+            if (viewportAspectRatio > surfaceAspectRatio) {
+                modelHalfWidth  = windowHorizontalSize / 2.0;
+                modelHalfHeight = modelHalfWidth * viewportAspectRatio;
+            }
+        }
+    }
+    
+    const float orthoHeight = modelHalfHeight * 1.02;
+    const float orthoWidth  = modelHalfWidth  * 1.02;
+    
+//    float halfWindowHeight(0.0);
+//    double width = viewport.getWidthF()
+//    double height = viewport.getHeightF();
+    double viewportAspectRatio = (viewportWidth / viewportHeight);
+    if (viewportAspectRatio == 0.0) {
+        viewportAspectRatio = 1.0;
+    }
+    
+    
+    double orthoLeft(0.0);
+    double orthoRight(0.0);
+    double orthoBottom(0.0);
+    double orthoTop(0.0);
+    const double orthoNear(-1000.0);
+    const double orthoFar(1000.0);
+    switch (orthoFitMode) {
+        case OrthoFitMode::SET_FROM_WIDTH:
+//            halfWindowHeight = orthoWidth;
+            orthoRight  =    orthoWidth;
+            orthoLeft   =   -orthoWidth;
+            orthoTop    =    orthoWidth / viewportAspectRatio;
+            orthoBottom =   -orthoWidth / viewportAspectRatio;
+//            setOrthographicProjectionWithWidth(viewport,
+//                                               projectionType,
+//                                               orthoWidth);
+            break;
+        case OrthoFitMode::SET_FROM_HEIGHT:
+//            halfWindowHeight = orthoHeight;
+            orthoRight  =    orthoHeight * viewportAspectRatio;
+            orthoLeft   =   -orthoHeight * viewportAspectRatio;
+            orthoTop    =    orthoHeight;
+            orthoBottom =   -orthoHeight;
+//            setOrthographicProjectionWithHeight(viewport,
+//                                                projectionType,
+//                                                orthoHeight);
+            break;
+    }
+
+    /* SET FROM WIDTH */
+
+    /* SET_FROM_HEIGHT */
+//    double width = viewport.getWidthF();
+//    double height = viewport.getHeightF();
+//    double aspectRatio = (width / height);
+//    this->orthographicNear   = -1000.0;
+//    this->orthographicFar    =  1000.0;
+    
+    GraphicsOrthographicProjection orthoProjOut;
+    switch (projectionType) {
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+            orthoProjOut.set(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
+//            glOrtho(this->orthographicLeft, this->orthographicRight,
+//                    this->orthographicBottom, this->orthographicTop,
+//                    this->orthographicNear, this->orthographicFar);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+            orthoProjOut.set(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
+//            glOrtho(this->orthographicLeft, this->orthographicRight,
+//                    this->orthographicBottom, this->orthographicTop,
+//                    this->orthographicNear, this->orthographicFar);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+            orthoProjOut.set(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
+//            glOrtho(this->orthographicLeft, this->orthographicRight,
+//                    this->orthographicBottom, this->orthographicTop,
+//                    this->orthographicNear, this->orthographicFar);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+            orthoProjOut.set(orthoRight, orthoLeft, orthoBottom, orthoTop, orthoFar, orthoNear);
+//            glOrtho(this->orthographicRight, this->orthographicLeft,
+//                    this->orthographicBottom, this->orthographicTop,
+//                    this->orthographicFar, this->orthographicNear);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
+            orthoProjOut.set(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
+//            glOrtho(this->orthographicLeft, this->orthographicRight,
+//                    this->orthographicBottom, this->orthographicTop,
+//                    this->orthographicNear, this->orthographicFar);
+            break;
+    }
+
+    return orthoProjOut;
+}
+
+/**
  * Setup the orthographic projection for the given surface file.
  *
  * @param viewport
@@ -8041,10 +8548,6 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t view
                     this->orthographicNear, this->orthographicFar);
             break;
     }
-    
-//    std::cout << "Viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
-//    std::cout << "    Ortho Left/Bottom: " << this->orthographicLeft  << ", " << this->orthographicBottom << std::endl;
-//    std::cout << "    Ortho Right/Top:   " << this->orthographicRight << ", " << this->orthographicTop << std::endl;
 }
 
 /**

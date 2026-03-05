@@ -281,3 +281,61 @@ GraphicsViewport::applyWithOpenGL() const
                m_viewport[3]);
 }
 
+/**
+ * @return Height to width aspect ratio.  If width is zero, returns 1.0
+ */
+float
+GraphicsViewport::getHeightToWidthAspectRatio() const
+{
+    const float w(getWidthF());
+    if (w < 1.0) {
+        return 1.0;
+    }
+    return (getHeightF() / w);
+}
+
+/**
+ * Set the X
+ * @param x
+ *    New value
+ */
+void
+GraphicsViewport::setX(const int32_t x)
+{
+    m_viewport[0] = x;
+}
+
+
+/**
+ * Set the y
+ * @param y
+ *    New value
+ */
+void
+GraphicsViewport::setY(const int32_t y)
+{
+    m_viewport[1] = y;
+}
+
+/**
+ * Set the width
+ * @param width
+ *    New value
+ */
+void
+GraphicsViewport::setWidth(const int32_t width)
+{
+    m_viewport[2] = width;
+}
+
+/**
+ * Set the height
+ * @param height
+ *    New value
+ */
+void
+GraphicsViewport::setHeight(const int32_t height)
+{
+    m_viewport[3] = height;
+}
+

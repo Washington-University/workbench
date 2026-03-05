@@ -101,6 +101,15 @@ m_parentToolBar(parentToolBar)
     WuQMacroManager::instance()->addMacroSupportToObject(m_surfaceMontageLayoutOrientationEnumComboBox->getComboBox(),
                                                          "Select surface montage layout");
     
+    m_compactLayoutCheckBox = new QCheckBox("Compact");
+    m_compactLayoutCheckBox->setToolTip("Attempt to remove excess space between surfaces");
+    QObject::connect(m_compactLayoutCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarSurfaceMontage::compactLayoutCheckBoxClicked);
+    m_compactLayoutCheckBox->setObjectName(objectNamePrefix
+                                           + ":SurfaceMontageCompactLayout");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_compactLayoutCheckBox,
+                                                         "Select surface montage compact layout");
+    
     m_cerebellarComponent = new SurfaceMontageCerebellarComponent(this,
                                                                   objectNamePrefix);
     
@@ -120,9 +129,10 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setLayoutSpacingAndMargins(configOrientationLayout, 2, 0);
     configOrientationLayout->addStretch();
     configOrientationLayout->addWidget(m_surfaceMontageConfigurationTypeEnumComboBox->getWidget());
-    configOrientationLayout->addStretch();
     configOrientationLayout->addSpacing(10);
     configOrientationLayout->addWidget(m_surfaceMontageLayoutOrientationEnumComboBox->getWidget());
+    configOrientationLayout->addSpacing(10);
+    configOrientationLayout->addWidget(m_compactLayoutCheckBox);
     configOrientationLayout->addStretch();
     
     m_stackedWidget = new QStackedWidget();
@@ -183,6 +193,23 @@ BrainBrowserWindowToolBarSurfaceMontage::surfaceMontageLayoutOrientationEnumComb
 }
 
 /**
+ * Called when compact layout checkbox is clicked
+ * @param checked
+ *    New checked status
+ */
+void
+BrainBrowserWindowToolBarSurfaceMontage::compactLayoutCheckBoxClicked(bool checked)
+{
+    BrowserTabContent* btc = m_parentToolBar->getTabContentFromSelectedTab();
+    ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+    const int32_t tabIndex = btc->getTabNumber();
+    SurfaceMontageConfigurationAbstract* selectedConfiguration = msm->getSelectedConfiguration(tabIndex);
+    selectedConfiguration->setComplactLayout(checked);
+
+    invalidateColoringAndUpdateGraphicsWindow();
+}
+
+/**
  * Update the surface montage options widget.
  *
  * @param browserTabContent
@@ -221,6 +248,8 @@ BrainBrowserWindowToolBarSurfaceMontage::updateContent(BrowserTabContent* browse
     m_surfaceMontageConfigurationTypeEnumComboBox->setSelectedItem<SurfaceMontageConfigurationTypeEnum,SurfaceMontageConfigurationTypeEnum::Enum>(msm->getSelectedConfigurationType(tabIndex));
 
     m_surfaceMontageLayoutOrientationEnumComboBox->setSelectedItem<SurfaceMontageLayoutOrientationEnum,SurfaceMontageLayoutOrientationEnum::Enum>(selectedConfiguration->getLayoutOrientation());
+    
+    m_compactLayoutCheckBox->setChecked(selectedConfiguration->isCompactLayout());
     
     switch (msm->getSelectedConfigurationType(tabIndex)) {
         case SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION:

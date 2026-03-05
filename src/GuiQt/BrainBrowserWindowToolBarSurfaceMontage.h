@@ -55,6 +55,8 @@ namespace caret {
         
         void surfaceMontageLayoutOrientationEnumComboBoxItemActivated();
         
+        void compactLayoutCheckBoxClicked(bool checked);
+        
     private:
         BrainBrowserWindowToolBarSurfaceMontage(const BrainBrowserWindowToolBarSurfaceMontage&);
 
@@ -77,6 +79,8 @@ namespace caret {
         EnumComboBoxTemplate* m_surfaceMontageConfigurationTypeEnumComboBox;
         
         EnumComboBoxTemplate* m_surfaceMontageLayoutOrientationEnumComboBox;
+        
+        QCheckBox* m_compactLayoutCheckBox;
         
         // ADD_NEW_MEMBERS_HERE
         
