@@ -601,14 +601,9 @@ UserInputModeBorders::mouseLeftDrag(const MouseEvent& mouseEvent)
                     break;
                 case EDIT_OPERATION_MOVE_POINT:
                 {
-                    SelectionManager* idManager =
-                    openGLWidget->performIdentificationAll(mouseX,
-                                                           mouseY,
-                                                           true);
-                    SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
-                    if (idBorder->isValid()) {
-                        BorderFile* borderFile = idBorder->getBorderFile();
-                        if (borderFile->isSingleStructure()) {
+                    if (openGLWidget != NULL) {
+                        if ((m_borderMovePoint != NULL)
+                            && (m_borderMovePointIndex >= 0)) {
                             movePointAtMouseXY(openGLWidget,
                                                mouseX,
                                                mouseY,
