@@ -1763,7 +1763,7 @@ BrainOpenGLFixedPipeline::drawGraphicsTiming(const int windowViewport[4],
     /*
      * Function to create text annotations for display of timing
      */
-    auto createTextLambda = [=,this](const float value,
+    auto createTextLambda = [=](const float value,
                                      const AString& suffix,
                                      double& widthOut,
                                      double& heightOut,
