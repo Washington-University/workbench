@@ -486,11 +486,17 @@ VolumeMontageSetupDialog::createMontageOutputWidget()
                          row, COL_COORD);
     ++row;
 
+    QLabel* rangeLabel(new QLabel("Montage Range (start to end):"));
+    m_montageOutputRangeLabel = new QLabel();
+    m_montageOutputRangeLabel->setToolTip("Disance between start and end volume slices");
+    
     QLabel* stepLabel(new QLabel("Montage Step:"));
     m_montageOutputSliceStepLabel = new QLabel();
+    m_montageOutputSliceStepLabel->setToolTip("Step value in Toolbar->Montage");
 
-    QLabel* thicknessLabel(new QLabel("Slice Thickness:"));
-    m_montageOutputSliceSpacingLabel = new QLabel();
+    QLabel* stepDistanceLabel(new QLabel("Montage Step Distance:"));
+    m_montageOutputStepDistanceLabel = new QLabel();
+    m_montageOutputStepDistanceLabel->setToolTip("Distance between consecutive montage slices");
     
     QLabel* rotationAnglesLabel(new QLabel("MPR Rotation Angles:"));
     m_montageOutputRotationAnglesLabel = new QLabel();
@@ -501,9 +507,14 @@ VolumeMontageSetupDialog::createMontageOutputWidget()
     QGridLayout* stepLayout(new QGridLayout());
     stepLayout->setColumnStretch(2, STRETCH_YES);
     int32_t stepLayoutRow(stepLayout->rowCount());
-    stepLayout->addWidget(thicknessLabel,
+    stepLayout->addWidget(rangeLabel,
                           stepLayoutRow, 0);
-    stepLayout->addWidget(m_montageOutputSliceSpacingLabel,
+    stepLayout->addWidget(m_montageOutputRangeLabel,
+                          stepLayoutRow, 1);
+    ++stepLayoutRow;
+    stepLayout->addWidget(stepDistanceLabel,
+                          stepLayoutRow, 0);
+    stepLayout->addWidget(m_montageOutputStepDistanceLabel,
                           stepLayoutRow, 1);
     ++stepLayoutRow;
     stepLayout->addWidget(stepLabel,
@@ -992,7 +1003,8 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
     float indexJ(0.0);
     float indexK(0.0);
     Vector3D stereoXYZ(0.0, 0.0, 0.0);
-    float stepThickness(0.0);
+    float distanceBetweenEndAndStartSlicesMM(0.0);
+    float distanceBetweenConsecutiveMontageSlicesMM(0.0);
     float numberOfSlicesPerStep(0.0);
     Vector3D rotationAngles(0.0, 0.0, 0.0);
     AString sliceViewPlaneName;
@@ -1041,11 +1053,11 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
         if (cdf != NULL) {
             VolumeMappableInterface* vmi(dynamic_cast<VolumeMappableInterface*>(cdf));
             if (vmi != NULL) {
-                const float distance((endCoord - startCoord).length());
+                distanceBetweenEndAndStartSlicesMM = (endCoord - startCoord).length();
                 const float numMontageSlices(m_montageInputRowsSpinBox->value()
                                              * m_montageInputColumnsSpinBox->value());
                 if (numMontageSlices > 1.0) {
-                    stepThickness = distance / (numMontageSlices - 1);
+                    distanceBetweenConsecutiveMontageSlicesMM = distanceBetweenEndAndStartSlicesMM / (numMontageSlices - 1);
                 }
                 
                 float ijk[3] { 0.0, 0.0, 0.0 };
@@ -1114,26 +1126,27 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
                     
                 }
                 
-                float sliceThickness(0.0);
+                float thicknessOfOneSliceMM(0.0);
                 switch (outputSlicePlane) {
                     case VolumeSliceViewPlaneEnum::ALL:
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
                         sliceViewPlaneName = "Axial";
-                        sliceThickness = std::fabs(xyzOne[2] - xyzZero[2]);
+                        thicknessOfOneSliceMM = std::fabs(xyzOne[2] - xyzZero[2]);
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
                         sliceViewPlaneName = "Coronal";
-                        sliceThickness = std::fabs(xyzOne[1] - xyzZero[1]);
+                        thicknessOfOneSliceMM = std::fabs(xyzOne[1] - xyzZero[1]);
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                         sliceViewPlaneName = "Parasagittal";
-                        sliceThickness = std::fabs(xyzOne[0] - xyzZero[0]);
+                        thicknessOfOneSliceMM = std::fabs(xyzOne[0] - xyzZero[0]);
                         break;
                 }
                 
-                if (sliceThickness != 0.0) {
-                    numberOfSlicesPerStep = stepThickness / sliceThickness;
+                if (thicknessOfOneSliceMM != 0.0) {
+                    numberOfSlicesPerStep = (distanceBetweenConsecutiveMontageSlicesMM
+                                             / thicknessOfOneSliceMM);
                 }
             }
         }
@@ -1153,8 +1166,9 @@ VolumeMontageSetupDialog::updateMontageOutputWidget()
     QSignalBlocker axialCoordBlocker(m_montageOutputAxialSliceCoordinateSpinBox);
     m_montageOutputAxialSliceCoordinateSpinBox->setValue(stereoXYZ[2]);
     
-    m_montageOutputSliceStepLabel->setText(QString::number(numberOfSlicesPerStep, 'f', 2));
-    m_montageOutputSliceSpacingLabel->setText(QString::number(stepThickness, 'f', 3));
+    m_montageOutputRangeLabel->setText(QString::number(distanceBetweenEndAndStartSlicesMM, 'f', 2) + " mm");
+    m_montageOutputSliceStepLabel->setText(QString::number(numberOfSlicesPerStep, 'f', 2) + " slices");
+    m_montageOutputStepDistanceLabel->setText(QString::number(distanceBetweenConsecutiveMontageSlicesMM, 'f', 3) + " mm");
     
     m_montageOutputRotationAnglesLabel->setText(rotationAngles.toString());
     m_montageOutputSliceViewPlaneLabel->setText(sliceViewPlaneName);

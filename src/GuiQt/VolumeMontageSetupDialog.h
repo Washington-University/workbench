@@ -165,9 +165,11 @@ namespace caret {
         
         QLabel* m_montageInputNumberOfSlicesLabel = NULL;
 
+        QLabel* m_montageOutputRangeLabel = NULL;
+        
         QLabel* m_montageOutputSliceStepLabel = NULL;
 
-        QLabel* m_montageOutputSliceSpacingLabel = NULL;
+        QLabel* m_montageOutputStepDistanceLabel = NULL;
                 
         QDoubleSpinBox* m_montageOutputParagittalSliceIndexSpinBox = NULL;
         
