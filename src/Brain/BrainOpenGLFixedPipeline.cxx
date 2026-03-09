@@ -1763,12 +1763,12 @@ BrainOpenGLFixedPipeline::drawGraphicsTiming(const int windowViewport[4],
     /*
      * Function to create text annotations for display of timing
      */
-    auto createTextLambda = [=](const float value,
-                                const AString& suffix,
-                                double& widthOut,
-                                double& heightOut,
-                                const uint8_t foregroundRGBA[4],
-                                const uint8_t backgroundRGBA[4]) {
+    auto createTextLambda = [=,this](const float value,
+                                     const AString& suffix,
+                                     double& widthOut,
+                                     double& heightOut,
+                                     const uint8_t foregroundRGBA[4],
+                                     const uint8_t backgroundRGBA[4]) {
         /*
          * Use either of percentage text of point size text
          */
