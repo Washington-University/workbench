@@ -103,6 +103,8 @@ namespace caret {
         
         void menuCopyMapNameToClipBoard();
         
+        void menuShowFileInformation();
+        
         void menuConstructionAboutToShow();
         
         void constructionActionTriggered();

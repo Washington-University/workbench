@@ -2391,7 +2391,8 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                                caretDataFile);
             }
             else if (selectedAction == showFileInformationAction) {
-                showFileInformation(caretDataFile);
+                showFileInformation(caretDataFile,
+                                    this);
             }
             else if (selectedAction == setStructureAction) {
                 CaretAssert(0);
@@ -2600,9 +2601,12 @@ SpecFileManagementDialog::changeFileName(QWidget* parent,
  *
  * @param caretDataFileIn
  *   File for which information is displayed.
+ * @param parent
+ *   Parent for the dialog showing file information
  */
 void
-SpecFileManagementDialog::showFileInformation(CaretDataFile* caretDataFile)
+SpecFileManagementDialog::showFileInformation(CaretDataFile* caretDataFile,
+                                              QWidget* parent)
 {
     DataFileContentInformation dataFileContentInformation;
     const bool showMapInformationFlag(true);
@@ -2616,14 +2620,14 @@ SpecFileManagementDialog::showFileInformation(CaretDataFile* caretDataFile)
                                          dataFileContentInformation.getInformationInHtml(),
                                          WuQTextEditorDialog::TextMode::HTML,
                                          WuQTextEditorDialog::WrapMode::NO,
-                                         this);
+                                         parent);
     }
     else {
         WuQTextEditorDialog::runNonModal("File Information",
                                          dataFileContentInformation.getInformationInString(),
                                          WuQTextEditorDialog::TextMode::PLAIN,
                                          WuQTextEditorDialog::WrapMode::NO,
-                                         this);
+                                         parent);
     }
 }
 

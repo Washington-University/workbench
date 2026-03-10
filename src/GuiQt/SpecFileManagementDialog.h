@@ -190,7 +190,8 @@ namespace caret {
                             SpecFileDataFile* specFileDataFile,
                             CaretDataFile* caretDataFile);
         
-        void showFileInformation(CaretDataFile* caretDataFile);
+        static void showFileInformation(CaretDataFile* caretDataFile,
+                                        QWidget* parent);
         
         void copyMoveFileContent(QWidget* parent,
                                  CaretDataFile* caretDataFile);
@@ -298,6 +299,7 @@ namespace caret {
         int m_COLUMN_FILE_NAME_LABEL;
         int m_COLUMN_COUNT;
         
+        friend class OverlayViewController;
         friend class SpecFileManagementDialogRowContent;
     };
     

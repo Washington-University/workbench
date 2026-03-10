@@ -52,6 +52,7 @@
 #include "GuiManager.h"
 #include "MapYokingGroupComboBox.h"
 #include "Overlay.h"
+#include "SpecFileManagementDialog.h"
 #include "UsernamePasswordWidget.h"
 #include "WorkbenchAction.h"
 #include "WorkbenchToolButton.h"
@@ -947,7 +948,16 @@ OverlayViewController::createConstructionMenu(QWidget* parent,
                                      + "CopyMapNameToClipboard");
     copyMapNameAction->setToolTip("Copy name of selected map to the clipboard");
     macroManager->addMacroSupportToObject(copyMapNameAction,
-                                          ("Copy map namne in " + descriptivePrefix + " to clipboard"));
+                                          ("Copy map name in " + descriptivePrefix + " to clipboard"));
+    
+    QAction* showFileInformationAction(menu->addAction("Show File Information",
+                                                       this,
+                                                       &OverlayViewController::menuShowFileInformation));
+    showFileInformationAction->setObjectName(menuActionNamePrefix
+                                             + "ShowFileInformation");
+    showFileInformationAction->setToolTip("Show file information for the selected file");
+    macroManager->addMacroSupportToObject(showFileInformationAction,
+                                          "Show file information for file in " + descriptivePrefix);
     
     return menu;
     
@@ -1153,6 +1163,25 @@ OverlayViewController::menuCopyMapNameToClipBoard()
         }
     }
 }
+
+/**
+ * Called to show file information for the file in the overlay
+ */
+void
+OverlayViewController::menuShowFileInformation()
+{
+    if (this->overlay != NULL) {
+        CaretMappableDataFile* caretDataFile = NULL;
+        int32_t mapIndex = -1;
+        this->overlay->getSelectionData(caretDataFile,
+                                        mapIndex);
+        if (caretDataFile != NULL) {
+            SpecFileManagementDialog::showFileInformation(caretDataFile,
+                                                          m_constructionToolButton);
+        }
+    }
+}
+
 
 /**
  * Reload the file in the overlay.
