@@ -23,6 +23,7 @@
 
 
 #include "CaretObject.h"
+#include "GraphicsViewport.h"
 #include "ProjectionViewTypeEnum.h"
 #include "StructureEnum.h"
 
@@ -88,6 +89,8 @@ namespace caret {
          * @return Height of viewport.
          */
         int32_t getHeight() const;
+        
+        GraphicsViewport getViewport() const;
         
         void getViewport(int32_t viewportOut[4]) const;
         

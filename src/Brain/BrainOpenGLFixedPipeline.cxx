@@ -1979,12 +1979,18 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                 CaretAssert(selectedConfiguration);
                 if (selectedConfiguration != NULL) {
                     m_mirroredClippingEnabled = true;
+                    
+                    bool compactDrawnFlag(false);
                     if (selectedConfiguration->isCompactLayout()) {
-                        this->drawSurfaceMontageModelCompact(browserTabContent,
-                                                             surfaceMontageModel,
-                                                             modelViewport);
+                        /*
+                         * Compact drawing does not work in all cases and will return false when it fails
+                         */
+                        compactDrawnFlag = this->drawSurfaceMontageModelCompactVertical(browserTabContent,
+                                                                                        surfaceMontageModel,
+                                                                                        modelViewport);
                     }
-                    else {
+                    
+                    if ( ! compactDrawnFlag) {
                         this->drawSurfaceMontageModel(browserTabContent,
                                                       surfaceMontageModel,
                                                       modelViewport);                        
@@ -7307,12 +7313,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                savedVP[3]);
 }
 
-
-
-
-
-
-
 /**
  * Draw the surface montage model in a compact layout (removes space between adjacent surfaces)
  * @param browserTabContent
@@ -7322,25 +7322,92 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
  * @param tabViewport
  *   Region for drawing.
  */
-void
-BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* browserTabContent,
-                                                         ModelSurfaceMontage* surfaceMontageModel,
-                                                         const int32_t tabViewport[4])
+bool
+BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompactVertical(BrowserTabContent* browserTabContent,
+                                                                 ModelSurfaceMontage* surfaceMontageModel,
+                                                                 const int32_t tabViewport[4])
 {
+    const bool debugFlag(false);
     const int32_t tabIndex = browserTabContent->getTabNumber();
     
     std::vector<SurfaceMontageViewport*> montageViewports;
     surfaceMontageModel->getSurfaceMontageViewportsForDrawing(tabIndex,
                                                               montageViewports);
     if (montageViewports.empty()) {
-        return;
+        return false;
+    }
+    const int32_t numMontageViewports(montageViewports.size());
+    
+    float surfaceMinimumAspectRatio(1000000000.0);
+    float maxOrthoHeight(0.0);
+    float maxOrthoWidth(0.0);
+    std::vector<float> surfaceAspectRatios;
+    int32_t numAspectRatiosGreaterThanOne(0);
+    int32_t numAspectRatiosLessThanOne(0);
+    BoundingBox allBoundingBox;
+    allBoundingBox.resetForUpdate();
+    for (const SurfaceMontageViewport* smv : montageViewports) {
+        CaretAssert(smv);
+        const Surface* surface(smv->getSurface());
+        CaretAssert(surface);
+        
+        float orthoWidth(0.0), orthoHeight(0.0), orthoAspectRatio(0.0);
+        if (surface->getSurfaceDisplayOrthographicInfo(orthoWidth,
+                                                       orthoHeight,
+                                                       orthoAspectRatio)) {
+            
+            if (orthoAspectRatio >= 1.0) {
+                ++numAspectRatiosGreaterThanOne;
+            }
+            else {
+                ++numAspectRatiosLessThanOne;
+            }
+            maxOrthoWidth = std::max(maxOrthoWidth,
+                                     orthoWidth);
+            maxOrthoHeight = std::max(maxOrthoHeight,
+                                      orthoHeight);
+            surfaceAspectRatios.push_back(orthoAspectRatio);
+            if (debugFlag) {
+                std::cout << "Surface: " << surface->getFileNameNoPath() << std::endl;
+                std::cout << "      Width=" << orthoWidth
+                << ", Height=" << orthoHeight
+                << ", Aspect Ratio=" << orthoAspectRatio << std::endl;
+            }
+            surfaceMinimumAspectRatio = std::min(surfaceMinimumAspectRatio,
+                                                 orthoAspectRatio);
+        }
+    }
+    CaretAssert(surfaceAspectRatios.size() == montageViewports.size());
+    
+    
+    OrthoFitMode orthoFitMode(OrthoFitMode::SET_FROM_WIDTH);
+    if (numAspectRatiosGreaterThanOne == numMontageViewports) {
+        orthoFitMode = OrthoFitMode::SET_FROM_HEIGHT;
+    }
+    else if (numAspectRatiosLessThanOne == numMontageViewports) {
+        orthoFitMode = OrthoFitMode::SET_FROM_WIDTH;
+        orthoFitMode = OrthoFitMode::SET_FROM_HEIGHT;
+    }
+    else {
+        /* All aspect ratios must be greater than one or less than one */
+        return false;
+    }
+
+    if (debugFlag) {
+        std::cout << "   All bounds: " << allBoundingBox.toString() << std::endl;
     }
     
+    /*
+     * Get the current viewport
+     */
     GLint savedVP[4];
     glGetIntegerv(GL_VIEWPORT,
                   savedVP);
     
     
+    /*
+     * Divide viewport into sub-viewports for each surface all with same X/Y dimensions
+     */
     int32_t numberOfRows = 0;
     int32_t numberOfColumns = 0;
     SurfaceMontageViewport::getNumberOfRowsAndColumns(montageViewports,
@@ -7349,6 +7416,9 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
     
     const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
     
+    /*
+     * Create width and height of each viewport that contains one surface
+     */
     int32_t subViewportHeight = 0;
     int32_t verticalGap       = 0;
     createSubViewportSizeAndGaps(tabViewport[3],
@@ -7367,6 +7437,51 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
                                  subViewportWidth,
                                  horizontalGap);
     
+    const float subViewportAspectRatio(subViewportHeight
+                                       / ((subViewportWidth > 0)
+                                          ? subViewportWidth
+                                          : 1.0));
+    if (debugFlag) {
+        std::cout << "Sub Viewport Aspect Ratio: " << subViewportAspectRatio << std::endl;
+        std::cout << "Min Surface Aspect Ratio:  " << surfaceMinimumAspectRatio << std::endl;
+    }
+    
+    const float heightFromWidth(maxOrthoWidth * subViewportAspectRatio);
+    const float widthFromHeight(maxOrthoHeight / subViewportAspectRatio);
+    
+    float requiredOrthoWidth(0.0);
+    float requiredOrthoHeight(0.0);
+    if (orthoFitMode == OrthoFitMode::SET_FROM_HEIGHT) {
+        if (widthFromHeight >= maxOrthoWidth) {
+            /* Viewport is wide enough to contain all models */
+            requiredOrthoHeight = maxOrthoHeight;
+        }
+        else {
+            /* Increase ortho height to contain all models*/
+            requiredOrthoHeight = heightFromWidth;
+        }
+        if (debugFlag) {
+            std::cout << "REQUIRED ORTHO HEIGHT: " << requiredOrthoHeight
+            << " Max Ortho Height: " << maxOrthoHeight << std::endl;
+        }
+    }
+    else {
+        if (heightFromWidth >= maxOrthoHeight) {
+            requiredOrthoWidth = maxOrthoWidth;
+        }
+        else {
+            requiredOrthoWidth = widthFromHeight;
+        }
+        if (debugFlag) {
+            std::cout << "REQUIRED ORTHO WIDTH: " << requiredOrthoWidth
+            << " Max Ortho Width: " << maxOrthoWidth << std::endl;
+        }
+    }
+
+    
+    
+    
+    
     EventDrawingViewportContentAdd addViewportEvent;
     addViewportEvent.addModelSurfaceGrid(m_windowIndex,
                                          this->windowTabIndex,
@@ -7376,25 +7491,32 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
     EventManager::get()->sendEvent(addViewportEvent.getPointer());
     
     std::vector<GraphicsViewport> newViewports;
-    std::vector<GraphicsOrthographicProjection> newOrthoProjs;
     
     std::vector<int32_t> rowHeights(numberOfRows, 0);
     std::vector<int32_t> columnWidths(numberOfColumns, 0);
     
     /*
-     * First loop
      * Set orthographic projection and surface viewport to fit the surfaces
      */
+    if (debugFlag) {
+        std::cout << "Drawing: " << std::endl;
+    }
     const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
     for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
         SurfaceMontageViewport* mvp = montageViewports[ivp];
         float center[3];
         mvp->getSurface()->getBoundingBox()->getCenter(center);
         
+        if (debugFlag) {
+            std::cout << " Surface: " << mvp->getSurface()->getFileNameNoPath() << std::endl;
+        }
         const int32_t rowFromTop    = mvp->getRow();
         const int32_t rowFromBottom = (numberOfRows - rowFromTop - 1);
         const int32_t column = mvp->getColumn();
         
+        /*
+         * Initial position and size of sub-viewport
+         */
         int32_t surfaceViewport[4] = {
             (tabViewport[0] + (column * (subViewportWidth + horizontalGap))),
             (tabViewport[1] + (rowFromBottom * (subViewportHeight + verticalGap))),
@@ -7403,27 +7525,61 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
         };
         mvp->setViewport(surfaceViewport);
         
-        const bool ADJUST_VIEWPORT_TO_FIT_MODEL_YES(true);
+        if (orthoFitMode == OrthoFitMode::SET_FROM_HEIGHT) {
+            /*
+             * Fit Viewport to surface
+             */
+            CaretAssert(surfaceAspectRatios[ivp]);
+            const float newViewportWidth(subViewportHeight / surfaceAspectRatios[ivp]);
+            if (debugFlag) {
+                std::cout << "   Old VP Width: " << surfaceViewport[2] << " New: " << newViewportWidth << std::endl;
+            }
+            if (newViewportWidth <= surfaceViewport[2]) {
+                surfaceViewport[2] = newViewportWidth;
+                mvp->setViewport(surfaceViewport);
+            }
+            else {
+                if (debugFlag) {
+                    std::cout << "      ATTEMPTING TO INCREASE VIEWPORT WIDTH" << std::endl;
+                }
+            }
+        }
+        else {
+            /*
+             * Fit Viewport to surface
+             */
+            CaretAssert(surfaceAspectRatios[ivp]);
+            const float newViewportHeight(subViewportWidth * surfaceAspectRatios[ivp]);
+            if (debugFlag) {
+                std::cout << "   Old VP HEIGHT: " << surfaceViewport[3] << " New: " << newViewportHeight << std::endl;
+            }
+            if (newViewportHeight <= surfaceViewport[3]) {
+                surfaceViewport[3] = newViewportHeight;
+                mvp->setViewport(surfaceViewport);
+            }
+            else {
+                if (debugFlag) {
+                    std::cout << "      ATTEMPTING TO INCREASE VIEWPORT HEIGHT" << std::endl;
+                }
+            }
+        }
+        
+        if (debugFlag) {
+            std::cout << "      Resized VP Aspect " << ((float)surfaceViewport[3] / (float)surfaceViewport[2]) << std::endl;
+        }
+        
+        
+        
         GraphicsViewport gv(surfaceViewport);
-        GraphicsOrthographicProjection orthoProj(getOrthographicProjectionForBoundingBox(mvp->getProjectionViewType(),
-                                                                                         OrthoFitMode::SET_FROM_HEIGHT,
-                                                                                         mvp->getSurface()->getBoundingBox(),
-                                                                                         gv,
-                                                                                         ADJUST_VIEWPORT_TO_FIT_MODEL_YES));
-        surfaceViewport[0] = gv.getX();
-        surfaceViewport[1] = gv.getY();
-        surfaceViewport[2] = gv.getWidth();
-        surfaceViewport[3] = gv.getHeight();
         
         newViewports.push_back(gv);
-        newOrthoProjs.push_back(orthoProj);
         
         rowHeights[rowFromTop] = std::max(rowHeights[rowFromTop], gv.getHeight());
         columnWidths[column]   = std::max(columnWidths[column], gv.getWidth());
     }
     
     /*
-     * Total height of rows and columns
+     * Total height of rows and columns as viewport sizes have changed to fit their surfaces
      */
     int32_t totalSubViewportHeight(0);
     for (int32_t iRow = 0; iRow < numberOfRows; iRow++) {
@@ -7435,8 +7591,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
     }
     
     CaretAssert(newViewports.size() == montageViewports.size());
-    CaretAssert(newViewports.size() == newOrthoProjs.size());
-
+    
     /*
      * Find extra width on sides of viewports and adjust
      * where drawing will start
@@ -7445,10 +7600,22 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
     const int32_t extraHeight(tabViewport[3] - totalSubViewportHeight - ((numberOfRows - 1) * verticalGap));
     const int32_t startX(extraWidth / 2);
     const int32_t startY(extraHeight / 2);
-   
+    
+    const float extraWidthPercent(static_cast<float>(extraWidth)
+                                  / static_cast<float>(tabViewport[2]));
+    const float extraHeightPercent(static_cast<float>(extraHeight)
+                                  / static_cast<float>(tabViewport[3]));
+    if (debugFlag) {
+        std::cout << "Extra Width=" << extraWidth << " pct=" << extraWidthPercent << std::endl;
+        std::cout << "Extra Height=" << extraHeight << " pct=" << extraHeightPercent << std::endl;
+    }
+    if (extraWidthPercent < extraHeightPercent) {
+    }
+    
     /*
-     * Set the widths of heights of each viewport
-     * All viewpoints in same row (column) are the same height (width)
+     * Reset position and size of all viewports since their sizes have changed.
+     * All are centered in the tab's viewport.
+     * All viewpoints in same row (column) are the same height (width).
      */
     int32_t vpY(tabViewport[1] + tabViewport[3] - startY);
     for (int32_t iRow = 0; iRow < numberOfRows; iRow++) {
@@ -7465,6 +7632,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
                     viewport.setWidth(columnWidths[jCol]);
                     viewport.setHeight(rowHeights[iRow]);
                     
+                    /* NEED TO RESET THE ORTHO PROJECTION */
                     vpX += (columnWidths[jCol] + horizontalGap);
                     
                     break;
@@ -7472,22 +7640,13 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
             }
         }
     }
-
+    
     /*
-     * Final Loop
-     * Regenerate orthographics projection for resized viewports
-     * and draw the models
+     * Final Loop to draw the models
      */
     for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
         SurfaceMontageViewport* mvp = montageViewports[ivp];
-        GraphicsViewport& viewport(newViewports[ivp]);
         
-        const bool ADJUST_VIEWPORT_TO_FIT_MODEL_NO(false);
-        GraphicsOrthographicProjection orthoProj(getOrthographicProjectionForBoundingBox(mvp->getProjectionViewType(),
-                                                                                         OrthoFitMode::SET_FROM_HEIGHT,
-                                                                                         mvp->getSurface()->getBoundingBox(),
-                                                                                         viewport,
-                                                                                         ADJUST_VIEWPORT_TO_FIT_MODEL_NO));
         const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel,
                                                                                      mvp->getSurface(),
                                                                                      this->windowTabIndex);
@@ -7519,9 +7678,11 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
             case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
                 break;
         }
-
+        
         const int32_t rowFromTop    = mvp->getRow();
         const int32_t column = mvp->getColumn();
+        
+        const GraphicsViewport& viewport(newViewports[ivp]);
 
         EventDrawingViewportContentAdd addViewportEvent;
         addViewportEvent.addModelSurfaceGridCell(m_windowIndex,
@@ -7533,10 +7694,23 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
                                                  column);
         EventManager::get()->sendEvent(addViewportEvent.getPointer());
         
+        /*
+         * Set the viewport and the orthographic projection
+         */
         viewport.applyWithOpenGL();
-        orthoProj.applyWithOpenGL();
         
-        GraphicsViewport currentVP(GraphicsViewport::newInstanceCurrentViewport());
+        /*
+         * Create the orthographic projection for the surface
+         */
+        GraphicsOrthographicProjection orthoProj(getOrthographicProjectionWithFixedOrthoSize(mvp->getProjectionViewType(),
+                                                                                             orthoFitMode,
+                                                                                             viewport,
+                                                                                             requiredOrthoWidth * 1.02,
+                                                                                             requiredOrthoHeight * 1.02));
+        orthoProj.applyWithOpenGL();
+
+        
+        
         float center[3];
         mvp->getSurface()->getBoundingBox()->getCenter(center);
         this->applyViewingTransformations(surfaceMontageModel,
@@ -7586,10 +7760,9 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompact(BrowserTabContent* brow
                savedVP[1],
                savedVP[2],
                savedVP[3]);
+    
+    return true;
 }
-
-
-
 
 
 /**
@@ -8181,126 +8354,26 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
  *    Type of projection
  * @param orthoFit
  *    Fit to width or height
- * @param boundingBox
- *    The bounding box of the model
- * @param viewportInOut
- *    Viewport that may be modifed to fit the bounding box
- * @param adjustViewportToFitModelFlag
- *    If true, adjust the viewport to fit the model
+ * @param viewport
+ *    Viewport
+ * @param modelOrthoWidth
+ *    Orthographic width of model
+ * @param modelOrthoHeight
+ *    Orthographic height of model
  */
 GraphicsOrthographicProjection
-BrainOpenGLFixedPipeline::getOrthographicProjectionForBoundingBox(const ProjectionViewTypeEnum::Enum projectionType,
-                                                                  const OrthoFitMode orthoFitMode,
-                                                                  const BoundingBox* boundingBox,
-                                                                  GraphicsViewport& viewportInOut,
-                                                                  const bool adjustViewportToFitModelFlag)
+BrainOpenGLFixedPipeline::getOrthographicProjectionWithFixedOrthoSize(const ProjectionViewTypeEnum::Enum projectionType,
+                                                                      const OrthoFitMode orthoFitMode,
+                                                                      const GraphicsViewport& viewport,
+                                                                      const float modelOrthoWidth,
+                                                                      const float modelOrthoHeight)
 {
-    CaretAssert(boundingBox);
-    
-    if ( ! viewportInOut.isValid()) {
+    if ( ! viewport.isValid()) {
         return GraphicsOrthographicProjection();
     }
-    /*
-     * For a cortical surface, this largest dimension is the Y-Axis.
-     * This worked correctly when the default view was dorsal with
-     * the anterior pole at the top of the display and the posterior
-     * pole at the bottom of the display.
-     */
-    float modelHalfHeight = std::max(std::max(boundingBox->getDifferenceX(),
-                                              boundingBox->getDifferenceY()),
-                                     boundingBox->getDifferenceZ()) / 2.0;
-    float modelHalfWidth = modelHalfHeight;
     
-    float windowHorizontalSize = boundingBox->getDifferenceY();
-    float windowVerticalSize   = boundingBox->getDifferenceZ();
     
-    switch (projectionType) {
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
-            break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
-            break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
-            break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
-            break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
-            windowHorizontalSize = boundingBox->getDifferenceX();
-            windowVerticalSize   = boundingBox->getDifferenceY();
-            break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
-            break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
-            break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
-            break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
-            break;
-    }
-    
-    /*
-     * The default view was changed to a lateral view and the above
-     * code results in problems during some window resize operations.
-     * But, the Z-difference of a flat surface is zero.
-     *
-     * See also BrowserTabContent::restoreFromScene() that tries to make
-     * old scenes compatible with this new scaling.
-     */
-    float viewportWidth(viewportInOut.getWidthF());
-    float viewportHeight(viewportInOut.getHeightF());
-    if (windowVerticalSize != 0.0) {
-        modelHalfHeight = windowVerticalSize / 2.0;
-        
-        if ((windowHorizontalSize > 0.0)
-            && (viewportWidth > 0.0)) {
-            /*
-             * Note Z is vertical, Y is horizontal when viewed
-             */
-            const float surfaceAspectRatio  = windowVerticalSize / windowHorizontalSize;
-            const float viewportAspectRatio = (static_cast<float>(viewportInOut.getHeight())
-                                               / static_cast<float>(viewportInOut.getWidth()));
-            
-            if (adjustViewportToFitModelFlag) {
-                const float extraSpace(5.0);  /* allow a little extra space */
-                if (surfaceAspectRatio > viewportAspectRatio) {
-                    const float newVpWidth(viewportHeight / surfaceAspectRatio);
-                    const float diff(std::fabs(viewportWidth - newVpWidth));
-                    if (diff > extraSpace) {
-                        viewportWidth = newVpWidth + extraSpace;
-                        viewportInOut.setWidth(viewportWidth);
-                    }
-                }
-                if ((surfaceAspectRatio < viewportAspectRatio)
-                    && (viewportAspectRatio < 1.0)) {
-                    const float newVpHeight(viewportWidth * surfaceAspectRatio);
-                    const float diff(std::fabs(viewportHeight - newVpHeight));
-                    if (diff > extraSpace) {
-                        viewportHeight = newVpHeight + extraSpace;
-                        viewportInOut.setHeight(viewportHeight);
-                    }
-                }
-            }
-            if (viewportAspectRatio > surfaceAspectRatio) {
-                modelHalfWidth  = windowHorizontalSize / 2.0;
-                modelHalfHeight = modelHalfWidth * viewportAspectRatio;
-            }
-        }
-    }
-    
-    const float orthoHeight = modelHalfHeight * 1.02;
-    const float orthoWidth  = modelHalfWidth  * 1.02;
-    
-//    float halfWindowHeight(0.0);
-//    double width = viewport.getWidthF()
-//    double height = viewport.getHeightF();
-    double viewportAspectRatio = (viewportWidth / viewportHeight);
-    if (viewportAspectRatio == 0.0) {
-        viewportAspectRatio = 1.0;
-    }
-    
+    const double viewportAspectRatio = viewport.getHeightToWidthAspectRatio();
     
     double orthoLeft(0.0);
     double orthoRight(0.0);
@@ -8310,35 +8383,28 @@ BrainOpenGLFixedPipeline::getOrthographicProjectionForBoundingBox(const Projecti
     const double orthoFar(1000.0);
     switch (orthoFitMode) {
         case OrthoFitMode::SET_FROM_WIDTH:
-//            halfWindowHeight = orthoWidth;
-            orthoRight  =    orthoWidth;
-            orthoLeft   =   -orthoWidth;
-            orthoTop    =    orthoWidth / viewportAspectRatio;
-            orthoBottom =   -orthoWidth / viewportAspectRatio;
-//            setOrthographicProjectionWithWidth(viewport,
-//                                               projectionType,
-//                                               orthoWidth);
+        {
+            const float orthoHeight = modelOrthoWidth * viewport.getHeightToWidthAspectRatio();
+            const float halfOrthoHeight(orthoHeight / 2.0);
+            const float halfOrthoWidth(modelOrthoWidth / 2.0);
+            orthoRight  =    halfOrthoWidth;
+            orthoLeft   =   -halfOrthoWidth;
+            orthoTop    =    halfOrthoWidth * viewportAspectRatio;
+            orthoBottom =   -halfOrthoWidth * viewportAspectRatio;
+        }
             break;
         case OrthoFitMode::SET_FROM_HEIGHT:
-//            halfWindowHeight = orthoHeight;
-            orthoRight  =    orthoHeight * viewportAspectRatio;
-            orthoLeft   =   -orthoHeight * viewportAspectRatio;
-            orthoTop    =    orthoHeight;
-            orthoBottom =   -orthoHeight;
-//            setOrthographicProjectionWithHeight(viewport,
-//                                                projectionType,
-//                                                orthoHeight);
+        {
+            const float orthoWidth  = modelOrthoHeight / viewport.getHeightToWidthAspectRatio();
+            const float halfOrthoWidth(orthoWidth / 2.0);
+            const float halfOrthoHeight(modelOrthoHeight / 2.0);
+            orthoRight  =    halfOrthoHeight / viewportAspectRatio;
+            orthoLeft   =   -halfOrthoHeight / viewportAspectRatio;
+            orthoTop    =    halfOrthoHeight;
+            orthoBottom =   -halfOrthoHeight;
+        }
             break;
     }
-
-    /* SET FROM WIDTH */
-
-    /* SET_FROM_HEIGHT */
-//    double width = viewport.getWidthF();
-//    double height = viewport.getHeightF();
-//    double aspectRatio = (width / height);
-//    this->orthographicNear   = -1000.0;
-//    this->orthographicFar    =  1000.0;
     
     GraphicsOrthographicProjection orthoProjOut;
     switch (projectionType) {
@@ -8347,41 +8413,26 @@ BrainOpenGLFixedPipeline::getOrthographicProjectionForBoundingBox(const Projecti
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
             orthoProjOut.set(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
-//            glOrtho(this->orthographicLeft, this->orthographicRight,
-//                    this->orthographicBottom, this->orthographicTop,
-//                    this->orthographicNear, this->orthographicFar);
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
             orthoProjOut.set(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
-//            glOrtho(this->orthographicLeft, this->orthographicRight,
-//                    this->orthographicBottom, this->orthographicTop,
-//                    this->orthographicNear, this->orthographicFar);
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
             orthoProjOut.set(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
-//            glOrtho(this->orthographicLeft, this->orthographicRight,
-//                    this->orthographicBottom, this->orthographicTop,
-//                    this->orthographicNear, this->orthographicFar);
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
             orthoProjOut.set(orthoRight, orthoLeft, orthoBottom, orthoTop, orthoFar, orthoNear);
-//            glOrtho(this->orthographicRight, this->orthographicLeft,
-//                    this->orthographicBottom, this->orthographicTop,
-//                    this->orthographicFar, this->orthographicNear);
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
             orthoProjOut.set(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
-//            glOrtho(this->orthographicLeft, this->orthographicRight,
-//                    this->orthographicBottom, this->orthographicTop,
-//                    this->orthographicNear, this->orthographicFar);
             break;
     }
-
+    
     return orthoProjOut;
 }
 

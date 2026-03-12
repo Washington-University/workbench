@@ -75,6 +75,8 @@ namespace caret {
         
         double getFar() const { return m_far; }
 
+        float getHeightToWidthAspectRatio() const;
+        
         void resetToInvalid();
         
         void set(const double left,

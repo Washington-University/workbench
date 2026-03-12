@@ -153,6 +153,10 @@ namespace caret {
         void matchToAnatomicalSurface(const SurfaceFile* anatomicalSurfaceFile,
                                       const bool matchStatus);
         
+        bool getSurfaceDisplayOrthographicInfo(float& widthOut,
+                                               float& heightOut,
+                                               float& aspectRatioOut) const;
+        
         void getCenterOfGravity(float cogOut[3]) const;
         
         void applyMatrix(const Matrix4x4& matrix);

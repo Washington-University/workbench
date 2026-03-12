@@ -135,6 +135,15 @@ SurfaceMontageViewport::getViewport(int32_t viewportOut[4]) const
 }
 
 /**
+ * The viewport for draing
+ */
+GraphicsViewport
+SurfaceMontageViewport::getViewport() const
+{
+    return GraphicsViewport(m_viewport);
+}
+
+/**
  * Set the viewport for this item.
  * @param viewport
  *     Values for viewport.

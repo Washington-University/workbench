@@ -914,6 +914,72 @@ void SurfaceFile::invalidateHelpers()
 }
 
 /**
+ * Get info needed for orthographic display of a surface.
+ * For a flat surface width is X and height is Y.
+ * For other surfaces, displayed in lateral view, width is Y and height is Z.
+ *
+ * @param widthOut
+ *    Orthographic width
+ * @param heightOut
+ *    Orthographic height
+ * @param aspectRatioOut
+ *    Aspect ratio (height / width)
+ * @return True if valid, else false;
+ */
+bool
+SurfaceFile::getSurfaceDisplayOrthographicInfo(float& widthOut,
+                                               float& heightOut,
+                                               float& aspectRatioOut) const
+{
+    widthOut  = 1.0;
+    heightOut = 1.0;
+    aspectRatioOut = 1.0;
+    
+    bool xyFlag(false);
+    switch (getSurfaceType()) {
+        case SurfaceTypeEnum::ANATOMICAL:
+            break;
+        case SurfaceTypeEnum::ELLIPSOID:
+            break;
+        case SurfaceTypeEnum::FLAT:
+            xyFlag = true;
+            break;
+        case SurfaceTypeEnum::HULL:
+            break;
+        case SurfaceTypeEnum::INFLATED:
+            break;
+        case SurfaceTypeEnum::RECONSTRUCTION:
+            break;
+        case SurfaceTypeEnum::SEMI_SPHERICAL:
+            break;
+        case SurfaceTypeEnum::SPHERICAL:
+            break;
+        case SurfaceTypeEnum::UNKNOWN:
+            break;
+        case SurfaceTypeEnum::VERY_INFLATED:
+            break;
+    }
+    
+    const BoundingBox* bb = getBoundingBox();
+    if (xyFlag) {
+        widthOut  = bb->getDifferenceX();
+        heightOut = bb->getDifferenceY();
+    }
+    else {
+        widthOut  = bb->getDifferenceY();
+        heightOut = bb->getDifferenceZ();
+    }
+    
+    if ((widthOut > 0.0)
+        && (heightOut > 0.0)) {
+        aspectRatioOut = heightOut / widthOut;
+        return true;
+    }
+    
+    return false;
+}
+
+/**
  * @return A bounding box for this surface.
  */
 const BoundingBox* 

@@ -392,15 +392,15 @@ namespace caret {
                                      ModelSurfaceMontage* surfaceMontageModel,
                                      const int32_t viewport[4]);
         
-        void drawSurfaceMontageModelCompact(BrowserTabContent* browserTabContent,
-                                            ModelSurfaceMontage* surfaceMontageModel,
-                                            const int32_t viewport[4]);
+        bool drawSurfaceMontageModelCompactVertical(BrowserTabContent* browserTabContent,
+                                                    ModelSurfaceMontage* surfaceMontageModel,
+                                                    const int32_t viewport[4]);
 
-        GraphicsOrthographicProjection getOrthographicProjectionForBoundingBox(const ProjectionViewTypeEnum::Enum projectionType,
-                                                                               const OrthoFitMode orthoFitMode,
-                                                                               const BoundingBox* boundingBox,
-                                                                               GraphicsViewport& viewportInOut,
-                                                                               const bool adjustViewportToFitModelFlag);
+        GraphicsOrthographicProjection getOrthographicProjectionWithFixedOrthoSize(const ProjectionViewTypeEnum::Enum projectionType,
+                                                                                   const OrthoFitMode orthoFitMode,
+                                                                                   const GraphicsViewport& viewport,
+                                                                                   const float modelOrthoWidth,
+                                                                                   const float modelOrthoHeight);
 
         void setOrthographicProjection(const int32_t viewport[4],
                                        const ProjectionViewTypeEnum::Enum projectionType);

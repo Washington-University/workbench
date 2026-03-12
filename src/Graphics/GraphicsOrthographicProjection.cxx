@@ -255,6 +255,20 @@ GraphicsOrthographicProjection::getAsFloatArray() const
 }
 
 /**
+ * @return Height to width aspect ratio.  If width is zero, returns 1.0
+ */
+float
+GraphicsOrthographicProjection::getHeightToWidthAspectRatio() const
+{
+    const float w(getWidth());
+    if (w < 1.0) {
+        return 1.0;
+    }
+    return (getHeight() / w);
+}
+
+
+/**
  * Reset to an invalid projection (all values zero)
  */
 void
