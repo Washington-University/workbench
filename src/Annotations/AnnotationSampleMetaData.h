@@ -223,6 +223,8 @@ namespace caret {
 
         int32_t getNumberOfBorders() const;
         
+        void clearBorder(const int32_t borderIndex);
+        
         AString getBorderFileName(const int32_t borderIndex) const;
         
         void setBorderFileName(const int32_t borderIndex,
@@ -244,6 +246,8 @@ namespace caret {
                            const AString& value);
         
         int32_t getNumberOfFoci() const;
+        
+        void clearFocus(const int32_t focusIndex);
         
         AString getFocusFileName(const int32_t focusIndex) const;
         

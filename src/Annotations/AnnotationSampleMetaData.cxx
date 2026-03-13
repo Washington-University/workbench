@@ -1003,6 +1003,23 @@ AnnotationSampleMetaData::getNumberOfBorders() const
 }
 
 /**
+ * Clear the border at the given index.
+ * @param borderIndex
+ *    Index of the border
+ */
+void
+AnnotationSampleMetaData::clearBorder(const int32_t borderIndex)
+{
+    CaretAssert((borderIndex >= 0)
+                && (borderIndex < s_numberOfBorders));
+    setBorderFileName(borderIndex,
+                      "");
+    setBorderID(borderIndex, "");
+    setBorderName(borderIndex, "");
+    setBorderClass(borderIndex, "");
+}
+
+/**
  * @return border file name
  * @param borderIndex
  *    Index of the border
@@ -1121,6 +1138,23 @@ int32_t
 AnnotationSampleMetaData::getNumberOfFoci() const
 {
     return s_numberOfFoci;
+}
+
+/**
+ * Clear the focus at the given index.
+ * @param focusIndex
+ *    Index of the focusIndex
+ */
+void
+AnnotationSampleMetaData::clearFocus(const int32_t focusIndex)
+{
+    CaretAssert((focusIndex >= 0)
+                && (focusIndex < s_numberOfFoci));
+    setFocusFileName(focusIndex,
+                      "");
+    setFocusID(focusIndex, "");
+    setFocusName(focusIndex, "");
+    setFocusClass(focusIndex, "");
 }
 
 /**

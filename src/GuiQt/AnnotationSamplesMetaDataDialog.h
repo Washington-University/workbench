@@ -92,6 +92,9 @@ namespace caret {
         void chooseButtonClicked(const ChooseButtonEnum chooseButton,
                                  const int32_t focusBorderIndex);
         
+        void clearButtonClicked(const ChooseButtonEnum clearButton,
+                                const int32_t focusBorderIndex);
+        
     private:
         enum class DialogMode {
             CREATE_NEW_SAMPLE,

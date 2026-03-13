@@ -678,6 +678,12 @@ AnnotationSamplesMetaDataDialog::createBorderFociTabWidget()
         QToolButton* selectBorderToolButton(new QToolButton());
         selectBorderToolButton->setDefaultAction(selectBorderAction);
 
+        QAction* clearBorderAction(new QAction("Clear"));
+        QObject::connect(clearBorderAction, &QAction::triggered,
+                         this, [=] { clearButtonClicked(ChooseButtonEnum::BORDER, i); });
+        QToolButton* clearBorderToolButton(new QToolButton());
+        clearBorderToolButton->setDefaultAction(clearBorderAction);
+        
         gridLayout->addWidget(borderFileLabel, row, 0);
         gridLayout->addWidget(m_borderFileNameLineEdits[i], row, 1, 1, 3);
         row = gridLayout->rowCount();
@@ -689,6 +695,7 @@ AnnotationSamplesMetaDataDialog::createBorderFociTabWidget()
         row = gridLayout->rowCount();
         gridLayout->addWidget(borderIdLabel, row, 0);
         gridLayout->addWidget(m_borderIdLineEdits[i], row, 1);
+        gridLayout->addWidget(clearBorderToolButton, row, 2, 1, 2, Qt::AlignHCenter);
     }
     
     const int32_t numFoci(m_sampleMetaData->getNumberOfFoci());
@@ -714,6 +721,11 @@ AnnotationSamplesMetaDataDialog::createBorderFociTabWidget()
         QToolButton* selectFocusToolButton(new QToolButton());
         selectFocusToolButton->setDefaultAction(selectFocusAction);
         
+        QAction* clearFocusAction(new QAction("Clear"));
+        QObject::connect(clearFocusAction, &QAction::triggered,
+                         this, [=] { clearButtonClicked(ChooseButtonEnum::FOCUS, i); });
+        QToolButton* clearFocusToolButton(new QToolButton());
+        clearFocusToolButton->setDefaultAction(clearFocusAction);
         
         row = gridLayout->rowCount();
         gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 5);
@@ -730,6 +742,7 @@ AnnotationSamplesMetaDataDialog::createBorderFociTabWidget()
         row = gridLayout->rowCount();
         gridLayout->addWidget(focusIdLabel, row, 0);
         gridLayout->addWidget(m_focusIdLineEdits[i], row, 1);
+        gridLayout->addWidget(clearFocusToolButton, row, 2, 1, 2, Qt::AlignHCenter);
     }
 
     gridLayout->setColumnStretch(gridLayout->columnCount(), 100); /* Push to left */
@@ -1032,6 +1045,7 @@ AnnotationSamplesMetaDataDialog::getLabelFileAndMap()
     
     return textOut;
 }
+
 /**
  * Called when a choose button is clicked
  * @param metaDataName
@@ -1126,6 +1140,39 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
     
     loadMetaDataIntoDialog();
 }
+
+/**
+ * Called when a clear button is clicked
+ * @param metaDataName
+ *    Name of metadata for button
+ * @param focusBorderIndex
+ *    Index of item that was selected for border and foci
+ */
+void
+AnnotationSamplesMetaDataDialog::clearButtonClicked(const ChooseButtonEnum clearButton,
+                                                    const int32_t focusBorderIndex)
+{
+    switch (clearButton) {
+        case ChooseButtonEnum::ALTERNATE_PARCELLATION:
+            CaretAssert(0);
+            break;
+        case ChooseButtonEnum::BORDER:
+            m_sampleMetaData->clearBorder(focusBorderIndex);
+            break;
+        case ChooseButtonEnum::DING_ABBREVIATION:
+            CaretAssert(0);
+            break;
+        case ChooseButtonEnum::FOCUS:
+            m_sampleMetaData->clearFocus(focusBorderIndex);
+            break;
+        case ChooseButtonEnum::PRIMARY_PARCELLATION:
+            CaretAssert(0);
+            break;
+    }
+    
+    loadMetaDataIntoDialog();
+}
+
 
 /**
  * Gets called when the OK button is clicked.
