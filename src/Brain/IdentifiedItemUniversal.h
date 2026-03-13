@@ -105,6 +105,8 @@ namespace caret {
 
         void clearAllText();
         
+        AString getNameText() const;
+        
         AString getSimpleText() const;
         
         AString getFormattedText() const;

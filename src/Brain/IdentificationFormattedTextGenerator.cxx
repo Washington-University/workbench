@@ -56,6 +56,7 @@
 #include "FileInformation.h"
 #include "FociFile.h"
 #include "Focus.h"
+#include "GeodesicHelper.h"
 #include "GiftiLabel.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveV3f.h"
@@ -131,7 +132,7 @@ IdentificationFormattedTextGenerator::~IdentificationFormattedTextGenerator()
 
 /**
  * Create identification text from selection in the identification manager.
- * @param idManselectionManagerager
+ * @param selectionManagerager
  *    Selection manager containing selection.
  * @param brain
  *    The brain.
@@ -658,7 +659,7 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
  */
 void
 IdentificationFormattedTextGenerator::generateVolumeVoxelIdentificationText(HtmlTableBuilder& htmlTableBuilder,
-                                                              const Brain* /*brain*/,
+                                                              const Brain* brain,
                                                               const SelectionItemVoxel* idVolumeVoxel) const
 {
     if (idVolumeVoxel->isValid() == false) {
@@ -684,6 +685,13 @@ IdentificationFormattedTextGenerator::generateVolumeVoxelIdentificationText(Html
     htmlTableBuilder.addHeaderRow(ijkText,
                                   xyzText,
                                   filename);
+    
+    const AString distanceText = getTextDistanceToMostRecentIdentificationSymbol(brain->getIdentificationManager(),
+                                                                                 xyz);
+    if ( ! distanceText.isEmpty()) {
+        htmlTableBuilder.addRowAllColumns(distanceText);
+    }
+
 }
 
 /**
@@ -1052,7 +1060,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
  */
 void 
 IdentificationFormattedTextGenerator::generateSurfaceVertexIdentificationText(HtmlTableBuilder& htmlTableBuilder,
-                                                                              const Brain* /*brain*/,
+                                                                              const Brain* brain,
                                                                               const SelectionItemSurfaceNode* idSurfaceNode) const
 {
     const Surface* surface = idSurfaceNode->getSurface();
@@ -1065,6 +1073,21 @@ IdentificationFormattedTextGenerator::generateSurfaceVertexIdentificationText(Ht
         htmlTableBuilder.addHeaderRow(("VERTEX " + QString::number(nodeNumber)),
                                       xyzText,
                                       StructureEnum::toGuiName(surface->getStructure()));
+        
+        AString linearDistanceText;
+        AString geodesicDistanceText;
+        
+        getTextDistanceToMostRecentIdentificationSymbol(brain,
+                                                        surface,
+                                                        nodeNumber,
+                                                        linearDistanceText,
+                                                        geodesicDistanceText);
+        if ( ! linearDistanceText.isEmpty()) {
+            htmlTableBuilder.addRowAllColumns(linearDistanceText);
+        }
+        if ( ! geodesicDistanceText.isEmpty()) {
+            htmlTableBuilder.addRowAllColumns(geodesicDistanceText);
+        }
     }
 }
 
@@ -3030,11 +3053,13 @@ IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateToolTip(co
 }
 
 /**
- * Append distance from item to most recent identification symbol
+ * Distance from item to most recent identification symbol
  * @param idManager
  *    The identification manager
  * @param selectionXYZ
  *    Stereotaxic coordinate of selection
+ * @return
+ *    Text containing distance to most recent symbol
  */
 AString
 IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationSymbol(const IdentificationManager* idManager,
@@ -3047,13 +3072,92 @@ IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationS
         if (lastIdItem->isStereotaxicXYZValid()) {
             const Vector3D xyz(lastIdItem->getStereotaxicXYZ());
             const float distance((xyz - Vector3D(selectionXYZ)).length());
-            const AString text("Distance to Most Recent ID Symbol: "
-                               + dataValueToText(distance));
+            const AString text(dataValueToText(distance)
+                               + " mm to Previous ID "
+                               + lastIdItem->getNameText());
             return text;
         }
     }
     
     return "";
+}
+
+/**
+ * Distance from item to most recent identification symbol
+ * @param brain
+ *    The brain
+ * @param surface
+ *    Surface of identification
+ * @param vertexIndex
+ *    Vertex index on surface
+ * @param linearDistanceTextOut
+ *    Linear distance output (valid if not empty)
+ * @param geodesicDistanceTextOut
+ *    Geodesic distance output (valid if not empty)
+ */
+void
+IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationSymbol(const Brain* brain,
+                                                                                      const Surface* surface,
+                                                                                      const int32_t vertexIndex,
+                                                                                      AString& linearDistanceTextOut,
+                                                                                      AString& geodesicDistanceTextOut) const
+{
+    CaretAssert(brain);
+    CaretAssert(surface);
+    CaretAssert((vertexIndex >= 0)
+                && (vertexIndex < surface->getNumberOfNodes()));
+    
+    linearDistanceTextOut   = "";
+    geodesicDistanceTextOut = "";
+    
+    const IdentificationManager* idManager(brain->getIdentificationManager());
+    CaretAssert(idManager);
+    const IdentifiedItemUniversal* lastIdItem(idManager->getMostRecentIdentifiedItem());
+    if (lastIdItem != NULL) {
+        /*
+         * Use primary anatomical surface for XYZ coordinate of the vertex
+         */
+        const Surface* primaryAnataSurface(brain->getPrimaryAnatomicalSurfaceForStructure(surface->getStructure()));
+        if (primaryAnataSurface != NULL) {
+            if ((primaryAnataSurface->getNumberOfNodes() == surface->getNumberOfNodes())
+                 && (lastIdItem->isStereotaxicXYZValid())) {
+                const Vector3D lastXYZ(lastIdItem->getStereotaxicXYZ());
+                const Vector3D xyz(primaryAnataSurface->getCoordinate(vertexIndex));
+                const Vector3D deltaXYZ(lastXYZ - xyz);
+                const float distance(deltaXYZ.length());
+                linearDistanceTextOut = (dataValueToText(distance, 3)
+                                         + " mm (Linear) to Previous ID "
+                                         + lastIdItem->getNameText());
+                
+                /*
+                 * If same structure and number of vertices (nodes)
+                 */
+                if (lastIdItem->getType() == IdentifiedItemUniversalTypeEnum::SURFACE) {
+                    if (primaryAnataSurface->getStructure() == lastIdItem->getStructure()) {
+                        if (primaryAnataSurface->getNumberOfNodes() == lastIdItem->getSurfaceNumberOfVertices()) {
+                            if ((lastIdItem->getSurfaceVertexIndex() >= 0)
+                                && (lastIdItem->getSurfaceVertexIndex() < primaryAnataSurface->getNumberOfNodes())) {
+                                const auto& geoHelper(primaryAnataSurface->getGeodesicHelper());
+                                CaretAssert(geoHelper.getPointer());
+                                std::vector<int32_t> nodeOfInterest { vertexIndex };
+                                std::vector<float> nodeDists;
+                                const bool smoothFlag(true);
+                                geoHelper->getGeoToTheseNodes(lastIdItem->getSurfaceVertexIndex(),
+                                                              nodeOfInterest,
+                                                              nodeDists,
+                                                              smoothFlag);
+                                if (nodeDists.size() == 1) {
+                                    CaretAssertVectorIndex(nodeDists, 0);
+                                    geodesicDistanceTextOut = (dataValueToText(nodeDists[0], 3)
+                                                               + " mm (Geodesic)");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**

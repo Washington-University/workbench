@@ -274,6 +274,12 @@ namespace caret {
         AString getTextDistanceToMostRecentIdentificationSymbol(const IdentificationManager* idManager,
                                                                 const float selectionXYZ[3]) const;
         
+        void getTextDistanceToMostRecentIdentificationSymbol(const Brain* brain,
+                                                             const Surface* surface,
+                                                             const int32_t vertexIndex,
+                                                             AString& linearDistanceTextOut,
+                                                             AString& geodesicDistanceTextOut) const;
+
         AString xyToText(const float xy[2],
                          const int32_t precisionDigits = -1) const;
         

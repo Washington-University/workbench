@@ -614,6 +614,67 @@ IdentifiedItemUniversal::clearAllText()
 }
 
 /**
+ * @return Text that identifies this item
+ */
+AString
+IdentifiedItemUniversal::getNameText() const
+{
+    AString nameText;
+    
+    switch (m_type) {
+        case IdentifiedItemUniversalTypeEnum::INVALID:
+            nameText = "Invalid";
+            break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+            nameText = "Histology Plane Coordinate";
+            break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE:
+            nameText = "Histology Stereotaxic Coordinate";
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
+            nameText = "Media Logical Coordinate";
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
+            nameText = "Media Plane Coordinate";
+            break;
+        case IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ:
+            nameText = "Stereotaxic Coordinate";
+            break;
+        case IdentifiedItemUniversalTypeEnum::SURFACE:
+            nameText = ("Surface "
+                        + StructureEnum::toGuiName(m_structure)
+                        + + " Vertex "
+                        + AString::number(m_surfaceVertexIndex));
+            break;
+        case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
+            nameText = "Text No Symbol";
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D:
+            nameText = "Volume Intensity 2D";
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D:
+            nameText = "Volume Intensity 3D";
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
+            nameText = ("Volume Slices IJK=("
+                        + AString::number(m_voxelIJK[0])
+                        + ", " + AString::number(m_voxelIJK[1])
+                        + ", " + AString::number(m_voxelIJK[2])
+                        + ")");
+            break;
+    }
+    
+    if (isStereotaxicXYZValid()) {
+        nameText += (" XYZ="
+                     + m_stereotaxicXYZ.toString(2));
+    }
+    
+    return nameText;
+}
+
+
+/**
+ *
  * @return The simple text describing the identified item.
  */
 AString
