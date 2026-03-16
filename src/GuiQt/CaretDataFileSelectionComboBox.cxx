@@ -135,10 +135,12 @@ CaretDataFileSelectionComboBox::updateComboBox(CaretDataFileSelectionModel* sele
 {
     if (m_deleteSelectionModelFlag) {
         if (m_selectionModel != NULL) {
-            const AString msg("Attempting to replace model in CaretDataFileSelectionComboBox but "
-                              "existing model was set for deletion (m_deleteSelectionModelFlag is true).");
-            CaretLogSevere(msg);
-            CaretAssertMessage(0, msg);
+            if (selectionModel != m_selectionModel) {
+                const AString msg("Attempting to replace model in CaretDataFileSelectionComboBox but "
+                                  "existing model was set for deletion (m_deleteSelectionModelFlag is true).");
+                CaretLogSevere(msg);
+                CaretAssertMessage(0, msg);
+            }
         }
     }
     
