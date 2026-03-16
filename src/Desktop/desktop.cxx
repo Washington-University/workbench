@@ -874,6 +874,8 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                 } else if ((thisParam == "-no-splash")
                            || (thisParam == "-no-recent-files-dialog")) {
                     myState.showSplash = false;
+                } else if (thisParam == "-palette") {
+                    BrainBrowserWindow::setPaletteEditorEnabled(true);
                 } else if (thisParam == "-recent-files-mode") {
                     if (myParams->hasNext()) {
                         const AString recentFilesModeName = myParams->nextString("Recent Files Mode").toUpper();

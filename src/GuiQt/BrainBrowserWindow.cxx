@@ -2130,8 +2130,7 @@ BrainBrowserWindow::createMenuDevelop()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(developerMenuAboutToShow()));
     
-    const bool showPaletteEditorFlag(false);
-    if (showPaletteEditorFlag) {
+    if (s_paletteEditorEnabledFlag) {
         menu->addAction(m_dataPaletteEditorDialogAction);
     }
     const bool showExportToVTKFlag(false);
@@ -5818,5 +5817,16 @@ BrainBrowserWindow::updateIconsForCurrentDarkLightColorScheme()
     else {
         m_featuresToolBoxAction->setIcon(m_featuresToolBoxActionLightPixmap);
     }
+}
+
+/**
+ * Set the enabled status of the palette editor
+ * @param enabled
+ *    New enabled status
+ */
+void
+BrainBrowserWindow::setPaletteEditorEnabled(const bool enabled)
+{
+    s_paletteEditorEnabledFlag = enabled;
 }
 
