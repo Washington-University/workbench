@@ -95,6 +95,12 @@ SurfaceMontageConfigurationHippocampusFlatMaps::SurfaceMontageConfigurationHippo
     setupOverlaySet("Hippocampus Montage",
                     tabIndex,
                     supportedStructures);
+    
+    /*
+     * Default hippocampus flat maps to ROW layout and COMPACT layout enabled.
+     */
+    setLayoutOrientation(SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION);
+    setComplactLayout(true);
 }
 
 /**
