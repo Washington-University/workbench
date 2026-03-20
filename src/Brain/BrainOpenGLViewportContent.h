@@ -117,26 +117,6 @@ namespace caret {
                                                                       const int32_t windowBeforeAspectLockingViewport[4],
                                                                       const int32_t windowViewport[4]);
         
-        static void getSliceAllViewViewport(const int32_t tabViewport[4],
-                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                            const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
-                                            int32_t viewportOut[4]);
-        
-        static VolumeSliceViewPlaneEnum::Enum getSliceViewPlaneForVolumeAllSliceView(const int viewport[4],
-                                                                                     const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
-                                                                                     const int32_t mousePressX,
-                                                                                     const int32_t mousePressY,
-                                                                                     int sliceViewportOut[4]);
-        
-        static VolumeSliceViewPlaneEnum::Enum getSliceViewPlaneForVolumeAllSliceView(const GraphicsViewport& viewport,
-                                                                                     const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
-                                                                                     const Vector3D& mousePressXY,
-                                                                                     GraphicsViewport& sliceViewportOut);
-        
-        std::pair<GraphicsViewport,
-                  VolumeSliceViewPlaneEnum::Enum> getVolumeSliceViewportAtMouseXY(const int32_t mouseX,
-                                                                                  const int32_t mouseY) const;
-        
     private:
         /**
          * Assists with creation of the tile tab viewports

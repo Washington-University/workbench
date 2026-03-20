@@ -53,9 +53,21 @@ namespace caret {
         
         void copyToMeForYoking(const VolumeSliceSettings& volumeSliceSettings);
         
-        VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
+        bool isShowVolumeViewAxialSlice() const;
         
-        void setSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
+        void setShowVolumeViewAxialSlice(const bool status);
+        
+        bool isShowVolumeViewCoronalSlice() const;
+        
+        void setShowVolumeViewCoronalSlice(const bool status);
+        
+        bool isShowVolumeViewParasagittalSlice() const;
+        
+        void setShowVolumeViewParasagittalSlice(const bool status);
+        
+        bool isShowVolumeViewRotationAxis() const;
+        
+        void setShowVolumeViewRotationAxis(const bool status);
         
         VolumeSliceViewAllPlanesLayoutEnum::Enum getSlicePlanesAllViewLayout() const;
         
@@ -126,17 +138,17 @@ namespace caret {
         void setSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
                                        const int64_t sliceIndexParasagittal);
         
-        bool isSliceParasagittalEnabled() const;
+        bool isWholeBrainSliceParasagittalEnabled() const;
         
-        void setSliceParasagittalEnabled(const bool sliceEnabledParasagittal);
+        void setWholeBrainSliceParasagittalEnabled(const bool sliceEnabledParasagittal);
         
-        bool isSliceCoronalEnabled() const;
+        bool isWholeBrainSliceCoronalEnabled() const;
         
-        void setSliceCoronalEnabled(const bool sliceEnabledCoronal);
+        void setWholeBrainSliceCoronalEnabled(const bool sliceEnabledCoronal);
         
-        bool isSliceAxialEnabled() const;
+        bool isWholeBrainSliceAxialEnabled() const;
         
-        void setSliceAxialEnabled(const bool sliceEnabledAxial);
+        void setWholeBrainSliceAxialEnabled(const bool sliceEnabledAxial);
         
         void selectSlicesAtOrigin(const VolumeMappableInterface* volumeInterface);
         
@@ -166,6 +178,18 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        /* Show Axial Slice in Volume View */
+        bool m_showVolumeViewAxialSliceFlag = true;
+        
+        /* Show Coronal Slice in Volume View */
+        bool m_showVolumeViewCoronalSliceFlag = true;
+        
+        /* Show Parasagittal Slice in Volume View  */
+        bool m_showVolumeViewParasagittalSliceFlag = true;
+        
+        /* Show Rotation Axis in Volume View */
+        bool m_showVolumeViewRotationAxisFlag = true;
+        
         /** Axis of slice being viewed */
         VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
 

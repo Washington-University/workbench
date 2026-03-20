@@ -8384,8 +8384,6 @@ BrainOpenGLFixedPipeline::getOrthographicProjectionWithFixedOrthoSize(const Proj
     switch (orthoFitMode) {
         case OrthoFitMode::SET_FROM_WIDTH:
         {
-            const float orthoHeight = modelOrthoWidth * viewport.getHeightToWidthAspectRatio();
-            const float halfOrthoHeight(orthoHeight / 2.0);
             const float halfOrthoWidth(modelOrthoWidth / 2.0);
             orthoRight  =    halfOrthoWidth;
             orthoLeft   =   -halfOrthoWidth;
@@ -8395,8 +8393,6 @@ BrainOpenGLFixedPipeline::getOrthographicProjectionWithFixedOrthoSize(const Proj
             break;
         case OrthoFitMode::SET_FROM_HEIGHT:
         {
-            const float orthoWidth  = modelOrthoHeight / viewport.getHeightToWidthAspectRatio();
-            const float halfOrthoWidth(orthoWidth / 2.0);
             const float halfOrthoHeight(modelOrthoHeight / 2.0);
             orthoRight  =    halfOrthoHeight / viewportAspectRatio;
             orthoLeft   =   -halfOrthoHeight / viewportAspectRatio;

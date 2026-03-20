@@ -228,8 +228,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
     if (browserTabContent->getDisplayedVolumeModel() != NULL) {
         drawVolumeSliceViewPlane(sliceDrawingType,
                                  sliceProjectionType,
-                                 browserTabContent->getVolumeSliceViewPlane(),
-                                 browserTabContent->getVolumeSlicePlanesAllViewLayout(),
                                  viewport);
     }
     else if (browserTabContent->getDisplayedWholeBrainModel() != NULL) {
@@ -245,121 +243,71 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
  *    Type of slice drawing (montage, single)
  * @param sliceProjectionType
  *    Type of projection for the slice drawing (oblique, orthogonal)
- * @param sliceViewPlane
- *    The plane for slice drawing.
- * @param allPlanesLayout
- *    The layout in ALL slices view.
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
 BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                        const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
                                                         const int32_t viewport[4])
 {
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-        {
-            int32_t paraVP[4]    = { 0, 0, 0, 0 };
-            int32_t coronalVP[4] = { 0, 0, 0, 0 };
-            int32_t axialVP[4]   = { 0, 0, 0, 0 };
-            
-            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
-                                                                   VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                                                   allPlanesLayout,
-                                                                   paraVP);
-            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
-                                                                   VolumeSliceViewPlaneEnum::CORONAL,
-                                                                   allPlanesLayout,
-                                                                   coronalVP);
-            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
-                                                                   VolumeSliceViewPlaneEnum::AXIAL,
-                                                                   allPlanesLayout,
-                                                                   axialVP);
-            
-            /*
-             * Draw parasagittal slice
-             */
-            {
-                EventDrawingViewportContentAdd addViewportEvent;
-                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
-                                          m_tabIndex,
-                                          GraphicsViewport(paraVP),
-                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
-                EventManager::get()->sendEvent(addViewportEvent.getPointer());
-            }
-            glPushMatrix();
-            drawVolumeSliceViewType(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES,
-                                    sliceDrawingType,
-                                    sliceProjectionType,
-                                    VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                    paraVP);
-            glPopMatrix();
-            
-            
-            /*
-             * Draw coronal slice
-             */
-            {
-                EventDrawingViewportContentAdd addViewportEvent;
-                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
-                                          m_tabIndex,
-                                          GraphicsViewport(coronalVP),
-                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
-                EventManager::get()->sendEvent(addViewportEvent.getPointer());
-            }
-            glPushMatrix();
-            drawVolumeSliceViewType(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES,
-                                    sliceDrawingType,
-                                    sliceProjectionType,
-                                    VolumeSliceViewPlaneEnum::CORONAL,
-                                    coronalVP);
-            glPopMatrix();
-            
-            
-            /*
-             * Draw axial slice
-             */
-            {
-                EventDrawingViewportContentAdd addViewportEvent;
-                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
-                                          m_tabIndex,
-                                          GraphicsViewport(axialVP),
-                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
-                EventManager::get()->sendEvent(addViewportEvent.getPointer());
-            }
-            glPushMatrix();
-            drawVolumeSliceViewType(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES,
-                                    sliceDrawingType,
-                                    sliceProjectionType,
-                                    VolumeSliceViewPlaneEnum::AXIAL,
-                                    axialVP);
-            glPopMatrix();
-            
-            if (allPlanesLayout == VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT) {
-                /*
-                 * 4th quadrant is used for axis showing orientation
-                 */
-                int32_t allVP[4] = { 0, 0, 0, 0 };
-                BrainOpenGLViewportContent::getSliceAllViewViewport(viewport,
-                                                                       VolumeSliceViewPlaneEnum::ALL,
-                                                                       allPlanesLayout,
-                                                                       allVP);
-                drawOrientationAxes(allVP);
-            }
-        }
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-        case VolumeSliceViewPlaneEnum::CORONAL:
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            drawVolumeSliceViewType(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO,
-                                    sliceDrawingType,
-                                    sliceProjectionType,
-                                    sliceViewPlane,
-                                    viewport);
-            break;
+    GraphicsViewport axialSliceViewport;
+    GraphicsViewport coronalSliceViewport;
+    GraphicsViewport parasagittalSliceViewport;
+    GraphicsViewport rotationAxisViewport;
+    m_browserTabContent->getVolumeSliceDrawingViewports(viewport,
+                                                        axialSliceViewport,
+                                                        coronalSliceViewport,
+                                                        parasagittalSliceViewport,
+                                                        rotationAxisViewport);
+
+    if (axialSliceViewport.isValid()) {
+        EventDrawingViewportContentAdd addAxialViewportEvent;
+        addAxialViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                       m_tabIndex,
+                                       axialSliceViewport,
+                                       ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+        EventManager::get()->sendEvent(addAxialViewportEvent.getPointer());
+        glPushMatrix();
+        drawVolumeSliceViewType(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES,
+                                sliceDrawingType,
+                                sliceProjectionType,
+                                VolumeSliceViewPlaneEnum::AXIAL,
+                                axialSliceViewport.getViewport().data());
+        glPopMatrix();
+    }
+    if (coronalSliceViewport.isValid()) {
+        EventDrawingViewportContentAdd addCoronalViewportEvent;
+        addCoronalViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                         m_tabIndex,
+                                         coronalSliceViewport,
+                                         ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+        EventManager::get()->sendEvent(addCoronalViewportEvent.getPointer());
+        glPushMatrix();
+        drawVolumeSliceViewType(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES,
+                                sliceDrawingType,
+                                sliceProjectionType,
+                                VolumeSliceViewPlaneEnum::CORONAL,
+                                coronalSliceViewport.getViewport().data());
+        glPopMatrix();
+    }
+    if (parasagittalSliceViewport.isValid()) {
+        EventDrawingViewportContentAdd addParaViewportEvent;
+        addParaViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                      m_tabIndex,
+                                      parasagittalSliceViewport,
+                                      ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+        EventManager::get()->sendEvent(addParaViewportEvent.getPointer());
+        glPushMatrix();
+        drawVolumeSliceViewType(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES,
+                                sliceDrawingType,
+                                sliceProjectionType,
+                                VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                parasagittalSliceViewport.getViewport().data());
+        glPopMatrix();
+    }
+    if (rotationAxisViewport.isValid()) {
+        drawOrientationAxes(rotationAxisViewport.getViewport().data());
     }
 }
 
@@ -415,7 +363,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSlicesForAllStructuresView(const
         m_browserTabContent->getVolumeSliceCoordinateAxial()
     };
     
-    if (m_browserTabContent->isVolumeSliceAxialEnabled()) {
+    if (m_browserTabContent->isWholeBrainSliceAxialEnabled()) {
         glPushMatrix();
         drawVolumeSliceViewProjection(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO,
                                       VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
@@ -427,7 +375,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSlicesForAllStructuresView(const
         glPopMatrix();
     }
     
-    if (m_browserTabContent->isVolumeSliceCoronalEnabled()) {
+    if (m_browserTabContent->isWholeBrainSliceCoronalEnabled()) {
         glPushMatrix();
         drawVolumeSliceViewProjection(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO,
                                       VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
@@ -439,7 +387,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSlicesForAllStructuresView(const
         glPopMatrix();
     }
     
-    if (m_browserTabContent->isVolumeSliceParasagittalEnabled()) {
+    if (m_browserTabContent->isWholeBrainSliceParasagittalEnabled()) {
         glPushMatrix();
         drawVolumeSliceViewProjection(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO,
                                       VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
@@ -2673,7 +2621,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         
         const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
         const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
-//        const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
         
         bool haveAlphaBlendingFlag(false);
         std::vector<ObliqueSlice*> slices;

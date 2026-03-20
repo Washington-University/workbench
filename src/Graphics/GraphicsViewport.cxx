@@ -53,7 +53,7 @@ GraphicsViewport::newInstanceCurrentViewport()
  */
 GraphicsViewport::GraphicsViewport()
 {
-    m_viewport.fill(0);
+    resetToInvalid();
 }
 
 
@@ -174,6 +174,15 @@ GraphicsViewport::operator==(const GraphicsViewport& obj) const
     }
 
     return true;
+}
+
+/**
+ * Reset to an invalid viewport
+ */
+void
+GraphicsViewport::resetToInvalid()
+{
+    m_viewport.fill(0);
 }
 
 /**

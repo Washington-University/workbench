@@ -1940,6 +1940,8 @@ BrowserTabContent::receiveEvent(Event* event)
                  */
                 Vector3D volumeSliceXYZ(idLocationEvent->getStereotaxicXYZ());
                 
+                bool updateVolumeSlicesFlag(true);
+                
                 /*
                  * If montage viewing, do not alter the slice
                  * coordinate in the axis being viewed
@@ -1955,26 +1957,35 @@ BrowserTabContent::receiveEvent(Event* event)
                     }
                     
                     if (keepSliceCoordinateForSelectedAxis) {
-                        switch (getVolumeSliceViewPlane()) {
-                            case VolumeSliceViewPlaneEnum::ALL:
-                                volumeSliceXYZ[0] = getVolumeSliceCoordinateParasagittal();
-                                volumeSliceXYZ[1] = getVolumeSliceCoordinateCoronal();
+                        int32_t counter(0);
+                        if (isShowVolumeViewAxialSlice()) ++counter;
+                        if (isShowVolumeViewCoronalSlice()) ++counter;
+                        if (isShowVolumeViewParasagittalSlice()) ++counter;
+
+                        if (counter == 1) {
+                            if (isShowVolumeViewAxialSlice()) {
                                 volumeSliceXYZ[2] = getVolumeSliceCoordinateAxial();
-                                break;
-                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                volumeSliceXYZ[0] = getVolumeSliceCoordinateParasagittal();
-                                break;
-                            case VolumeSliceViewPlaneEnum::CORONAL:
+                            }
+                            if (isShowVolumeViewCoronalSlice()) {
                                 volumeSliceXYZ[1] = getVolumeSliceCoordinateCoronal();
-                                break;
-                            case VolumeSliceViewPlaneEnum::AXIAL:
-                                volumeSliceXYZ[2] = getVolumeSliceCoordinateAxial();
-                                break;
+                            }
+                            if (isShowVolumeViewParasagittalSlice()) {
+                                volumeSliceXYZ[0] = getVolumeSliceCoordinateParasagittal();
+                            }
+                        }
+                        else {
+                            /*
+                             * Do not allow slices to move as more than one
+                             * montage is displayed
+                             */
+                            updateVolumeSlicesFlag = false;
                         }
                     }
                 }
 
-                selectVolumeSlicesAtCoordinate(volumeSliceXYZ);
+                if (updateVolumeSlicesFlag) {
+                    selectVolumeSlicesAtCoordinate(volumeSliceXYZ);
+                }
             }
         }
         
@@ -3893,134 +3904,124 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                                                   const int32_t mousePressY,
                                                   const int32_t mouseDY)
 {
-    VolumeSliceViewPlaneEnum::Enum sliceViewPlane = getVolumeSliceViewPlane();
-    bool incrementFlag(false);
-    if (isVolumeSlicesDisplayed()) {
-        switch (getVolumeSliceProjectionType()) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                incrementFlag = true;
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                incrementFlag = true;
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-                incrementFlag = true;
-                break;
-        }
-    }
-    
-    if ( ! incrementFlag) {
-        return;
-    }
-    if (mouseDY == 0) {
-        return;
-    }
-    
-    const int32_t sliceDelta(mouseDY);
-    const int32_t tabIndex = viewportContent->getTabIndex();
-    VolumeMappableInterface* underlayVolume(NULL);
-    ModelVolume* volumeModel = getDisplayedVolumeModel();
-    if (volumeModel != NULL) {
-        underlayVolume = volumeModel->getUnderlayVolumeFile(tabIndex);
-    }
-    
-    if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
-        int viewport[4];
-        viewportContent->getModelViewport(viewport);
-        int sliceViewport[4] = {
-            viewport[0],
-            viewport[1],
-            viewport[2],
-            viewport[3]
-        };
-        sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                        getVolumeSlicePlanesAllViewLayout(),
-                                                                                        mousePressX,
-                                                                                        mousePressY,
-                                                                                        sliceViewport);
-    }
-    
-    if (isVolumeMprOldDisplayed()) {
-        if (sliceViewPlane != VolumeSliceViewPlaneEnum::ALL) {
-            Vector3D sliceVector(0.0, 0.0, 0.0);
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    CaretAssert(0);
+    const bool includeRotationViewportFlag(false);
+    const FunctionResultValue<VolumeSliceViewPlaneEnum::Enum> slicePlaneResult(getVolumeSlicePlaneContainingMouse(mousePressX,
+                                                                                                                  mousePressY,
+                                                                                                                  includeRotationViewportFlag));
+    if (slicePlaneResult.isOk()) {
+        const VolumeSliceViewPlaneEnum::Enum slicePlane(slicePlaneResult.getValue());
+        bool incrementFlag(false);
+        if (isVolumeSlicesDisplayed()) {
+            switch (getVolumeSliceProjectionType()) {
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                     break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    sliceVector[2] = 1.0;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                    incrementFlag = true;
                     break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    sliceVector[1] = 1.0;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                    incrementFlag = true;
                     break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    sliceVector[0] = 1.0;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+                    incrementFlag = true;
                     break;
             }
-            
-            const Matrix4x4 rotMatrix(getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
-                                                                           sliceViewPlane));
-            
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    CaretAssert(0);
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    rotMatrix.multiplyPoint3(sliceVector);
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    rotMatrix.multiplyPoint3(sliceVector);
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    rotMatrix.multiplyPoint3(sliceVector);
-                    break;
-            }
-            
-            const float axialDelta(std::round(sliceVector[2] * sliceDelta));
-            const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
-            const float paraDelta(std::round(sliceVector[0] * sliceDelta));
-            
-            setVolumeSliceCoordinateAxial(getVolumeSliceCoordinateAxial() + axialDelta);
-            setVolumeSliceCoordinateCoronal(getVolumeSliceCoordinateCoronal() + coronalDelta);
-            setVolumeSliceCoordinateParasagittal(getVolumeSliceCoordinateParasagittal() + paraDelta);
         }
-    }
-    else if (isVolumeMprThreeDisplayed()) {
-        if (sliceViewPlane != VolumeSliceViewPlaneEnum::ALL) {
-            const Vector3D sliceVector(getMprThreeRotationVectorForSlicePlane(sliceViewPlane));
+        
+        if ( ! incrementFlag) {
+            return;
+        }
+        if (mouseDY == 0) {
+            return;
+        }
+        
+        const int32_t sliceDelta(mouseDY);
+        const int32_t tabIndex = viewportContent->getTabIndex();
+        VolumeMappableInterface* underlayVolume(NULL);
+        ModelVolume* volumeModel = getDisplayedVolumeModel();
+        if (volumeModel != NULL) {
+            underlayVolume = volumeModel->getUnderlayVolumeFile(tabIndex);
+        }
                 
-            const float axialDelta(std::round(sliceVector[2] * sliceDelta));
-            const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
-            const float paraDelta(std::round(sliceVector[0] * sliceDelta));
-            
-            setVolumeSliceCoordinateAxial(getVolumeSliceCoordinateAxial() + axialDelta);
-            setVolumeSliceCoordinateCoronal(getVolumeSliceCoordinateCoronal() + coronalDelta);
-            setVolumeSliceCoordinateParasagittal(getVolumeSliceCoordinateParasagittal() + paraDelta);
+        if (isVolumeMprOldDisplayed()) {
+            if (slicePlane != VolumeSliceViewPlaneEnum::ALL) {
+                Vector3D sliceVector(0.0, 0.0, 0.0);
+                switch (slicePlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        CaretAssert(0);
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        sliceVector[2] = 1.0;
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        sliceVector[1] = 1.0;
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        sliceVector[0] = 1.0;
+                        break;
+                }
+                
+                const Matrix4x4 rotMatrix(getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                                                                               slicePlane));
+                
+                switch (slicePlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        CaretAssert(0);
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        rotMatrix.multiplyPoint3(sliceVector);
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        rotMatrix.multiplyPoint3(sliceVector);
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        rotMatrix.multiplyPoint3(sliceVector);
+                        break;
+                }
+                
+                const float axialDelta(std::round(sliceVector[2] * sliceDelta));
+                const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
+                const float paraDelta(std::round(sliceVector[0] * sliceDelta));
+                
+                setVolumeSliceCoordinateAxial(getVolumeSliceCoordinateAxial() + axialDelta);
+                setVolumeSliceCoordinateCoronal(getVolumeSliceCoordinateCoronal() + coronalDelta);
+                setVolumeSliceCoordinateParasagittal(getVolumeSliceCoordinateParasagittal() + paraDelta);
+            }
         }
-    }
-
-    else {
-        /*
-         * Note: Functions that set slice indices will prevent
-         * invalid slice indices
-         */
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                setVolumeSliceIndexAxial(underlayVolume,
-                                   (getVolumeSliceIndexAxial(underlayVolume) + sliceDelta));
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                setVolumeSliceIndexCoronal(underlayVolume,
-                                     (getVolumeSliceIndexCoronal(underlayVolume) + sliceDelta));
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                setVolumeSliceIndexParasagittal(underlayVolume,
-                                          (getVolumeSliceIndexParasagittal(underlayVolume) + sliceDelta));
-                break;
+        else if (isVolumeMprThreeDisplayed()) {
+            if (slicePlane != VolumeSliceViewPlaneEnum::ALL) {
+                const Vector3D sliceVector(getMprThreeRotationVectorForSlicePlane(slicePlane));
+                
+                const float axialDelta(std::round(sliceVector[2] * sliceDelta));
+                const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
+                const float paraDelta(std::round(sliceVector[0] * sliceDelta));
+                
+                setVolumeSliceCoordinateAxial(getVolumeSliceCoordinateAxial() + axialDelta);
+                setVolumeSliceCoordinateCoronal(getVolumeSliceCoordinateCoronal() + coronalDelta);
+                setVolumeSliceCoordinateParasagittal(getVolumeSliceCoordinateParasagittal() + paraDelta);
+            }
+        }
+        
+        else {
+            /*
+             * Note: Functions that set slice indices will prevent
+             * invalid slice indices
+             */
+            switch (slicePlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    setVolumeSliceIndexAxial(underlayVolume,
+                                             (getVolumeSliceIndexAxial(underlayVolume) + sliceDelta));
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    setVolumeSliceIndexCoronal(underlayVolume,
+                                               (getVolumeSliceIndexCoronal(underlayVolume) + sliceDelta));
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    setVolumeSliceIndexParasagittal(underlayVolume,
+                                                    (getVolumeSliceIndexParasagittal(underlayVolume) + sliceDelta));
+                    break;
+            }
         }
     }
 
@@ -4059,256 +4060,88 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                       const int32_t mouseDeltaY)
 {
     if (isVolumeSlicesDisplayed()) {
-        switch (getVolumeSliceProjectionType()) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                if (viewportContent == NULL) {
-                    /*
-                     * When no viewport content is available, apply 'ALL' rotation
-                     */
-                    Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix();
-                    rotationMatrix.rotateX(-mouseDeltaY);
-                    rotationMatrix.rotateY(mouseDeltaX);
-                    setObliqueVolumeRotationMatrix(rotationMatrix);
-                }
-                else {
-                    int viewport[4];
-                    viewportContent->getModelViewport(viewport);
-                    VolumeSliceViewPlaneEnum::Enum slicePlane = this->getVolumeSliceViewPlane();
-                    int sliceViewport[4] = {
-                        viewport[0],
-                        viewport[1],
-                        viewport[2],
-                        viewport[3]
-                    };
-                    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
-                        slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                        getVolumeSlicePlanesAllViewLayout(),
-                                                                                                        mousePressX,
-                                                                                                        mousePressY,
-                                                                                                        sliceViewport);
-                    }
-                    
-                    Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix();
-                    
-                    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+        const bool includeRotationViewportFlag(false);
+        const FunctionResultValue<VolumeSliceViewPlaneEnum::Enum> slicePlaneResult(getVolumeSlicePlaneContainingMouse(mousePressX,
+                                                                                                                      mousePressY,
+                                                                                                                      includeRotationViewportFlag));
+        if (slicePlaneResult.isOk()) {
+            const VolumeSliceViewPlaneEnum::Enum slicePlane(slicePlaneResult.getValue());
+            const GraphicsViewport graphicsViewport(getVolumeSlicePlaneViewport(slicePlane));
+            CaretAssert(graphicsViewport.isValid());
+            const std::array<int32_t, 4> sliceViewport(graphicsViewport.getViewport());
+            
+            switch (getVolumeSliceProjectionType()) {
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                    if (viewportContent == NULL) {
+                        /*
+                         * When no viewport content is available, apply 'ALL' rotation
+                         */
+                        Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix();
                         rotationMatrix.rotateX(-mouseDeltaY);
                         rotationMatrix.rotateY(mouseDeltaX);
+                        setObliqueVolumeRotationMatrix(rotationMatrix);
                     }
                     else {
-                        if ((mouseDeltaX != 0)
-                            || (mouseDeltaY != 0)) {
-                            
-                            const int previousMouseX = mouseX - mouseDeltaX;
-                            const int previousMouseY = mouseY - mouseDeltaY;
-                            
-                            /*
-                             * Need to account for the quadrants!!!!
-                             */
-                            const float viewportCenter[3] = {
-                                (float)(sliceViewport[0] + sliceViewport[2] / 2),
-                                ((float)sliceViewport[1] + sliceViewport[3] / 2),
-                                0.0
-                            };
-                            
-                            const float oldPos[3] = {
-                                (float)previousMouseX,
-                                (float)previousMouseY,
-                                0.0
-                            };
-                            
-                            const float newPos[3] = {
-                                (float)mouseX,
-                                (float)mouseY,
-                                0.0
-                            };
-                            
-                            /*
-                             * Compute normal vector from viewport center to
-                             * old mouse position to new mouse position.
-                             * If normal-Z is positive, mouse has been moved
-                             * in a counter clockwise motion relative to center.
-                             * If normal-Z is negative, mouse has moved clockwise.
-                             */
-                            float normalDirection[3];
-                            MathFunctions::normalVectorDirection(viewportCenter,
-                                                                 oldPos,
-                                                                 newPos,
-                                                                 normalDirection);
-                            bool isClockwise = false;
-                            bool isCounterClockwise = false;
-                            if (normalDirection[2] > 0.0) {
-                                isCounterClockwise = true;
-                            }
-                            else if (normalDirection[2] < 0.0) {
-                                isClockwise = true;
-                            }
-                            
-                            if (isClockwise
-                                || isCounterClockwise) {
-                                float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
-                                                                                + (mouseDeltaY * mouseDeltaY)));
-                                
-                                switch (slicePlane) {
-                                    case VolumeSliceViewPlaneEnum::ALL:
-                                    {
-                                        CaretAssert(0);
-                                    }
-                                        break;
-                                    case VolumeSliceViewPlaneEnum::AXIAL:
-                                    {
-                                        Matrix4x4 rotation;
-                                        if (isClockwise) {
-                                            rotation.rotateZ(mouseDelta);
-                                        }
-                                        else if (isCounterClockwise) {
-                                            rotation.rotateZ(-mouseDelta);
-                                        }
-                                        rotationMatrix.premultiply(rotation);
-                                    }
-                                        break;
-                                    case VolumeSliceViewPlaneEnum::CORONAL:
-                                    {
-                                        Matrix4x4 rotation;
-                                        if (isClockwise) {
-                                            rotation.rotateY(-mouseDelta);
-                                        }
-                                        else if (isCounterClockwise) {
-                                            rotation.rotateY(mouseDelta);
-                                        }
-                                        rotationMatrix.premultiply(rotation);
-                                    }
-                                        break;
-                                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                    {
-                                        Matrix4x4 rotation;
-                                        if (isClockwise) {
-                                            rotation.rotateX(-mouseDelta);
-                                        }
-                                        else if (isCounterClockwise) {
-                                            rotation.rotateX(mouseDelta);
-                                        }
-                                        rotationMatrix.premultiply(rotation);
-                                    }
-                                        break;
-                                }
-                            }
+                        Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix();
+                        
+                        if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+                            rotationMatrix.rotateX(-mouseDeltaY);
+                            rotationMatrix.rotateY(mouseDeltaX);
                         }
-                    }
-                    
-                    setObliqueVolumeRotationMatrix(rotationMatrix);
-                }
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-                if (viewportContent != NULL) {
-                    bool radiologicalFlag(false);
-                    switch (getVolumeMprOrientationMode()) {
-                        case VolumeMprOrientationModeEnum::RADIOLOGICAL:
-                            radiologicalFlag = true;
-                            break;
-                        case VolumeMprOrientationModeEnum::NEUROLOGICAL:
-                            radiologicalFlag = false;
-                            break;
-                    }
-
-                    int viewport[4];
-                    viewportContent->getModelViewport(viewport);
-                    VolumeSliceViewPlaneEnum::Enum slicePlane = this->getVolumeSliceViewPlane();
-                    int sliceViewport[4] = {
-                        viewport[0],
-                        viewport[1],
-                        viewport[2],
-                        viewport[3]
-                    };
-                    
-                    /*
-                     * Only allow rotation if in an ALL view.
-                     * Do not rotate if single plane view.
-                     */
-                    bool allowRotationFlag(false);
-                    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
-                        slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                        getVolumeSlicePlanesAllViewLayout(),
-                                                                                                        mousePressX,
-                                                                                                        mousePressY,
-                                                                                                        sliceViewport);
-                        allowRotationFlag = true;
-                    }
-                    else {
-                        /*
-                         * If true, rotation is allowed when viewing a single axis
-                         * slice view (just one of axial, coronal, parasagittal).
-                         * But user only sees crosshair
-                         */
-                        allowRotationFlag = true;
-                    }
-                    
-                    if (allowRotationFlag
-                        && (slicePlane != VolumeSliceViewPlaneEnum::ALL)) {
-                        if ((mouseDeltaX != 0)
-                            || (mouseDeltaY != 0)) {
-                            
-                            const int previousMouseX = mouseX - mouseDeltaX;
-                            const int previousMouseY = mouseY - mouseDeltaY;
-                            
-                            /*
-                             * Need to account for the quadrants!!!!
-                             */
-                            const float viewportCenter[3] = {
-                                (float)(sliceViewport[0] + sliceViewport[2] / 2),
-                                ((float)sliceViewport[1] + sliceViewport[3] / 2),
-                                0.0
-                            };
-                            
-                            const float oldPos[3] = {
-                                (float)previousMouseX,
-                                (float)previousMouseY,
-                                0.0
-                            };
-                            
-                            const float newPos[3] = {
-                                (float)mouseX,
-                                (float)mouseY,
-                                0.0
-                            };
-                            
-                            /*
-                             * Compute normal vector from viewport center to
-                             * old mouse position to new mouse position.
-                             * If normal-Z is positive, mouse has been moved
-                             * in a counter clockwise motion relative to center.
-                             * If normal-Z is negative, mouse has moved clockwise.
-                             */
-                            float normalDirection[3];
-                            MathFunctions::normalVectorDirection(viewportCenter,
-                                                                 oldPos,
-                                                                 newPos,
-                                                                 normalDirection);
-                            bool isClockwise = false;
-                            bool isCounterClockwise = false;
-                            if (normalDirection[2] > 0.0) {
-                                isCounterClockwise = true;
-                            }
-                            else if (normalDirection[2] < 0.0) {
-                                isClockwise = true;
-                            }
-                            
-                            if (isClockwise
-                                || isCounterClockwise) {
-                                float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
-                                                                                + (mouseDeltaY * mouseDeltaY)));
+                        else {
+                            if ((mouseDeltaX != 0)
+                                || (mouseDeltaY != 0)) {
                                 
-                                if (isVolumeMprThreeDisplayed()) {
-                                    applyMouseRotationMprThree(viewportContent,
-                                                               mprCrosshairAxis,
-                                                               viewport,
-                                                               Vector3D(mousePressX, mousePressY, 0.0),
-                                                               Vector3D(mouseX, mouseY, 0.0),
-                                                               Vector3D(previousMouseX, previousMouseY, 0.0));
+                                const int previousMouseX = mouseX - mouseDeltaX;
+                                const int previousMouseY = mouseY - mouseDeltaY;
+                                
+                                /*
+                                 * Need to account for the quadrants!!!!
+                                 */
+                                const float viewportCenter[3] = {
+                                    (float)(sliceViewport[0] + sliceViewport[2] / 2),
+                                    ((float)sliceViewport[1] + sliceViewport[3] / 2),
+                                    0.0
+                                };
+                                
+                                const float oldPos[3] = {
+                                    (float)previousMouseX,
+                                    (float)previousMouseY,
+                                    0.0
+                                };
+                                
+                                const float newPos[3] = {
+                                    (float)mouseX,
+                                    (float)mouseY,
+                                    0.0
+                                };
+                                
+                                /*
+                                 * Compute normal vector from viewport center to
+                                 * old mouse position to new mouse position.
+                                 * If normal-Z is positive, mouse has been moved
+                                 * in a counter clockwise motion relative to center.
+                                 * If normal-Z is negative, mouse has moved clockwise.
+                                 */
+                                float normalDirection[3];
+                                MathFunctions::normalVectorDirection(viewportCenter,
+                                                                     oldPos,
+                                                                     newPos,
+                                                                     normalDirection);
+                                bool isClockwise = false;
+                                bool isCounterClockwise = false;
+                                if (normalDirection[2] > 0.0) {
+                                    isCounterClockwise = true;
                                 }
-                                else {
+                                else if (normalDirection[2] < 0.0) {
+                                    isClockwise = true;
+                                }
+                                
+                                if (isClockwise
+                                    || isCounterClockwise) {
+                                    float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
+                                                                                    + (mouseDeltaY * mouseDeltaY)));
+                                    
                                     switch (slicePlane) {
                                         case VolumeSliceViewPlaneEnum::ALL:
                                         {
@@ -4317,45 +4150,193 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                             break;
                                         case VolumeSliceViewPlaneEnum::AXIAL:
                                         {
-                                            const float mprRotZ(isClockwise
-                                                                ? -mouseDelta
-                                                                : mouseDelta);
-                                            if (radiologicalFlag) {
-                                                m_mprRotationZ -= mprRotZ;
+                                            Matrix4x4 rotation;
+                                            if (isClockwise) {
+                                                rotation.rotateZ(mouseDelta);
                                             }
-                                            else {
-                                                m_mprRotationZ += mprRotZ;
+                                            else if (isCounterClockwise) {
+                                                rotation.rotateZ(-mouseDelta);
                                             }
+                                            rotationMatrix.premultiply(rotation);
                                         }
                                             break;
                                         case VolumeSliceViewPlaneEnum::CORONAL:
                                         {
-                                            const float mprRotY(isClockwise
-                                                                ? - mouseDelta
-                                                                : mouseDelta);
-                                            if (radiologicalFlag) {
-                                                m_mprRotationY -= mprRotY;
+                                            Matrix4x4 rotation;
+                                            if (isClockwise) {
+                                                rotation.rotateY(-mouseDelta);
                                             }
-                                            else {
-                                                m_mprRotationY += mprRotY;
+                                            else if (isCounterClockwise) {
+                                                rotation.rotateY(mouseDelta);
                                             }
+                                            rotationMatrix.premultiply(rotation);
                                         }
                                             break;
                                         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                                         {
-                                            const float mprRotX(isClockwise
-                                                                ? -mouseDelta
-                                                                : mouseDelta);
-                                            m_mprRotationX += mprRotX;
+                                            Matrix4x4 rotation;
+                                            if (isClockwise) {
+                                                rotation.rotateX(-mouseDelta);
+                                            }
+                                            else if (isCounterClockwise) {
+                                                rotation.rotateX(mouseDelta);
+                                            }
+                                            rotationMatrix.premultiply(rotation);
                                         }
                                             break;
                                     }
                                 }
                             }
                         }
+                        
+                        setObliqueVolumeRotationMatrix(rotationMatrix);
                     }
-                }
-                break;
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+                    if (viewportContent != NULL) {
+                        bool radiologicalFlag(false);
+                        switch (getVolumeMprOrientationMode()) {
+                            case VolumeMprOrientationModeEnum::RADIOLOGICAL:
+                                radiologicalFlag = true;
+                                break;
+                            case VolumeMprOrientationModeEnum::NEUROLOGICAL:
+                                radiologicalFlag = false;
+                                break;
+                        }
+                        
+                        /*
+                         * Only allow rotation if in an ALL view.
+                         * Do not rotate if single plane view.
+                         */
+                        bool allowRotationFlag(false);
+                        if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+                            allowRotationFlag = true;
+                        }
+                        else {
+                            /*
+                             * If true, rotation is allowed when viewing a single axis
+                             * slice view (just one of axial, coronal, parasagittal).
+                             * But user only sees crosshair
+                             */
+                            allowRotationFlag = true;
+                        }
+                        
+                        if (allowRotationFlag
+                            && (slicePlane != VolumeSliceViewPlaneEnum::ALL)) {
+                            if ((mouseDeltaX != 0)
+                                || (mouseDeltaY != 0)) {
+                                
+                                const int previousMouseX = mouseX - mouseDeltaX;
+                                const int previousMouseY = mouseY - mouseDeltaY;
+                                
+                                /*
+                                 * Need to account for the quadrants!!!!
+                                 */
+                                const float viewportCenter[3] = {
+                                    (float)(sliceViewport[0] + sliceViewport[2] / 2),
+                                    ((float)sliceViewport[1] + sliceViewport[3] / 2),
+                                    0.0
+                                };
+                                
+                                const float oldPos[3] = {
+                                    (float)previousMouseX,
+                                    (float)previousMouseY,
+                                    0.0
+                                };
+                                
+                                const float newPos[3] = {
+                                    (float)mouseX,
+                                    (float)mouseY,
+                                    0.0
+                                };
+                                
+                                /*
+                                 * Compute normal vector from viewport center to
+                                 * old mouse position to new mouse position.
+                                 * If normal-Z is positive, mouse has been moved
+                                 * in a counter clockwise motion relative to center.
+                                 * If normal-Z is negative, mouse has moved clockwise.
+                                 */
+                                float normalDirection[3];
+                                MathFunctions::normalVectorDirection(viewportCenter,
+                                                                     oldPos,
+                                                                     newPos,
+                                                                     normalDirection);
+                                bool isClockwise = false;
+                                bool isCounterClockwise = false;
+                                if (normalDirection[2] > 0.0) {
+                                    isCounterClockwise = true;
+                                }
+                                else if (normalDirection[2] < 0.0) {
+                                    isClockwise = true;
+                                }
+                                
+                                if (isClockwise
+                                    || isCounterClockwise) {
+                                    float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
+                                                                                    + (mouseDeltaY * mouseDeltaY)));
+                                    
+                                    if (isVolumeMprThreeDisplayed()) {
+                                        applyMouseRotationMprThree(viewportContent,
+                                                                   mprCrosshairAxis,
+                                                                   sliceViewport.data(),
+                                                                   Vector3D(mousePressX, mousePressY, 0.0),
+                                                                   Vector3D(mouseX, mouseY, 0.0),
+                                                                   Vector3D(previousMouseX, previousMouseY, 0.0),
+                                                                   slicePlane);
+                                    }
+                                    else {
+                                        switch (slicePlane) {
+                                            case VolumeSliceViewPlaneEnum::ALL:
+                                            {
+                                                CaretAssert(0);
+                                            }
+                                                break;
+                                            case VolumeSliceViewPlaneEnum::AXIAL:
+                                            {
+                                                const float mprRotZ(isClockwise
+                                                                    ? -mouseDelta
+                                                                    : mouseDelta);
+                                                if (radiologicalFlag) {
+                                                    m_mprRotationZ -= mprRotZ;
+                                                }
+                                                else {
+                                                    m_mprRotationZ += mprRotZ;
+                                                }
+                                            }
+                                                break;
+                                            case VolumeSliceViewPlaneEnum::CORONAL:
+                                            {
+                                                const float mprRotY(isClockwise
+                                                                    ? - mouseDelta
+                                                                    : mouseDelta);
+                                                if (radiologicalFlag) {
+                                                    m_mprRotationY -= mprRotY;
+                                                }
+                                                else {
+                                                    m_mprRotationY += mprRotY;
+                                                }
+                                            }
+                                                break;
+                                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                            {
+                                                const float mprRotX(isClockwise
+                                                                    ? -mouseDelta
+                                                                    : mouseDelta);
+                                                m_mprRotationX += mprRotX;
+                                            }
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
         }
     }
     else if (isChartOneDisplayed()
@@ -4810,6 +4791,8 @@ BrowserTabContent::getMouseMovementAngleCCW(const Vector3D& rotationCenterXY,
  *    Current XY of mouse in window coordinate
  * @param previousMouseXY
  *    Previous XY of mouse in window coordinates
+ * @param sliceViewPlane
+ *    Plane being rotated
  */
 void
 BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewportContent,
@@ -4817,19 +4800,11 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                                               const GraphicsViewport& viewportIn,
                                               const Vector3D& mousePressWindowXY,
                                               const Vector3D& mouseWindowXY,
-                                              const Vector3D& previousMouseWindowXY)
+                                              const Vector3D& previousMouseWindowXY,
+                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane)
 {
     GraphicsViewport viewport(viewportIn);
     
-    VolumeSliceViewPlaneEnum::Enum sliceViewPlane = this->getVolumeSliceViewPlane();
-    GraphicsViewport sliceViewport;
-    if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
-        sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                            getVolumeSlicePlanesAllViewLayout(),
-                                                                                            mousePressWindowXY,
-                                                                                            sliceViewport);
-    }
-
     bool montageFlag(false);
     switch (getVolumeSliceDrawingType()) {
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
@@ -5291,7 +5266,8 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
                                                                    xform,
                                                                    histologySlice)) {
             if (getBrainModelYokingGroup() != YokingGroupEnum::YOKING_GROUP_OFF) {
-                setVolumeSliceViewsToHistologyRegion(getBrainModelYokingGroup(),
+                setVolumeSliceViewsToHistologyRegion(mouseEvent,
+                                                     getBrainModelYokingGroup(),
                                                      histologySlice,
                                                      allViewportContent,
                                                      selectionBounds);
@@ -5310,53 +5286,40 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
     else if (getDisplayedVolumeModel() != NULL) {
         
         VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion(VolumeSliceViewPlaneEnum::ALL);
-        const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab(getVolumeSliceViewPlane());
-        switch (sliceViewPlaneSelectedInTab) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                    {
-                        /*
-                         * Find out which slice plane contains mouse
-                         */
-                        int viewport[4];
-                        viewportContent->getModelViewport(viewport);
-                        int sliceViewport[4] = {
-                            viewport[0],
-                            viewport[1],
-                            viewport[2],
-                            viewport[3]
-                        };
-                        sliceViewPlaneForFitToRegion = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                            getVolumeSlicePlanesAllViewLayout(),
-                                                                                                            mouseEvent->getPressedX(),
-                                                                                                            mouseEvent->getPressedY(),
-                                                                                                            sliceViewport);
-                        if (sliceViewPlaneForFitToRegion == VolumeSliceViewPlaneEnum::ALL) {
-                            /* Not in slice plane*/
-                            return;
-                        }
-                    }
-                        break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-            case VolumeSliceViewPlaneEnum::AXIAL:
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                sliceViewPlaneForFitToRegion = sliceViewPlaneSelectedInTab;
-                break;
+        
+        const bool includeRotationViewportFlag(false);
+        FunctionResultValue<VolumeSliceViewPlaneEnum::Enum> slicePlaneResult(getVolumeSlicePlaneContainingMouse(mouseEvent->getPressedX(),
+                                                                                                                mouseEvent->getPressedY(),
+                                                                                                                includeRotationViewportFlag));
+        
+        if (slicePlaneResult.isOk()) {
+            const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab(slicePlaneResult.getValue());
+            switch (sliceViewPlaneSelectedInTab) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    sliceViewPlaneForFitToRegion = sliceViewPlaneSelectedInTab;
+                    break;
+            }
+            CaretAssert(sliceViewPlaneForFitToRegion != VolumeSliceViewPlaneEnum::ALL);
+            
+            switch (getVolumeSliceProjectionType()) {
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+                    m_volumeSliceViewingTransformation->setViewToBounds(mouseEvent,
+                                                                        sliceViewPlaneSelectedInTab,
+                                                                        sliceViewPlaneForFitToRegion,
+                                                                        selectionBounds,
+                                                                        this);
+                    break;
+            }
+            updateBrainModelYokedBrowserTabs();
         }
-        CaretAssert(sliceViewPlaneForFitToRegion != VolumeSliceViewPlaneEnum::ALL);
-
-        switch (getVolumeSliceProjectionType()) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-                m_volumeSliceViewingTransformation->setViewToBounds(mouseEvent->getViewportContent(),
-                                                                    sliceViewPlaneSelectedInTab,
-                                                                    sliceViewPlaneForFitToRegion,
-                                                                    selectionBounds,
-                                                                    this);
-                break;
-        }
-        updateBrainModelYokedBrowserTabs();
     }
 }
 
@@ -5494,7 +5457,6 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                                            mouseDY);
         }
         else {
-            
             const float volumeSliceScaling = m_volumeSliceViewingTransformation->getScaling();
             ModelVolume* modelVolume = getDisplayedVolumeModel();
             VolumeMappableInterface* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
@@ -5513,38 +5475,37 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
             int sliceViewport[4];
             viewportContent->getModelViewport(sliceViewport);
             
-            VolumeSliceViewPlaneEnum::Enum slicePlane = getVolumeSliceViewPlane();
-            if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
-                slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                getVolumeSlicePlanesAllViewLayout(),
-                                                                                                mousePressX,
-                                                                                                mousePressY,
-                                                                                                sliceViewport);
-            }
+            const bool includeRotationViewportFlag(false);
+            FunctionResultValue<VolumeSliceViewPlaneEnum::Enum> slicePlaneResult(getVolumeSlicePlaneContainingMouse(mousePressX,
+                                                                                                                    mousePressY,
+                                                                                                                    includeRotationViewportFlag));
             
-            switch (slicePlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    dx = mouseDX * slowdown;
-                    dy = mouseDY * slowdown;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    dx = mouseDX * slowdown;
-                    dz = mouseDY * slowdown;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    dy = -mouseDX * slowdown;
-                    dz = mouseDY * slowdown;
-                    break;
+            if (slicePlaneResult.isOk()) {
+                const VolumeSliceViewPlaneEnum::Enum slicePlane(slicePlaneResult.getValue());
+                switch (slicePlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        dx = mouseDX * slowdown;
+                        dy = mouseDY * slowdown;
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        dx = mouseDX * slowdown;
+                        dz = mouseDY * slowdown;
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        dy = -mouseDX * slowdown;
+                        dz = mouseDY * slowdown;
+                        break;
+                }
+                
+                float translation[3];
+                m_volumeSliceViewingTransformation->getTranslation(translation);
+                translation[0] += dx;
+                translation[1] += dy;
+                translation[2] += dz;
+                m_volumeSliceViewingTransformation->setTranslation(translation);
             }
-            
-            float translation[3];
-            m_volumeSliceViewingTransformation->getTranslation(translation);
-            translation[0] += dx;
-            translation[1] += dy;
-            translation[2] += dz;
-            m_volumeSliceViewingTransformation->setTranslation(translation);
         }
     }
     else if (isChartOneDisplayed()) {
@@ -5868,85 +5829,79 @@ BrowserTabContent::applyMouseTranslationVolumeMPR(BrainOpenGLViewportContent* vi
                                                   const int32_t mouseDX,
                                                   const int32_t mouseDY)
 {
-    int viewport[4];
-    viewportContent->getModelViewport(viewport);
-    int sliceViewport[4];
-    viewportContent->getModelViewport(sliceViewport);
-    
-    VolumeSliceViewPlaneEnum::Enum slicePlane = getVolumeSliceViewPlane();
-    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
-        slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                        getVolumeSlicePlanesAllViewLayout(),
-                                                                                        mousePressX,
-                                                                                        mousePressY,
-                                                                                        sliceViewport);
-    }
-    
-    const GraphicsObjectToWindowTransform* objectToWindowXform = viewportContent->getVolumeGraphicsObjectToWindowTransform(slicePlane);
-    if (objectToWindowXform != NULL) {
-        /*
-         * Previous position of mouse
-         */
-        const float oldMouseX(mouseX - mouseDX);
-        const float oldMouseY(mouseY - mouseDY);
-        
-        /*
-         * Convert location of mouse from window to model coordinates
-         */
-        Vector3D windowOneXYZ(oldMouseX, oldMouseY, 0.0);
-        Vector3D windowTwoXYZ((float)mouseX, (float)mouseY, 0.0);
-        Vector3D objectOneXYZ;
-        Vector3D objectTwoXYZ;
-        objectToWindowXform->inverseTransformPoint(windowOneXYZ, objectOneXYZ);
-        objectToWindowXform->inverseTransformPoint(windowTwoXYZ, objectTwoXYZ);
-        
-        /*
-         * Convert mouse movement from window to model coordinates
-         */
-        Vector3D objDXYZ((objectTwoXYZ[0] - objectOneXYZ[0]),
-                         (objectTwoXYZ[1] - objectOneXYZ[1]),
-                         (objectTwoXYZ[2] - objectOneXYZ[2]));
-        const float objLength(objDXYZ.length());
-        Vector3D mouseNormalDXY(Vector3D(mouseDX, mouseDY, 0.0).normal());
-        
-        
-        const float horizontalMovement(mouseNormalDXY[0] * objLength);
-        const float verticalMovement(mouseNormalDXY[1] * objLength);
-        
-        float dx = 0.0;
-        float dy = 0.0;
-        float dz = 0.0;
-        switch (slicePlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                dx = horizontalMovement;
-                dy = verticalMovement;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                dx = horizontalMovement;
-                dz = verticalMovement;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                /*
-                 * Need to invert 'dy' since parasagittal
-                 * has postitive on the left and negative
-                 * on the right
-                 */
-                dy = -horizontalMovement;
-                dz =  verticalMovement;
-                break;
+    const bool includeRotationViewportFlag(false);
+    const FunctionResultValue<VolumeSliceViewPlaneEnum::Enum> slicePlaneResult(getVolumeSlicePlaneContainingMouse(mousePressX,
+                                                                                                                  mousePressY,
+                                                                                                                  includeRotationViewportFlag));
+    if (slicePlaneResult.isOk()) {
+        const VolumeSliceViewPlaneEnum::Enum slicePlane(slicePlaneResult.getValue());
+       
+        const GraphicsObjectToWindowTransform* objectToWindowXform = viewportContent->getVolumeGraphicsObjectToWindowTransform(slicePlane);
+        if (objectToWindowXform != NULL) {
+            /*
+             * Previous position of mouse
+             */
+            const float oldMouseX(mouseX - mouseDX);
+            const float oldMouseY(mouseY - mouseDY);
+            
+            /*
+             * Convert location of mouse from window to model coordinates
+             */
+            Vector3D windowOneXYZ(oldMouseX, oldMouseY, 0.0);
+            Vector3D windowTwoXYZ((float)mouseX, (float)mouseY, 0.0);
+            Vector3D objectOneXYZ;
+            Vector3D objectTwoXYZ;
+            objectToWindowXform->inverseTransformPoint(windowOneXYZ, objectOneXYZ);
+            objectToWindowXform->inverseTransformPoint(windowTwoXYZ, objectTwoXYZ);
+            
+            /*
+             * Convert mouse movement from window to model coordinates
+             */
+            Vector3D objDXYZ((objectTwoXYZ[0] - objectOneXYZ[0]),
+                             (objectTwoXYZ[1] - objectOneXYZ[1]),
+                             (objectTwoXYZ[2] - objectOneXYZ[2]));
+            const float objLength(objDXYZ.length());
+            Vector3D mouseNormalDXY(Vector3D(mouseDX, mouseDY, 0.0).normal());
+            
+            
+            const float horizontalMovement(mouseNormalDXY[0] * objLength);
+            const float verticalMovement(mouseNormalDXY[1] * objLength);
+            
+            float dx = 0.0;
+            float dy = 0.0;
+            float dz = 0.0;
+            switch (slicePlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    dx = horizontalMovement;
+                    dy = verticalMovement;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    dx = horizontalMovement;
+                    dz = verticalMovement;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    /*
+                     * Need to invert 'dy' since parasagittal
+                     * has postitive on the left and negative
+                     * on the right
+                     */
+                    dy = -horizontalMovement;
+                    dz =  verticalMovement;
+                    break;
+            }
+            
+            float translation[3];
+            m_volumeSliceViewingTransformation->getTranslation(translation);
+            translation[0] += dx;
+            translation[1] += dy;
+            translation[2] += dz;
+            m_volumeSliceViewingTransformation->setTranslation(translation);
         }
-        
-        float translation[3];
-        m_volumeSliceViewingTransformation->getTranslation(translation);
-        translation[0] += dx;
-        translation[1] += dy;
-        translation[2] += dz;
-        m_volumeSliceViewingTransformation->setTranslation(translation);
-    }
-    else {
-        CaretLogSevere("PROGRAM ERROR: GraphicsObjectToWindowTransform failed, unable to pan view");
+        else {
+            CaretLogSevere("PROGRAM ERROR: GraphicsObjectToWindowTransform failed, unable to pan view");
+        }
     }
 }
 
@@ -7495,36 +7450,352 @@ BrowserTabContent::setVolumeMprParasagittalSliceThicknessEnabled(const bool enab
 }
 
 /**
- * @return The slice view plane.
- *
+ * @return Show Axial Slice in Volume View
  */
-VolumeSliceViewPlaneEnum::Enum
-BrowserTabContent::getVolumeSliceViewPlane() const
+bool BrowserTabContent::isShowVolumeViewAxialSlice() const
 {
-    CaretAssert(getOverlaySet());
-    const VolumeMappableInterface* vmi(getOverlaySet()->getUnderlayVolume());
-    if (vmi != NULL) {
-        if (vmi->isSingleSlice()) {
-            /*
-             * For volume that is a single slice, always use an 'AXIAL' view
-             */
-            return VolumeSliceViewPlaneEnum::AXIAL;
-        }
-    }
-    
-    return m_volumeSliceSettings->getSliceViewPlane();
+    return m_volumeSliceSettings->isShowVolumeViewAxialSlice();
 }
 
 /**
- * Set the slice view plane.
- * @param windowTabNumber
- *    New value for slice plane.
+ * Set Show Axial Slice in Volume View
+ * @param status
+ *    New show status
  */
 void
-BrowserTabContent::setVolumeSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
+BrowserTabContent::setShowVolumeViewAxialSlice(const bool status)
 {
-    m_volumeSliceSettings->setSliceViewPlane(slicePlane);
-    updateBrainModelYokedBrowserTabs();
+    m_volumeSliceSettings->setShowVolumeViewAxialSlice(status);
+}
+
+/**
+ * @return Show Coronal Slice in Volume View
+ */
+bool BrowserTabContent::isShowVolumeViewCoronalSlice() const
+{
+    return m_volumeSliceSettings->isShowVolumeViewCoronalSlice();
+}
+
+/**
+ * Set Show Coronal Slice in Volume View
+ * @param status
+ *    New show status
+ */
+void
+BrowserTabContent::setShowVolumeViewCoronalSlice(const bool status)
+{
+    m_volumeSliceSettings->setShowVolumeViewCoronalSlice(status);
+}
+
+/**
+ * @return Show Parasagittal Slice in Volume View
+ */
+bool BrowserTabContent::isShowVolumeViewParasagittalSlice() const
+{
+    return m_volumeSliceSettings->isShowVolumeViewParasagittalSlice();
+}
+
+/**
+ * Set Show Parasagittal Slice in Volume View
+ * @param status
+ *    New show status
+ */
+void
+BrowserTabContent::setShowVolumeViewParasagittalSlice(const bool status)
+{
+    m_volumeSliceSettings->setShowVolumeViewParasagittalSlice(status);
+}
+
+/**
+ * @return Show Rotation Axis in Volume View
+ */
+bool BrowserTabContent::isShowVolumeViewRotationAxis() const
+{
+    const bool oldLayoutFlag(true);
+    if (oldLayoutFlag) {
+        /*
+         * Old layout replicates functionality before independent slice display was added.
+         * If (1) in MPR or Oblique mode;
+         * AND (2) all three slice axes are displayed;
+         * AND (3) in a Grid layout, then
+         * Show the rotation axes in the bottom left of the grid
+         */
+        bool showRotationAxesFlag(false);
+        switch (getVolumeSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                switch (getVolumeSlicePlanesAllViewLayout()) {
+                    case VolumeSliceViewAllPlanesLayoutEnum::COLUMN_LAYOUT:
+                        break;
+                    case VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT:
+                        if (isShowVolumeViewAxialSlice()
+                            && isShowVolumeViewCoronalSlice()
+                            && isShowVolumeViewParasagittalSlice()) {
+                            showRotationAxesFlag = true;
+                        }
+                        break;
+                    case VolumeSliceViewAllPlanesLayoutEnum::ROW_LAYOUT:
+                        break;
+                }
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                break;
+        }
+        
+        return showRotationAxesFlag;
+    }
+    
+    return m_volumeSliceSettings->isShowVolumeViewRotationAxis();
+}
+
+/**
+ * Set Show Rotation Axis in Volume View
+ * @param status
+ *    New show status
+ */
+void
+BrowserTabContent::setShowVolumeViewRotationAxis(const bool status)
+{
+    m_volumeSliceSettings->setShowVolumeViewRotationAxis(status);
+}
+
+/**
+ * Get the viewports for drawing volume slices in this tab
+ * @param tabViewport
+ *    The viewport for the tab that contains all slices
+ * @param axialSliceViewportOut
+ *    Output containing viewport for drawing the axial slice (viewport is invalid if slice should NOT be drawn)
+ * @param coronalSliceViewportOut
+ *    Output containing viewport for drawing the coronal slice (viewport is invalid if slice should NOT be drawn)
+ * @param parasagittalSliceViewportOut
+ *    Output containing viewport for drawing the parasagittal slice (viewport is invalid if slice should NOT be drawn)
+ * @param rotationAxisViewportOut
+ *    Output containing viewport for drawing the rotation axis (viewport is invalid if slice should NOT be drawn)
+ */
+void
+BrowserTabContent::getVolumeSliceDrawingViewports(const GraphicsViewport& tabViewport,
+                                                  GraphicsViewport& axialSliceViewportOut,
+                                                  GraphicsViewport& coronalSliceViewportOut,
+                                                  GraphicsViewport& parasagittalSliceViewportOut,
+                                                  GraphicsViewport& rotationAxisViewportOut)
+{
+    axialSliceViewportOut.resetToInvalid();
+    coronalSliceViewportOut.resetToInvalid();
+    parasagittalSliceViewportOut.resetToInvalid();
+    rotationAxisViewportOut.resetToInvalid();
+    
+    m_volumeViewAxialViewport.resetToInvalid();
+    m_volumeViewCoronalViewport.resetToInvalid();
+    m_volumeViewParasagittalViewport.resetToInvalid();
+    m_volumeViewRotationAxisViewport.resetToInvalid();
+    
+    if ( ! tabViewport.isValid()) {
+        return;
+    }
+    
+    bool axialSliceFlag(isShowVolumeViewAxialSlice());
+    bool coronalSliceFlag(isShowVolumeViewCoronalSlice());
+    bool paraSliceFlag(isShowVolumeViewParasagittalSlice());
+    
+    int32_t numDisplayed(0);
+    if (axialSliceFlag) ++numDisplayed;
+    if (coronalSliceFlag) ++numDisplayed;
+    if (paraSliceFlag) ++numDisplayed;
+    
+    if (numDisplayed <= 0) {
+        return;
+    }
+    
+    bool rotationAxisFlag(false);
+    
+    bool axialBottomRightFlag(false);
+    switch (getVolumeSliceProjectionType()) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            if (isShowVolumeViewRotationAxis()) {
+                rotationAxisFlag = true;
+                ++numDisplayed;
+            }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            if (axialSliceFlag
+                && coronalSliceFlag
+                && paraSliceFlag) {
+                if (getVolumeSlicePlanesAllViewLayout() == VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT) {
+                    /*
+                     * Bottom left empty, put axial in bottom right
+                     */
+                    axialBottomRightFlag = true;
+                }
+            }
+            break;
+    }
+    
+    
+    int32_t numRows(1);
+    int32_t numColumns(1);
+    switch (getVolumeSlicePlanesAllViewLayout()) {
+        case VolumeSliceViewAllPlanesLayoutEnum::COLUMN_LAYOUT:
+            numRows = numDisplayed;
+            break;
+        case VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT:
+            if (numDisplayed >= 3) {
+                CaretAssert(numDisplayed <= 4);
+                numRows = 2;
+                numColumns = 2;
+            }
+            else {
+                numColumns = numDisplayed;
+            }
+            break;
+        case VolumeSliceViewAllPlanesLayoutEnum::ROW_LAYOUT:
+            numColumns = numDisplayed;
+            break;
+    }
+    
+    const int32_t vpWidth(tabViewport.getWidthF() / static_cast<float>(numColumns));
+    const int32_t vpHeight(tabViewport.getHeightF() / static_cast<float>(numRows));
+    
+    int32_t col(0);
+    int32_t vpX(tabViewport.getX());
+    int32_t vpY(tabViewport.getY() + tabViewport.getHeight() - vpHeight);
+    
+    /*
+     * Function to move to next cell in the viewport
+     */
+    auto moveToNextCellLambda = [=](int32_t &col,
+                                    int32_t &vpX,
+                                    int32_t &vpY,
+                                    const int32_t vpMinY,
+                                    const int32_t vpWidth,
+                                    const int32_t vpHeight) {
+        ++col;
+        vpX += vpWidth;
+        if (col >= numColumns) {
+            col = 0;
+            vpY -= vpHeight;
+            if (vpY < vpMinY) {
+                vpY = vpMinY;
+            }
+            vpX = 0;
+        }
+    };
+    
+    const bool showVpFlag(false);
+    if (showVpFlag) std::cout << "Volume Viewports: " << std::endl;
+    if (showVpFlag) std::cout << "   Tab Viewport: " << tabViewport.toString() << std::endl;
+    if (paraSliceFlag) {
+        parasagittalSliceViewportOut = GraphicsViewport(vpX, vpY, vpWidth, vpHeight);
+        if (showVpFlag) std::cout << "      Para: " << parasagittalSliceViewportOut.toString() << std::endl;
+        moveToNextCellLambda(col, vpX, vpY, tabViewport.getY(), vpWidth, vpHeight);
+    }
+    if (coronalSliceFlag) {
+        coronalSliceViewportOut = GraphicsViewport(vpX, vpY, vpWidth, vpHeight);
+        if (showVpFlag) std::cout << "      Coronal: " << coronalSliceViewportOut.toString() << std::endl;
+        moveToNextCellLambda(col, vpX, vpY, tabViewport.getY(), vpWidth, vpHeight);
+    }
+    if (rotationAxisFlag) {
+        rotationAxisViewportOut = GraphicsViewport(vpX, vpY, vpWidth, vpHeight);
+        if (showVpFlag) std::cout << "      Rotation: " << rotationAxisViewportOut.toString() << std::endl;
+        moveToNextCellLambda(col, vpX, vpY, tabViewport.getY(), vpWidth, vpHeight);
+    }
+    if (axialSliceFlag) {
+        if (axialBottomRightFlag) {
+            /*
+             * Move bottom left cell content to bottom right
+             */
+            moveToNextCellLambda(col, vpX, vpY, tabViewport.getY(), vpWidth, vpHeight);
+        }
+        axialSliceViewportOut = GraphicsViewport(vpX, vpY, vpWidth, vpHeight);
+        if (showVpFlag) std::cout << "      Axial: " << axialSliceViewportOut.toString() << std::endl;
+        moveToNextCellLambda(col, vpX, vpY, tabViewport.getY(), vpWidth, vpHeight);
+    }
+    
+    m_volumeViewAxialViewport        = axialSliceViewportOut;
+    m_volumeViewCoronalViewport      = coronalSliceViewportOut;
+    m_volumeViewParasagittalViewport = parasagittalSliceViewportOut;
+    m_volumeViewRotationAxisViewport = rotationAxisViewportOut;
+}
+
+GraphicsViewport
+BrowserTabContent::getVolumeSlicePlaneViewport(const VolumeSliceViewPlaneEnum::Enum slicePlane) const
+{
+    GraphicsViewport vpOut;
+    
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            vpOut = m_volumeViewRotationAxisViewport;
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            vpOut = m_volumeViewAxialViewport;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            vpOut = m_volumeViewCoronalViewport;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            vpOut = m_volumeViewParasagittalViewport;
+            break;
+    }
+    
+    return vpOut;
+}
+
+/**
+ * @return map containing slice plane and viewport of any volume slice views currently displayed
+ * @param includeRotationViewportFlag
+ *    If true include the rotation viewport (ALL)
+ */
+std::map<VolumeSliceViewPlaneEnum::Enum, const GraphicsViewport*>
+BrowserTabContent::getActiveVolumeSliceDrawingViewports(const bool includeRotationViewportFlag) const
+{
+    std::map<VolumeSliceViewPlaneEnum::Enum, const GraphicsViewport*> planeAndVP;
+    
+    if (m_volumeViewAxialViewport.isValid()) {
+        planeAndVP.insert(std::make_pair(VolumeSliceViewPlaneEnum::AXIAL,
+                                         &m_volumeViewAxialViewport));
+    }
+    if (m_volumeViewCoronalViewport.isValid()) {
+        planeAndVP.insert(std::make_pair(VolumeSliceViewPlaneEnum::CORONAL,
+                                         &m_volumeViewCoronalViewport));
+    }
+    if (m_volumeViewParasagittalViewport.isValid()) {
+        planeAndVP.insert(std::make_pair(VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                         &m_volumeViewParasagittalViewport));
+    }
+    if (includeRotationViewportFlag) {
+        if (m_volumeViewRotationAxisViewport.isValid()) {
+            planeAndVP.insert(std::make_pair(VolumeSliceViewPlaneEnum::ALL,
+                                             &m_volumeViewRotationAxisViewport));
+        }
+    }
+    
+    return planeAndVP;
+}
+
+/**
+ * @return Slice plane containing mouse.
+ * @param mouseX
+ *    X-coordinate of mouse
+ * @param includeRotationViewportFlag
+ *    If true search include viewport containing rotation axis
+ */
+FunctionResultValue<VolumeSliceViewPlaneEnum::Enum>
+BrowserTabContent::getVolumeSlicePlaneContainingMouse(const int32_t mouseX,
+                                                      const int32_t mouseY,
+                                                      const bool includeRotationViewportFlag) const
+{
+    const std::map<VolumeSliceViewPlaneEnum::Enum, const GraphicsViewport*> planeAndVP(getActiveVolumeSliceDrawingViewports(includeRotationViewportFlag));
+    for (const auto& pVP : planeAndVP) {
+        if (pVP.second->containsWindowXY(mouseX, mouseY)) {
+            return FunctionResultValue<VolumeSliceViewPlaneEnum::Enum>(pVP.first);
+        }
+    }
+    
+    return FunctionResultValue<VolumeSliceViewPlaneEnum::Enum>(VolumeSliceViewPlaneEnum::ALL,
+                                                               "",
+                                                               false);
 }
 
 /**
@@ -8378,9 +8649,9 @@ BrowserTabContent::getVolumeSliceCoordinates() const
  *    Enabled status of parasagittal slice.
  */
 bool
-BrowserTabContent::isVolumeSliceParasagittalEnabled() const
+BrowserTabContent::isWholeBrainSliceParasagittalEnabled() const
 {
-    return m_volumeSliceSettings->isSliceParasagittalEnabled();
+    return m_volumeSliceSettings->isWholeBrainSliceParasagittalEnabled();
 }
 
 /**
@@ -8389,9 +8660,9 @@ BrowserTabContent::isVolumeSliceParasagittalEnabled() const
  *    New enabled status.
  */
 void
-BrowserTabContent::setVolumeSliceParasagittalEnabled(const bool sliceEnabledParasagittal)
+BrowserTabContent::setWholeBrainSliceParasagittalEnabled(const bool sliceEnabledParasagittal)
 {
-    m_volumeSliceSettings->setSliceParasagittalEnabled(sliceEnabledParasagittal);
+    m_volumeSliceSettings->setWholeBrainSliceParasagittalEnabled(sliceEnabledParasagittal);
     updateBrainModelYokedBrowserTabs();
 }
 
@@ -8401,9 +8672,9 @@ BrowserTabContent::setVolumeSliceParasagittalEnabled(const bool sliceEnabledPara
  *    Enabled status of coronal slice.
  */
 bool
-BrowserTabContent::isVolumeSliceCoronalEnabled() const
+BrowserTabContent::isWholeBrainSliceCoronalEnabled() const
 {
-    return m_volumeSliceSettings->isSliceCoronalEnabled();
+    return m_volumeSliceSettings->isWholeBrainSliceCoronalEnabled();
 }
 
 /**
@@ -8412,9 +8683,9 @@ BrowserTabContent::isVolumeSliceCoronalEnabled() const
  *    New enabled status.
  */
 void
-BrowserTabContent::setVolumeSliceCoronalEnabled(const bool sliceEnabledCoronal)
+BrowserTabContent::setWholeBrainSliceCoronalEnabled(const bool sliceEnabledCoronal)
 {
-    m_volumeSliceSettings->setSliceCoronalEnabled(sliceEnabledCoronal);
+    m_volumeSliceSettings->setWholeBrainSliceCoronalEnabled(sliceEnabledCoronal);
     updateBrainModelYokedBrowserTabs();
 }
 
@@ -8424,9 +8695,9 @@ BrowserTabContent::setVolumeSliceCoronalEnabled(const bool sliceEnabledCoronal)
  *    Enabled status of axial slice.
  */
 bool
-BrowserTabContent::isVolumeSliceAxialEnabled() const
+BrowserTabContent::isWholeBrainSliceAxialEnabled() const
 {
-    return m_volumeSliceSettings->isSliceAxialEnabled();
+    return m_volumeSliceSettings->isWholeBrainSliceAxialEnabled();
 }
 
 /**
@@ -8435,13 +8706,11 @@ BrowserTabContent::isVolumeSliceAxialEnabled() const
  *    New enabled status.
  */
 void
-BrowserTabContent::setVolumeSliceAxialEnabled(const bool sliceEnabledAxial)
+BrowserTabContent::setWholeBrainSliceAxialEnabled(const bool sliceEnabledAxial)
 {
-    m_volumeSliceSettings->setSliceAxialEnabled(sliceEnabledAxial);
+    m_volumeSliceSettings->setWholeBrainSliceAxialEnabled(sliceEnabledAxial);
     updateBrainModelYokedBrowserTabs();
 }
-
-
 
 /**
  * @return Enabled status for left cerebral cortex.
@@ -9051,7 +9320,8 @@ BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologyCoo
  *    The selection bounds in the histology slice
  */
 void
-BrowserTabContent::setVolumeSliceViewsToHistologyRegion(const YokingGroupEnum::Enum yokingGroup,
+BrowserTabContent::setVolumeSliceViewsToHistologyRegion(const MouseEvent* mouseEvent,
+                                                        const YokingGroupEnum::Enum yokingGroup,
                                                         const HistologySlice* histologySlice,
                                                         const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
                                                         const GraphicsRegionSelectionBox* histologySelectionBounds)
@@ -9089,19 +9359,38 @@ BrowserTabContent::setVolumeSliceViewsToHistologyRegion(const YokingGroupEnum::E
             continue;
         }
         if (btc->getSelectedModelType() == ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES) {
-            const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab(btc->getVolumeSliceViewPlane());
-            switch (sliceViewPlaneSelectedInTab) {
+//            const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab(btc->getVolumeSliceViewPlane());
+//            switch (sliceViewPlaneSelectedInTab) {
+//                case VolumeSliceViewPlaneEnum::ALL:
+//                    break;
+//                case VolumeSliceViewPlaneEnum::AXIAL:
+//                case VolumeSliceViewPlaneEnum::CORONAL:
+//                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                    if (sliceViewPlaneForFitToRegion != sliceViewPlaneSelectedInTab) {
+//                        continue;
+//                    }
+//                    break;
+//            }
+            switch (sliceViewPlaneForFitToRegion) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     break;
                 case VolumeSliceViewPlaneEnum::AXIAL:
+                    if ( ! btc->isShowVolumeViewAxialSlice()) {
+                        continue;
+                    }
+                    break;
                 case VolumeSliceViewPlaneEnum::CORONAL:
+                    if ( ! btc->isShowVolumeViewCoronalSlice()) {
+                        continue;
+                    }
+                    break;
                 case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    if (sliceViewPlaneForFitToRegion != sliceViewPlaneSelectedInTab) {
+                    if ( ! btc->isShowVolumeViewParasagittalSlice()) {
                         continue;
                     }
                     break;
             }
-                     
+
             /*
              * Need to uses steretaxic bounds and convert to viewport coordinates
              */
@@ -9165,8 +9454,8 @@ BrowserTabContent::setVolumeSliceViewsToHistologyRegion(const YokingGroupEnum::E
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                    btc->m_volumeSliceViewingTransformation->setViewToBounds(vpContent,
-                                                                             sliceViewPlaneSelectedInTab,
+                    btc->m_volumeSliceViewingTransformation->setViewToBounds(mouseEvent,
+                                                                             sliceViewPlaneForFitToRegion, // new
                                                                              sliceViewPlaneForFitToRegion,
                                                                              &sliceBox,
                                                                              btc);

@@ -25,6 +25,7 @@
 
 #include <QAction>
 #include <QActionGroup>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -48,8 +49,6 @@
 #include "WuQtUtilities.h"
 
 using namespace caret;
-
-
     
 /**
  * \class caret::BrainBrowserWindowToolBarSlicePlane 
@@ -81,7 +80,9 @@ m_parentToolBar(parentToolBar)
                                                              + "ParasagittalSliceView");
     macroManager->addMacroSupportToObject(m_volumePlaneParasagittalToolButtonAction,
                                           "Select parasagittal slice view");
-    
+    QObject::connect(m_volumePlaneParasagittalToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarSlicePlane::volumePlaneParasagittalToolButtonActionTriggered);
+
     m_volumePlaneCoronalToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_CORONAL,
                                                                this);
     m_volumePlaneCoronalToolButtonAction->setToolTip("View the CORONAL slice");
@@ -90,7 +91,9 @@ m_parentToolBar(parentToolBar)
                                                         + "CoronalSliceView");
     macroManager->addMacroSupportToObject(m_volumePlaneCoronalToolButtonAction,
                                           "Select coronal slice view");
-    
+    QObject::connect(m_volumePlaneCoronalToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarSlicePlane::volumePlaneCoronalToolButtonActionTriggered);
+
     m_volumePlaneAxialToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_AXIAL,
                                                              this);
     m_volumePlaneAxialToolButtonAction->setToolTip("View the AXIAL slice");
@@ -99,28 +102,23 @@ m_parentToolBar(parentToolBar)
                                                       + "AxialSliceView");
     macroManager->addMacroSupportToObject(m_volumePlaneAxialToolButtonAction,
                                           "Select axial slice view");
+    QObject::connect(m_volumePlaneAxialToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarSlicePlane::volumePlaneAxialToolButtonActionTriggered);
     
-    m_volumePlaneAllToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_ALL,
-                                                           this);
-    m_volumePlaneAllToolButtonAction->setToolTip("View the PARASAGITTAL, CORONAL, and AXIAL slices\n"
-                                                 "Press arrow to display menu for layout selection");
-    m_volumePlaneAllToolButtonAction->setCheckable(true);
-    m_volumePlaneAllToolButtonAction->setMenu(createViewAllSlicesLayoutMenu(objectNamePrefix));
-    m_volumePlaneAllToolButtonAction->setObjectName(objectNamePrefix
-                                                    + "AllSlicesView");
-    macroManager->addMacroSupportToObject(m_volumePlaneAllToolButtonAction,
-                                          "Select all planes view");
+    m_volumePlaneAllToolButtonAction = NULL;
+    const bool showVolumePlaneAllToolButton(false);
+    if (showVolumePlaneAllToolButton) {
+        m_volumePlaneAllToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_PLANE_ALL,
+                                                               this);
+        m_volumePlaneAllToolButtonAction->setToolTip("View the PARASAGITTAL, CORONAL, and AXIAL slices\n"
+                                                     "Press arrow to display menu for layout selection");
+        m_volumePlaneAllToolButtonAction->setCheckable(true);
+        m_volumePlaneAllToolButtonAction->setObjectName(objectNamePrefix
+                                                        + "AllSlicesView");
+        macroManager->addMacroSupportToObject(m_volumePlaneAllToolButtonAction,
+                                              "Select all planes view");
+    }
     
-    
-    m_volumePlaneActionGroup = new QActionGroup(this);
-    m_volumePlaneActionGroup->addAction(m_volumePlaneParasagittalToolButtonAction);
-    m_volumePlaneActionGroup->addAction(m_volumePlaneCoronalToolButtonAction);
-    m_volumePlaneActionGroup->addAction(m_volumePlaneAxialToolButtonAction);
-    m_volumePlaneActionGroup->addAction(m_volumePlaneAllToolButtonAction);
-    m_volumePlaneActionGroup->setExclusive(true);
-    QObject::connect(m_volumePlaneActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(volumePlaneActionGroupTriggered(QAction*)));
-        
     QToolButton* volumePlaneParasagittalToolButton = new WorkbenchToolButton();
     volumePlaneParasagittalToolButton->setDefaultAction(m_volumePlaneParasagittalToolButtonAction);
     m_volumePlaneParasagittalToolButtonAction->setParent(volumePlaneParasagittalToolButton);
@@ -133,18 +131,20 @@ m_parentToolBar(parentToolBar)
     volumePlaneAxialToolButton->setDefaultAction(m_volumePlaneAxialToolButtonAction);
     m_volumePlaneAxialToolButtonAction->setParent(volumePlaneAxialToolButton);
     
-    QToolButton* volumePlaneAllToolButton = new WorkbenchToolButton();
-    volumePlaneAllToolButton->setDefaultAction(m_volumePlaneAllToolButtonAction);
-    m_volumePlaneAllToolButtonAction->setParent(volumePlaneAllToolButton);
+    QToolButton* volumePlaneAllToolButton(NULL);
+    if (m_volumePlaneAllToolButtonAction != NULL) {
+        volumePlaneAllToolButton= new WorkbenchToolButton();
+        volumePlaneAllToolButton->setDefaultAction(m_volumePlaneAllToolButtonAction);
+        m_volumePlaneAllToolButtonAction->setParent(volumePlaneAllToolButton);
+        CaretAssertMessage(0, "Will need to add to match widget sizes below");
+    }
     
     WuQtUtilities::matchWidgetHeights(volumePlaneParasagittalToolButton,
                                       volumePlaneCoronalToolButton,
-                                      volumePlaneAxialToolButton,
-                                      volumePlaneAllToolButton);
+                                      volumePlaneAxialToolButton);
     WuQtUtilities::matchWidgetWidths(volumePlaneParasagittalToolButton,
                                      volumePlaneCoronalToolButton,
-                                     volumePlaneAxialToolButton,
-                                     volumePlaneAllToolButton);
+                                     volumePlaneAxialToolButton);
     
     m_volumeAxisCrosshairsToolButtonAction = new WorkbenchAction(WorkbenchIconTypeEnum::TOOLBAR_VOLUME_SLICE_CROSSHAIRS,
                                                                  this);
@@ -180,20 +180,45 @@ m_parentToolBar(parentToolBar)
     volumeCrosshairLabelsToolButton->setDefaultAction(m_volumeAxisCrosshairLabelsToolButtonAction);
     volumeCrosshairLabelsToolButton->setIconSize(QSize(22, 22));
     
-    QGridLayout* gridLayout = new QGridLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
-    int32_t rowIndex = gridLayout->rowCount();
-    gridLayout->addWidget(volumePlaneParasagittalToolButton, rowIndex, 0);
-    gridLayout->addWidget(volumePlaneCoronalToolButton,      rowIndex, 1);
-    rowIndex++;
-    gridLayout->addWidget(volumePlaneAxialToolButton, rowIndex, 0);
-    gridLayout->addWidget(volumePlaneAllToolButton,   rowIndex, 1);
-    rowIndex++;
-    gridLayout->addWidget(volumeCrosshairsToolButton, rowIndex, 0, Qt::AlignRight);
-    gridLayout->addWidget(volumeCrosshairLabelsToolButton, rowIndex, 1, Qt::AlignLeft);
+    m_volumeLayoutComboBox = new QComboBox();
+    m_volumeLayoutComboBox->setToolTip("Selects layout of volume slices (column, grid, row)");
+    std::vector<VolumeSliceViewAllPlanesLayoutEnum::Enum> allLayouts;
+    VolumeSliceViewAllPlanesLayoutEnum::getAllEnums(allLayouts);
+    for (auto layout : allLayouts) {
+        m_volumeLayoutComboBox->addItem(VolumeSliceViewAllPlanesLayoutEnum::toGuiName(layout));
+        m_volumeLayoutComboBox->setItemData(m_volumeLayoutComboBox->count() - 1,
+                                            VolumeSliceViewAllPlanesLayoutEnum::toIntegerCode(layout));
+    }
+    QObject::connect(m_volumeLayoutComboBox, QOverload<int>::of(&QComboBox::activated),
+                     this, &BrainBrowserWindowToolBarSlicePlane::volumeLayoutComboBoxActivated);
+    m_volumeLayoutComboBox->setObjectName(objectNamePrefix +
+                                          "LayoutComboBox");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_volumeLayoutComboBox,
+                                                         "Select volume slice layout");
+
+    QHBoxLayout* planeLayout(new QHBoxLayout());
+    planeLayout->setContentsMargins(0, 0, 0, 0);
+    planeLayout->setSpacing(2);
+    planeLayout->addStretch();
+    planeLayout->addWidget(volumePlaneParasagittalToolButton);
+    planeLayout->addWidget(volumePlaneCoronalToolButton);
+    planeLayout->addWidget(volumePlaneAxialToolButton);
+    planeLayout->addStretch();
+
+    QHBoxLayout* crosshairLayout(new QHBoxLayout());
+    crosshairLayout->setContentsMargins(0, 0, 0, 0);
+    crosshairLayout->setSpacing(5);
+    crosshairLayout->addStretch();
+    crosshairLayout->addWidget(volumeCrosshairsToolButton);
+    crosshairLayout->addWidget(volumeCrosshairLabelsToolButton);
+    crosshairLayout->addStretch();
     
-    m_volumePlaneWidgetGroup = new WuQWidgetObjectGroup(this);
-    m_volumePlaneWidgetGroup->add(m_volumePlaneActionGroup);
+    QVBoxLayout* layout(new QVBoxLayout(this));
+    layout->setContentsMargins(0, 2, 0, 2);
+    layout->setSpacing(2);
+    layout->addLayout(planeLayout);
+    layout->addWidget(m_volumeLayoutComboBox);
+    layout->addLayout(crosshairLayout);
 }
 
 /**
@@ -212,67 +237,21 @@ BrainBrowserWindowToolBarSlicePlane::~BrainBrowserWindowToolBarSlicePlane()
 void
 BrainBrowserWindowToolBarSlicePlane::updateContent(BrowserTabContent* browserTabContent)
 {
-    m_volumePlaneWidgetGroup->blockAllSignals(true);
-    
-    switch (browserTabContent->getVolumeSliceViewPlane()) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            m_volumePlaneAllToolButtonAction->setChecked(true);
+    m_volumePlaneAxialToolButtonAction->setChecked(browserTabContent->isShowVolumeViewAxialSlice());
+    m_volumePlaneCoronalToolButtonAction->setChecked(browserTabContent->isShowVolumeViewCoronalSlice());
+    m_volumePlaneParasagittalToolButtonAction->setChecked(browserTabContent->isShowVolumeViewParasagittalSlice());
+
+    const VolumeSliceViewAllPlanesLayoutEnum::Enum layout(browserTabContent->getVolumeSlicePlanesAllViewLayout());
+    const int32_t layoutInt(VolumeSliceViewAllPlanesLayoutEnum::toIntegerCode(layout));
+    for (int32_t i = 0; i < m_volumeLayoutComboBox->count(); i++) {
+        if (m_volumeLayoutComboBox->itemData(i).toInt() == layoutInt) {
+            m_volumeLayoutComboBox->setCurrentIndex(i);
             break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            m_volumePlaneAxialToolButtonAction->setChecked(true);
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            m_volumePlaneCoronalToolButtonAction->setChecked(true);
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            m_volumePlaneParasagittalToolButtonAction->setChecked(true);
-            break;
+        }
     }
-    
-    updateViewAllSlicesLayoutMenu(browserTabContent);
-    
+
     m_volumeAxisCrosshairsToolButtonAction->setChecked(browserTabContent->isVolumeAxesCrosshairsDisplayed());
     m_volumeAxisCrosshairLabelsToolButtonAction->setChecked(browserTabContent->isVolumeAxesCrosshairLabelsDisplayed());
-                                                            
-    m_volumePlaneWidgetGroup->blockAllSignals(false);
-}
-
-/**
- * @return A new instance of the view all slices layout menu.
- * @param objectNamePrefix
- *     Prefix for object names in macro system
- */
-QMenu*
-BrainBrowserWindowToolBarSlicePlane::createViewAllSlicesLayoutMenu(const QString& objectNamePrefix)
-{
-    std::vector<VolumeSliceViewAllPlanesLayoutEnum::Enum> allLayouts;
-    VolumeSliceViewAllPlanesLayoutEnum::getAllEnums(allLayouts);
-    
-    QMenu* menu = new QMenu(this);
-    menu->setObjectName(objectNamePrefix
-                        + "LayoutMenu");
-    menu->setToolTip("Selects layout of volume slices (column, grid, row)");
-    QActionGroup* actionGroup = new QActionGroup(this);
-    
-    for (auto layout : allLayouts) {
-        QAction* action = menu->addAction(VolumeSliceViewAllPlanesLayoutEnum::toGuiName(layout));
-        action->setData((int)VolumeSliceViewAllPlanesLayoutEnum::toIntegerCode(layout));
-        action->setCheckable(true);
-        action->setObjectName(objectNamePrefix
-                              + ":Layout:"
-                              + VolumeSliceViewAllPlanesLayoutEnum::toName(layout));
-        m_viewAllSliceLayoutMenuActions.push_back(action);
-        actionGroup->addAction(action);
-
-        WuQMacroManager::instance()->addMacroSupportToObject(action,
-                                                             "Select "
-                                                             + VolumeSliceViewAllPlanesLayoutEnum::toGuiName(layout)
-                                                             + " volume slice layout");
-    }
-
-    QObject::connect(menu, &QMenu::triggered,
-                     this, &BrainBrowserWindowToolBarSlicePlane::viewAllSliceLayoutMenuTriggered);
-    return menu;
 }
 
 /**
@@ -343,78 +322,43 @@ BrainBrowserWindowToolBarSlicePlane::crosshairGapSpinBoxValueChanged(double valu
 }
 
 /**
- * Gets called when the user selects an item on the view all slices layout menu.
- *
- * @param action
- *     Action of menu item selected.
+ * Called when volume slice Axial button action is triggered
+ * @param checked
+ *    New checked status
  */
 void
-BrainBrowserWindowToolBarSlicePlane::viewAllSliceLayoutMenuTriggered(QAction* action)
+BrainBrowserWindowToolBarSlicePlane::volumePlaneAxialToolButtonActionTriggered(bool checked)
 {
-    const int layoutInt = action->data().toInt();
-    bool validFlag = false;
-    const VolumeSliceViewAllPlanesLayoutEnum::Enum layout = VolumeSliceViewAllPlanesLayoutEnum::fromIntegerCode(layoutInt, &validFlag);
-    if (validFlag) {
-        BrowserTabContent* btc = getTabContentFromSelectedTab();
-        
-        btc->setVolumeSlicePlanesAllViewLayout(layout);
-        
-        m_parentToolBar->updateVolumeIndicesWidget(btc);
-        updateGraphicsWindowAndYokedWindows();
-    }
-    else {
-        CaretLogSevere("Invalid layout in menu item: "
-                       + action->text());
-    }
-}
-
-/**
- * Update the view all slices layout menu.
- */
-void
-BrainBrowserWindowToolBarSlicePlane::updateViewAllSlicesLayoutMenu(BrowserTabContent* browserTabContent)
-{
-    const VolumeSliceViewAllPlanesLayoutEnum::Enum layout = browserTabContent->getVolumeSlicePlanesAllViewLayout();
-    const int layoutIntValue = VolumeSliceViewAllPlanesLayoutEnum::toIntegerCode(layout);
-    
-    for (auto action : m_viewAllSliceLayoutMenuActions) {
-        if (action->data().toInt() == layoutIntValue) {
-            action->setChecked(true);
-            break;
-        }
-    }
-}
-
-/**
- * Called when volume slice plane button is clicked.
- */
-void
-BrainBrowserWindowToolBarSlicePlane::volumePlaneActionGroupTriggered(QAction* action)
-{
-    VolumeSliceViewPlaneEnum::Enum plane = VolumeSliceViewPlaneEnum::AXIAL;
-    
-    if (action == m_volumePlaneAllToolButtonAction) {
-        plane = VolumeSliceViewPlaneEnum::ALL;
-    }
-    else if (action == m_volumePlaneAxialToolButtonAction) {
-        plane = VolumeSliceViewPlaneEnum::AXIAL;
-        
-    }
-    else if (action == m_volumePlaneCoronalToolButtonAction) {
-        plane = VolumeSliceViewPlaneEnum::CORONAL;
-        
-    }
-    else if (action == m_volumePlaneParasagittalToolButtonAction) {
-        plane = VolumeSliceViewPlaneEnum::PARASAGITTAL;
-    }
-    else {
-        CaretLogSevere("Invalid volume plane action: " + action->text());
-    }
-    
     BrowserTabContent* btc = getTabContentFromSelectedTab();
-    
-    btc->setVolumeSliceViewPlane(plane);
-    
+    btc->setShowVolumeViewAxialSlice(checked);
+    m_parentToolBar->updateVolumeIndicesWidget(btc);
+    updateGraphicsWindowAndYokedWindows();
+}
+
+/**
+ * Called when volume slice Coronal button action is triggered
+ * @param checked
+ *    New checked status
+ */
+void
+BrainBrowserWindowToolBarSlicePlane::volumePlaneCoronalToolButtonActionTriggered(bool checked)
+{
+    BrowserTabContent* btc = getTabContentFromSelectedTab();
+    btc->setShowVolumeViewCoronalSlice(checked);
+    m_parentToolBar->updateVolumeIndicesWidget(btc);
+    updateGraphicsWindowAndYokedWindows();
+}
+
+/**
+ * Called when volume slice Parasagittal button action is triggered
+ * @param checked
+ *    New checked status
+ */
+void
+BrainBrowserWindowToolBarSlicePlane::volumePlaneParasagittalToolButtonActionTriggered(bool checked)
+{
+    BrowserTabContent* btc = getTabContentFromSelectedTab();
+    btc->setShowVolumeViewParasagittalSlice(checked);
     m_parentToolBar->updateVolumeIndicesWidget(btc);
     updateGraphicsWindowAndYokedWindows();
 }
@@ -446,3 +390,24 @@ BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairLabelsTriggered(bool che
     btc->setVolumeAxesCrosshairLabelsDisplayed(checked);
     updateGraphicsWindowAndYokedWindows();
 }
+
+/**
+ * Called when an item is selected from the volume layout combo box
+ * @param index
+ *    Index of item selected
+ */
+void
+BrainBrowserWindowToolBarSlicePlane::volumeLayoutComboBoxActivated(int index)
+{
+    if ((index >= 0)
+        && (index < m_volumeLayoutComboBox->count())) {
+        bool validFlag(false);
+        const VolumeSliceViewAllPlanesLayoutEnum::Enum layout =
+        VolumeSliceViewAllPlanesLayoutEnum::fromIntegerCode(m_volumeLayoutComboBox->itemData(index).toInt(),
+                                                            &validFlag);
+        BrowserTabContent* btc = getTabContentFromSelectedTab();
+        btc->setVolumeSlicePlanesAllViewLayout(layout);
+        updateGraphicsWindowAndYokedWindows();
+    }
+}
+

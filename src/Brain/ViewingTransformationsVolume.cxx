@@ -124,13 +124,14 @@ ViewingTransformationsVolume::resetView()
  *    The content of the browser tab
  */
 bool
-ViewingTransformationsVolume::setViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+ViewingTransformationsVolume::setViewToBounds(const MouseEvent* mouseEvent,
                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab,
                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
                                               const GraphicsRegionSelectionBox* selectionRegion,
                                               const BrowserTabContent* browserTabContent)
 
 {
+    const BrainOpenGLViewportContent* viewportContent(mouseEvent->getViewportContent());
     const bool testFlag(false);
     if (testFlag) {
         const float x1=3.9, x2=74.6, y1=-17.5, y2=83.3, z1=0.0999985, z2=0.0999985;

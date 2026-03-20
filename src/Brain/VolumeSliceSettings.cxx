@@ -56,6 +56,15 @@ VolumeSliceSettings::VolumeSliceSettings()
     reset();
     
     m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_showVolumeViewAxialSliceFlag",
+                          &m_showVolumeViewAxialSliceFlag);
+    m_sceneAssistant->add("m_showVolumeViewCoronalSliceFlag",
+                          &m_showVolumeViewCoronalSliceFlag);
+    m_sceneAssistant->add("m_showVolumeViewParasagittalSliceFlag",
+                          &m_showVolumeViewParasagittalSliceFlag);
+    m_sceneAssistant->add("m_showVolumeViewRotationAxisFlag",
+                          &m_showVolumeViewRotationAxisFlag);
+    /* No longer used except when restoring older scenes */
     m_sceneAssistant->add<VolumeSliceViewPlaneEnum,VolumeSliceViewPlaneEnum::Enum>("m_sliceViewPlane",
                                                                                    &m_sliceViewPlane);
     m_sceneAssistant->add<VolumeSliceViewAllPlanesLayoutEnum, VolumeSliceViewAllPlanesLayoutEnum::Enum>("m_slicePlanesAllViewLayout",
@@ -128,7 +137,10 @@ VolumeSliceSettings::operator=(const VolumeSliceSettings& obj)
 void 
 VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& obj)
 {
-    m_sliceViewPlane         = obj.m_sliceViewPlane;
+    m_showVolumeViewAxialSliceFlag        = obj.m_showVolumeViewAxialSliceFlag;
+    m_showVolumeViewCoronalSliceFlag      = obj.m_showVolumeViewCoronalSliceFlag;
+    m_showVolumeViewParasagittalSliceFlag = obj.m_showVolumeViewParasagittalSliceFlag;
+    m_showVolumeViewRotationAxisFlag      = obj.m_showVolumeViewRotationAxisFlag;
     m_slicePlanesAllViewLayout = obj.m_slicePlanesAllViewLayout;
     m_sliceDrawingType       = obj.m_sliceDrawingType;
     m_sliceProjectionType    = obj.m_sliceProjectionType;
@@ -159,12 +171,18 @@ VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& ob
 void
 VolumeSliceSettings::copyToMeForYoking(const VolumeSliceSettings& volumeSliceSettings)
 {
-    const VolumeSliceViewPlaneEnum::Enum sliceViewPlane(m_sliceViewPlane);
+    const bool volumeAxialSliceFlag(m_showVolumeViewAxialSliceFlag);
+    const bool volumeCoronalSliceFlag(m_showVolumeViewCoronalSliceFlag);
+    const bool volumeParaSliceFlag(m_showVolumeViewParasagittalSliceFlag);
+    const bool volumeRotationAxisFlag(m_showVolumeViewRotationAxisFlag);
     const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = m_sliceDrawingType;
     
     copyHelperVolumeSliceSettings(volumeSliceSettings);
     
-    m_sliceViewPlane = sliceViewPlane;
+    m_showVolumeViewAxialSliceFlag = volumeAxialSliceFlag;
+    m_showVolumeViewCoronalSliceFlag = volumeCoronalSliceFlag;
+    m_showVolumeViewParasagittalSliceFlag = volumeParaSliceFlag;
+    m_showVolumeViewRotationAxisFlag = volumeRotationAxisFlag;
     m_sliceDrawingType = sliceDrawingType;
 }
 
@@ -225,8 +243,14 @@ VolumeSliceSettings::getDescriptionOfContent(const ModelTypeEnum::Enum modelType
     descriptionOut.pushIndentation();
     
     if (volumeFlag) {
-        descriptionOut.addLine("   View Plane: "
-                              + VolumeSliceViewPlaneEnum::toGuiName(m_sliceViewPlane));
+        descriptionOut.addLine("   Volume Axial Slice On"
+                               + AString::fromBool(m_showVolumeViewAxialSliceFlag));
+        descriptionOut.addLine("   Volume Coronal Slice On"
+                               + AString::fromBool(m_showVolumeViewCoronalSliceFlag));
+        descriptionOut.addLine("   Volume Parasagittal Slice On"
+                               + AString::fromBool(m_showVolumeViewParasagittalSliceFlag));
+        descriptionOut.addLine("   Volume Rotation Axis On"
+                               + AString::fromBool(m_showVolumeViewRotationAxisFlag));
         showParasagittalCoordinate = true;
         showCoronalCoordinate      = true;
         showAxialCoordinate        = true;
@@ -261,24 +285,79 @@ VolumeSliceSettings::getDescriptionOfContent(const ModelTypeEnum::Enum modelType
 }
 
 /**
- * @return The slice view plane.
- *
+ * @return Show Axial Slice in Volume View
  */
-VolumeSliceViewPlaneEnum::Enum
-VolumeSliceSettings::getSliceViewPlane() const
+bool VolumeSliceSettings::isShowVolumeViewAxialSlice() const
 {
-    return m_sliceViewPlane;
+    return m_showVolumeViewAxialSliceFlag;
 }
 
 /**
- * Set the slice view plane.
- * @param windowTabNumber
- *    New value for slice plane.
+ * Set Show Axial Slice in Volume View
+ * @param status
+ *    New show status
  */
 void
-VolumeSliceSettings::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
+VolumeSliceSettings::setShowVolumeViewAxialSlice(const bool status)
 {
-    m_sliceViewPlane = slicePlane;
+    m_showVolumeViewAxialSliceFlag = status;
+}
+
+/**
+ * @return Show Coronal Slice in Volume View
+ */
+bool VolumeSliceSettings::isShowVolumeViewCoronalSlice() const
+{
+    return m_showVolumeViewCoronalSliceFlag;
+}
+
+/**
+ * Set Show Coronal Slice in Volume View
+ * @param status
+ *    New show status
+ */
+void
+VolumeSliceSettings::setShowVolumeViewCoronalSlice(const bool status)
+{
+    m_showVolumeViewCoronalSliceFlag = status;
+}
+
+/**
+ * @return Show Parasagittal Slice in Volume View
+ */
+bool VolumeSliceSettings::isShowVolumeViewParasagittalSlice() const
+{
+    return m_showVolumeViewParasagittalSliceFlag;
+}
+
+/**
+ * Set Show Parasagittal Slice in Volume View
+ * @param status
+ *    New show status
+ */
+void
+VolumeSliceSettings::setShowVolumeViewParasagittalSlice(const bool status)
+{
+    m_showVolumeViewParasagittalSliceFlag = status;
+}
+
+/**
+ * @return Show Rotation Axis in Volume View
+ */
+bool VolumeSliceSettings::isShowVolumeViewRotationAxis() const
+{
+    return m_showVolumeViewRotationAxisFlag;
+}
+
+/**
+ * Set Show Rotation Axis in Volume View
+ * @param status
+ *    New show status
+ */
+void
+VolumeSliceSettings::setShowVolumeViewRotationAxis(const bool status)
+{
+    m_showVolumeViewRotationAxisFlag = status;
 }
 
 /**
@@ -375,7 +454,10 @@ VolumeSliceSettings::setSliceProjectionType(const VolumeSliceProjectionTypeEnum:
                 case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
                     break;
                 case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
-                    setSliceViewPlane(VolumeSliceViewPlaneEnum::ALL);
+                    m_showVolumeViewAxialSliceFlag        = true;
+                    m_showVolumeViewCoronalSliceFlag      = true;
+                    m_showVolumeViewParasagittalSliceFlag = true;
+                    m_showVolumeViewRotationAxisFlag      = true;
                     break;
             }
             break;
@@ -475,7 +557,6 @@ void
 VolumeSliceSettings::reset()
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
     m_slicePlanesAllViewLayout = prefs->getVolumeAllSlicePlanesLayout();
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
@@ -893,7 +974,7 @@ VolumeSliceSettings::setSliceCoordinateParasagittal(const float x)
  *    Enabled status of parasagittal slice.
  */
 bool
-VolumeSliceSettings::isSliceParasagittalEnabled() const
+VolumeSliceSettings::isWholeBrainSliceParasagittalEnabled() const
 {
     return m_sliceEnabledParasagittal;
 }
@@ -904,7 +985,7 @@ VolumeSliceSettings::isSliceParasagittalEnabled() const
  *    New enabled status.
  */
 void
-VolumeSliceSettings::setSliceParasagittalEnabled(const bool sliceEnabledParasagittal)
+VolumeSliceSettings::setWholeBrainSliceParasagittalEnabled(const bool sliceEnabledParasagittal)
 {
     m_sliceEnabledParasagittal = sliceEnabledParasagittal;
 }
@@ -915,7 +996,7 @@ VolumeSliceSettings::setSliceParasagittalEnabled(const bool sliceEnabledParasagi
  *    Enabled status of coronal slice.
  */
 bool
-VolumeSliceSettings::isSliceCoronalEnabled() const
+VolumeSliceSettings::isWholeBrainSliceCoronalEnabled() const
 {
     return m_sliceEnabledCoronal;
 }
@@ -926,7 +1007,7 @@ VolumeSliceSettings::isSliceCoronalEnabled() const
  *    New enabled status.
  */
 void
-VolumeSliceSettings::setSliceCoronalEnabled(const bool sliceEnabledCoronal)
+VolumeSliceSettings::setWholeBrainSliceCoronalEnabled(const bool sliceEnabledCoronal)
 {
     m_sliceEnabledCoronal = sliceEnabledCoronal;
 }
@@ -937,7 +1018,7 @@ VolumeSliceSettings::setSliceCoronalEnabled(const bool sliceEnabledCoronal)
  *    Enabled status of axial slice.
  */
 bool
-VolumeSliceSettings::isSliceAxialEnabled() const
+VolumeSliceSettings::isWholeBrainSliceAxialEnabled() const
 {
     return m_sliceEnabledAxial;
 }
@@ -948,7 +1029,7 @@ VolumeSliceSettings::isSliceAxialEnabled() const
  *    New enabled status.
  */
 void
-VolumeSliceSettings::setSliceAxialEnabled(const bool sliceEnabledAxial)
+VolumeSliceSettings::setWholeBrainSliceAxialEnabled(const bool sliceEnabledAxial)
 {
     m_sliceEnabledAxial = sliceEnabledAxial;
 }
@@ -988,7 +1069,8 @@ VolumeSliceSettings::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "VolumeSliceSettings",
-                                            3);  // 3 -> new MPR modes including average
+                                            4);  // 4 -> Independent slice axis NOT VolumeSliceViewPlaneEnum
+                                            //3);  // 3 -> new MPR modes including average
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -1121,6 +1203,42 @@ VolumeSliceSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     if (sceneClass->getObjectWithName("m_montageSliceOrderMode") == NULL) {
         m_montageSliceOrderMode = VolumeMontageSliceOrderModeEnum::WORKBENCH;
+    }
+    
+    if (sceneClass->getVersionNumber() < 4) {
+        /*
+         * Independent slice view controls added in version 4
+         * Prevously used m_sliceViewPlane
+         */
+        m_showVolumeViewAxialSliceFlag = false;
+        m_showVolumeViewCoronalSliceFlag = false;
+        m_showVolumeViewParasagittalSliceFlag = false;
+        m_showVolumeViewRotationAxisFlag = false;
+        switch (m_sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                m_showVolumeViewAxialSliceFlag = true;
+                m_showVolumeViewCoronalSliceFlag = true;
+                m_showVolumeViewParasagittalSliceFlag = true;
+                switch (m_slicePlanesAllViewLayout) {
+                    case VolumeSliceViewAllPlanesLayoutEnum::COLUMN_LAYOUT:
+                        break;
+                    case VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT:
+                        m_showVolumeViewRotationAxisFlag = true;
+                        break;
+                    case VolumeSliceViewAllPlanesLayoutEnum::ROW_LAYOUT:
+                        break;
+                }
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                m_showVolumeViewAxialSliceFlag = true;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                m_showVolumeViewCoronalSliceFlag = true;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                m_showVolumeViewParasagittalSliceFlag = true;
+                break;
+        }
     }
     
     /*

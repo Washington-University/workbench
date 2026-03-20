@@ -215,99 +215,65 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* viewportContent,
-                                              BrowserTabContent* browserTabContent,
+                                              BrowserTabContent* /*browserTabContent*/,
                                               const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                               const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                               const GraphicsViewport& viewport)
 {
-    VolumeSliceViewPlaneEnum::Enum sliceViewPlane(browserTabContent->getVolumeSliceViewPlane());
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-        {
-            /*
-             * Draw parasagittal slice
-             */
-            std::array<int32_t, 4> axisVP;
-            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport.getViewport().data(),
-                                                                VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                                                browserTabContent->getVolumeSlicePlanesAllViewLayout(),
-                                                                axisVP.data());
-            {
-                EventDrawingViewportContentAdd addViewportEvent;
-                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
-                                          m_tabIndex,
-                                          GraphicsViewport(axisVP.data()),
-                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
-                EventManager::get()->sendEvent(addViewportEvent.getPointer());
-            }
-            glPushMatrix();
-            drawVolumeSliceViewType(viewportContent,
-                                    sliceProjectionType,
-                                    sliceDrawingType,
-                                    VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                    axisVP);
-            glPopMatrix();
-            
-            /*
-             * Draw coronal slice
-             */
-            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport.getViewport().data(),
-                                                                VolumeSliceViewPlaneEnum::CORONAL,
-                                                                browserTabContent->getVolumeSlicePlanesAllViewLayout(),
-                                                                axisVP.data());
-            {
-                EventDrawingViewportContentAdd addViewportEvent;
-                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
-                                          m_tabIndex,
-                                          GraphicsViewport(axisVP.data()),
-                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
-                EventManager::get()->sendEvent(addViewportEvent.getPointer());
-            }
-            glPushMatrix();
-            drawVolumeSliceViewType(viewportContent,
-                                    sliceProjectionType,
-                                    sliceDrawingType,
-                                    VolumeSliceViewPlaneEnum::CORONAL,
-                                    axisVP);
-            glPopMatrix();
-            
-            /*
-             * Draw axial slice
-             */
-            BrainOpenGLViewportContent::getSliceAllViewViewport(viewport.getViewport().data(),
-                                                                VolumeSliceViewPlaneEnum::AXIAL,
-                                                                browserTabContent->getVolumeSlicePlanesAllViewLayout(),
-                                                                axisVP.data());
-            {
-                EventDrawingViewportContentAdd addViewportEvent;
-                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
-                                          m_tabIndex,
-                                          GraphicsViewport(axisVP.data()),
-                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
-                EventManager::get()->sendEvent(addViewportEvent.getPointer());
-            }
-            glPushMatrix();
-            drawVolumeSliceViewType(viewportContent,
-                                    sliceProjectionType,
-                                    sliceDrawingType,
-                                    VolumeSliceViewPlaneEnum::AXIAL,
-                                    axisVP);
-            glPopMatrix();
-        }
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-        case VolumeSliceViewPlaneEnum::CORONAL:
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-        {
-            glPushMatrix();
-            drawVolumeSliceViewType(viewportContent,
-                                    sliceProjectionType,
-                                    sliceDrawingType,
-                                    sliceViewPlane,
-                                    viewport);
-            glPopMatrix();
-        }
-            break;
+    GraphicsViewport axialSliceViewport;
+    GraphicsViewport coronalSliceViewport;
+    GraphicsViewport parasagittalSliceViewport;
+    GraphicsViewport rotationAxisViewport;
+    m_browserTabContent->getVolumeSliceDrawingViewports(viewport,
+                                                        axialSliceViewport,
+                                                        coronalSliceViewport,
+                                                        parasagittalSliceViewport,
+                                                        rotationAxisViewport);
+    
+    if (axialSliceViewport.isValid()) {
+        EventDrawingViewportContentAdd addAxialViewportEvent;
+        addAxialViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                       m_tabIndex,
+                                       axialSliceViewport,
+                                       ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+        EventManager::get()->sendEvent(addAxialViewportEvent.getPointer());
+        glPushMatrix();
+        drawVolumeSliceViewType(viewportContent,
+                                sliceProjectionType,
+                                sliceDrawingType,
+                                VolumeSliceViewPlaneEnum::AXIAL,
+                                axialSliceViewport.getViewport());
+        glPopMatrix();
+    }
+    if (coronalSliceViewport.isValid()) {
+        EventDrawingViewportContentAdd addCoronalViewportEvent;
+        addCoronalViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                         m_tabIndex,
+                                         coronalSliceViewport,
+                                         ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+        EventManager::get()->sendEvent(addCoronalViewportEvent.getPointer());
+        glPushMatrix();
+        drawVolumeSliceViewType(viewportContent,
+                                sliceProjectionType,
+                                sliceDrawingType,
+                                VolumeSliceViewPlaneEnum::CORONAL,
+                                coronalSliceViewport.getViewport());
+        glPopMatrix();
+    }
+    if (parasagittalSliceViewport.isValid()) {
+        EventDrawingViewportContentAdd addParaViewportEvent;
+        addParaViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                      m_tabIndex,
+                                      parasagittalSliceViewport,
+                                      ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+        EventManager::get()->sendEvent(addParaViewportEvent.getPointer());
+        glPushMatrix();
+        drawVolumeSliceViewType(viewportContent,
+                                sliceProjectionType,
+                                sliceDrawingType,
+                                VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                parasagittalSliceViewport.getViewport());
+        glPopMatrix();
     }
 }
 
@@ -349,7 +315,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                            viewport);
             break;
         case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
-            if (m_browserTabContent->isVolumeSliceAxialEnabled()) {
+            if (m_browserTabContent->isWholeBrainSliceAxialEnabled()) {
                 glPushMatrix();
                 drawVolumeSliceViewProjection(viewportContent,
                                               sliceProjectionType,
@@ -362,7 +328,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                 glPopMatrix();
             }
             
-            if (m_browserTabContent->isVolumeSliceCoronalEnabled()) {
+            if (m_browserTabContent->isWholeBrainSliceCoronalEnabled()) {
                 glPushMatrix();
                 drawVolumeSliceViewProjection(viewportContent,
                                               sliceProjectionType,
@@ -375,7 +341,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                 glPopMatrix();
             }
             
-            if (m_browserTabContent->isVolumeSliceParasagittalEnabled()) {
+            if (m_browserTabContent->isWholeBrainSliceParasagittalEnabled()) {
                 glPushMatrix();
                 drawVolumeSliceViewProjection(viewportContent,
                                               sliceProjectionType,

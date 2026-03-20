@@ -385,9 +385,9 @@ BrainBrowserWindowToolBarSliceSelection::updateContent(BrowserTabContent* browse
         browserTabContent->getValidVolumeSliceProjectionTypes(validSliceProjections);
         m_volumeSliceProjectionTypeEnumComboBox->setupWithItems<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>(validSliceProjections);
 
-        m_volumeIndicesAxialCheckBox->setChecked(browserTabContent->isVolumeSliceAxialEnabled());
-        m_volumeIndicesCoronalCheckBox->setChecked(browserTabContent->isVolumeSliceCoronalEnabled());
-        m_volumeIndicesParasagittalCheckBox->setChecked(browserTabContent->isVolumeSliceParasagittalEnabled());
+        m_volumeIndicesAxialCheckBox->setChecked(browserTabContent->isWholeBrainSliceAxialEnabled());
+        m_volumeIndicesCoronalCheckBox->setChecked(browserTabContent->isWholeBrainSliceCoronalEnabled());
+        m_volumeIndicesParasagittalCheckBox->setChecked(browserTabContent->isWholeBrainSliceParasagittalEnabled());
     }
     
     updateOptionsButton();
@@ -577,7 +577,7 @@ void
 BrainBrowserWindowToolBarSliceSelection::volumeIndicesParasagittalCheckBoxStateChanged(int /*state*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->setVolumeSliceParasagittalEnabled(m_volumeIndicesParasagittalCheckBox->isChecked());
+    btc->setWholeBrainSliceParasagittalEnabled(m_volumeIndicesParasagittalCheckBox->isChecked());
     this->updateGraphicsWindowAndYokedWindows();
 }
 
@@ -588,7 +588,7 @@ void
 BrainBrowserWindowToolBarSliceSelection::volumeIndicesCoronalCheckBoxStateChanged(int /*state*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->setVolumeSliceCoronalEnabled(m_volumeIndicesCoronalCheckBox->isChecked());
+    btc->setWholeBrainSliceCoronalEnabled(m_volumeIndicesCoronalCheckBox->isChecked());
     this->updateGraphicsWindowAndYokedWindows();
 }
 
@@ -599,7 +599,7 @@ void
 BrainBrowserWindowToolBarSliceSelection::volumeIndicesAxialCheckBoxStateChanged(int /*state*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->setVolumeSliceAxialEnabled(m_volumeIndicesAxialCheckBox->isChecked());
+    btc->setWholeBrainSliceAxialEnabled(m_volumeIndicesAxialCheckBox->isChecked());
     this->updateGraphicsWindowAndYokedWindows();
 }
 

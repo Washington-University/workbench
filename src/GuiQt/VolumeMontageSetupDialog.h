@@ -53,6 +53,7 @@ namespace caret {
         VolumeMontageSetupDialog(const int32_t browserWindowIndex,
                                  BrowserTabContent* browserTabContent,
                                  VolumeFile* underlayVolumeFile,
+                                 const VolumeSliceViewPlaneEnum::Enum underlaySliceViewPlane,
                                  QWidget* parent = 0);
         
         virtual ~VolumeMontageSetupDialog();

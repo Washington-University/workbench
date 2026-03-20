@@ -74,21 +74,26 @@ using namespace caret;
  *    Content of browser tab content
  * @param underlayVolumeFile
  *    The underlay volume file
+ * @param underlaySliceViewPlane
+ *    The slice view plane
  * @param parent
  *    The parent widget
  */
 VolumeMontageSetupDialog::VolumeMontageSetupDialog(const int32_t browserWindowIndex,
                                                    BrowserTabContent* browserTabContent,
                                                    VolumeFile* underlayVolumeFile,
+                                                   const VolumeSliceViewPlaneEnum::Enum underlaySliceViewPlane,
                                                    QWidget* parent)
 : WuQDialogModal("Setup Volume Montage",
                  parent),
 m_browserWindowIndex(browserWindowIndex),
 m_browserTabContent(browserTabContent),
-m_underlayVolumeFile(underlayVolumeFile)
+m_underlayVolumeFile(underlayVolumeFile),
+m_underlaySliceViewPlane(underlaySliceViewPlane)
 {
     CaretAssert(m_browserTabContent);
     CaretAssert(m_underlayVolumeFile);
+    CaretAssert(m_underlaySliceViewPlane != VolumeSliceViewPlaneEnum::ALL);
     
     m_dialogCreationInProgressFlag = true;
 
@@ -97,7 +102,6 @@ m_underlayVolumeFile(underlayVolumeFile)
      */
     const int32_t numRows(browserTabContent->getVolumeMontageNumberOfRows());
     const int32_t numCols(browserTabContent->getVolumeMontageNumberOfColumns());
-    m_underlaySliceViewPlane = browserTabContent->getVolumeSliceViewPlane();
     if (m_underlaySliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
         m_underlaySliceViewPlane = VolumeSliceViewPlaneEnum::AXIAL;
     }
@@ -1211,7 +1215,19 @@ VolumeMontageSetupDialog::montageExtentFileTypeComboBoxActivated(int index)
 bool
 VolumeMontageSetupDialog::applyMontageSettings()
 {
-    m_browserTabContent->setVolumeSliceViewPlane(m_outputSlicePlane);
+    switch (m_outputSlicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            m_browserTabContent->setShowVolumeViewAxialSlice(true);
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            m_browserTabContent->setShowVolumeViewCoronalSlice(true);
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            m_browserTabContent->setShowVolumeViewParasagittalSlice(true);
+            break;
+    }
     m_browserTabContent->setVolumeSliceCoordinateParasagittal(m_outputParasagittalSliceCoordinate);
     m_browserTabContent->setVolumeSliceCoordinateCoronal(m_outputCoronalSliceCoordinate);
     m_browserTabContent->setVolumeSliceCoordinateAxial(m_outputAxialSliceCoordinate);

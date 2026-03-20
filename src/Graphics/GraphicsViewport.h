@@ -55,6 +55,8 @@ namespace caret {
         
         bool operator==(const GraphicsViewport& obj) const;
         
+        void resetToInvalid();
+        
         const int32_t* toArrayInt4() const;
         
         std::array<int32_t, 4> getViewport() const;

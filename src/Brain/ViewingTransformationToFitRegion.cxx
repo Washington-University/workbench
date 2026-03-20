@@ -290,17 +290,8 @@ ViewingTransformationToFitRegion::applyToVolume(const VolumeMode volumeMode,
         
     std::array<int32_t, 4> viewportArray(m_viewport.getViewport());
     if (sliceViewPlaneSelectedInTab == VolumeSliceViewPlaneEnum::ALL) {
-        /*
-         * In ALL view, the viewport in tab is for all three of the slices.
-         * Must update viewport to that for the single slice plane
-         */
-        int32_t newViewport[4] { 0, 0, 0, 0};
-        BrainOpenGLViewportContent::getSliceAllViewViewport(viewportArray.data(),
-                                                            sliceViewPlaneForFitToRegion,
-                                                            m_browserTabContent->getVolumeSlicePlanesAllViewLayout(),
-                                                            newViewport);
-        setupViewport(newViewport);
-        viewportArray = m_viewport.getViewport();
+        CaretAssert(0);  /* should never get ALL for slice plane in selected tab */
+        return false;
     }
     
     if (m_debugFlag) std::cout << "Viewport: " << AString::fromNumbers(viewportArray.data(), 4) << std::endl;

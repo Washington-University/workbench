@@ -35,6 +35,7 @@
 #include "EventIdentificationHighlightStereotaxicLocationsInTabs.h"
 #include "EventListenerInterface.h"
 #include "FunctionResult.h"
+#include "GraphicsViewport.h"
 #include "HistologyCoordinate.h"
 #include "HistologySlice.h"
 #include "Matrix4x4.h"
@@ -76,7 +77,6 @@ namespace caret {
     class ClippingPlaneGroup;
     class EventCaretMappableDataFilesAndMapsInDisplayedOverlays;
     class GraphicsRegionSelectionBox;
-    class GraphicsViewport;
     class HistologyOverlaySet;
     class HistologySliceSettings;
     class HistologySlicesFile;
@@ -534,10 +534,36 @@ namespace caret {
         
         void setVolumeMprParasagittalSliceThicknessEnabled(const bool enabled);
         
-        VolumeSliceViewPlaneEnum::Enum getVolumeSliceViewPlane() const;
+        bool isShowVolumeViewAxialSlice() const;
         
-        void setVolumeSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
+        void setShowVolumeViewAxialSlice(const bool status);
         
+        bool isShowVolumeViewCoronalSlice() const;
+        
+        void setShowVolumeViewCoronalSlice(const bool status);
+        
+        bool isShowVolumeViewParasagittalSlice() const;
+        
+        void setShowVolumeViewParasagittalSlice(const bool status);
+        
+        bool isShowVolumeViewRotationAxis() const;
+        
+        void setShowVolumeViewRotationAxis(const bool status);
+
+        GraphicsViewport getVolumeSlicePlaneViewport(const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
+        
+        FunctionResultValue<VolumeSliceViewPlaneEnum::Enum> getVolumeSlicePlaneContainingMouse(const int32_t mouseX,
+                                                                                               const int32_t mouseY,
+                                                                                               const bool includeRotationViewportFlag) const;
+        
+        std::map<VolumeSliceViewPlaneEnum::Enum, const GraphicsViewport*> getActiveVolumeSliceDrawingViewports(const bool includeRotationViewportFlag) const;
+
+        void getVolumeSliceDrawingViewports(const GraphicsViewport& tabViewport,
+                                            GraphicsViewport& axialSliceViewportOut,
+                                            GraphicsViewport& coronalSliceViewportOut,
+                                            GraphicsViewport& parasagittalSliceViewportOut,
+                                            GraphicsViewport& rotationAxisViewportOut);
+
         VolumeSliceViewAllPlanesLayoutEnum::Enum getVolumeSlicePlanesAllViewLayout() const;
         
         void setVolumeSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum slicePlanesAllViewLayout);
@@ -599,17 +625,17 @@ namespace caret {
         void setVolumeSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
                                        const int64_t sliceIndexParasagittal);
         
-        bool isVolumeSliceParasagittalEnabled() const;
+        bool isWholeBrainSliceParasagittalEnabled() const;
         
-        void setVolumeSliceParasagittalEnabled(const bool sliceEnabledParasagittal);
+        void setWholeBrainSliceParasagittalEnabled(const bool sliceEnabledParasagittal);
         
-        bool isVolumeSliceCoronalEnabled() const;
+        bool isWholeBrainSliceCoronalEnabled() const;
         
-        void setVolumeSliceCoronalEnabled(const bool sliceEnabledCoronal);
+        void setWholeBrainSliceCoronalEnabled(const bool sliceEnabledCoronal);
         
-        bool isVolumeSliceAxialEnabled() const;
+        bool isWholeBrainSliceAxialEnabled() const;
         
-        void setVolumeSliceAxialEnabled(const bool sliceEnabledAxial);
+        void setWholeBrainSliceAxialEnabled(const bool sliceEnabledAxial);
         
         void selectVolumeSlicesAtOrigin();
         
@@ -848,7 +874,8 @@ namespace caret {
         
         void moveYokedVolumeSlicesToHistologyCoordinate(const HistologyCoordinate& histologyCoordinate);
         
-        void setVolumeSliceViewsToHistologyRegion(const YokingGroupEnum::Enum yokingGroup,
+        void setVolumeSliceViewsToHistologyRegion(const MouseEvent* mouseEvent,
+                                                  const YokingGroupEnum::Enum yokingGroup,
                                                   const HistologySlice* histologySlice,
                                                   const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
                                                   const GraphicsRegionSelectionBox* histologySelectionBounds);
@@ -860,7 +887,8 @@ namespace caret {
                                         const GraphicsViewport& viewport,
                                         const Vector3D& mousePressWindowXY,
                                         const Vector3D& mouseWindowXY,
-                                        const Vector3D& previousMouseWindowXY);
+                                        const Vector3D& previousMouseWindowXY,
+                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
 
         float getMouseMovementAngleCCW(const Vector3D& rotationXY,
                                        const Vector3D& mouseXY,
@@ -1001,6 +1029,11 @@ namespace caret {
 
         float m_mprThreeSingleSliceVolumeRotationAngle = 0.0;
         
+        GraphicsViewport m_volumeViewAxialViewport;
+        GraphicsViewport m_volumeViewCoronalViewport;
+        GraphicsViewport m_volumeViewParasagittalViewport;
+        GraphicsViewport m_volumeViewRotationAxisViewport;
+
         /** aspect ratio */
         float m_aspectRatio;
         

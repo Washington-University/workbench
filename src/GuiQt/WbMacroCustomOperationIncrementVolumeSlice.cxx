@@ -159,22 +159,14 @@ WbMacroCustomOperationIncrementVolumeSlice::executeCommand(QWidget* parent,
     int32_t sliceIndexCoronal      = tabContent->getVolumeSliceIndexCoronal(underlayVolumeFile);
     int32_t sliceIndexParasagittal = tabContent->getVolumeSliceIndexParasagittal(underlayVolumeFile);
     
-    VolumeSliceViewPlaneEnum::Enum slicePlane = tabContent->getVolumeSliceViewPlane();
-    switch (slicePlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            sliceIndexAxial        += incrementSlice;
-            sliceIndexCoronal      += incrementSlice;
-            sliceIndexParasagittal += incrementSlice;
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            sliceIndexAxial += incrementSlice;
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            sliceIndexCoronal += incrementSlice;
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            sliceIndexParasagittal += incrementSlice;
-            break;
+    if (tabContent->isShowVolumeViewAxialSlice()) {
+        sliceIndexAxial += incrementSlice;
+    }
+    if (tabContent->isShowVolumeViewCoronalSlice()) {
+        sliceIndexCoronal += incrementSlice;
+    }
+    if (tabContent->isShowVolumeViewParasagittalSlice()) {
+        sliceIndexParasagittal += incrementSlice;
     }
     
     tabContent->setVolumeSliceIndexAxial(underlayVolumeFile,

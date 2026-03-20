@@ -1581,15 +1581,31 @@ BrainBrowserWindow::processShowVolumeMontageSetupDialog()
         VolumeMappableInterface* vmi(mv->getUnderlayVolumeFile(m_browserWindowIndex));
         VolumeFile* underlayVolumeFile(dynamic_cast<VolumeFile*>(vmi));
         if (underlayVolumeFile != NULL) {
-            if (getBrowserTabContent()->getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
+            VolumeSliceViewPlaneEnum::Enum viewPlane(VolumeSliceViewPlaneEnum::ALL);
+            int32_t numAxis(0);
+            if (getBrowserTabContent()->isShowVolumeViewAxialSlice()) {
+                viewPlane = VolumeSliceViewPlaneEnum::AXIAL;
+                ++numAxis;
+            }
+            if (getBrowserTabContent()->isShowVolumeViewCoronalSlice()) {
+                viewPlane = VolumeSliceViewPlaneEnum::CORONAL;
+                ++numAxis;
+            }
+            if (getBrowserTabContent()->isShowVolumeViewParasagittalSlice()) {
+                viewPlane = VolumeSliceViewPlaneEnum::PARASAGITTAL;
+                ++numAxis;
+            }
+            if (numAxis == 1) {
                 VolumeMontageSetupDialog dialog(m_browserWindowIndex,
                                                 getBrowserTabContent(),
                                                 underlayVolumeFile,
+                                                viewPlane,
                                                 this);
                 dialog.exec();
             }
             else {
-                WuQMessageBox::errorOk(this, "Slice View Plane must NOT be ALL");
+                WuQMessageBox::errorOk(this,
+                                       "Setup requires one and only one slice axis is selected.");
             }
         }
         else {
@@ -3742,10 +3758,6 @@ BrainBrowserWindow::processDataFileOpen()
     for (std::vector<DataFileTypeEnum::Enum>::const_iterator iter = dataFileTypes.begin();
          iter != dataFileTypes.end();
          iter++) {
-//        if (*iter == DataFileTypeEnum::OME_ZARR_IMAGE_FILE) {
-//            CaretLogWarning("Skipping OME-ZARR for Open Dialog filters");
-//            continue;
-//        }
         AString filterName = DataFileTypeEnum::toQFileDialogFilterForReading(*iter);
         filenameFilterList.append(filterName);
     }
