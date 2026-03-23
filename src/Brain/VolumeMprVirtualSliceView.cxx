@@ -510,7 +510,7 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
      * Prevents slices from jumping if the selected slices are changed
      * and there is non-zero rotation
      */
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX)) {
+    {
         Vector3D t;
         m_transformationMatrix.getTranslation(t);
         switch (m_sliceViewPlane) {
@@ -683,7 +683,7 @@ VolumeMprVirtualSliceView::initializeModeVolumeSingleSliceFixedCamera(const Volu
      * Prevents slices from jumping if the selected slices are changed
      * and there is non-zero rotation
      */
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX)) {
+    {
         Vector3D t;
         m_transformationMatrix.getTranslation(t);
         switch (m_sliceViewPlane) {

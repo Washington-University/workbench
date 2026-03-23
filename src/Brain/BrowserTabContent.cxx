@@ -7927,7 +7927,8 @@ BrowserTabContent::getValidVolumeSliceProjectionTypes(std::vector<VolumeSlicePro
     }
     sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE);
     sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
-    if (SessionManager::get()->hasSceneWithMprOld()) {
+    if (SessionManager::get()->hasSceneWithMprOld()
+        || DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_TWO_ENABLED)) {
         sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR);
     }
 }

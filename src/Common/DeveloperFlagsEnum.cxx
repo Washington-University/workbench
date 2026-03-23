@@ -162,11 +162,11 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX,
-                                                "DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX",
-                                                "MPR Three: Fix Selected Slices Changed Jumping",
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_MPR_TWO_ENABLED,
+                                                "DEVELOPER_FLAG_MPR_TWO_ENABLED",
+                                                "Enable MPR Two (for testing)",
                                                 CheckableEnum::YES,
-                                                true));
+                                                false));
     
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION,
                                                 "DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION",
@@ -300,9 +300,10 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
             toolTip = ("When Invert Data is selected on Overlay and Map Settings Dialog,  "
                        "flip the palette instead of flipping the data (not recommended)");
             break;
-        case DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX:
-            toolTip = ("MPR Three: Prevents slices from jumping if the selected slices are changed "
-                       " and there is non-zero rotation.");
+        case DEVELOPER_FLAG_MPR_TWO_ENABLED:
+            toolTip = ("Enable MPR Two (predecessor of current MPR volume slice drawing.  "
+                       "MPR two is enabled when an old scene is loaded.  This option is intended "
+                       "for use by developer to enable testing of MPR Two.");
             break;
         case DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION:
             toolTip = ("Corrects for non-linear distortion in images from meta-images files.");

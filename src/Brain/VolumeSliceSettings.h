@@ -190,8 +190,8 @@ namespace caret {
         /* Show Rotation Axis in Volume View */
         bool m_showVolumeViewRotationAxisFlag = true;
         
-        /** Axis of slice being viewed */
-        VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
+        /** Axis of slice being viewed No longer used but it is in older scenes and used during scene restoration */
+        VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
 
         /** Layout of slice in all slices view */
         VolumeSliceViewAllPlanesLayoutEnum::Enum m_slicePlanesAllViewLayout;
