@@ -174,7 +174,12 @@ void FTVectoriser::ProcessContours()
     for(int i = 0; i < ftContourCount; ++i)
     {
         FT_Vector* pointList = &outline.points[startIndex];
-        char* tagList = &outline.tags[startIndex];
+        /* 
+         * JWH 24mar2026
+         * Freetype 2.13 changed 'char*' to 'unsigned char*' 
+         * Replaced 'char*' with auto; 
+         */
+        auto tagList = &outline.tags[startIndex];
 
         endIndex = outline.contours[i];
         contourLength =  (endIndex - startIndex) + 1;
