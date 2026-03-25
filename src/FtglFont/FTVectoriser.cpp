@@ -184,7 +184,11 @@ void FTVectoriser::ProcessContours()
         endIndex = outline.contours[i];
         contourLength =  (endIndex - startIndex) + 1;
 
-        FTContour* contour = new FTContour(pointList, tagList, contourLength);
+        /*
+         * Another fix forf 2.13.  Cast tagList to 'char*'.
+         * In 2.13 'tagList' is 'unsigned char*'
+         */
+        FTContour* contour = new FTContour(pointList, (char*)tagList, contourLength);
 
         contourList[i] = contour;
 
