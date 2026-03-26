@@ -80,7 +80,7 @@ DisplayGroupAndTabItemViewController::DisplayGroupAndTabItemViewController(const
 m_dataFileType(dataFileType),
 m_browserWindowIndex(browserWindowIndex)
 {
-    const bool doResizeFlag(true);
+    const bool doResizeFlag(false); /* Do not resize - it may cause window to expand to full height of display*/
     m_treeWidget = new WuQTreeWidget(doResizeFlag);
     m_treeWidget->setHeaderHidden(true);
     m_treeWidget->setSelectionMode(QTreeWidget::NoSelection);
