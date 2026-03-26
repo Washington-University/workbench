@@ -992,6 +992,10 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
                 name = missingName;
             }
             
+            if ( ! focus->getFocusID().isEmpty()) {
+                name += (" " + focus->getFocusID());
+            }
+            
             /*
              * Class
              */
