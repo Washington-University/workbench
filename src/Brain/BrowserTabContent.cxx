@@ -7679,7 +7679,7 @@ BrowserTabContent::getVolumeSliceDrawingViewports(const GraphicsViewport& tabVie
             if (vpY < vpMinY) {
                 vpY = vpMinY;
             }
-            vpX = 0;
+            vpX = tabViewport.getX();
         }
     };
     
