@@ -84,7 +84,10 @@ m_browserWindowIndex(browserWindowIndex)
     m_treeWidget = new WuQTreeWidget(doResizeFlag);
     m_treeWidget->setHeaderHidden(true);
     m_treeWidget->setSelectionMode(QTreeWidget::NoSelection);
-    
+    m_treeWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_treeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    m_treeWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+
     QObject::connect(m_treeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
                      this, SLOT(itemWasCollapsed(QTreeWidgetItem*)));
     QObject::connect(m_treeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
@@ -97,12 +100,13 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_treeWidget, &QTreeWidget::customContextMenuRequested,
                      this, &DisplayGroupAndTabItemViewController::displayContextMenu);
     
+    const int STRETCH_YES(100);
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(createButtonsWidget(objectNameForMacros,
                                           descriptiveNameForMacros));
-    layout->addWidget(m_treeWidget);
-    layout->addStretch();
-    
+    layout->addWidget(m_treeWidget,
+                      STRETCH_YES);
+
     s_allViewControllers.insert(this);
 }
 
@@ -683,15 +687,6 @@ DisplayGroupAndTabItemViewController::setCheckedStatusOfSelectedItems(const bool
 {
     QList<QTreeWidgetItem*> itemsSelected = m_treeWidget->selectedItems();
     
-//    bool allFlag(false);
-//    if (itemsSelected.isEmpty()) {
-//        if (m_treeWidget != NULL) {
-//            m_treeWidget->selectAll();
-//            itemsSelected = m_treeWidget->selectedItems();
-//            allFlag = true;
-//        }
-//    }
-    
     DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::DISPLAY_GROUP_TAB;
     int32_t tabIndex = -1;
     getDisplayGroupAndTabIndex(displayGroup, tabIndex);
@@ -715,10 +710,6 @@ DisplayGroupAndTabItemViewController::setCheckedStatusOfSelectedItems(const bool
                                         tabIndex);
     updateSelectedAndExpandedCheckboxesInOtherViewControllers();
     
-//    if (allFlag) {
-//        m_treeWidget->clearSelection();
-//    }
-
     updateGraphics();
 }
 

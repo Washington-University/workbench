@@ -134,7 +134,7 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         WuQTreeWidget* m_treeWidget;
-                
+
         QAction* m_collapseAllAction;
         
         QAction* m_expandAllAction;

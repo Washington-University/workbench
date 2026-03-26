@@ -262,7 +262,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                          "Features ToolBox Annotation Tab",
                                                          "");
         
-        m_annotationTabIndex = addToScrolledAreaInTabWidget(m_annotationTabWidget,
+        m_annotationTabIndex = addToTabWidget(m_annotationTabWidget,
                                               "Annot");
         m_annotationTabWidget->setCurrentIndex(0);
     }

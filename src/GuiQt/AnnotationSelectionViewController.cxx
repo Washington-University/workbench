@@ -149,7 +149,6 @@ m_browserWindowIndex(browserWindowIndex)
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupSelectionLayout);
     layout->addWidget(createSelectionWidget(objectNamePrefix), 100);
-    
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
