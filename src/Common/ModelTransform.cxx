@@ -693,7 +693,7 @@ ModelTransform::setFromString(const AString& s)
             hasObliqueRotation = true;
             hasMprAngles = true;
             hasMprThreeAngles = true;
-            hasMprThreeSingleSliceAngle;
+            hasMprThreeSingleSliceAngle = true;
             hasFlatRotation = true;
             hasRightFlatMapOffset = true;
             hasRightFlatMapZoomFactor = true;
