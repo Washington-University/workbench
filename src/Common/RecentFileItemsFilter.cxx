@@ -168,7 +168,7 @@ RecentFileItemsFilter::testItemPassesFilter(const RecentFileItem* recentFileItem
         
         if (m_regularExpression != NULL) {
             if (m_regularExpression->isValid()) {
-                if ( ! m_regularExpression->match(recentFileItem->getPathAndFileName()).hasMatch()) {
+                if ( ! m_regularExpression->match(recentFileItem->getFileName()).hasMatch()) {
                     return false;
                 }
             }
