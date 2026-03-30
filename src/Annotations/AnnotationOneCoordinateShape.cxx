@@ -391,7 +391,7 @@ AnnotationOneCoordinateShape::applyCoordinatesSizeAndRotationFromOther(const Ann
     
     AnnotationCoordinate* coord = getCoordinate();
     const AnnotationCoordinate* otherCoord = otherTwoDim->getCoordinate();
-    *coord = *otherCoord;
+    coord->copyCoordinateWithModifiedStatus(*otherCoord);
     
     setWidth(otherTwoDim->getWidth());
     setHeight(otherTwoDim->getHeight());

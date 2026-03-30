@@ -568,7 +568,7 @@ AnnotationMultiCoordinateShape::applyCoordinatesSizeAndRotationFromOther(const A
     const int32_t myNumCoords    = getNumberOfCoordinates();
     if (myNumCoords == otherNumCoords) {
         for (int32_t i = 0; i < myNumCoords; i++) {
-            *getCoordinate(i) = *otherAnn->getCoordinate(i);
+            getCoordinate(i)->copyCoordinateWithModifiedStatus(*(otherAnn->getCoordinate(i)));
         }
     }
     else {
@@ -577,6 +577,7 @@ AnnotationMultiCoordinateShape::applyCoordinatesSizeAndRotationFromOther(const A
             const AnnotationCoordinate* otherCoord = otherAnn->getCoordinate(i);
             
             std::unique_ptr<AnnotationCoordinate> ac(new AnnotationCoordinate(*otherCoord));
+            ac->setModified();
             m_coordinates.push_back(std::move(ac));
         }
     }

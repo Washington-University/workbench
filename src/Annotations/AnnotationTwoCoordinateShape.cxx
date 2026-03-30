@@ -309,11 +309,11 @@ AnnotationTwoCoordinateShape::applyCoordinatesSizeAndRotationFromOther(const Ann
     
     AnnotationCoordinate* startCoord = getStartCoordinate();
     const AnnotationCoordinate* otherStartCoord = otherOneDim->getStartCoordinate();
-    *startCoord = *otherStartCoord;
+    startCoord->copyCoordinateWithModifiedStatus(*otherStartCoord);
     
     AnnotationCoordinate* endCoord = getEndCoordinate();
     const AnnotationCoordinate* otherEndCoord = otherOneDim->getEndCoordinate();
-    *endCoord = *otherEndCoord;
+    endCoord->copyCoordinateWithModifiedStatus(*otherEndCoord);
     
     setCoordinateSpace(otherAnnotation->getCoordinateSpace());
     setTabIndex(otherAnnotation->getTabIndex());

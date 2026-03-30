@@ -132,6 +132,26 @@ AnnotationCoordinate::copyHelperAnnotationCoordinate(const AnnotationCoordinate&
 }
 
 /**
+ * Copy the given coordinate to this with setting of modified status if a value changes
+ * @param obj
+ *    Object that is copied.
+ */
+void
+AnnotationCoordinate::copyCoordinateWithModifiedStatus(const AnnotationCoordinate& obj)
+{
+    setXYZ(obj.m_xyz);
+    setSurfaceSpace(obj.m_surfaceSpaceStructure,
+                    obj.m_surfaceSpaceNumberOfNodes,
+                    obj.m_surfaceSpaceNodeIndex,
+                    obj.m_surfaceOffsetLength,
+                    obj.m_surfaceOffsetVectorType);
+    setSurfaceTextOffsetPolarAngle(obj.m_surfaceTextOffsetPolarAngle);
+    setSurfaceTextOffsetScreenDepth(obj.m_surfaceTextOffsetScreenDepth);
+    setMediaFileName(obj.m_mediaFileName);
+    setHistologySpaceKey(obj.m_histologySpaceKey);
+}
+
+/**
  * Initialize members for an instance of this class.
  */
 void
@@ -457,7 +477,10 @@ AnnotationCoordinate::setSurfaceSpaceNumberOfNodes(const int32_t numberOfNodes)
 void
 AnnotationCoordinate::setSurfaceSpaceNodeIndex(const int32_t nodeIndex)
 {
-    m_surfaceSpaceNodeIndex = nodeIndex;
+    if (m_surfaceSpaceNodeIndex != nodeIndex) {
+        m_surfaceSpaceNodeIndex = nodeIndex;
+        setModified();
+    }
 }
 
 /**
@@ -496,7 +519,10 @@ AnnotationCoordinate::setSurfaceSpaceOffsetVectorType(const AnnotationSurfaceOff
 void
 AnnotationCoordinate::setSurfaceTextOffsetPolarAngle(const float angle)
 {
-    m_surfaceTextOffsetPolarAngle = angle;
+    if (m_surfaceTextOffsetPolarAngle != angle) {
+        m_surfaceTextOffsetPolarAngle = angle;
+        setModified();
+    }
 }
 
 /**

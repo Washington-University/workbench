@@ -48,6 +48,8 @@ namespace caret {
 
         AnnotationCoordinate& operator=(const AnnotationCoordinate& obj);
         
+        void copyCoordinateWithModifiedStatus(const AnnotationCoordinate& obj);
+        
         bool equalXYZ(const Vector3D& xyz) const;
         
         const Vector3D getXYZ() const;
