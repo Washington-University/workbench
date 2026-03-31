@@ -271,14 +271,14 @@ namespace caret {
                                     const AString& columnOne,
                                     const AString& columnTwo) const;
         
-        AString getTextDistanceToMostRecentIdentificationSymbol(const IdentificationManager* idManager,
-                                                                const float selectionXYZ[3]) const;
+        void getTextDistanceToMostRecentIdentificationSymbol(const IdentificationManager* idManager,
+                                                             const float selectionXYZ[3],
+                                                             std::vector<AString>& textLinesOut) const;
         
         void getTextDistanceToMostRecentIdentificationSymbol(const Brain* brain,
                                                              const Surface* surface,
                                                              const int32_t vertexIndex,
-                                                             AString& linearDistanceTextOut,
-                                                             AString& geodesicDistanceTextOut) const;
+                                                             std::vector<AString>& textLinesOut) const;
 
         AString xyToText(const float xy[2],
                          const int32_t precisionDigits = -1) const;

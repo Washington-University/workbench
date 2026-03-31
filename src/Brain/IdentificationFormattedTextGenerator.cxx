@@ -686,12 +686,13 @@ IdentificationFormattedTextGenerator::generateVolumeVoxelIdentificationText(Html
                                   xyzText,
                                   filename);
     
-    const AString distanceText = getTextDistanceToMostRecentIdentificationSymbol(brain->getIdentificationManager(),
-                                                                                 xyz);
-    if ( ! distanceText.isEmpty()) {
-        htmlTableBuilder.addRowAllColumns(distanceText);
+    std::vector<AString> textLines;
+    getTextDistanceToMostRecentIdentificationSymbol(brain->getIdentificationManager(),
+                                                    xyz,
+                                                    textLines);
+    for (const AString& tl : textLines) {
+        htmlTableBuilder.addRowAllColumns(tl);
     }
-
 }
 
 /**
@@ -1074,19 +1075,13 @@ IdentificationFormattedTextGenerator::generateSurfaceVertexIdentificationText(Ht
                                       xyzText,
                                       StructureEnum::toGuiName(surface->getStructure()));
         
-        AString linearDistanceText;
-        AString geodesicDistanceText;
-        
+        std::vector<AString> textLines;
         getTextDistanceToMostRecentIdentificationSymbol(brain,
                                                         surface,
                                                         nodeNumber,
-                                                        linearDistanceText,
-                                                        geodesicDistanceText);
-        if ( ! linearDistanceText.isEmpty()) {
-            htmlTableBuilder.addRowAllColumns(linearDistanceText);
-        }
-        if ( ! geodesicDistanceText.isEmpty()) {
-            htmlTableBuilder.addRowAllColumns(geodesicDistanceText);
+                                                        textLines);
+        for (const AString& tl : textLines) {
+            htmlTableBuilder.addRowAllColumns(tl);
         }
     }
 }
@@ -2544,11 +2539,13 @@ IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateIdentifica
                            text);
         }
         if (histologyCoordinate.isStereotaxicXYZValid()) {
-            const AString distanceText = getTextDistanceToMostRecentIdentificationSymbol(idManager,
-                                                                                         histologyCoordinate.getStereotaxicXYZ());
-            if ( ! distanceText.isEmpty()) {
+            std::vector<AString> textLines;
+            getTextDistanceToMostRecentIdentificationSymbol(idManager,
+                                                            histologyCoordinate.getStereotaxicXYZ(),
+                                                            textLines);
+            for (const AString& tl : textLines) {
                 idText.addLine(indentFlag,
-                               distanceText);
+                               tl);
             }
         }
     }
@@ -2831,10 +2828,12 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
     }
     
     if (vertexXYZValidFlag) {
-        const AString distText = getTextDistanceToMostRecentIdentificationSymbol(idManager,
-                                                                                 vertexXYZ);
-        if ( ! distText.isEmpty()) {
-            idText.append(distText);
+        std::vector<AString> textLines;
+        getTextDistanceToMostRecentIdentificationSymbol(idManager,
+                                                        vertexXYZ,
+                                                        textLines);
+        for (const AString& tl : textLines) {
+            idText.append(tl);
         }
     }
 }
@@ -2949,10 +2948,12 @@ IdentificationFormattedTextGenerator::generateVolumeToolTip(const Identification
     }
     
     if (voxelXYZValidFlag) {
-        const AString distText = getTextDistanceToMostRecentIdentificationSymbol(idManager,
-                                                                                 voxelXYZ);
-        if ( ! distText.isEmpty()) {
-            idText.append(distText);
+        std::vector<AString> textLines;
+        getTextDistanceToMostRecentIdentificationSymbol(idManager,
+                                                        voxelXYZ,
+                                                        textLines);
+        for (const AString& tl : textLines) {
+            idText.append(tl);
         }
     }
 }
@@ -3058,28 +3059,46 @@ IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateToolTip(co
  *    The identification manager
  * @param selectionXYZ
  *    Stereotaxic coordinate of selection
- * @return
- *    Text containing distance to most recent symbol
+ * @param textLinesOut
+ *    Contains lines of text for display that include distance(s)
  */
-AString
+void
 IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationSymbol(const IdentificationManager* idManager,
-                                                                                      const float selectionXYZ[3]) const
+                                                                                      const float selectionXYZ[3],
+                                                                                      std::vector<AString>& textLinesOut) const
 {
+    textLinesOut.clear();
+    
     CaretAssert(idManager);
     
     const IdentifiedItemUniversal* lastIdItem(idManager->getMostRecentIdentifiedItem());
     if (lastIdItem != NULL) {
         if (lastIdItem->isStereotaxicXYZValid()) {
-            const Vector3D xyz(lastIdItem->getStereotaxicXYZ());
-            const float distance((xyz - Vector3D(selectionXYZ)).length());
-            const AString text(dataValueToText(distance)
-                               + " mm to Previous ID "
-                               + lastIdItem->getNameText());
-            return text;
+            const Vector3D lastXYZ(lastIdItem->getStereotaxicXYZ());
+            const float distance((lastXYZ - Vector3D(selectionXYZ)).length());
+            
+            if (lastIdItem->getType() == IdentifiedItemUniversalTypeEnum::SURFACE) {
+                textLinesOut.push_back("Distance to Previous ID Surface "
+                                       + StructureEnum::toGuiName(lastIdItem->getStructure())
+                                       + " Vertex "
+                                       + AString::number(lastIdItem->getSurfaceVertexIndex())
+                                       + "="
+                                       + lastXYZ.toString(2)
+                                       + ":");
+                textLinesOut.push_back("3D (Through the Volume): "
+                                       + AString::number(distance, 'f', 2)
+                                       + "mm");
+            }
+            else {
+                textLinesOut.push_back("Distance to Previous ID "
+                                       + lastIdItem->getNameText()
+                                       + ":");
+                textLinesOut.push_back("3D (Through the Volume): "
+                                       + AString::number(distance, 'f', 2)
+                                       + "mm");
+            }
         }
     }
-    
-    return "";
 }
 
 /**
@@ -3090,25 +3109,21 @@ IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationS
  *    Surface of identification
  * @param vertexIndex
  *    Vertex index on surface
- * @param linearDistanceTextOut
- *    Linear distance output (valid if not empty)
- * @param geodesicDistanceTextOut
- *    Geodesic distance output (valid if not empty)
+ * @param textLinesOut
+ *    Contains lines of text for display that include distance(s)
  */
 void
 IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationSymbol(const Brain* brain,
                                                                                       const Surface* surface,
                                                                                       const int32_t vertexIndex,
-                                                                                      AString& linearDistanceTextOut,
-                                                                                      AString& geodesicDistanceTextOut) const
+                                                                                      std::vector<AString>& textLinesOut) const
 {
+    textLinesOut.clear();
+    
     CaretAssert(brain);
     CaretAssert(surface);
     CaretAssert((vertexIndex >= 0)
                 && (vertexIndex < surface->getNumberOfNodes()));
-    
-    linearDistanceTextOut   = "";
-    geodesicDistanceTextOut = "";
     
     const IdentificationManager* idManager(brain->getIdentificationManager());
     CaretAssert(idManager);
@@ -3125,9 +3140,6 @@ IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationS
                 const Vector3D xyz(primaryAnataSurface->getCoordinate(vertexIndex));
                 const Vector3D deltaXYZ(lastXYZ - xyz);
                 const float distance(deltaXYZ.length());
-                linearDistanceTextOut = (dataValueToText(distance, 3)
-                                         + " mm (Linear) to Previous ID "
-                                         + lastIdItem->getNameText());
                 
                 /*
                  * If same structure and number of vertices (nodes)
@@ -3137,6 +3149,17 @@ IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationS
                         if (primaryAnataSurface->getNumberOfNodes() == lastIdItem->getSurfaceNumberOfVertices()) {
                             if ((lastIdItem->getSurfaceVertexIndex() >= 0)
                                 && (lastIdItem->getSurfaceVertexIndex() < primaryAnataSurface->getNumberOfNodes())) {
+                                textLinesOut.push_back("Distance to Previous ID Surface "
+                                                       + StructureEnum::toGuiName(lastIdItem->getStructure())
+                                                       + " Vertex "
+                                                       + AString::number(lastIdItem->getSurfaceVertexIndex())
+                                                       + "="
+                                                       + lastXYZ.toString(2)
+                                                       + ":");
+                                textLinesOut.push_back("3D (Through the Volume): "
+                                                       + AString::number(distance, 'f', 2)
+                                                       + "mm");
+
                                 const auto& geoHelper(primaryAnataSurface->getGeodesicHelper());
                                 CaretAssert(geoHelper.getPointer());
                                 std::vector<int32_t> nodeOfInterest { vertexIndex };
@@ -3148,12 +3171,22 @@ IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationS
                                                               smoothFlag);
                                 if (nodeDists.size() == 1) {
                                     CaretAssertVectorIndex(nodeDists, 0);
-                                    geodesicDistanceTextOut = (dataValueToText(nodeDists[0], 3)
-                                                               + " mm (Geodesic)");
+                                    textLinesOut.push_back("Geodesic (Along the Surface): "
+                                                           + AString::number(nodeDists[0], 'f', 2)
+                                                           + "mm");
                                 }
                             }
                         }
                     }
+                }
+                
+                if (textLinesOut.empty()) {
+                    textLinesOut.push_back("Distance to Previous ID "
+                                           + lastIdItem->getNameText()
+                                           + ":");
+                    textLinesOut.push_back("3D (Through the Volume): "
+                                           + AString::number(distance, 'f', 2)
+                                           + "mm");
                 }
             }
         }
