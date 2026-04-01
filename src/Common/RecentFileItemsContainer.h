@@ -27,8 +27,13 @@
 #include <set>
 #include <utility>
 
-#include "CaretObjectTracksModification.h"
+#include <QMutex>
+#include <QObject>
+#include <QString>
+
+#include "TracksModificationInterface.h"
 #include "ExampleSceneInfo.h"
+#include "FunctionResult.h"
 #include "RecentFileItemSortingKeyEnum.h"
 #include "RecentFileItemTypeEnum.h"
 #include "RecentFileItemsContainerModeEnum.h"
@@ -41,9 +46,10 @@ namespace caret {
     class RecentFileItem;
     class RecentFileItemsFilter;
     
-    class RecentFileItemsContainer : public CaretObjectTracksModification {
-        
-    public:
+    class RecentFileItemsContainer : public QObject, public TracksModificationInterface {
+        Q_OBJECT
+
+    public:        
         /*
          * Write if modified when this container is destroyed
          */
@@ -71,12 +77,16 @@ namespace caret {
         static RecentFileItemsContainer* newInstanceRecentDirectories(CaretPreferences* preferences,
                                                                       const WriteIfModifiedType writeIfModifiedType);
         
+        static RecentFileItemsContainer* newInstanceSceneAndSpecFilesInRecursiveDirectory();
+        
         virtual ~RecentFileItemsContainer();
         
         RecentFileItemsContainer(const RecentFileItemsContainer&) = delete;
 
         RecentFileItemsContainer& operator=(const RecentFileItemsContainer&) = delete;
 
+        FunctionResult loadRecursiveDirectoryContainer(const AString& directoryPath);
+        
         void updateFavorites(std::vector<RecentFileItemsContainer*>& otherContainers);
         
         bool isEmpty() const;
@@ -103,6 +113,8 @@ namespace caret {
         
         bool supportsShare() const;
 
+        virtual void setModified();
+        
         virtual bool isModified() const;
         
         virtual void clearModified();
@@ -124,14 +136,28 @@ namespace caret {
         
         void testXmlReadingAndWriting();
         
+    signals:
+        void loadRecursiveDirectoryProgressText(const QString& text);
+        
+    public slots:
+        void stopLoadRecursiveDirectoryContainer();
+        
     private:
+        enum class Status {
+            UNLOADED,
+            LOADED,
+            FAILED
+        };
+        
         RecentFileItemsContainer(const RecentFileItemsContainerModeEnum::Enum mode,
-                                 const WriteIfModifiedType writeIfModifiedType);
+                                 const WriteIfModifiedType writeIfModifiedType,
+                                 QObject* parent = 0);
         
         void addItemPointer(std::shared_ptr<RecentFileItem>& recentFilePointer);
         
         void addFilesInDirectoryToRecentItems(const RecentFileItemTypeEnum::Enum recentFileItemType,
-                                              const AString& directoryPath);
+                                              const AString& directoryPath,
+                                              const AString& topLevelDirectoryPath);
         
         void readFromXmlVersionOne(QXmlStreamReader& reader);
         
@@ -140,6 +166,8 @@ namespace caret {
         RecentFileItemsContainerModeEnum::Enum m_mode;
         
         CaretPreferences* m_caretPreferences = NULL;
+        
+        bool m_modified = false;
         
         const WriteIfModifiedType m_writeIfModifiedType;
 
@@ -168,6 +196,12 @@ namespace caret {
          */
         std::set<std::shared_ptr<RecentFileItem>, ItemCompareSharedPtr> m_recentFiles;
                 
+        Status m_status = Status::UNLOADED;
+        
+        QMutex m_loadRecursiveDirectoryContainerMutex;
+        
+        bool m_stopLoadRecursiveDirectoryContainerFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
         

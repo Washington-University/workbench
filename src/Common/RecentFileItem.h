@@ -38,8 +38,12 @@ namespace caret {
     public:
         RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
                        const AString& pathAndFileName,
-                       const AString& sceneName = "",
-                       const AString& sceneDescription = "");
+                       const AString& sceneName,
+                       const AString& sceneDescription);
+        
+        RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
+                       const AString& pathAndFileName,
+                       const AString& pathRelativeToCurrentDirectory);
         
         virtual ~RecentFileItem();
         
@@ -71,6 +75,8 @@ namespace caret {
         
         AString getPathName() const;
         
+        AString getRelativePathNameToCurrentDirectory() const;
+ 
         AString getFileName() const;
         
         AString getComment() const;
@@ -104,6 +110,13 @@ namespace caret {
         QVariant toQVariant() const;
         
     private:
+        RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
+                       const AString& pathAndFileName,
+                       const AString& pathRelativeToCurrentDirectory,
+                       const AString& sceneName,
+                       const AString& sceneDescription);
+        
+
         void copyHelperRecentFileItem(const RecentFileItem& obj);
 
         RecentFileItemTypeEnum::Enum m_fileItemType;
@@ -121,6 +134,8 @@ namespace caret {
         AString m_fileName;
         
         AString m_pathName;
+        
+        AString m_relativePathNameToCurrentDirectory;
         
         AString m_comment;
         

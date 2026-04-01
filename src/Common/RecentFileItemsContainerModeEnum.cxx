@@ -142,12 +142,17 @@ RecentFileItemsContainerModeEnum::initialize()
     enumData.push_back(RecentFileItemsContainerModeEnum(DIRECTORY_SCENE_AND_SPEC_FILES,
                                            "DIRECTORY_SCENE_AND_SPEC_FILES",
                                            "Directory Scene and Spec Files",
-                                           "Current\nDirectory\nFiles"));
+                                           "Current\nDirectory Files"));
     
+    enumData.push_back(RecentFileItemsContainerModeEnum(RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES,
+                                                        "RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES",
+                                                        "Recursive Directory Scene and Spec Files",
+                                                        "Recursive Current\nDirectory Files"));
+
     enumData.push_back(RecentFileItemsContainerModeEnum(RECENT_DIRECTORIES,
                                            "RECENT_DIRECTORIES",
                                            "Recent Directories",
-                                           "Recent\nDirectories"));
+                                           "Recent\nDirectories"));    
 }
 
 /**

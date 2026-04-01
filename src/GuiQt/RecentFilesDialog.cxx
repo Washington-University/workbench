@@ -33,6 +33,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
+#include <QProgressDialog>
 #include <QPushButton>
 #include <QToolButton>
 #include <QUrl>
@@ -52,7 +53,7 @@
 #include "SessionManager.h"
 #include "UsernamePasswordWidget.h"
 #include "WorkbenchToolButton.h"
-#include "WuQMessageBox.h"
+#include "WuQMessageBoxTwo.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -90,6 +91,9 @@ m_runMode(runMode)
             break;
     }
     
+    m_brain = GuiManager::get()->getBrain();
+    CaretAssert(m_brain);
+
     setWindowTitle(dialogTitle);
 
     QWidget* internetButtonsWidget = createInternetButtonsWidget();
@@ -135,8 +139,7 @@ m_runMode(runMode)
     m_loadPushButton->setAutoDefault(true);
     m_loadPushButton->setDefault(true);
     
-    Brain* brain = GuiManager::get()->getBrain();
-    m_currentDirectoryItemsContainer.reset(RecentFileItemsContainer::newInstanceSceneAndSpecFilesInDirectory(brain->getCurrentDirectory()));
+    m_currentDirectoryItemsContainer.reset(RecentFileItemsContainer::newInstanceSceneAndSpecFilesInDirectory(m_brain->getCurrentDirectory()));
     m_modeDirectorySceneSpecFilesAction->setEnabled( ! m_currentDirectoryItemsContainer->isEmpty());
     
     CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
@@ -157,6 +160,8 @@ m_runMode(runMode)
     SessionManager::get()->getExampleSceneFilesAndSceneNames(exampleSceneInfo);
     m_exampleDataSetsItemsContainer->addSceneFileAndSceneNamesToExamplesContainer(exampleSceneInfo);
     m_modeExampleDataSetsAction->setEnabled( ! m_exampleDataSetsItemsContainer->isEmpty());
+    
+    m_modeRecursiveDirectorySceneSpecFilesAction->setEnabled(true);
     
     /*
      * Favorites is updated when it is selected
@@ -465,6 +470,10 @@ RecentFilesDialog::createFileTypesButtonWidget()
                 toolTipText = ("Choose from recently displayed scenes");
                 m_modeRecentScenesAction = action;
                 break;
+            case RecentFileItemsContainerModeEnum::RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES:
+                toolTipText = ("Choose from Scene and Spec Files in the current and child directories");
+                m_modeRecursiveDirectorySceneSpecFilesAction = action;
+                break;
         }
         WuQtUtilities::setWordWrappedToolTip(action, toolTipText);
 
@@ -671,6 +680,33 @@ RecentFilesDialog::updateFilesTableContent()
             itemsContainer = m_recentScenesItemsContainer.get();
             filter.setListSceneFiles(true); /* always show scenes */
             break;
+        case RecentFileItemsContainerModeEnum::RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES:
+            if ( ! m_recursiveDirectoryItemsContainer) {
+                m_recursiveDirectoryItemsContainer.reset(RecentFileItemsContainer::newInstanceSceneAndSpecFilesInRecursiveDirectory());
+
+                QProgressDialog progressDialog(this);
+                progressDialog.setCancelButtonText("Cancel");
+                progressDialog.setLabelText("Searching for files");
+                progressDialog.setMaximum(2);
+                progressDialog.setMinimum(0);
+                progressDialog.setValue(1);
+                progressDialog.setMinimumDuration(0); /* Show immediately */
+                QObject::connect(&progressDialog, &QProgressDialog::canceled,
+                                 m_recursiveDirectoryItemsContainer.get(), &RecentFileItemsContainer::stopLoadRecursiveDirectoryContainer);
+                QObject::connect(m_recursiveDirectoryItemsContainer.get(), &RecentFileItemsContainer::loadRecursiveDirectoryProgressText,
+                                 &progressDialog, &QProgressDialog::setLabelText);
+                FunctionResult result(m_recursiveDirectoryItemsContainer->loadRecursiveDirectoryContainer(m_brain->getCurrentDirectory()));
+                
+                if (result.isError()) {
+                    WuQMessageBoxTwo::criticalOk(this,
+                                                 "Error",
+                                                 result.getErrorMessage());
+                }
+            }
+            itemsContainer = m_recursiveDirectoryItemsContainer.get();
+            filter.setListSceneFiles(m_listSceneFilesCheckBox->isChecked());
+            filter.setListSpecFiles(m_listSpecFilesCheckBox->isChecked());
+            break;
     }
     
     filter.setShowFilePaths(m_showFilePathsCheckBox->isChecked());
@@ -758,7 +794,9 @@ RecentFilesDialog::loadButtonClicked()
 {
     RecentFileItem* item = m_recentFilesTableWidget->getSelectedItem();
     if (item == NULL) {
-        WuQMessageBox::warningOk(m_loadPushButton, "No item selected");
+        WuQMessageBoxTwo::warningOk(m_loadPushButton,
+                                    "Warning",
+                                    "No item selected");
         return;
     }
     
@@ -779,7 +817,9 @@ RecentFilesDialog::openButtonClicked()
 {
     RecentFileItem* item = m_recentFilesTableWidget->getSelectedItem();
     if (item == NULL) {
-        WuQMessageBox::warningOk(m_openPushButton, "No item selected");
+        WuQMessageBoxTwo::warningOk(m_openPushButton,
+                                    "Warning",
+                                    "No item selected");
         return;
     }
     
@@ -1057,7 +1097,9 @@ RecentFilesDialog::loadSceneOrSpecFileFromItem(RecentFileItem* item,
                                       + item->getSceneName()
                                       + "\" not found in scene file "
                                       + sceneFile.getFileName());
-                    WuQMessageBox::critical(this, "ERROR", msg);
+                    WuQMessageBoxTwo::critical(this,
+                                               "ERROR",
+                                               msg);
                 }
             }
             catch (const DataFileException& dfe) {

@@ -37,6 +37,7 @@ IF(WORKBENCH_USE_CMAKE_AUTOMOC)
 ELSE()
     SET(MOC_INPUT_HEADER_FILES
         CaretHttpManager.h
+        RecentFileItemsContainer.h
     )
 
     IF(Qt6_FOUND)

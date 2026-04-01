@@ -37,6 +37,7 @@ class QPushButton;
 
 namespace caret {
 
+    class Brain;
     class RecentFileItem;
     class RecentFileItemsContainer;
     class RecentFilesTableWidget;
@@ -166,6 +167,8 @@ namespace caret {
         
         ResultModeEnum m_resultMode = ResultModeEnum::CANCEL;
         
+        Brain* m_brain = NULL;
+        
         AString m_resultFilePathAndName;
         
         int32_t m_resultSceneIndex = -1;
@@ -184,12 +187,15 @@ namespace caret {
         
         std::unique_ptr<RecentFileItemsContainer> m_favoriteItemsContainer;
         
+        std::unique_ptr<RecentFileItemsContainer> m_recursiveDirectoryItemsContainer;
+        
         QAction* m_modeDirectorySceneSpecFilesAction = NULL;
         QAction* m_modeExampleDataSetsAction = NULL;
         QAction* m_modeFavoritesAction = NULL;
         QAction* m_modeRecentDirectoriesAction = NULL;
         QAction* m_modeRecentFilesAction = NULL;
         QAction* m_modeRecentScenesAction = NULL;
+        QAction* m_modeRecursiveDirectorySceneSpecFilesAction = NULL;
 
         // ADD_NEW_MEMBERS_HERE
 

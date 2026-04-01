@@ -1005,6 +1005,49 @@ DataFileTypeEnum::toFileExtension(const Enum enumValue)
     return ext;
 }
 
+/**
+ * Get ALL  file extensions for the file type.
+ * @param enumValue
+ *    The data file type.
+ * @return
+ *    All extensions for file type.
+ */
+std::vector<AString>
+DataFileTypeEnum::toAllFileExtensions(const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    
+    std::vector<AString> extensions(enumInstance->readAndWriteFileExtensions.begin(),
+                                    enumInstance->readAndWriteFileExtensions.end());
+    
+    if (enumValue == IMAGE) {
+        extensions.clear();
+        
+        /*
+         * Image file's preferred extension
+         */
+        std::vector<AString> readFileExtensions;
+        std::vector<AString> writeFileExtensions;
+        AString ext;
+        getWorkbenchSupportedImageFileExtensions(readFileExtensions,
+                                                 writeFileExtensions,
+                                                 ext);
+        std::set<AString> uniqueExtensions;
+        uniqueExtensions.insert(readFileExtensions.begin(),
+                                readFileExtensions.end());
+        uniqueExtensions.insert(readFileExtensions.begin(),
+                                readFileExtensions.end());
+        
+        extensions.insert(extensions.end(),
+                          uniqueExtensions.begin(),
+                          uniqueExtensions.end());
+    }
+    
+    return extensions;
+}
+
+
 /***
  * Does the filename have a valid extension for the given file type?
  *

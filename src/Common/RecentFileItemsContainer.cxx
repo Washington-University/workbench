@@ -24,6 +24,9 @@
 #undef __RECENT_FILE_ITEMS_CONTAINER_DECLARE__
 
 #include <algorithm>
+#include <deque>
+
+#include <QCoreApplication>
 #include <QDir>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
@@ -51,10 +54,14 @@ using namespace caret;
  * Mode for the content type in the container
  * @param writeIfModifiedType
  * Mode for writing if modified when instance is destroyed
+ * @param parent
+ * Optional parent object
  */
 RecentFileItemsContainer::RecentFileItemsContainer(const RecentFileItemsContainerModeEnum::Enum mode,
-                                                   const WriteIfModifiedType writeIfModifiedType)
-: CaretObjectTracksModification(),
+                                                   const WriteIfModifiedType writeIfModifiedType,
+                                                   QObject* parent)
+: QObject(parent),
+TracksModificationInterface(),
 m_mode(mode),
 m_writeIfModifiedType(writeIfModifiedType)
 {
@@ -120,6 +127,9 @@ RecentFileItemsContainer::~RecentFileItemsContainer()
                     }
                 }
                     break;
+                case RecentFileItemsContainerModeEnum::RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES:
+                    /* Nothing to write */
+                    break;
             }
         }
     }
@@ -176,10 +186,27 @@ RecentFileItemsContainer::newInstanceSceneAndSpecFilesInDirectory(const AString&
     RecentFileItemsContainer* container = new RecentFileItemsContainer(RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES,
                                                                        WriteIfModifiedType::WRITE_NO);
     CaretAssert(container);
+    const AString emptyTopLevelDirectoryPath;
     container->addFilesInDirectoryToRecentItems(RecentFileItemTypeEnum::SCENE_FILE,
-                                                directoryPath);
+                                                directoryPath,
+                                                emptyTopLevelDirectoryPath);
     container->addFilesInDirectoryToRecentItems(RecentFileItemTypeEnum::SPEC_FILE,
-                                                directoryPath);
+                                                directoryPath,
+                                                emptyTopLevelDirectoryPath);
+    return container;
+}
+
+/**
+ * @return A new instance containing spec and scene files in a directory
+ * Must call 
+ */
+RecentFileItemsContainer*
+RecentFileItemsContainer::newInstanceSceneAndSpecFilesInRecursiveDirectory()
+{
+    RecentFileItemsContainer* container = new RecentFileItemsContainer(RecentFileItemsContainerModeEnum::RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES,
+                                                                       WriteIfModifiedType::WRITE_NO);
+    CaretAssert(container);
+    
     return container;
 }
 
@@ -259,6 +286,156 @@ RecentFileItemsContainer::newInstanceRecentScenes(CaretPreferences* preferences,
     return container;
 }
 
+/**
+ * Load the recursive directory container
+ * @param topLevelDirectoryPath
+ *    Top level directory path
+ * @return FunctionResult containing result.
+ */
+FunctionResult
+RecentFileItemsContainer::loadRecursiveDirectoryContainer(const AString& topLevelDirectoryPath)
+{
+    std::deque<AString> directoryPathsToSearch;
+    directoryPathsToSearch.emplace_back(topLevelDirectoryPath);
+    
+    QStringList nameFilters;
+    
+    std::vector<AString> sceneFileExtensions;
+    const std::vector<AString> sceneFileExtensionsNoDots(DataFileTypeEnum::toAllFileExtensions(DataFileTypeEnum::SCENE));
+    for (const auto& sfe : sceneFileExtensionsNoDots) {
+        nameFilters.append("*." + sfe);
+        sceneFileExtensions.push_back("." + sfe);
+    }
+    
+    std::vector<AString> specFileExtensions;
+    const std::vector<AString> specFileExtensionsNoDots(DataFileTypeEnum::toAllFileExtensions(DataFileTypeEnum::SPECIFICATION));
+    for (const auto& spe : specFileExtensionsNoDots) {
+        nameFilters.append("*." + spe);
+        specFileExtensions.push_back("." + spe);
+    }
+    
+    /*
+     * Could symbolic links to a parent directory create a loop???
+     * Track canonical paths (sym links replaced by path)
+     */
+    std::set<AString> canonicalPathsSearched;
+    canonicalPathsSearched.insert(topLevelDirectoryPath);
+    
+    int32_t directoriesSearchedCount(1);
+    while ( ! directoryPathsToSearch.empty()) {
+        const AString dirName(directoryPathsToSearch.front());
+        directoryPathsToSearch.pop_front();
+        
+        /*
+         * Could remove no sym  links but probably need to keep track of
+         * directories search.  Is it possible to create a symbolic link
+         * to a parent directory???
+         */
+        QDir dir(dirName);
+        QFileInfoList fileInfoList(dir.entryInfoList(nameFilters,
+                                                     (QDir::AllDirs
+                                                      | QDir::NoDotAndDotDot
+                                                      | QDir::Files
+//                                                      | QDir::NoSymLinks
+                                                      | QDir::CaseSensitive),
+                                                     QDir::Name));   /* sorting */
+        QCoreApplication::processEvents();
+        
+        const bool includeRelativePathFlag(true);
+        
+        /*
+         * Need to allow events to process periodically so that user
+         * can cancel on the progress dialog
+         */
+        int32_t processEventsCounter(0);
+        for (const QFileInfo& fileInfo : fileInfoList) {
+            if (fileInfo.isFile()) {
+                /*
+                 * Use DIRECTORY as neither scene nor spec
+                 */
+                RecentFileItemTypeEnum::Enum itemType(RecentFileItemTypeEnum::DIRECTORY);
+                const AString filename(fileInfo.fileName());
+                for (const auto& sfe : sceneFileExtensions) {
+                    if (filename.endsWith(sfe)) {
+                        itemType = RecentFileItemTypeEnum::SCENE_FILE;
+                        break;
+                    }
+                }
+                if (itemType == RecentFileItemTypeEnum::DIRECTORY) {
+                    for (const auto& spe : specFileExtensions) {
+                        if (filename.endsWith(spe)) {
+                            itemType = RecentFileItemTypeEnum::SPEC_FILE;
+                        }
+                    }
+                }
+                
+                if (itemType != RecentFileItemTypeEnum::DIRECTORY) {
+                    AString relativePath;
+                    if (includeRelativePathFlag) {
+                        QDir topDir(topLevelDirectoryPath);
+                        relativePath = topDir.relativeFilePath(fileInfo.absolutePath());
+                        if (relativePath == ".") {
+                            relativePath = "";
+                        }
+                    }
+                    RecentFileItem* fileItem = new RecentFileItem(itemType,
+                                                                  fileInfo.absoluteFilePath(),
+                                                                  relativePath);
+                    addItem(fileItem);
+
+                    const QString progressText(QString::number(m_recentFiles.size())
+                                               + " files found so far in "
+                                               + QString::number(directoriesSearchedCount)
+                                               + " directories.");
+                    emit loadRecursiveDirectoryProgressText(progressText);
+                    QCoreApplication::processEvents();
+                }
+            }
+            else if (fileInfo.isDir()) {
+                /*
+                 * Do not search a directory that has already been searched
+                 */
+                const AString canonicalPath(fileInfo.canonicalFilePath());
+                if (canonicalPathsSearched.find(canonicalPath) == canonicalPathsSearched.end()) {
+                    directoryPathsToSearch.push_back(fileInfo.absoluteFilePath());
+                }
+            }
+            
+            if (processEventsCounter > 50) {
+                processEventsCounter = 0;
+                QCoreApplication::processEvents();
+            }
+        }
+        
+        QCoreApplication::processEvents();
+        
+        QMutexLocker locker(&m_loadRecursiveDirectoryContainerMutex);
+        if (m_stopLoadRecursiveDirectoryContainerFlag) {
+            return FunctionResult::error("Listing of files recursively stopped by user.");
+        }
+        
+        const QString progressText(QString::number(m_recentFiles.size())
+                                   + " files found so far in "
+                                   + QString::number(directoriesSearchedCount)
+                                   + " directories.");
+        emit loadRecursiveDirectoryProgressText(progressText);
+        QCoreApplication::processEvents();
+
+        ++directoriesSearchedCount;
+    }
+
+    return FunctionResult::ok();
+}
+
+/**
+ * Stop loading of recursive directory container
+ */
+void
+RecentFileItemsContainer::stopLoadRecursiveDirectoryContainer()
+{
+    QMutexLocker locker(&m_loadRecursiveDirectoryContainerMutex);
+    m_stopLoadRecursiveDirectoryContainerFlag = true;
+}
 
 /**
  * Update a favorites with items from other containers
@@ -281,12 +458,21 @@ RecentFileItemsContainer::updateFavorites(std::vector<RecentFileItemsContainer*>
 }
 
 /**
+ * Set this instance modified
+ */
+void
+RecentFileItemsContainer::setModified()
+{
+    m_modified = true;
+}
+
+/**
  *@return True if this instance has been modified, else false.
  */
 bool
 RecentFileItemsContainer::isModified() const
 {
-    if (CaretObjectTracksModification::isModified()) {
+    if (m_modified) {
         return true;
     }
     
@@ -305,7 +491,7 @@ RecentFileItemsContainer::isModified() const
 void
 RecentFileItemsContainer::clearModified()
 {
-    CaretObjectTracksModification::clearModified();
+    m_modified = false;
     
     for (auto& rfi : m_recentFiles) {
         rfi->clearModified();
@@ -411,14 +597,18 @@ RecentFileItemsContainer::removeAllItemsExcludingFavorites()
  * Add files of the given type and in the given directory to the recent items
  * @param recentFileItemType
  *  The recent file item type
- * @param directoryPaht
+ * @param directoryPath
  *  Directory from which to get files
+ * @param topLevelDirectoryPath
+ *  The top level directory
  */
 void
 RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileItemTypeEnum::Enum recentFileItemType,
-                                                           const AString& directoryPath)
+                                                           const AString& directoryPath,
+                                                           const AString& topLevelDirectoryPath)
 {
     DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::UNKNOWN;
+    bool includeRelativePathFlag(false);
     switch (recentFileItemType) {
         case RecentFileItemTypeEnum::DIRECTORY:
             CaretAssert(0);
@@ -429,12 +619,14 @@ RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileItemT
             break;
         case RecentFileItemTypeEnum::SCENE_FILE:
             dataFileType = DataFileTypeEnum::SCENE;
+            includeRelativePathFlag = true;
             break;
         case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
             dataFileType = DataFileTypeEnum::UNKNOWN;
             break;
         case RecentFileItemTypeEnum::SPEC_FILE:
             dataFileType = DataFileTypeEnum::SPECIFICATION;
+            includeRelativePathFlag = true;
             break;
     }
     
@@ -443,8 +635,14 @@ RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileItemT
                                                                                directoryPath);
         
         for (auto name : fileNames) {
+            AString relativePath;
+            if (includeRelativePathFlag) {
+                QDir topDir(topLevelDirectoryPath);
+                relativePath = topDir.relativeFilePath(directoryPath);
+            }
             RecentFileItem* fileItem = new RecentFileItem(recentFileItemType,
-                                                          name);
+                                                          name,
+                                                          relativePath);
             addItem(fileItem);
         }
     }
@@ -541,6 +739,9 @@ RecentFileItemsContainer::supportsFavorite() const
             break;
         case RecentFileItemsContainerModeEnum::RECENT_SCENES:
             break;
+        case RecentFileItemsContainerModeEnum::RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES:
+            supportsFlag = false;
+            break;
     }
 
     return supportsFlag;
@@ -572,6 +773,9 @@ RecentFileItemsContainer::supportsForget() const
             break;
         case RecentFileItemsContainerModeEnum::RECENT_SCENES:
             break;
+        case RecentFileItemsContainerModeEnum::RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES:
+            supportsFlag = false;
+            break;
     }
 
     return supportsFlag;
@@ -601,6 +805,8 @@ RecentFileItemsContainer::supportsShare() const
         case RecentFileItemsContainerModeEnum::RECENT_FILES:
             break;
         case RecentFileItemsContainerModeEnum::RECENT_SCENES:
+            break;
+        case RecentFileItemsContainerModeEnum::RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES:
             break;
     }
 
@@ -888,9 +1094,11 @@ RecentFileItemsContainer::readFromXMLVersionOneRecentFileItem(QXmlStreamReader& 
         return;
     }
     
+    const AString emptySceneDescription;
     RecentFileItem* item = new RecentFileItem(fileType,
                                               pathAndFileName,
-                                              sceneName);
+                                              sceneName,
+                                              emptySceneDescription);
     item->setComment(comment);
     item->setFavorite(favoriteString.toBool());
     item->setLastAccessByWorkbenchDateTimeFromString(dateAndTimeString);

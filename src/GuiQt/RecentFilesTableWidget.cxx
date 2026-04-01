@@ -370,6 +370,8 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
                 break;
             case RecentFileItemsContainerModeEnum::RECENT_SCENES:
                 break;
+            case RecentFileItemsContainerModeEnum::RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES:
+                break;
         }
     }
 
@@ -466,6 +468,8 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
                 break;
             case RecentFileItemsContainerModeEnum::RECENT_SCENES:
                 break;
+            case RecentFileItemsContainerModeEnum::RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES:
+                break;
         }
         
         setColumnHidden(COLUMN_DATE_TIME, hideColumnsFlag);
@@ -522,6 +526,7 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
     bool enableFavoriteFlag(false);
     bool enableForgetFlag(false);
     bool hidePathsFlag(false);
+    bool showRelativePathFlag(false);
     switch (m_recentFileItemsContainer->getMode()) {
         case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
             hidePathsFlag = true;
@@ -545,6 +550,9 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
             enableFavoriteFlag = true;
             enableForgetFlag   = true;
             hidePathsFlag      = true;
+            break;
+        case RecentFileItemsContainerModeEnum::RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES:
+            showRelativePathFlag = true;
             break;
     }
     
@@ -585,6 +593,9 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 AString text("<html>&nbsp;<b><font size=\"+1\"%1>%2</font></b>%3<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%4</html>");
                 AString firstRowText(recentItem->getFileName());
                 QString secondRowText(recentItem->getPathName());
+                if (showRelativePathFlag) {
+                    secondRowText = recentItem->getRelativePathNameToCurrentDirectory();
+                }
                 switch (recentItem->getFileItemType()) {
                     case RecentFileItemTypeEnum::DIRECTORY:
                         break;

@@ -48,7 +48,9 @@ public:
         /** Recently opened Scene or Spec files */
         RECENT_FILES,
         /** Recent Scene */
-        RECENT_SCENES
+        RECENT_SCENES,
+        /** Scene and Spec files in current directory RECURSIVE */
+        RECURSIVE_DIRECTORY_SCENE_AND_SPEC_FILES,
     };
 
 

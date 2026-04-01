@@ -2782,8 +2782,10 @@ CaretPreferences::addToRecentSceneAndSpecFiles(const AString& filename)
         return;
     }
     
+    const AString emptyRelativePath;
     RecentFileItem* newItem = new RecentFileItem(itemType,
-                                                 filename);
+                                                 filename,
+                                                 emptyRelativePath);
     newItem->setLastAccessByWorkbenchDateTimeToCurrentDateTime();
     container->addItem(newItem);
     
@@ -2890,9 +2892,11 @@ CaretPreferences::readRecentScenes(RecentFileItemsContainer* container,
         getObsoleteMostRecentScenes(recentSceneInfo);
         
         for (RecentSceneInfoContainer& rsi : recentSceneInfo) {
+            const AString emptySceneDescription;
             RecentFileItem* rfi(new RecentFileItem(RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE,
                                                    rsi.getSceneFileName(),
-                                                   rsi.getSceneName()));
+                                                   rsi.getSceneName(),
+                                                   emptySceneDescription));
             container->addItem(rfi);
         }
         container->removeItemsExceedingMaximumNumber(getRecentMaximumNumberOfScenes());
@@ -3093,8 +3097,10 @@ CaretPreferences::addToRecentDirectories(const AString& directoryOrFileName)
         return;
     }
     
+    const AString emptyRelativePath;
     RecentFileItem* newItem = new RecentFileItem(RecentFileItemTypeEnum::DIRECTORY,
-                                                 directoryName);
+                                                 directoryName,
+                                                 emptyRelativePath);
     newItem->setLastAccessByWorkbenchDateTimeToCurrentDateTime();
     container->addItem(newItem);
     
@@ -3145,9 +3151,11 @@ CaretPreferences::addToRecentScenes(const AString& filename,
         return;
     }
     
+    const AString emptySceneDescription;
     RecentFileItem* newItem = new RecentFileItem(RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE,
                                                  filename,
-                                                 sceneName);
+                                                 sceneName,
+                                                 emptySceneDescription);
     newItem->setLastAccessByWorkbenchDateTimeToCurrentDateTime();
     container->addItem(newItem);
     
@@ -3374,8 +3382,10 @@ CaretPreferences::writeRecentFilesExclusionPaths(const std::set<AString>& exclus
 {
     std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
     for (auto p : exclusionPaths) {
+        const AString emptyRelativePath;
         RecentFileItem* item = new RecentFileItem(RecentFileItemTypeEnum::DIRECTORY,
-                                                  p);
+                                                  p,
+                                                  emptyRelativePath);
         container->addItem(item);
     }
     AString errorMessage;

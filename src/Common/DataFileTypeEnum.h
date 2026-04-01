@@ -172,6 +172,8 @@ public:
     
     static AString toFileExtension(const Enum enumValue);
     
+    static std::vector<AString> toAllFileExtensions(const Enum enumValue);
+    
     static bool isValidFileExtension(const AString& filename,
                                      const Enum enumValue);
     

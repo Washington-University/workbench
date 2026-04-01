@@ -54,11 +54,59 @@ RecentFileItem::RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
                                const AString& pathAndFileName,
                                const AString& sceneName,
                                const AString& sceneDescription)
+: RecentFileItem(fileItemType,
+                 pathAndFileName,
+                 "",  /* path relative to current directory */
+                 sceneName,
+                 sceneDescription)
+{
+}
+
+/**
+ * Constructor.
+ * @param fileItemType
+ *  Type of file
+ * @param pathAndFileName
+ *  Path and name of a file
+ * @param pathRelativeToCurrentDirectory
+ *  For scene and spec files in directories, path is relative to current directory
+ */
+RecentFileItem::RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
+                               const AString& pathAndFileName,
+                               const AString& pathRelativeToCurrentDirectory)
+: RecentFileItem(fileItemType,
+                 pathAndFileName,
+                 pathRelativeToCurrentDirectory,
+                 "",  /* sceneName */
+                 "")  /* sceneDescription */
+{
+}
+
+/**
+ * Constructor.
+ * @param fileItemType
+ *  Type of file
+ * @param pathAndFileName
+ *  Path and name of a file
+ * @param pathRelativeToCurrentDirectory
+ *  For scene and spec files in directories, path is relative to current directory
+ * @param sceneName
+ *  Name of scene must be empty if fileItemType is NOT SCENE_IN_SCENE_FILE
+ * @param sceneDescription
+ *  Description of scene must be empty if fileItemType is NOT SCENE_IN_SCENE_FILE
+ */
+RecentFileItem::RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
+                               const AString& pathAndFileName,
+                               const AString& pathRelativeToCurrentDirectory,
+                               const AString& sceneName,
+                               const AString& sceneDescription)
+
 : CaretObjectTracksModification(),
 m_fileItemType(fileItemType),
 m_pathAndFileName(pathAndFileName),
 m_sceneName(sceneName),
-m_sceneDescription(sceneDescription)
+m_sceneDescription(sceneDescription),
+m_relativePathNameToCurrentDirectory(pathRelativeToCurrentDirectory)
 {
     bool useFileSystemFlag(false);
     EventRecentFilesSystemAccessMode modeEvent;
@@ -184,6 +232,7 @@ RecentFileItem::copyHelperRecentFileItem(const RecentFileItem& obj)
     m_lastAccessDateTime = obj.m_lastAccessDateTime;
     m_pathAndFileName    = obj.m_pathAndFileName;
     m_pathName           = obj.m_pathName;
+    m_relativePathNameToCurrentDirectory = obj.m_relativePathNameToCurrentDirectory;
     m_fileName           = obj.m_fileName;
     m_sceneName          = obj.m_sceneName;
     m_sceneDescription   = obj.m_sceneDescription;
@@ -343,6 +392,15 @@ AString
 RecentFileItem::getPathName() const
 {
     return m_pathName;
+}
+
+/**
+ * @return The path name relative to the current directory
+ */
+AString
+RecentFileItem::getRelativePathNameToCurrentDirectory() const
+{
+    return m_relativePathNameToCurrentDirectory;
 }
 
 /**
