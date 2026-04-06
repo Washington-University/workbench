@@ -32,6 +32,7 @@
 #include "NiftiIO.h"
 #include "WarpfieldFile.h"
 
+#include <cmath>
 #include <limits>
 
 using namespace caret;
@@ -60,6 +61,8 @@ OperationParameters* AlgorithmVolumeLabelResample::getParameters()
     OptionalParameter* smoothOpt = ret->createOptionalParameter(8, "-smooth-edges", "apply smoothing to the ROIs between resampling and indexmax operations, increases boundary smoothness at the cost of fidelity");
     smoothOpt->addDoubleParameter(1, "kernel-size", "smoothing amount to use, gaussian sigma in mm");
     smoothOpt->createOptionalParameter(2, "-fwhm", "use specified kernel size as full width at half maximum, rather than sigma");
+    
+    ret->createOptionalParameter(9, "-unlabeled-mask", "instead of treating the 'unlabeled' voxels as just another label, treat them as a mask");
 
     ParameterComponent* affineOpt = ret->createRepeatableParameter(5, "-affine", "add an affine transform");
     affineOpt->addStringParameter(1, "affine", "the affine file to use");
@@ -81,7 +84,11 @@ OperationParameters* AlgorithmVolumeLabelResample::getParameters()
     ret->setHelpText(
         AString("Resample a label volume file with an arbitrary list of transformations.  ") +
         "You may specify -affine, -warp, and -affine-series multiple times each, and they will be used in the order specified.  "
-        "For instance, for rigid motion correction followed by nonlinear atlas registration, specify -affine-series first, then -warp.  "
+        "For instance, for rigid motion correction followed by nonlinear atlas registration, specify -affine-series first, then -warp.\n\n"
+        
+        "This makes an ROI for each label, resamples them with TRILINEAR, and then takes the label from the ROI with the largest value at each voxel.  "
+        "By default, unlabeled voxels are treated as if they were a label, use -unlabeled-mask to instead treat them as a separate mask.  "
+        "Using mask behavior can reduce an effect where a junction between labels that is next to unlabeled voxels will 'pinch inwards', particularly when using -smooth-edges."
     );
     return ret;
 }
@@ -105,6 +112,7 @@ void AlgorithmVolumeLabelResample::useParameters(OperationParameters* myParams, 
             smoothVal = smoothVal / (2.0f * sqrt(2.0f * log(2.0f)));
         }
     }
+    bool unlabeledMask = myParams->getOptionalParameter(9)->m_present;
     VolumeSpace refSpace;
     {
         NiftiIO myIO;
@@ -112,10 +120,10 @@ void AlgorithmVolumeLabelResample::useParameters(OperationParameters* myParams, 
         refSpace = myIO.getHeader().getVolumeSpace();
     }
     XfmStack myStack;
-    auto xfmOrder = myParams->getRepeatableOrder();//helper for some ugly code to resolve relative order of repeatable options
-    vector<WarpfieldFile> warpStorage(warpInstances.size());//need to keep these in scope until after the algorithm completes
-    for (auto iter = xfmOrder.rbegin(); iter != xfmOrder.rend(); ++iter)//because this is volume resampling, we need to transform target coords into source coords
-    {//so, reverse the transform order and invert affines (warpfields are harder to invert, so they work differently for surfaces)
+    auto xfmOrder = myParams->getRepeatableOrder(); //helper for some ugly code to resolve relative order of repeatable options
+    vector<WarpfieldFile> warpStorage(warpInstances.size()); //need to keep these in scope until after the algorithm completes
+    for (auto iter = xfmOrder.rbegin(); iter != xfmOrder.rend(); ++iter) //because this is volume resampling, we need to transform target coords into source coords
+    { //so, reverse the transform order and invert affines (warpfields are harder to invert, so they work differently for surfaces)
         switch (iter->key)
         {
             case 5:
@@ -166,11 +174,11 @@ void AlgorithmVolumeLabelResample::useParameters(OperationParameters* myParams, 
                 throw AlgorithmException("internal error, tell the developers what you just tried to do");
         }
     }
-    AlgorithmVolumeLabelResample(myProgObj, inVol, myStack, refSpace, outVol, smoothVal);
+    AlgorithmVolumeLabelResample(myProgObj, inVol, myStack, refSpace, outVol, smoothVal, unlabeledMask);
 }
 
 AlgorithmVolumeLabelResample::AlgorithmVolumeLabelResample(ProgressObject* myProgObj, const VolumeFile* inVol, const XfmStack& myStack, const VolumeSpace refSpace,
-                                                           VolumeFile* outVol, const float smoothVal) : AbstractAlgorithm(myProgObj)
+                                                           VolumeFile* outVol, const float smoothVal, const bool unlabeledMask) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (!(smoothVal >= 0.0f) || MathFunctions::isInf(smoothVal)) throw AlgorithmException("smoothing kernel size must be numeric and not negative");
@@ -193,7 +201,7 @@ AlgorithmVolumeLabelResample::AlgorithmVolumeLabelResample(ProgressObject* myPro
         const float* thisFrame = inVol->getFrame(frame);
         for (int64_t i = 0; i < inFrameVoxels; ++i)
         {
-            const int32_t thisVoxKey = int(thisFrame[i] + 0.5f);
+            const int32_t thisVoxKey = int32_t(floor(thisFrame[i] + 0.5f));
             if (thisVoxKey == unlabeledKey || thisTable->getLabel(thisVoxKey) == NULL) //merge voxels that don't match a label into the unlabeled key
             {
                 inScratchFrame[i] = 1.0f;
@@ -202,7 +210,7 @@ AlgorithmVolumeLabelResample::AlgorithmVolumeLabelResample(ProgressObject* myPro
             }
         }
         tempInFrame.setFrame(inScratchFrame.data());
-        AlgorithmVolumeResample(NULL, &tempInFrame, myStack, refSpace, VolumeFile::TRILINEAR, &tempOutFrame, unlabeledKey);
+        AlgorithmVolumeResample(NULL, &tempInFrame, myStack, refSpace, VolumeFile::TRILINEAR, &tempOutFrame, 1.0f); //extend 'unlabeled' out of frame
         VolumeFile* toUse = &tempOutFrame;
         if (smoothVal > 0.0f)
         {
@@ -211,17 +219,23 @@ AlgorithmVolumeLabelResample::AlgorithmVolumeLabelResample(ProgressObject* myPro
         }
         const float* toUseFrame = toUse->getFrame();
         for (int64_t i = 0; i < outFrameVoxels; ++i)
-        {
-            outScratchFrame[i] = unlabeledKey; //this is the first "label", so it wins regardless, don't bother with a pretend conditional
-            outBestValue[i] = toUseFrame[i]; //also lets us skip a -inf initialization each loop
+        { //don't need to test against outBestValue, this is before any other labels
+            outScratchFrame[i] = unlabeledKey; //initialize output to unlabeled even if we have "mask" behavior enabled
+            if (unlabeledMask && toUseFrame[i] < 0.5f)
+            {
+                outBestValue[i] = -1.0f; //if we are using mask behavior and "unlabeled" is below threshold, use a value that will lose to any other label
+            } else {
+                outBestValue[i] = toUseFrame[i];
+            }
         }
         //now the normal labels
         auto labelKeys = thisTable->getKeys();
         for (auto key : labelKeys)
         {
+            if (key == unlabeledKey) continue; //we did that already
             for (int64_t i = 0; i < inFrameVoxels; ++i)
             {
-                const int32_t thisVoxKey = int(thisFrame[i] + 0.5f);
+                const int32_t thisVoxKey = int32_t(floor(thisFrame[i] + 0.5f));
                 if (thisVoxKey == key)
                 {
                     inScratchFrame[i] = 1.0f;
@@ -230,7 +244,7 @@ AlgorithmVolumeLabelResample::AlgorithmVolumeLabelResample(ProgressObject* myPro
                 }
             }
             tempInFrame.setFrame(inScratchFrame.data());
-            AlgorithmVolumeResample(NULL, &tempInFrame, myStack, refSpace, VolumeFile::TRILINEAR, &tempOutFrame, unlabeledKey);
+            AlgorithmVolumeResample(NULL, &tempInFrame, myStack, refSpace, VolumeFile::TRILINEAR, &tempOutFrame, 0.0f); //don't extend other labels out of frame
             VolumeFile* toUse = &tempOutFrame;
             if (smoothVal > 0.0f)
             {

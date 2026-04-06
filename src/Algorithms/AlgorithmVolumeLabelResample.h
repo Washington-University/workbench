@@ -34,7 +34,7 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmVolumeLabelResample(ProgressObject* myProgObj, const VolumeFile* inVol, const XfmStack& myStack, const VolumeSpace refSpace,
-                                     VolumeFile* outVol, const float smoothVal = 0.0f);
+                                     VolumeFile* outVol, const float smoothVal = 0.0f, const bool unlabeledMask = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
