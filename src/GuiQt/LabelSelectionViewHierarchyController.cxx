@@ -430,22 +430,26 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
         CaretAssert(clusterActions.size() == clusterXYZs.size());
         CaretAssert(clusterActions.size() == clusterTypes.size());
     }
-    const LabelSelectionItem::CogSet* cogSet(labelItem->getCentersOfGravity());
-    if (cogSet != NULL) {
-        if ( ! clusterActions.empty()) {
-            menu.addSeparator();
+    
+    const bool showCogsFlag(false);
+    if (showCogsFlag) {
+        const LabelSelectionItem::CogSet* cogSet(labelItem->getCentersOfGravity());
+        if (cogSet != NULL) {
+            if ( ! clusterActions.empty()) {
+                menu.addSeparator();
+            }
+            const std::vector<const LabelSelectionItem::COG*> cogs(cogSet->getCOGs());
+            for (const LabelSelectionItem::COG* c : cogs) {
+                QAction* a(menu.addAction(c->getTitle()));
+                a->setIcon(volumeCrossHairIcon);
+                a->setIconVisibleInMenu(true);
+                clusterActions.push_back(a);
+                clusterXYZs.push_back(c->getXYZ());
+                clusterTypes.push_back(c->getClusterType());
+            }
+            CaretAssert(clusterActions.size() == clusterXYZs.size());
+            CaretAssert(clusterActions.size() == clusterTypes.size());
         }
-        const std::vector<const LabelSelectionItem::COG*> cogs(cogSet->getCOGs());
-        for (const LabelSelectionItem::COG* c : cogs) {
-            QAction* a(menu.addAction(c->getTitle()));
-            a->setIcon(volumeCrossHairIcon);
-            a->setIconVisibleInMenu(true);
-            clusterActions.push_back(a);
-            clusterXYZs.push_back(c->getXYZ());
-            clusterTypes.push_back(c->getClusterType());
-        }
-        CaretAssert(clusterActions.size() == clusterXYZs.size());
-        CaretAssert(clusterActions.size() == clusterTypes.size());
     }
     
     if ( ! menu.actions().isEmpty()) {

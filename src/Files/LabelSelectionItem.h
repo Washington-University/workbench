@@ -129,6 +129,9 @@ namespace caret {
             const COG* getAllCOG() const { return m_allCOG.get(); }
             
             void merge(const CogSet* cogSet) {
+                AString sumPrefix("Sum ");
+                sumPrefix = "";
+                
                 if (cogSet->m_allCOG != NULL) {
                     if (m_allCOG != NULL) {
                         m_allCOG->merge(*cogSet->m_allCOG);
@@ -139,7 +142,7 @@ namespace caret {
                                                cogSet->m_allCOG->getXYZ(),
                                                cogSet->m_allCOG->getNumberOfBrainordinates()));
                     }
-                    m_allCOG->updateTitle("Sum All");
+                    m_allCOG->updateTitle(sumPrefix + "All");
                 }
 
                 if (cogSet->m_centralCOG != NULL) {
@@ -152,7 +155,7 @@ namespace caret {
                                                cogSet->m_centralCOG->getXYZ(),
                                                cogSet->m_centralCOG->getNumberOfBrainordinates()));
                     }
-                    m_centralCOG->updateTitle("Sum Central");
+                    m_centralCOG->updateTitle(sumPrefix + "Central");
                 }
                 
                 if (cogSet->m_leftCOG != NULL) {
@@ -165,7 +168,7 @@ namespace caret {
                                                cogSet->m_leftCOG->getXYZ(),
                                                cogSet->m_leftCOG->getNumberOfBrainordinates()));
                     }
-                    m_leftCOG->updateTitle("Sum Left");
+                    m_leftCOG->updateTitle(sumPrefix + "Left");
                 }
                 
                 if (cogSet->m_rightCOG != NULL) {
@@ -178,7 +181,7 @@ namespace caret {
                                                cogSet->m_rightCOG->getXYZ(),
                                                cogSet->m_rightCOG->getNumberOfBrainordinates()));
                     }
-                    m_rightCOG->updateTitle("Sum Right");
+                    m_rightCOG->updateTitle(sumPrefix + "Right");
                 }
             }
         private:
