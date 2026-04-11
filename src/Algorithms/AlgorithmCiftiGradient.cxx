@@ -118,7 +118,7 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
     CiftiFile* myCiftiOut = myParams->getOutputCifti(3);
-    map<StructureEnum::Enum, AlgorithmCiftiGradient::SurfParam> surfParams;
+    map<StructureEnum::Enum, SurfParam> surfParams;
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
     MetricFile* myLeftAreas = NULL, *myRightAreas = NULL, *myCerebAreas = NULL;
     OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(4);

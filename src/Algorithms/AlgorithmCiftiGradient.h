@@ -23,6 +23,8 @@
 
 #include "AbstractAlgorithm.h"
 
+#include <map>
+
 namespace caret {
     
     class AlgorithmCiftiGradient : public AbstractAlgorithm

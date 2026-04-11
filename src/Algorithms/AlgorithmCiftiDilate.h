@@ -23,6 +23,8 @@
 
 #include "AbstractAlgorithm.h"
 
+#include <map>
+
 namespace caret {
     
     class AlgorithmCiftiDilate : public AbstractAlgorithm
@@ -32,8 +34,20 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
+        struct SurfParam
+        {
+            const SurfaceFile* surface;
+            const MetricFile* correctedAreas;
+            SurfParam() { surface = NULL; correctedAreas = NULL; }
+            SurfParam(const SurfaceFile* surfIn, const MetricFile* areasIn = NULL) { surface = surfIn; correctedAreas = areasIn; }
+        };
+        
         AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
-                             const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
+                             const std::map<StructureEnum::Enum, SurfParam> surfParams = std::map<StructureEnum::Enum, SurfParam>(),
+                             const CiftiFile* myRoi = NULL, const bool& nearest = false, const bool& mergedVolume = false, const bool legacyMode = false);
+        
+        AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
+                             const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
                              const MetricFile* myLeftAreas = NULL, const MetricFile* myRightAreas = NULL, const MetricFile* myCerebAreas = NULL,
                              const CiftiFile* myRoi = NULL, const bool& nearest = false, const bool& mergedVolume = false, const bool legacyMode = false);
         static OperationParameters* getParameters();

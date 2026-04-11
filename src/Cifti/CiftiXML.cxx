@@ -152,76 +152,77 @@ const CiftiBrainModelsMap& CiftiXML::getBrainModelsMap(const int& direction) con
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
     CaretAssert(getMappingType(direction) == CiftiMappingType::BRAIN_MODELS);//assert so we catch it in debug
-    return dynamic_cast<const CiftiBrainModelsMap&>(*getMap(direction));//let release throw bad_cast or segfault
+    return dynamic_cast<const CiftiBrainModelsMap&>(*getMap(direction));//let release throw bad_cast
 }
 
 CiftiBrainModelsMap& CiftiXML::getBrainModelsMap(const int& direction)
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
-    CaretAssert(getMappingType(direction) == CiftiMappingType::BRAIN_MODELS);//assert so we catch it in debug
-    return dynamic_cast<CiftiBrainModelsMap&>(*getMap(direction));//let release throw bad_cast or segfault
+    CaretAssert(getMappingType(direction) == CiftiMappingType::BRAIN_MODELS);
+    return dynamic_cast<CiftiBrainModelsMap&>(*getMap(direction));
 }
 
 const CiftiLabelsMap& CiftiXML::getLabelsMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
-    CaretAssert(getMappingType(direction) == CiftiMappingType::LABELS);//assert so we catch it in debug
-    return dynamic_cast<const CiftiLabelsMap&>(*getMap(direction));//let release throw bad_cast or segfault
+    CaretAssert(getMappingType(direction) == CiftiMappingType::LABELS);
+    return dynamic_cast<const CiftiLabelsMap&>(*getMap(direction));
 }
 
 CiftiLabelsMap& CiftiXML::getLabelsMap(const int& direction)
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
-    CaretAssert(getMappingType(direction) == CiftiMappingType::LABELS);//assert so we catch it in debug
-    return dynamic_cast<CiftiLabelsMap&>(*getMap(direction));//let release throw bad_cast or segfault
+    CaretAssert(getMappingType(direction) == CiftiMappingType::LABELS);
+    return dynamic_cast<CiftiLabelsMap&>(*getMap(direction));
 }
 
 const CiftiParcelsMap& CiftiXML::getParcelsMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
-    CaretAssert(getMappingType(direction) == CiftiMappingType::PARCELS);//assert so we catch it in debug
-    return dynamic_cast<const CiftiParcelsMap&>(*getMap(direction));//let release throw bad_cast or segfault
+    CaretAssert(getMappingType(direction) == CiftiMappingType::PARCELS);
+    return dynamic_cast<const CiftiParcelsMap&>(*getMap(direction));
 }
 
 CiftiParcelsMap& CiftiXML::getParcelsMap(const int& direction)
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
-    CaretAssert(getMappingType(direction) == CiftiMappingType::PARCELS);//assert so we catch it in debug
-    return dynamic_cast<CiftiParcelsMap&>(*getMap(direction));//let release throw bad_cast or segfault
+    CaretAssert(getMappingType(direction) == CiftiMappingType::PARCELS);
+    return dynamic_cast<CiftiParcelsMap&>(*getMap(direction));
 }
 
 const CiftiScalarsMap& CiftiXML::getScalarsMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
-    CaretAssert(getMappingType(direction) == CiftiMappingType::SCALARS);//assert so we catch it in debug
-    return dynamic_cast<const CiftiScalarsMap&>(*getMap(direction));//let release throw bad_cast or segfault
+    CaretAssert(getMappingType(direction) == CiftiMappingType::SCALARS);
+    return dynamic_cast<const CiftiScalarsMap&>(*getMap(direction));
 }
 
 CiftiScalarsMap& CiftiXML::getScalarsMap(const int& direction)
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
-    CaretAssert(getMappingType(direction) == CiftiMappingType::SCALARS);//assert so we catch it in debug
-    return dynamic_cast<CiftiScalarsMap&>(*getMap(direction));//let release throw bad_cast or segfault
+    CaretAssert(getMappingType(direction) == CiftiMappingType::SCALARS);
+    return dynamic_cast<CiftiScalarsMap&>(*getMap(direction));
 }
 
 const CiftiSeriesMap& CiftiXML::getSeriesMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
-    CaretAssert(getMappingType(direction) == CiftiMappingType::SERIES);//assert so we catch it in debug
-    return dynamic_cast<const CiftiSeriesMap&>(*getMap(direction));//let release throw bad_cast or segfault
+    CaretAssert(getMappingType(direction) == CiftiMappingType::SERIES);
+    return dynamic_cast<const CiftiSeriesMap&>(*getMap(direction));
 }
 
 CiftiSeriesMap& CiftiXML::getSeriesMap(const int& direction)
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
-    CaretAssert(getMappingType(direction) == CiftiMappingType::SERIES);//assert so we catch it in debug
-    return dynamic_cast<CiftiSeriesMap&>(*getMap(direction));//let release throw bad_cast or segfault
+    CaretAssert(getMappingType(direction) == CiftiMappingType::SERIES);
+    return dynamic_cast<CiftiSeriesMap&>(*getMap(direction));
 }
 
 int64_t CiftiXML::getDimensionLength(const int& direction) const
 {
     const CiftiMappingType* tempMap = getMap(direction);
     CaretAssert(tempMap != NULL);
+    if (tempMap == NULL) throw DataFileException("CiftiXML::getDimensionLength() called on unpopulated dimension"); //throw instead of segfaulting in release
     return tempMap->getLength();
 }
 
@@ -239,6 +240,7 @@ CiftiMappingType::MappingType CiftiXML::getMappingType(const int& direction) con
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
     CaretAssert(m_indexMaps[direction] != NULL);
+    if (m_indexMaps[direction] == NULL) throw DataFileException("CiftiXML::getMappingType() called on unpopulated dimension"); //throw instead of segfaulting in release
     return m_indexMaps[direction]->getType();
 }
 
@@ -329,6 +331,18 @@ int32_t CiftiXML::getIntentInfo(const CiftiVersion& writingVersion, char intentN
     for (i = 0; i < 16 && name[i] != '\0'; ++i) intentNameOut[i] = name[i];
     for (; i < 16; ++i) intentNameOut[i] = '\0';
     return ret;
+}
+
+bool CiftiXML::isLabelType() const
+{
+    for (int i = 0; i < getNumberOfDimensions(); ++i)
+    {
+        if (getMappingType(i) == CiftiMappingType::LABELS)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void CiftiXML::readXML(QXmlStreamReader& xml)

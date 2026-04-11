@@ -73,6 +73,12 @@ OperationParameters* AlgorithmCiftiDilate::getParameters()
     OptionalParameter* cerebCorrAreasOpt = cerebSurfOpt->createOptionalParameter(2, "-cerebellum-corrected-areas", "vertex areas to use instead of computing them from the cerebellum surface");
     cerebCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
+    ParameterComponent* genSurfOpt = ret->createRepeatableParameter(13, "-surface", "specify a surface by structure name");
+    genSurfOpt->addStringParameter(1, "structure", "the surface structure name");
+    genSurfOpt->addSurfaceParameter(2, "surface", "the surface file");
+    OptionalParameter* genCorrAreasOpt = genSurfOpt->createOptionalParameter(3, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    genCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+    
     OptionalParameter* roiOpt = ret->createOptionalParameter(9, "-bad-brainordinate-roi", "specify an roi of brainordinates to overwrite, rather than zeros");
     roiOpt->addCiftiParameter(1, "roi-cifti", "cifti dscalar or dtseries file, positive values denote brainordinates to have their values replaced");
     
@@ -111,6 +117,7 @@ void AlgorithmCiftiDilate::useParameters(OperationParameters* myParams, Progress
     float surfDist = (float)myParams->getDouble(3);
     float volDist = (float)myParams->getDouble(4);
     CiftiFile* myCiftiOut = myParams->getOutputCifti(5);
+    map<StructureEnum::Enum, SurfParam> surfParams;
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
     MetricFile* myLeftAreas = NULL, *myRightAreas = NULL, *myCerebAreas = NULL;
     OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(6);
@@ -122,6 +129,7 @@ void AlgorithmCiftiDilate::useParameters(OperationParameters* myParams, Progress
         {
             myLeftAreas = leftCorrAreasOpt->getMetric(1);
         }
+        surfParams[StructureEnum::CORTEX_LEFT] = SurfParam(myLeftSurf, myLeftAreas);
     }
     OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(7);
     if (rightSurfOpt->m_present)
@@ -132,6 +140,7 @@ void AlgorithmCiftiDilate::useParameters(OperationParameters* myParams, Progress
         {
             myRightAreas = rightCorrAreasOpt->getMetric(1);
         }
+        surfParams[StructureEnum::CORTEX_RIGHT] = SurfParam(myRightSurf, myRightAreas);
     }
     OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(8);
     if (cerebSurfOpt->m_present)
@@ -141,6 +150,22 @@ void AlgorithmCiftiDilate::useParameters(OperationParameters* myParams, Progress
         if (cerebCorrAreasOpt->m_present)
         {
             myCerebAreas = cerebCorrAreasOpt->getMetric(1);
+        }
+        surfParams[StructureEnum::CEREBELLUM] = SurfParam(myCerebSurf, myCerebAreas);
+    }
+    auto genSurfArgs = myParams->getRepeatableParameterInstances(13);
+    for (auto instance : genSurfArgs)
+    {
+        bool ok = false;
+        StructureEnum::Enum structure = StructureEnum::fromName(instance->getString(1), &ok);
+        if (!ok) throw AlgorithmException("unrecognized structure identifier: " + instance->getString(1));
+        if (surfParams.find(structure) != surfParams.end()) throw AlgorithmException("more than one surface argument specified for structure '" + instance->getString(1) + "'");
+        auto areasOpt = instance->getOptionalParameter(3);
+        if (areasOpt->m_present)
+        {
+            surfParams[structure] = SurfParam(instance->getSurface(2), areasOpt->getMetric(1));
+        } else {
+            surfParams[structure] = SurfParam(instance->getSurface(2));
         }
     }
     CiftiFile* myRoi = NULL;
@@ -152,23 +177,34 @@ void AlgorithmCiftiDilate::useParameters(OperationParameters* myParams, Progress
     bool nearest = myParams->getOptionalParameter(10)->m_present;
     bool mergedVolume = myParams->getOptionalParameter(11)->m_present;
     bool legacyMode = myParams->getOptionalParameter(12)->m_present;
-    AlgorithmCiftiDilate(myProgObj, myCifti, myDir, surfDist, volDist, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, myLeftAreas, myRightAreas, myCerebAreas, myRoi, nearest, mergedVolume, legacyMode);
+    AlgorithmCiftiDilate(myProgObj, myCifti, myDir, surfDist, volDist, myCiftiOut, surfParams, myRoi, nearest, mergedVolume, legacyMode);
 }
 
 AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
                                            const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
                                            const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas,
+                                           const CiftiFile* myBadRoi, const bool& nearest, const bool& mergedVolume, const bool legacyMode) : AbstractAlgorithm(NULL)
+{
+    map<StructureEnum::Enum, SurfParam> surfMap;
+    if (myLeftSurf != NULL) surfMap[StructureEnum::CORTEX_LEFT] = SurfParam(myLeftSurf, myLeftAreas);
+    if (myRightSurf != NULL) surfMap[StructureEnum::CORTEX_RIGHT] = SurfParam(myRightSurf, myRightAreas);
+    if (myCerebSurf != NULL) surfMap[StructureEnum::CEREBELLUM] = SurfParam(myCerebSurf, myCerebAreas);
+    AlgorithmCiftiDilate(myProgObj, myCifti, myDir, surfDist, volDist, myCiftiOut, surfMap, myBadRoi, nearest, mergedVolume, legacyMode);
+}
+
+AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
+                                           const map<StructureEnum::Enum, SurfParam> surfParams,
                                            const CiftiFile* myBadRoi, const bool& nearest, const bool& mergedVolume, const bool legacyMode) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    CiftiXMLOld myXML = myCifti->getCiftiXMLOld();
-    vector<StructureEnum::Enum> surfaceList, volumeList;
-    if (myDir != CiftiXMLOld::ALONG_ROW && myDir != CiftiXMLOld::ALONG_COLUMN) throw AlgorithmException("direction not supported by cifti dilate");
-    if (myBadRoi != NULL && !myXML.mappingMatches(myDir, myBadRoi->getCiftiXMLOld(), CiftiXMLOld::ALONG_COLUMN)) throw AlgorithmException("bad brainordinate roi has different brainordinate space than input");
-    if (!myXML.getStructureLists(myDir, surfaceList, volumeList))
-    {
-        throw AlgorithmException("specified direction does not contain brainordinates");
-    }
+    //CiftiXMLOld myXML = myCifti->getCiftiXMLOld();
+    const CiftiXML& myXML = myCifti->getCiftiXML();
+    if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw AlgorithmException("direction not supported by cifti dilate");
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("direction does not have a brain models (dense) mapping");
+    CiftiBrainModelsMap myDenseMap = myXML.getBrainModelsMap(myDir);
+    if (myBadRoi != NULL && myBadRoi->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("roi does not have a brain models (dense) mapping along columns");
+    if (myBadRoi != NULL && !myDenseMap.approximateMatch(myBadRoi->getCiftiXML().getBrainModelsMap(CiftiXML::ALONG_COLUMN))) throw AlgorithmException("bad brainordinate roi has different brainordinate space than input");
+    vector<StructureEnum::Enum> surfaceList = myDenseMap.getSurfaceStructureList(), volumeList = myDenseMap.getVolumeStructureList();
     float volExponent = 7.0f, surfExponent = 6.0f;
     if (legacyMode)
     {
@@ -177,35 +213,16 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
-        const SurfaceFile* mySurf = NULL;
-        const MetricFile* myCorrAreas = NULL;
-        AString surfType;
-        switch (surfaceList[whichStruct])
-        {
-            case StructureEnum::CORTEX_LEFT:
-                mySurf = myLeftSurf;
-                myCorrAreas = myLeftAreas;
-                surfType = "left";
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                mySurf = myRightSurf;
-                myCorrAreas = myRightAreas;
-                surfType = "right";
-                break;
-            case StructureEnum::CEREBELLUM:
-                mySurf = myCerebSurf;
-                myCorrAreas = myCerebAreas;
-                surfType = "cerebellum";
-                break;
-            default:
-                throw AlgorithmException("found surface model with incorrect type: " + StructureEnum::toName(surfaceList[whichStruct]));
-                break;
-        }
+        AString surfType = StructureEnum::toGuiName(surfaceList[whichStruct]);
+        auto iter = surfParams.find(surfaceList[whichStruct]);
+        if (iter == surfParams.end()) throw AlgorithmException(surfType + " surface required but not provided");
+        const SurfaceFile* mySurf = iter->second.surface;
+        const MetricFile* myCorrAreas = iter->second.correctedAreas;
         if (mySurf == NULL)
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (mySurf->getNumberOfNodes() != myXML.getSurfaceNumberOfNodes(myDir, surfaceList[whichStruct]))
+        if (mySurf->getNumberOfNodes() != myDenseMap.getSurfaceNumberOfNodes(surfaceList[whichStruct]))
         {
             throw AlgorithmException(surfType + " surface has the wrong number of vertices");
         }
@@ -217,33 +234,17 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
     myCiftiOut->setCiftiXML(myXML);
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {
-        const SurfaceFile* mySurf = NULL;
-        const MetricFile* myCorrAreas = NULL;
-        switch (surfaceList[whichStruct])
-        {
-            case StructureEnum::CORTEX_LEFT:
-                mySurf = myLeftSurf;
-                myCorrAreas = myLeftAreas;
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                mySurf = myRightSurf;
-                myCorrAreas = myRightAreas;
-                break;
-            case StructureEnum::CEREBELLUM:
-                mySurf = myCerebSurf;
-                myCorrAreas = myCerebAreas;
-                break;
-            default:
-                break;
-        }
+        auto iter = surfParams.find(surfaceList[whichStruct]);
+        const SurfaceFile* mySurf = iter->second.surface;
+        const MetricFile* myCorrAreas = iter->second.correctedAreas;
         MetricFile badRoiMetric, dataRoiMetric;
         MetricFile* badRoiPtr = NULL;
         if (myBadRoi != NULL)
         {
-            AlgorithmCiftiSeparate(NULL, myBadRoi, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &badRoiMetric);
+            AlgorithmCiftiSeparate(NULL, myBadRoi, CiftiXML::ALONG_COLUMN, surfaceList[whichStruct], &badRoiMetric);
             badRoiPtr = &badRoiMetric;
         }
-        if (myXML.getMappingType(1 - myDir) == CIFTI_INDEX_TYPE_LABELS)
+        if (myXML.isLabelType())
         {
             LabelFile myLabel, myLabelOut;
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myLabel);
@@ -260,7 +261,7 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
     }
     if (mergedVolume)
     {
-        if (myXML.hasVolumeData(myDir))
+        if (myDenseMap.hasVolumeData())
         {
             VolumeFile myVol, roiVol, myVolOut, dataRoi, junkVol;
             VolumeFile* roiPtr = NULL, *dataRoiPtr = &dataRoi;
@@ -273,7 +274,7 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
             }
             if (myBadRoi != NULL)
             {
-                AlgorithmCiftiSeparate(NULL, myBadRoi, CiftiXMLOld::ALONG_COLUMN, &roiVol, offset, NULL, true);
+                AlgorithmCiftiSeparate(NULL, myBadRoi, CiftiXML::ALONG_COLUMN, &roiVol, offset, NULL, true);
                 roiPtr = &roiVol;
             }
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, &myVol, offset, &dataRoi, true);

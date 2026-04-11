@@ -71,6 +71,8 @@ namespace caret
         CiftiSeriesMap& getSeriesMap(const int& direction);
         int64_t getDimensionLength(const int& direction) const;
         std::vector<int64_t> getDimensions() const;
+        ///check whether any mapping is labels
+        bool isLabelType() const;
         
         void setNumberOfDimensions(const int& num);
         void setMap(const int& direction, const CiftiMappingType& mapIn);
