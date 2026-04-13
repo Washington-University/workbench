@@ -154,6 +154,20 @@ LinearEquationTransform::transform(const float x) const
 }
 
 /**
+ * Transform the given Y-value to a X-value
+ */
+float
+LinearEquationTransform::inverseTransform(const float y) const
+{
+    float xOut(0.0);
+    if (m_slope != 0.0) {
+        xOut = (y - m_intercept) / m_slope;
+    }
+    return xOut;
+}
+
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

@@ -68,6 +68,28 @@ PaletteNew::PaletteNew(vector<ScalarColor> posRange, float zeroColor[3], vector<
     copyColor(m_zeroColor, zeroColor);
 }
 
+PaletteNew::PaletteNew(const PaletteNew& palette) : m_posRange(palette.m_posRange), m_negRange(palette.m_negRange)
+{
+    copyColor(m_zeroColor, palette.m_zeroColor);
+    m_name = palette.m_name;
+//    CaretAssert(m_posRange[0].scalar == 0.0f);
+//    CaretAssert(m_posRange.back().scalar == 1.0f);
+//    CaretAssert(m_negRange[0].scalar == -1.0f);
+//    CaretAssert(m_negRange.back().scalar == 0.0f);
+}
+
+void PaletteNew::updateRanges(std::vector<ScalarColor> posRange, const float zeroColor[3], std::vector<ScalarColor> negRange)
+{
+    CaretAssert(posRange[0].scalar == 0.0f);
+    CaretAssert(posRange.back().scalar == 1.0f);
+    CaretAssert(negRange[0].scalar == -1.0f);
+    CaretAssert(negRange.back().scalar == 0.0f);
+    m_posRange = posRange;
+    m_negRange = negRange;
+    copyColor(m_zeroColor, zeroColor);
+}
+
+
 void PaletteNew::getPositiveColor(const float scalar, float rgbOut[3]) const
 {
     CaretAssert(scalar >= 0.0f);

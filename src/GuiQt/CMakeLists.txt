@@ -220,7 +220,6 @@ ELSE()
 	PaletteEditorDialog.h
 	PaletteEditorRangeRow.h
 	PaletteEditorRangeWidget.h
-	PaletteSelectionWidget.h
         PlotMagnifier.h
         PlotPanner.h
 	PreferencesDevelopOptionsWidget.h
@@ -566,7 +565,6 @@ PaletteEditorDialog.h
 PaletteEditorRangeRow.h
 PaletteEditorRangeWidget.h
 PalettePixmapPainter.h
-PaletteSelectionWidget.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDevelopOptionsWidget.h
@@ -935,7 +933,6 @@ PaletteEditorDialog.cxx
 PaletteEditorRangeRow.cxx
 PaletteEditorRangeWidget.cxx
 PalettePixmapPainter.cxx
-PaletteSelectionWidget.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
 PreferencesDevelopOptionsWidget.cxx

@@ -28,6 +28,7 @@
 
 #include <QColor>
 
+#include "EventListenerInterface.h"
 #include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
 #include "WuQDialogNonModal.h"
@@ -35,24 +36,24 @@
 class QButtonGroup;
 class QLabel;
 class QLineEdit;
+class QListWidget;
+class QListWidgetItem;
 class QPushButton;
+class QRadioButton;
 class QTabWidget;
 class QToolButton;
 
 namespace caret {
 
     class CaretRgb;
-    
+    class PaletteEditorRangeRow;
     class PaletteEditorRangeWidget;
-    class PaletteGroup;
     class PaletteNew;
-    class PaletteSelectionWidget;
-    
     class WuQColorEditorWidget;
     class WuQDataEntryDialog;
     class WuQScrollArea;
     
-    class PaletteEditorDialog : public WuQDialogNonModal {
+    class PaletteEditorDialog : public WuQDialogNonModal, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -67,34 +68,36 @@ namespace caret {
         
         virtual void updateDialog();
 
+        virtual void receiveEvent(Event* event) override;
+
         // ADD_NEW_METHODS_HERE
 
     private slots:
         void editColor(const CaretRgb& rgb);
         
-        void newPaletteButtonClicked();
-        
         void colorEditorColorChanged(const QColor& color);
         
-        void paletteSelected();
+        void paletteSelected(QListWidgetItem* item);
         
         void rangeWidgetDataChanged();
         
-        void addPalettePushButtonClicked();
+        void controlPointButtonClicked(QAbstractButton* button);
         
-        void replacePalettePushButtonClicked();
+        void insertControlPointAboveActionTriggered();
         
-        void loadPalettePushButtonClicked();
+        void insertControlPointBelowActionTriggered();
         
-        void addPaletteDialogValidateData(WuQDataEntryDialog* addPaletteDialog);
+        void removeControlPointActionTriggered();
 
-        void deletePushButtonClicked();
+        void newPaletteActionTriggered();
         
-        void renamePushButtonClicked();
+        void renamePaletteActionTriggered();
         
-        void importPushButtonClicked();
+        void deletePaletteActionTriggered();
         
-        void exportPushButtonClicked();
+        void savePaletteActionTriggered();
+        
+        void revertPaletteActionTriggered();
         
     private:
         enum class IconType {
@@ -104,7 +107,7 @@ namespace caret {
         
         std::unique_ptr<PaletteNew> getPaletteFromEditor() const;
         
-        void loadPaletteIntoEditor(const std::unique_ptr<PaletteNew>& palette);
+        void loadPaletteIntoEditor();
         
         QWidget* createControlPointsWidget();
         
@@ -115,9 +118,9 @@ namespace caret {
         QPixmap createIcon(QWidget* widget,
                            const IconType iconType);
         
-        void updatePaletteColorBarImage();
+        void updatePaletteListWidget();
         
-        QWidget* createMovePaletteButtonsWidget();
+        void updatePaletteColorBarImage();
         
         void updatePaletteMovementButtons();
         
@@ -129,7 +132,9 @@ namespace caret {
         
         bool modifiedPaletteWarningDialog();
         
-        PaletteSelectionWidget* m_paletteSelectionWidget;
+        std::tuple<PaletteEditorRangeWidget*, PaletteEditorRangeRow*, QRadioButton*> getSelectedControlPointInfo();
+        
+        std::tuple<PaletteEditorRangeWidget*, PaletteEditorRangeRow*, QRadioButton*> getControlPointWithScalar(const float scalar);
         
         PaletteEditorRangeWidget* m_positiveRangeWidget;
         
@@ -137,39 +142,43 @@ namespace caret {
         
         PaletteEditorRangeWidget* m_negativeRangeWidget;
         
+        QAction* m_insertControlPointAboveAction;
+        
+        QAction* m_insertControlPointBelowAction;
+
+        QAction* m_removeControlPointAction;
+        
         QLabel* m_colorBarImageLabel;
         
-        QLabel* m_colorBarModifiedLabel;
+        QAction* m_paletteRevertAction;
         
-        WuQColorEditorWidget* m_colorEditorWidget;
+        QAction* m_paletteSaveAction;
+        
+        QToolButton* m_paletteSaveToolButton;
+        
+        WuQColorEditorWidget* m_colorEditorWidget = NULL;
         
         QButtonGroup* m_colorEditButtonGroup;
 
         PalettePixmapPainter::Mode m_pixmapMode = PalettePixmapPainter::Mode::INTERPOLATE_ON_LINES_AT_SCALARS;
+
+        QListWidget* m_paletteListWidget;
         
-        QPushButton* m_addPalettePushButton;
+        QAction* m_newPaletteAction;
         
-        QPushButton* m_replacePalettePushButton;
+        QAction* m_renamePaletteAction;
         
-        QPushButton* m_loadPalettePushButton;
-        
-        QPushButton* m_newPalettePushButton;
-        
-        QLineEdit* m_addPaletteDialogLineEdit = NULL;
-        
-        QPushButton* m_deletePushButton;
-        
-        QPushButton* m_renamePushButton;
-        
-        QPushButton* m_importPushButton;
-        
-        QPushButton* m_exportPushButton;
-        
+        QAction* m_deletePaletteAction;
+
         struct UnmodifiedPalette {
             std::vector<PaletteNew::ScalarColor> m_positiveMapping;
             std::vector<PaletteNew::ScalarColor> m_negativeMapping;
             std::vector<PaletteNew::ScalarColor> m_zeroMapping;
         } m_unmodifiedPalette;
+        
+        std::vector<const PaletteNew*> m_previouslyLoadedPalettes;
+        
+        const PaletteNew* m_paletteBeingEdited = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

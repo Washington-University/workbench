@@ -35,6 +35,7 @@ class QSpinBox;
 class QTransform;
 
 namespace caret {
+    class LinearEquationTransform;
     class WuQImageLabel;
     
     class WuQColorEditorWidget : public QWidget {
@@ -54,7 +55,8 @@ namespace caret {
         
     public slots:
         void setCurrentColor(const QColor& color);
-                // ADD_NEW_METHODS_HERE
+
+        // ADD_NEW_METHODS_HERE
 
     signals:
         void colorChanged(const QColor& color);
@@ -80,28 +82,7 @@ namespace caret {
         
         void revertToOriginalColorToolButtonClicked();
         
-    private:
-        class LinearEquationTransform {
-        public:
-            LinearEquationTransform(const float xMin,
-                                    const float xMax,
-                                    const float yMin,
-                                    const float yMax,
-                                    const float x0,
-                                    const float y0);
-            
-            ~LinearEquationTransform();
-            
-            float transformValue(const float value) const;
-            
-            float inverseTransformValue(const float value) const;
-            
-        private:
-            QTransform m_transform;
-            
-            QTransform m_inverseTransform;
-        };
-        
+    private:        
         void updateControls();
         
         void updateSliderAndSpinBox(QSlider* slider,
@@ -110,11 +91,11 @@ namespace caret {
         
         QWidget* createControlsWidget();
         
-        QWidget* createHueSaturationColorLabel();
+        QWidget* createHueSaturationColorLabel(const int32_t labelHeight);
         
         void updateHueSaturationToLabelTransforms();
         
-        QWidget* createValueColorLabel();
+        QWidget* createValueColorLabel(const int32_t labelHeight);
         
         void updateValueToLabelXyTransform();
         

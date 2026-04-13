@@ -55,6 +55,8 @@ using namespace caret;
  *    Button group that keeps edit color radio buttons mutually exclusive
  * @param parentGridLayout
  *    Layout for this row
+ * @param spinBoxWidth
+ *    Width of spin box
  * @param parent
  *    Parent object
  */
@@ -62,6 +64,7 @@ PaletteEditorRangeRow::PaletteEditorRangeRow(const int32_t rowIndex,
                                              const PaletteEditorRangeWidget::DataRangeMode rangeMode,
                                              QButtonGroup* colorEditButtonGroup,
                                              QGridLayout* parentGridLayout,
+                                             const int32_t spinBoxWidth,
                                              QObject* parent)
 : QObject(parent),
 m_rowIndex(rowIndex),
@@ -96,25 +99,17 @@ m_rangeMode(rangeMode)
     
     const int row(parentGridLayout->rowCount());
     if (posNegFlag) {
-        QWidget* constructionWidget = createConstructionToolButton();
-        QWidget* scalarWidget = createScalarEditingWidget();
+        QWidget* scalarWidget = createScalarEditingWidget(spinBoxWidth);
         
-        m_gridLayoutGroup->addWidget(constructionWidget,
-                                     row, COLUMN_CONSTRUCTION);
         m_gridLayoutGroup->addWidget(scalarWidget,
                                      row, COLUMN_SCALAR);
     }
     
     if (zeroFlag) {
-        QLabel* zeroLabel = new QLabel("Zero Mapping");
+        QLabel* zeroLabel = new QLabel("Zero");
+        zeroLabel->setFixedWidth(spinBoxWidth);
         m_gridLayoutGroup->addWidget(zeroLabel,
-                                     row, COLUMN_CONSTRUCTION,
-                                     1, 2);
-        parentGridLayout->setColumnStretch(COLUMN_CONSTRUCTION, 100);
-        parentGridLayout->setColumnStretch(COLUMN_SCALAR, 0);
-        parentGridLayout->setColumnStretch(COLUMN_COLOR_SWATCH, 0);
-        parentGridLayout->setColumnStretch(COLUMN_RADIO_BUTTON, 0);
-
+                                     row, COLUMN_SCALAR);
     }
 
     m_gridLayoutGroup->addWidget(m_colorSwatchWidget,
@@ -212,54 +207,6 @@ PaletteEditorRangeRow::updateRgbIfRadioButtonChecked(const CaretRgb& rgb)
 }
 
 /**
- * @return New instance of construction menu
- */
-QToolButton*
-PaletteEditorRangeRow::createConstructionToolButton()
-{
-    QMenu* menu = new QMenu();
-    QObject::connect(menu, &QMenu::triggered,
-                     this, &PaletteEditorRangeRow::constructionMenuTriggered);
-    
-    m_constructionInsertAboveAction = menu->addAction("Insert Control Point Above");
-    m_constructionInsertBelowAction = menu->addAction("Insert Control Point Below");
-    m_constructionRemoveAction      = menu->addAction("Remove this Control Point");
-    
-    QToolButton* toolButton = new WorkbenchToolButton(WorkbenchIconTypeEnum::OVERLAY_TOOLBOX_CONSTRUCT);
-    toolButton->setPopupMode(QToolButton::InstantPopup);
-    toolButton->setMenu(menu);
-    
-    return toolButton;
-}
-
-/**
- * Called when an items is selected from the construction menu
- * @param action
- *     Action of item selected
- */
-void
-PaletteEditorRangeRow::constructionMenuTriggered(QAction* action)
-{
-    PaletteEditorRangeWidget::ConstructionOperation modOp(PaletteEditorRangeWidget::ConstructionOperation::INSERT_CONTROL_POINT_ABOVE);
-    
-    if (action == m_constructionInsertAboveAction) {
-        modOp = PaletteEditorRangeWidget::ConstructionOperation::INSERT_CONTROL_POINT_ABOVE;
-    }
-    else if (action == m_constructionInsertBelowAction) {
-        modOp = PaletteEditorRangeWidget::ConstructionOperation::INSERT_CONTROL_POINT_BELOW;
-    }
-    else if (action == m_constructionRemoveAction) {
-        modOp = PaletteEditorRangeWidget::ConstructionOperation::REMOVE_CONTROL_POINT;
-    }
-    else {
-        CaretAssert(0);
-    }
-    
-    emit signalConstructionOperationRequested(m_rowIndex,
-                                              modOp);
-}
-
-/**
  * Called when the control point value is changed
  *
  * @param value
@@ -274,15 +221,18 @@ PaletteEditorRangeRow::scalarValueChangedByUser(double /* value */)
 
 /**
  * @return New instance of widgets for scalar editing
+ * @param spinBoxWidth
+ *    Width of spin box
  */
 QWidget*
-PaletteEditorRangeRow::createScalarEditingWidget()
+PaletteEditorRangeRow::createScalarEditingWidget(const int32_t spinBoxWidth)
 {
     m_valueSpinBox = new QDoubleSpinBox();
     m_valueSpinBox->setMinimum(-1.0);
     m_valueSpinBox->setMaximum(1.0);
     m_valueSpinBox->setDecimals(3);
     m_valueSpinBox->setSingleStep(getScalarValueSpinBoxSingleStep());
+    m_valueSpinBox->setFixedWidth(spinBoxWidth);
     QObject::connect(m_valueSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &PaletteEditorRangeRow::scalarValueChangedByUser);
     
@@ -348,36 +298,28 @@ PaletteEditorRangeRow::updateScalarValueRange(const float minValueIn,
 void
 PaletteEditorRangeRow::updateContent(const int32_t numberOfControlPoints)
 {
+    m_insertAboveValidFlag = false;
+    m_insertBelowValidFlag = false;
+    m_removeValidFlag   = false;
+    
     switch (m_rangeMode) {
         case PaletteEditorRangeWidget::DataRangeMode::NEGATIVE:
         case PaletteEditorRangeWidget::DataRangeMode::POSITIVE:
         {
-            /*
-             * Note: Row index 0 is at the top and contains the
-             * most positive (1.0) or least negative value (-1.0);
-             */
-            bool addAboveValid(false);
-            bool addBelowValid(false);
-            bool removeValid(false);
-
             if (m_rowIndex == 0) {
-                addBelowValid = true;
+                m_insertBelowValidFlag = true;
                 m_valueStackedWidget->setCurrentWidget(m_valueLabel);
             }
             else if (m_rowIndex == (numberOfControlPoints - 1)) {
-                addAboveValid = true;
+                m_insertAboveValidFlag = true;
                 m_valueStackedWidget->setCurrentWidget(m_valueLabel);
             }
             else {
-                addAboveValid = true;
-                addBelowValid = true;
-                removeValid   = true;
+                m_insertAboveValidFlag = true;
+                m_insertBelowValidFlag = true;
+                m_removeValidFlag   = true;
                 m_valueStackedWidget->setCurrentWidget(m_valueSpinBox);
             }
-
-            m_constructionInsertAboveAction->setEnabled(addAboveValid);
-            m_constructionInsertBelowAction->setEnabled(addBelowValid);
-            m_constructionRemoveAction->setEnabled(removeValid);
         }
             break;
         case PaletteEditorRangeWidget::DataRangeMode::ZERO:

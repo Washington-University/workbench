@@ -37,6 +37,7 @@
 
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
+#include "LinearEquationTransform.h"
 #include "MathFunctions.h"
 #include "WuQImageLabel.h"
 #include "WuQtUtilities.h"
@@ -53,27 +54,29 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param parent
+ *    Parent widget
  */
 WuQColorEditorWidget::WuQColorEditorWidget(QWidget* parent)
 : QWidget(parent)
 {
-    QWidget* hueSaturationWidget = createHueSaturationColorLabel();
-    QWidget* valueWidget         = createValueColorLabel();
+    const int32_t labelHeight(180);
+    QWidget* hueSaturationWidget = createHueSaturationColorLabel(labelHeight);
+    QWidget* valueWidget         = createValueColorLabel(labelHeight);
     
     QWidget* controlsWidget = createControlsWidget();
     QWidget* caretColorWidget = createCaretColorNoNamesSelectionButtonsWidget();
     
     
     QGridLayout* layout = new QGridLayout(this);
-    layout->addWidget(hueSaturationWidget, 0, 0);
-    layout->addWidget(valueWidget, 0, 1);
-    layout->addWidget(caretColorWidget, 0, 2, 1, 1);
-    layout->addWidget(controlsWidget, 1, 0, 1, 3);
+    layout->setVerticalSpacing(4);
+    int row(layout->rowCount());
+    layout->addWidget(hueSaturationWidget, row, 0);
+    layout->addWidget(valueWidget, row, 1);
+    layout->addWidget(caretColorWidget, row, 2);
+    ++row;
+    layout->addWidget(controlsWidget, row, 0, 1, 3);
     
-//    m_currentColor.setRgb(255, 0, 0);
-//    m_originalColor = m_currentColor;
-//    updateControls();
-
     setCurrentColor(QColor());
     setSizePolicy(sizePolicy().horizontalPolicy(),
                           QSizePolicy::Fixed);
@@ -116,16 +119,16 @@ WuQColorEditorWidget::setCurrentColor(const QColor& color)
 QWidget*
 WuQColorEditorWidget::createControlsWidget()
 {
-    QLabel* currentLabel = new QLabel("Current\nColor");
+    QLabel* currentLabel = new QLabel("Color");
     currentLabel->setAlignment(Qt::AlignHCenter);
     m_currentColorSwatchWidget = new QWidget();
-    m_currentColorSwatchWidget->setMinimumWidth(50);
-    m_currentColorSwatchWidget->setMinimumHeight(30);
+    m_currentColorSwatchWidget->setMinimumWidth(20);
+    m_currentColorSwatchWidget->setMinimumHeight(10);
     
-    QLabel* originalLabel = new QLabel("Original\nColor");
+    QLabel* originalLabel = new QLabel("Original");
     m_originalColorSwatchWidget = new QWidget();
-    m_originalColorSwatchWidget->setMinimumWidth(50);
-    m_originalColorSwatchWidget->setMinimumHeight(20);
+    m_originalColorSwatchWidget->setMinimumWidth(20);
+    m_originalColorSwatchWidget->setMinimumHeight(10);
     
     QToolButton* revertToolButton = new QToolButton();
     revertToolButton->setText("Revert");
@@ -133,12 +136,14 @@ WuQColorEditorWidget::createControlsWidget()
     QObject::connect(revertToolButton, &QToolButton::clicked,
                      this, &WuQColorEditorWidget::revertToOriginalColorToolButtonClicked);
     
-    QVBoxLayout* colorLayout = new QVBoxLayout();
+    QHBoxLayout* colorLayout = new QHBoxLayout();
+    colorLayout->setContentsMargins(0, 0, 0, 0);
     colorLayout->addWidget(currentLabel);
-    colorLayout->addWidget(m_currentColorSwatchWidget, 100);
+    colorLayout->addWidget(m_currentColorSwatchWidget);
     colorLayout->addWidget(originalLabel);
     colorLayout->addWidget(m_originalColorSwatchWidget);
     colorLayout->addWidget(revertToolButton);
+    colorLayout->addStretch();
     
     m_hueSlider = new QSlider();
     m_hueSlider->setOrientation(Qt::Horizontal);
@@ -212,6 +217,8 @@ WuQColorEditorWidget::createControlsWidget()
     const int32_t COL_SPIN_BOX(COL_SLIDER + 1);
     
     QGridLayout* adjustLayout = new QGridLayout();
+    adjustLayout->setContentsMargins(0, 0, 0, adjustLayout->contentsMargins().bottom());
+    adjustLayout->setVerticalSpacing(4);
     adjustLayout->setColumnStretch(COL_LABEL,    0);
     adjustLayout->setColumnStretch(COL_SLIDER, 100);
     adjustLayout->setColumnStretch(COL_SPIN_BOX, 0);
@@ -266,11 +273,10 @@ WuQColorEditorWidget::createControlsWidget()
     row++;
     
     QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+    QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addLayout(colorLayout, 0);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0);
-    layout->addLayout(adjustLayout, 100);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget(), 0);
+    layout->addLayout(adjustLayout, 0);
     
     return widget;
 }
@@ -456,10 +462,10 @@ WuQColorEditorWidget::updateSliderAndSpinBox(QSlider* slider,
 }
 
 QWidget*
-WuQColorEditorWidget::createHueSaturationColorLabel()
+WuQColorEditorWidget::createHueSaturationColorLabel(const int32_t labelHeight)
 {
-    const int32_t xWidth(360);
-    const int32_t yHeight(256);
+    const int32_t xWidth(labelHeight);
+    const int32_t yHeight(labelHeight);
     
     m_hueSaturationColorLabel = new WuQImageLabel();
     m_hueSaturationColorLabel->setFixedSize(xWidth, yHeight);
@@ -470,11 +476,12 @@ WuQColorEditorWidget::createHueSaturationColorLabel()
     
     updateHueSaturationToLabelTransforms();
     for (int32_t x = 0; x < xWidth; x++) {
-        const float hue = m_hueToLabelLinearTransform->inverseTransformValue(x);
+        const float hue = m_hueToLabelLinearTransform->inverseTransform(x);
         
         for (int32_t y = 0; y < yHeight; y++) {
-            const float sat = m_saturationToLabelLinearTransform->inverseTransformValue(y);
+            const float sat = m_saturationToLabelLinearTransform->inverseTransform(y);
             pen.setColor(QColor::fromHsv(hue, sat, 255));
+            
             painter.setPen(pen);
             painter.drawPoint(x, y);
         }
@@ -498,8 +505,8 @@ WuQColorEditorWidget::updateHueSaturationLabel()
     const float saturation(m_currentColor.hsvSaturation());
 
     updateHueSaturationToLabelTransforms();
-    const float cursorX = m_hueToLabelLinearTransform->transformValue(hue);
-    const float cursorY = m_saturationToLabelLinearTransform->transformValue(saturation);
+    const float cursorX = m_hueToLabelLinearTransform->transform(hue);
+    const float cursorY = m_saturationToLabelLinearTransform->transform(saturation);
     QPixmap pixmap = m_hueSaturationPixmap;
 
     QPainter painter(&pixmap);
@@ -520,8 +527,8 @@ void
 WuQColorEditorWidget::hueSaturationLabelClicked(int x, int y)
 {
     updateHueSaturationToLabelTransforms();
-    const float hue = m_hueToLabelLinearTransform->transformValue(x);
-    const float saturation = m_saturationToLabelLinearTransform->transformValue(y);
+    const float hue = m_hueToLabelLinearTransform->inverseTransform(x);
+    const float saturation = m_saturationToLabelLinearTransform->inverseTransform(y);
 
     m_currentColor.setHsv(hue, saturation, m_currentColor.value());
     updateControls();
@@ -530,10 +537,10 @@ WuQColorEditorWidget::hueSaturationLabelClicked(int x, int y)
 
 
 QWidget*
-WuQColorEditorWidget::createValueColorLabel()
+WuQColorEditorWidget::createValueColorLabel(const int32_t labelHeight)
 {
     m_valueColorLabel = new WuQImageLabel();
-    m_valueColorLabel->setFixedSize(25, 256);
+    m_valueColorLabel->setFixedSize(25, labelHeight);
     
     
     QObject::connect(m_valueColorLabel, &WuQImageLabel::clickedXY,
@@ -565,11 +572,11 @@ WuQColorEditorWidget::updateValueColorLabel()
      */
     const int32_t halfWidth(xWidth / 2);
     
-    for (int32_t value = 0; value < 255; value++) {
-        const float yValue = m_valueToLabelLinearTransform->transformValue(value);
+    for (int32_t y = 0; y < m_valueColorLabel->height(); y++) {
+        const float value = m_valueToLabelLinearTransform->inverseTransform(y);
         pen.setColor(QColor::fromHsv(hue, saturation, value));
         painter.setPen(pen);
-        painter.drawRect(0, yValue, halfWidth, 1);
+        painter.drawRect(0, y, halfWidth, 1);
     }
     
     const int32_t quarterWidth(halfWidth / 2);
@@ -578,11 +585,11 @@ WuQColorEditorWidget::updateValueColorLabel()
     triangle.append(QPoint(xWidth, -quarterWidth));
     triangle.append(QPoint(xWidth,  quarterWidth));
     
-    const int32_t valueY = (yHeight - m_currentColor.value());
+    const int32_t triangleY(m_valueToLabelLinearTransform->transform(m_currentColor.value()));
     pen.setColor(QColor(0, 0, 0));
     pen.setWidth(3);
     painter.setPen(pen);
-    painter.translate(0, valueY);
+    painter.translate(0, triangleY);
     QBrush brush = painter.brush();
     brush.setColor(QColor(0, 0, 0));
     brush.setStyle(Qt::SolidPattern);
@@ -597,7 +604,7 @@ WuQColorEditorWidget::valueLabelClicked(int /*x*/, int y)
 {
     updateValueToLabelXyTransform();
     
-    const float newValue = m_valueToLabelLinearTransform->inverseTransformValue(y);
+    const float newValue = m_valueToLabelLinearTransform->inverseTransform(y);
 
     m_currentColor.setHsv(m_currentColor.hsvHue(),
                           m_currentColor.hsvSaturation(),
@@ -627,9 +634,15 @@ WuQColorEditorWidget::updateValueToLabelXyTransform()
         const float labelHeight(m_valueColorLabel->height() - 1);
         const float valueMaximum(255); /* ranges [0, 255] */
         
-        m_valueToLabelLinearTransform.reset(new LinearEquationTransform(0, valueMaximum,
-                                                                        0, labelHeight,
-                                                                        0, labelHeight));
+        AString errorMessage;
+        m_valueToLabelLinearTransform = LinearEquationTransform::newInstance(0, valueMaximum,
+                                                                             0, labelHeight,
+                                                                             0, labelHeight,
+                                                                             errorMessage);
+        m_valueToLabelLinearTransform = LinearEquationTransform::newInstance(0, valueMaximum,
+                                                                             labelHeight, 0,
+                                                                             0, labelHeight,
+                                                                             errorMessage);
     }
 }
 
@@ -651,16 +664,39 @@ WuQColorEditorWidget::updateHueSaturationToLabelTransforms()
         const float hueMaximum(359); /* ranges [0, 359] */
         const float hueMinimum(0);
 
-        m_hueToLabelLinearTransform.reset(new LinearEquationTransform(hueMinimum, hueMaximum,
-                                                                      0, labelWidth,
-                                                                      hueMinimum, labelWidth));
+        AString errorMessage;
+        m_hueToLabelLinearTransform = LinearEquationTransform::newInstance(hueMaximum, hueMinimum,
+                                                                           0, labelWidth,
+                                                                           hueMaximum, 0,
+                                                                           errorMessage);
+
+        const bool testFlag(false);
+        if (testFlag) {
+            std::cout << "Hue to label: " << m_hueToLabelLinearTransform->toString() << std::endl;
+            for (int32_t hue = 0; hue <= hueMaximum; hue++) {
+                const float labelX( m_hueToLabelLinearTransform->transform(hue));
+                const float hue2(m_hueToLabelLinearTransform->inverseTransform(labelX));
+                std::cout << "   hue=" << hue << ", labelX=" << labelX << ", hue2=" << hue2 << std::endl;
+            }
+        }
         
         const float labelHeight(m_hueSaturationColorLabel->height() - 1);
         const float saturationMaximum(255);
         const float saturationMinimum(0);
-        m_saturationToLabelLinearTransform.reset(new LinearEquationTransform(saturationMinimum, saturationMaximum,
-                                                                             0, labelHeight,
-                                                                             saturationMinimum, labelHeight));
+        m_saturationToLabelLinearTransform = LinearEquationTransform::newInstance(saturationMaximum, saturationMinimum,
+                                                                                  0, labelHeight,
+                                                                                  saturationMaximum, 0,
+                                                                                  errorMessage);
+        if (testFlag) {
+            std::cout << "Saturation to label: " << m_hueToLabelLinearTransform->toString() << std::endl;
+        }
+        for (int32_t sat = 0; sat <= saturationMaximum; sat++) {
+            const float labelY( m_saturationToLabelLinearTransform->transform(sat));
+            const float sat2(m_saturationToLabelLinearTransform->inverseTransform(labelY));
+            if (testFlag) {
+                std::cout << "   sat=" << sat << ", labelY=" << labelY << ", sat2=" << sat2 << std::endl;
+            }
+        }
     }
 }
 
@@ -682,7 +718,7 @@ WuQColorEditorWidget::createCaretColorNoNamesSelectionButtonsWidget()
     for (auto cc : colorEnums) {
         QToolButton* tb = new QToolButton();
         
-        QSize iconSize(18, 18);
+        QSize iconSize(12, 12);
         float rgbaFloat[4];
         CaretColorEnum::toRGBAFloat(cc, rgbaFloat);
         QPixmap pm(WuQtUtilities::createCaretColorEnumPixmap(tb, iconSize.width(), iconSize.height(),
@@ -697,7 +733,6 @@ WuQColorEditorWidget::createCaretColorNoNamesSelectionButtonsWidget()
         tb->setDefaultAction(a);
         tb->setToolButtonStyle(Qt::ToolButtonIconOnly);
         tb->setIconSize(iconSize);
-        
         
         layout->addWidget(tb, row, col);
 
@@ -736,57 +771,3 @@ WuQColorEditorWidget::caretColorActionClicked(QAction* action)
     }
 }
 
-
-
-
-
-
-/* ======================================================================== */
-WuQColorEditorWidget::LinearEquationTransform::LinearEquationTransform(const float xMin,
-                                                                       const float xMax,
-                                                                       const float yMin,
-                                                                       const float yMax,
-                                                                       const float x0,
-                                                                       const float y0)
-{
-    const float dy(yMax - yMin);
-    const float dx(xMax - xMin);
-    if (dx == 0) {
-        return;
-    }
-    
-    const float slope(dy / dx);
-    const float intercept = y0 - (slope * x0);
-    
-    m_transform.scale(1.0, -slope);
-    m_transform.translate(0.0, -intercept);
-    
-    if (m_transform.isInvertible()) {
-        m_inverseTransform = m_transform.inverted();
-    }
-}
-
-WuQColorEditorWidget::LinearEquationTransform::~LinearEquationTransform()
-{
-    
-}
-
-float
-WuQColorEditorWidget::LinearEquationTransform::transformValue(const float value) const
-{
-    QPointF pIn(0, value);
-    QPointF pOut = m_transform.map(QPointF(0.0, value));
-    
-    const float valueOut = pOut.y();
-    return valueOut;
-}
-
-float
-WuQColorEditorWidget::LinearEquationTransform::inverseTransformValue(const float value) const
-{
-    QPointF pIn(0, value);
-    QPointF pOut = m_inverseTransform.map(QPointF(0.0, value));
-    
-    const float valueOut = pOut.y();
-    return valueOut;
-}

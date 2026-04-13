@@ -262,8 +262,8 @@ public:
         EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW,
         /** Get a palette by name from a palette file */
         EVENT_PALETTE_GET_BY_NAME,
-        /** Get palette groups */
-        EVENT_PALETTE_GROUPS_GET,
+        /** Palette Operation Event */
+        EVENT_PALETTE_OPERATION,
         /** Get the file system access mode for recent files */
         EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE,
         /** Issued when reset view is requested */

@@ -30,6 +30,7 @@
 #include "CaretRgb.h"
 #include "PaletteNew.h"
 
+class QAbstractButton;
 class QButtonGroup;
 class QDoubleSpinBox;
 class QGridLayout;
@@ -59,14 +60,9 @@ namespace caret {
             REMOVE_CONTROL_POINT
         };
         
-        enum class ColumnTitlesMode {
-            SHOW_YES,
-            SHOW_NO
-        };
-        
         PaletteEditorRangeWidget(const DataRangeMode dataRangeMode,
                                  QButtonGroup* colorEditButtonGroup,
-                                 const ColumnTitlesMode columnTitlesMode,
+                                 const int32_t spinBoxWidth,
                                  QWidget* parent);
 
         virtual ~PaletteEditorRangeWidget();
@@ -77,12 +73,19 @@ namespace caret {
         
         std::vector<PaletteNew::ScalarColor> getScalarColors() const;
         
+        PaletteEditorRangeRow* getRangeRowFromButton(const QAbstractButton* button);
+        
+        PaletteEditorRangeRow* getRangeRowFromScalar(const float scalar);
+        
         void updateContent(const std::vector<PaletteNew::ScalarColor>& scalarColorsIn);
         
         void updateControlPointColor(const CaretRgb& rgb);
 
         void selectFirstControlPoint();
         
+        float performControlPointOperation(PaletteEditorRangeRow* rangeRow,
+                                           const PaletteEditorRangeWidget::ConstructionOperation constructionOperation);
+
         // ADD_NEW_METHODS_HERE
 
     signals:
@@ -107,6 +110,8 @@ namespace caret {
         const DataRangeMode m_dataRangeMode;
         
         QButtonGroup* m_colorEditButtonGroup;
+        
+        const int32_t m_spinBoxWidth;
         
         QGridLayout* m_controlPointGridLayout;
         

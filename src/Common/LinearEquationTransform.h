@@ -45,6 +45,8 @@ namespace caret {
         
         float transform(const float x) const;
 
+        float inverseTransform(const float y) const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

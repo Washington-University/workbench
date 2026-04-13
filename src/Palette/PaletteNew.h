@@ -81,6 +81,7 @@ namespace caret {
         };
         
         PaletteNew(std::vector<ScalarColor> posRange, float zeroColor[3], std::vector<ScalarColor> negRange);
+        PaletteNew(const PaletteNew& paletteNew);
         
         void getPositiveColor(const float scalar, float rgbOut[3]) const;
         void getNegativeColor(const float scalar, float rgbOut[3]) const;
@@ -93,6 +94,8 @@ namespace caret {
         std::vector<ScalarColor> getPosRange() const { return m_posRange.getRange(); }
         std::vector<ScalarColor> getNegRange() const { return m_negRange.getRange(); }
 
+        void updateRanges(std::vector<ScalarColor> posRange, const float zeroColor[3], std::vector<ScalarColor> negRange);
+        
         //TODO: simulate color deficiency
         std::vector<float> getPosPerceptualGradient(const int numBuckets) const { return m_posRange.getPerceptualGradient(numBuckets); }
         std::vector<float> getNegPerceptualGradient(const int numBuckets) const { return m_negRange.getPerceptualGradient(numBuckets); }

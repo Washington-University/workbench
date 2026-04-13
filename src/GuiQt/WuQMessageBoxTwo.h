@@ -99,6 +99,10 @@ namespace caret {
                               const QString &title,
                               const QString &text);
 
+        static bool warningOkCancel(QWidget *parent,
+                                    const QString &title,
+                                    const QString &text);
+        
         WuQMessageBoxTwo(const IconType icon,
                          const QString& title,
                          const QString& text,
@@ -119,6 +123,9 @@ namespace caret {
         StandardButton clickedStandardButton() const;
         
         void setDefaultButton(const StandardButton button);
+        
+        void setButtonText(const StandardButton button,
+                           const QString& text);
         
         void setText(const QString& text);
         

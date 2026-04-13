@@ -99,7 +99,7 @@
 #include "EventModelGetAll.h"
 #include "EventModelGetAllDisplayed.h"
 #include "EventPaletteGetByName.h"
-#include "EventPaletteGroupsGet.h"
+#include "EventPaletteOperation.h"
 #include "EventProgressUpdate.h"
 #include "EventSceneActive.h"
 #include "EventSpecFileReadDataFiles.h"
@@ -130,8 +130,7 @@
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "PaletteFile.h"
-#include "PaletteGroupStandardPalettes.h"
-#include "PaletteGroupUserCustomPalettes.h"
+#include "PaletteNewGroup.h"
 #include "RgbaFile.h"
 #include "SamplesFile.h"
 #include "SamplesMetaDataManager.h"
@@ -282,11 +281,11 @@ Brain::Brain(CaretPreferences* caretPreferences)
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_MEDIA_FILES_GET);
     EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_PALETTE_OPERATION);
+    EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_PALETTE_GET_BY_NAME);
-    EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_PALETTE_GROUPS_GET);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_SCENE_ACTIVE);
     EventManager::get()->addEventListener(this,
@@ -360,11 +359,9 @@ Brain::Brain(CaretPreferences* caretPreferences)
     
     m_brainordinateHighlightRegionOfInterest = new BrainordinateRegionOfInterest();
     
-    m_palettesStandardGroup = std::make_shared<PaletteGroupStandardPalettes>();
-    m_palettesStandardGroup->loadPalettes();
-
-    m_palettesUserCustomGroup = std::make_shared<PaletteGroupUserCustomPalettes>(caretPreferences);
-
+    m_userPalettes.reset(new PaletteNewGroup(PaletteNewGroup::GroupType::USER_CUSTOM));
+    m_userPalettes->addExamplePalettes();
+    
     updateChartModel();
 }
 
@@ -8151,14 +8148,108 @@ Brain::receiveEvent(Event* event)
             }
         }
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_GROUPS_GET) {
-        EventPaletteGroupsGet* palettesEvent = dynamic_cast<EventPaletteGroupsGet*>(event);
-        CaretAssert(palettesEvent);
+    else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_OPERATION) {
+        EventPaletteOperation* paletteEvent(dynamic_cast<EventPaletteOperation*>(event));
+        CaretAssert(paletteEvent);
+        paletteEvent->setEventProcessed();
         
-        palettesEvent->addPaletteGroup(m_palettesStandardGroup);
-        palettesEvent->addPaletteGroup(m_palettesUserCustomGroup);
-
-        palettesEvent->setEventProcessed();
+        switch (paletteEvent->getOperation()) {
+            case EventPaletteOperation::Operation::DELETE_PALETTE:
+            {
+                std::vector<const PaletteNew*> palettes(paletteEvent->m_palettes);
+                if (palettes.size() == 1) {
+                    CaretAssertVectorIndex(palettes, 0);
+                    FunctionResult result(m_userPalettes->removePalette(palettes[0]));
+                    if (result.isError()) {
+                        paletteEvent->setErrorMessage(result.getErrorMessage());
+                    }
+                }
+                else {
+                    paletteEvent->setErrorMessage("There must be one palette for delete operation");
+                }
+            }
+                break;
+            case EventPaletteOperation::Operation::GET_PALETTE_WITH_NAME:
+            {
+                FunctionResultValue<PaletteNew*> result(m_userPalettes->getPaletteWithName(paletteEvent->m_paletteName));
+                if (result.isOk()) {
+                    std::vector<const PaletteNew*> palettes { result.getValue() };
+                    paletteEvent->setPalettes(palettes);
+                }
+                else {
+                    paletteEvent->setErrorMessage(result.getErrorMessage());
+                }
+            }
+                break;
+            case EventPaletteOperation::Operation::GET_USER_PALETTES:
+            {
+                std::vector<const PaletteNew*> palettes;
+                m_userPalettes->getPalettes(palettes);
+                paletteEvent->setPalettes(palettes);
+            }
+                break;
+            case EventPaletteOperation::Operation::NEW_PALETTE:
+            {
+                AString name;
+                int32_t numPositiveControlPoints(0);
+                int32_t numNegativeControlPoints(0);
+                paletteEvent->getNewPaletteInfo(name,
+                                                numPositiveControlPoints,
+                                                numNegativeControlPoints);
+                
+                FunctionResultValue<PaletteNew*> result(m_userPalettes->addNewPalette(name,
+                                                                                      numPositiveControlPoints,
+                                                                                      numNegativeControlPoints));
+                if (result.isOk()) {
+                    m_userPalettes->addPalette(result.getValue());
+                    std::vector<const PaletteNew*> palettes { result.getValue() };
+                    paletteEvent->setPalettes(palettes);
+                }
+                else {
+                    paletteEvent->setErrorMessage(result.getErrorMessage());
+                }
+            }
+                break;
+            case EventPaletteOperation::Operation::RENAME_PALETTE:
+            {
+                std::vector<const PaletteNew*> palettes(paletteEvent->m_palettes);
+                if (palettes.size() == 1) {
+                    CaretAssertVectorIndex(palettes, 0);
+                    FunctionResult result(m_userPalettes->renamePalette(palettes[0],
+                                                                        paletteEvent->m_paletteName));
+                    if (result.isError()) {
+                        paletteEvent->setErrorMessage(result.getErrorMessage());
+                    }
+                }
+                else {
+                    paletteEvent->setErrorMessage("There must be one palette for delete operation");
+                }
+            }
+                break;
+            case EventPaletteOperation::Operation::UPDATE_PALETTE:
+                std::vector<const PaletteNew*> palettes(paletteEvent->m_palettes);
+                if (palettes.size() == 1) {
+                    CaretAssertVectorIndex(palettes, 0);
+                    std::vector<PaletteNew::ScalarColor> positiveMapping;
+                    std::vector<PaletteNew::ScalarColor> negativeMapping;
+                    PaletteNew::ScalarColor zeroMapping;
+                    paletteEvent->getUpdateMappings(positiveMapping,
+                                                    negativeMapping,
+                                                    zeroMapping);
+                    
+                    FunctionResult result(m_userPalettes->updatePalette(palettes[0],
+                                                                        positiveMapping,
+                                                                        negativeMapping,
+                                                                        zeroMapping));
+                    if (result.isError()) {
+                        paletteEvent->setErrorMessage(result.getErrorMessage());
+                    }
+                }
+                else {
+                    paletteEvent->setErrorMessage("There must be one palette for update operation");
+                }
+                break;
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_SCENE_ACTIVE) {
         EventSceneActive* sceneEvent = dynamic_cast<EventSceneActive*>(event);

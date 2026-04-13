@@ -28,21 +28,29 @@
 #include "PalettePixmapPainter.h"
 #include "WuQDialogModal.h"
 
-class QAbstractButton;
-class QRadioButton;
+class QLineEdit;
 class QSpinBox;
 
 namespace caret {
 
     class PaletteNew;
-    class PaletteSelectionWidget;
     
     class PaletteCreateNewDialog : public WuQDialogModal {
         
         Q_OBJECT
 
     public:
-        PaletteCreateNewDialog(const PalettePixmapPainter::Mode pixmapMode,
+        /**
+         * Type of palette
+         */
+        enum class PaletteType {
+            /**
+             * New palette that is added to the user's custom palettes
+             */
+            USER_CUSTOM_PALETTE
+        };
+        PaletteCreateNewDialog(const PaletteType paletteType,
+                               const PalettePixmapPainter::Mode pixmapMode,
                                QWidget* parent = 0);
         
         virtual ~PaletteCreateNewDialog();
@@ -50,37 +58,34 @@ namespace caret {
         PaletteCreateNewDialog(const PaletteCreateNewDialog&) = delete;
 
         PaletteCreateNewDialog& operator=(const PaletteCreateNewDialog&) = delete;
+                
+        const PaletteNew* getPalette() const;
         
-        std::unique_ptr<PaletteNew> getPalette();
+        AString getErrorMessage() const;
         
-        static PaletteNew* createPaletteNew(const AString& name,
-                                            const int32_t numberOfPositiveControlPoints,
-                                            const int32_t numberOfNegativeControlPoints);
-
         // ADD_NEW_METHODS_HERE
 
     protected:
         virtual void okButtonClicked();
-        
-    private slots:
-        void paletteSelected();
-        
-        void typeButtonClicked(QAbstractButton* button);
-        
+                
     private:
+        static PaletteNew* createPaletteNew(const AString& name,
+                                            const int32_t numberOfPositiveControlPoints,
+                                            const int32_t numberOfNegativeControlPoints);
+        
+        const PaletteType m_paletteType;
+        
         const PalettePixmapPainter::Mode m_pixmapMode;
         
-        PaletteSelectionWidget* m_paletteSelectionWidget;
-
-        QRadioButton* m_copyPaletteRadioButton;
-        
-        QRadioButton* m_newPaletteRadioButton;
+        QLineEdit* m_newPaletteNameLineEdit;
         
         QSpinBox* m_newPalettePositiveSpinBox;
         
         QSpinBox* m_newPaletteNegativeSpinBox;
         
-        std::unique_ptr<PaletteNew> m_palette;
+        const PaletteNew* m_palette = NULL;
+        
+        AString m_errorMessage;
         
         // ADD_NEW_MEMBERS_HERE
 

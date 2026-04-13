@@ -23,23 +23,18 @@
 #include "PaletteCreateNewDialog.h"
 #undef __PALETTE_CREATE_NEW_DIALOG_DECLARE__
 
-#include <QButtonGroup>
-#include <QComboBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QRadioButton>
 #include <QSpinBox>
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "EventPaletteOperation.h"
 #include "GuiManager.h"
-#include "Palette.h"
-#include "PaletteFile.h"
 #include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
-#include "PaletteSelectionWidget.h"
-#include "WuQMessageBox.h"
+#include "WuQMessageBoxTwo.h"
 
 using namespace caret;
     
@@ -51,29 +46,23 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param paletteType
+ *    Type of palette to create
  * @param pixmapMode
  * palette pixmap Interpolation mode (on/off)
  * @param parent
  *    The parent widget
  */
-PaletteCreateNewDialog::PaletteCreateNewDialog(const PalettePixmapPainter::Mode pixmapMode,
+PaletteCreateNewDialog::PaletteCreateNewDialog(const PaletteType paletteType,
+                                               const PalettePixmapPainter::Mode pixmapMode,
                                                QWidget* parent)
 : WuQDialogModal("Create New Palette",
                  parent),
+m_paletteType(paletteType),
 m_pixmapMode(pixmapMode)
 {
-    m_copyPaletteRadioButton = new QRadioButton("Copy Palette");
-    m_newPaletteRadioButton  = new QRadioButton("New Palette");
-    
-    m_paletteSelectionWidget = new PaletteSelectionWidget();
-    QObject::connect(m_paletteSelectionWidget, &PaletteSelectionWidget::paletteSelectionChanged,
-                     this, &PaletteCreateNewDialog::paletteSelected);
-    
-    QButtonGroup* buttonGroup = new QButtonGroup();
-    buttonGroup->addButton(m_copyPaletteRadioButton);
-    buttonGroup->addButton(m_newPaletteRadioButton);
-    QObject::connect(buttonGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
-                     this, &PaletteCreateNewDialog::typeButtonClicked);
+    QLabel* nameLabel(new QLabel("Name"));
+    m_newPaletteNameLineEdit = new QLineEdit();
     
     QLabel* positiveLabel = new QLabel("Positive Control Points");
     m_newPalettePositiveSpinBox = new QSpinBox();
@@ -91,14 +80,10 @@ m_pixmapMode(pixmapMode)
     QGridLayout* gridLayout = new QGridLayout(widget);
     gridLayout->setColumnStretch(3, 100);
     int row(0);
-    gridLayout->addWidget(m_copyPaletteRadioButton,
-                          row, 0, 1, 2);
-    row++;
-    gridLayout->addWidget(m_paletteSelectionWidget,
-                          row, 1, 1, 2);
-    row++;
-    gridLayout->addWidget(m_newPaletteRadioButton,
-                         row, 0, 1, 2);
+    gridLayout->addWidget(nameLabel,
+                          row, 1);
+    gridLayout->addWidget(m_newPaletteNameLineEdit,
+                          row, 2);
     row++;
     gridLayout->addWidget(positiveLabel,
                           row, 1);
@@ -109,11 +94,9 @@ m_pixmapMode(pixmapMode)
                           row, 1);
     gridLayout->addWidget(m_newPaletteNegativeSpinBox,
                           row, 2);
+    row++;
 
     setCentralWidget(widget, SCROLL_AREA_NEVER);
-    
-    m_newPaletteRadioButton->setChecked(true);
-    typeButtonClicked(buttonGroup->checkedButton());
 }
 
 /**
@@ -124,80 +107,54 @@ PaletteCreateNewDialog::~PaletteCreateNewDialog()
 }
 
 /**
- * Called when a  palette is selected
- * @param palette
- *     Palette selected by the user (may be NULL)
- */
-void
-PaletteCreateNewDialog::paletteSelected()
-{
-}
-
-/**
  * Called when OK button clicked
  */
 void
 PaletteCreateNewDialog::okButtonClicked()
 {
-    if (m_copyPaletteRadioButton->isChecked()) {
-        m_palette.reset();
-        std::unique_ptr<PaletteNew> palette = m_paletteSelectionWidget->getSelectedPalette();
-        if (palette) {
-            m_palette.reset(new PaletteNew(*palette));
-        }
-        else {
-            WuQMessageBox::errorOk(this,
-                                   "No palette is selected for copying");
-            return;
-        }
-    }
-    else if (m_newPaletteRadioButton->isChecked()) {
-        m_palette.reset(createPaletteNew("",
-                                         m_newPalettePositiveSpinBox->value(),
-                                         m_newPaletteNegativeSpinBox->value()));
-    }
-    else {
-        WuQMessageBox::errorOk(this,
-                               "Choose a palette mode");
+    const AString paletteName(m_newPaletteNameLineEdit->text().trimmed());
+    if (paletteName.isEmpty()) {
+        WuQMessageBoxTwo::criticalOk(this, "ERROR", "Palette name is empty");
         return;
+    }
+    
+    switch (m_paletteType) {
+        case PaletteType::USER_CUSTOM_PALETTE:
+        {
+            FunctionResultValue<const PaletteNew*> result(EventPaletteOperation::createNewPalette(paletteName,
+                                                                                                  m_newPalettePositiveSpinBox->value(),
+                                                                                                  m_newPaletteNegativeSpinBox->value()));
+            if (result.isOk()) {
+                m_palette = result.getValue();
+                CaretAssert(m_palette);
+            }
+            else {
+                m_errorMessage = result.getErrorMessage();
+            }
+        }
+            break;
     }
 
     WuQDialogModal::okButtonClicked();
 }
 
 /**
- * Called when a palette type button is clicked
- * @param button
- * Button that was clicked
+ * @return The new palette or NULL if failure to create palette.
+ * Call getErrorMessage() to find out why palette creation failed.
  */
-void
-PaletteCreateNewDialog::typeButtonClicked(QAbstractButton* button)
+const PaletteNew*
+PaletteCreateNewDialog::getPalette() const
 {
-    m_paletteSelectionWidget->setEnabled(m_copyPaletteRadioButton->isChecked());
-    
-    m_newPaletteNegativeSpinBox->setEnabled(m_newPaletteRadioButton->isChecked());
-    m_newPalettePositiveSpinBox->setEnabled(m_newPaletteRadioButton->isChecked());
-
-    if (button == m_copyPaletteRadioButton) {
-        
-    }
-    else if (button == m_newPaletteRadioButton) {
-        
-    }
+    return m_palette;
 }
 
-/**
- * @return The new palette or NULL if no palette
+/*
+ * @return Error message if creation of palette failed (getPalette() == NULL)
  */
-std::unique_ptr<PaletteNew>
-PaletteCreateNewDialog::getPalette()
+AString
+PaletteCreateNewDialog::getErrorMessage() const
 {
-    std::unique_ptr<PaletteNew> paletteOut;
-    if (m_palette) {
-        paletteOut.reset(new PaletteNew(*m_palette));
-    }
-    
-    return paletteOut;
+    return m_errorMessage;
 }
 
 /**

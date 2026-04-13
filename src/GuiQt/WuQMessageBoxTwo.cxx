@@ -167,6 +167,30 @@ WuQMessageBoxTwo::warningOk(QWidget *parent,
 }
 
 /**
+ * Displays a warning message box with the given text and title and OK and Cancel buttons
+ * @param parent
+ *    Parent widget of dialog
+ * @param title
+ *    Title of dialog
+ * @param text
+ *    Text displayed in dialog
+ * @retrurn True if OK clicked, else false.
+ */
+bool
+WuQMessageBoxTwo::warningOkCancel(QWidget *parent,
+                                  const QString &title,
+                                  const QString &text)
+{
+    const StandardButton button(WuQMessageBoxTwo::warning(parent,
+                                                          title,
+                                                          text,
+                                                          createButtonMask(StandardButton::Ok,
+                                                                           StandardButton::Cancel),
+                                                          StandardButton::Ok));
+    return (button == StandardButton::Ok);
+}
+
+/**
  * Displays a question message box with the given text and title.
  * @param parent
  *    Parent widget of dialog
@@ -431,6 +455,47 @@ WuQMessageBoxTwo::addButton(StandardButton button)
 
     return pushButton;
 }
+
+/**
+ * Set the text of a standard button
+ * @param button
+ *    The standard button
+ * @param text
+ *    New text for the button
+ */
+void
+WuQMessageBoxTwo::setButtonText(const StandardButton button,
+                                const QString& text)
+{
+    QPushButton* pushButton(NULL);
+    switch (button) {
+        case StandardButton::NoButton:
+            break;
+        case StandardButton::Yes:
+            pushButton = m_yesPushButton;
+            break;
+        case StandardButton::No:
+            pushButton = m_noPushButton;
+            break;
+        case StandardButton::Cancel:
+            pushButton = m_cancelPushButton;
+            break;
+        case StandardButton::Ok:
+            pushButton = m_okPushButton;
+            break;
+    }
+    
+    if (pushButton != NULL) {
+        pushButton->setText(text);
+    }
+    else {
+        const QString msg("Button does not exist for setting text to \""
+                          + text
+                          + "\"");
+        CaretAssertMessage(0, msg);
+    }
+}
+
 
 /**
  * @return Button clicked by user or NULL if no button was clicked

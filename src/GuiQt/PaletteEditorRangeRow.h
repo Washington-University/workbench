@@ -47,6 +47,7 @@ namespace caret {
                               const PaletteEditorRangeWidget::DataRangeMode rangeMode,
                               QButtonGroup* colorEditButtonGroup,
                               QGridLayout* parentGridLayout,
+                              const int32_t spinBoxWidth,
                               QObject* parent);
         
         virtual ~PaletteEditorRangeRow();
@@ -101,16 +102,12 @@ namespace caret {
                                                   const PaletteEditorRangeWidget::ConstructionOperation operation);
         
     private slots:
-        void constructionMenuTriggered(QAction* action);
-        
         void scalarValueChangedByUser(double value);
         
     private:
         // ADD_NEW_MEMBERS_HERE
 
-        QToolButton* createConstructionToolButton();
-        
-        QWidget* createScalarEditingWidget();
+        QWidget* createScalarEditingWidget(const int32_t spinBoxWidth);
         
         const int32_t m_rowIndex;
         
@@ -128,22 +125,22 @@ namespace caret {
         
         QRadioButton* m_colorEditRadioButton = NULL;
         
-        QAction* m_constructionInsertAboveAction = NULL;
+        bool m_insertAboveValidFlag = false;
         
-        QAction* m_constructionInsertBelowAction = NULL;
+        bool m_insertBelowValidFlag = false;
         
-        QAction* m_constructionRemoveAction = NULL;
+        bool m_removeValidFlag = false;
         
         CaretRgb m_rgb;
         
-        static constexpr int32_t COLUMN_CONSTRUCTION = 0;
-        
+        static constexpr int32_t COLUMN_RADIO_BUTTON = 0;
+
         static constexpr int32_t COLUMN_SCALAR       = 1;
         
         static constexpr int32_t COLUMN_COLOR_SWATCH = 2;
         
-        static constexpr int32_t COLUMN_RADIO_BUTTON = 3;
-        
+        friend class PaletteEditorDialog;
+        friend class PaletteEditorRangeWidget;
     };
     
 #ifdef __PALETTE_EDITOR_RANGE_ROW_DECLARE__

@@ -112,8 +112,7 @@ namespace caret {
     class ModelWholeBrain;
     class OmeZarrImageFile;
     class PaletteFile;
-    class PaletteGroupStandardPalettes;
-    class PaletteGroupUserCustomPalettes;
+    class PaletteNewGroup;
     class RgbaFile;
     class SamplesFile;
     class SamplesMetaDataManager;
@@ -1135,12 +1134,9 @@ namespace caret {
         
         bool m_surfaceMatchingToAnatomicalFlag = false;
         
-        std::shared_ptr<PaletteGroupStandardPalettes> m_palettesStandardGroup;
+        std::unique_ptr<PaletteNewGroup> m_userPalettes;
         
-        std::shared_ptr<PaletteGroupUserCustomPalettes> m_palettesUserCustomGroup;
-        
-        mutable std::unique_ptr<SamplesMetaDataManager> m_samplesMetaDataManager;
-        
+        mutable std::unique_ptr<SamplesMetaDataManager> m_samplesMetaDataManager;        
     };
 
 } // namespace

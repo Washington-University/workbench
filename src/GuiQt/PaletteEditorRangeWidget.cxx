@@ -56,33 +56,22 @@ using namespace caret;
  *    Range of data (positive, negative, zero)
  * @param colorEditButtonGroup
  *    Button group for the color edit radio button so that they are mutually exclusive
- * @param columnTitlesMode
- *    Mode for display of column titles
+ * @param spinBoxWidth
+ *    Width of spin boxes
  * @param parent
  *    Parent widget
  */
 PaletteEditorRangeWidget::PaletteEditorRangeWidget(const DataRangeMode dataRangeMode,
                                                    QButtonGroup* colorEditButtonGroup,
-                                                   const ColumnTitlesMode columnTitlesMode,
+                                                   const int32_t spinBoxWidth,
                                                    QWidget* parent)
 : QWidget(parent),
 m_dataRangeMode(dataRangeMode),
-m_colorEditButtonGroup(colorEditButtonGroup)
+m_colorEditButtonGroup(colorEditButtonGroup),
+m_spinBoxWidth(spinBoxWidth)
 {
     m_controlPointGridLayout = new QGridLayout(this);
     m_controlPointGridLayout->setVerticalSpacing(m_controlPointGridLayout->verticalSpacing() / 2);
-
-    switch (columnTitlesMode) {
-        case ColumnTitlesMode::SHOW_NO:
-            break;
-        case ColumnTitlesMode::SHOW_YES:
-            int32_t row(m_controlPointGridLayout->rowCount());
-            m_controlPointGridLayout->addWidget(new QLabel("Control Point"),
-                                                row, 0, 1, 2, Qt::AlignHCenter);
-            m_controlPointGridLayout->addWidget(new QLabel("Color Edit"),
-                                                row, 2, 1, 2, Qt::AlignHCenter);
-            break;
-    }
 }
 
 /**
@@ -116,6 +105,39 @@ PaletteEditorRangeWidget::getScalarColors() const
     return scalarColorsOut;
 }
 
+/**
+ * @return The range row that contains the given button or NULL if not found
+ * @param button
+ *    Button in the row
+ */
+PaletteEditorRangeRow*
+PaletteEditorRangeWidget::getRangeRowFromButton(const QAbstractButton* button)
+{
+    for (PaletteEditorRangeRow* row : m_rowWidgets) {
+        if (row->m_colorEditRadioButton == button) {
+            return row;
+        }
+    }
+    return NULL;
+}
+
+/**
+ * @return The range row that contains the given scalar or NULL if not found
+ * @param scalar
+ *    Scalar in the row
+ */
+PaletteEditorRangeRow*
+PaletteEditorRangeWidget::getRangeRowFromScalar(const float scalar)
+{
+    for (PaletteEditorRangeRow* row : m_rowWidgets) {
+        const float diff(std::fabs(scalar - row->getScalar()));
+        if (diff < 0.0001) {
+            return row;
+        }
+    }
+    return NULL;
+}
+
 
 /**
  * Update with the given scalar colors
@@ -146,6 +168,7 @@ PaletteEditorRangeWidget::updateContent(const std::vector<PaletteNew::ScalarColo
                                                                m_dataRangeMode,
                                                                m_colorEditButtonGroup,
                                                                m_controlPointGridLayout,
+                                                               m_spinBoxWidth,
                                                                this);
         QObject::connect(per, &PaletteEditorRangeRow::signalColorEditingRequested,
                          this, &PaletteEditorRangeWidget::signalEditColorRequested);
@@ -235,6 +258,122 @@ PaletteEditorRangeWidget::averageScalarColor(const PaletteNew::ScalarColor& sc1,
                                   (sc1.color[1] + sc2.color[1]) / 2.0,
                                   (sc1.color[2] + sc2.color[2]) / 2.0);
     return scOut;
+}
+
+/**
+ * Called when a control point modification is requested
+ * @param rangeRow
+ *    The range row
+ * @param constructionOperation
+ *    The modification operation
+ */
+float
+PaletteEditorRangeWidget::performControlPointOperation(PaletteEditorRangeRow* rangeRow,
+                                                       const PaletteEditorRangeWidget::ConstructionOperation constructionOperation)
+{
+    float newScalarOut(-100000.0);
+    
+    CaretAssert(rangeRow);
+    
+    int32_t rowWidgetIndex(-1);
+    for (int32_t i = 0; i < static_cast<int32_t>(m_rowWidgets.size()); i++) {
+        if (m_rowWidgets[i] == rangeRow) {
+            rowWidgetIndex = i;
+            break;
+        }
+    }
+    if (rowWidgetIndex < 0) {
+        CaretAssert(0);
+        return newScalarOut;
+    }
+    
+    std::vector<PaletteNew::ScalarColor> scalarColors = getScalarColors();
+    const int32_t numScalarColors = scalarColors.size();
+    const int32_t lastControlPointIndex(m_numberOfValidControlPoints - 1);
+    CaretAssert(numScalarColors == lastControlPointIndex + 1);
+
+    const int32_t controlPointIndex(lastControlPointIndex - rowWidgetIndex);
+    
+    int32_t insertAtControlPointIndex(-1);
+    int32_t insertAverageWithControlPointIndex(-1);
+    switch (constructionOperation) {
+        case PaletteEditorRangeWidget::ConstructionOperation::INSERT_CONTROL_POINT_ABOVE:
+            if ((controlPointIndex >= 0)
+                && (controlPointIndex < lastControlPointIndex)) {
+                insertAtControlPointIndex = controlPointIndex + 1;
+                insertAverageWithControlPointIndex = insertAtControlPointIndex - 1;
+            }
+            else {
+                QString msg("Invalid control point index="
+                            + QString::number(controlPointIndex)
+                            + " for inserting in range containing "
+                            + AString::number(m_numberOfValidControlPoints)
+                            + " rows.");
+                CaretAssertMessage(0, msg);
+                CaretLogSevere(msg);
+            }
+            break;
+        case PaletteEditorRangeWidget::ConstructionOperation::INSERT_CONTROL_POINT_BELOW:
+            if ((controlPointIndex > 0)
+                && (controlPointIndex <= lastControlPointIndex)) {
+                insertAtControlPointIndex = controlPointIndex;
+                insertAverageWithControlPointIndex = insertAtControlPointIndex - 1;
+            }
+            else {
+                QString msg("Invalid control point index="
+                            + QString::number(controlPointIndex)
+                            + " for inserting in range containing "
+                            + AString::number(m_numberOfValidControlPoints)
+                            + " rows.");
+                CaretAssertMessage(0, msg);
+                CaretLogSevere(msg);
+            }
+            break;
+        case PaletteEditorRangeWidget::ConstructionOperation::REMOVE_CONTROL_POINT:
+            /*
+             * Not allowed to remove first or last rows
+             */
+            if ((controlPointIndex > 0)
+                && (controlPointIndex < lastControlPointIndex)) {
+                /*
+                 * Row index 0 is at TOP in GUI
+                 * But ScalarColor[0] is at BOTTOM in the GUI
+                 */
+                scalarColors.erase(scalarColors.begin() + controlPointIndex);
+            }
+            else {
+                QString msg("Invalid control point index="
+                            + QString::number(controlPointIndex)
+                            + " for REMOVING row in range containing "
+                            + AString::number(m_numberOfValidControlPoints)
+                            + " rows.");
+                CaretAssertMessage(0, msg);
+                CaretLogSevere(msg);
+            }
+            break;
+    }
+    
+    /*
+     * Row index 0 is at TOP in GUI
+     * But ScalarColor[0] is at BOTTOM in the GUI
+     */
+    if (insertAtControlPointIndex >= 0) {
+        CaretAssertVectorIndex(scalarColors, insertAtControlPointIndex);
+        CaretAssertVectorIndex(scalarColors, insertAverageWithControlPointIndex);
+        PaletteNew::ScalarColor avgSC = averageScalarColor(scalarColors[insertAtControlPointIndex],
+                                                           scalarColors[insertAverageWithControlPointIndex]);
+        scalarColors.insert(scalarColors.begin() + insertAtControlPointIndex,
+                            avgSC);
+        newScalarOut = scalarColors[insertAtControlPointIndex].scalar;
+    }
+    
+    if (static_cast<int32_t>(scalarColors.size()) != numScalarColors) {
+        updateContent(scalarColors);
+    }
+    
+    signalDataChanged();
+    
+    return newScalarOut;
 }
 
 /**
