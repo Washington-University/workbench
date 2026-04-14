@@ -19,12 +19,15 @@ endif()
 # Create the NIFTI library
 #
 ADD_LIBRARY(Palette
-EventPaletteOperation.h
+EventPaletteNewOperation.h
+EventPalettesGetOperations.h
 Palette.h
+PaletteBase.h
 PaletteColorBarValuesModeEnum.h
 PaletteColorMapping.h
 PaletteColorMappingSaxReader.h
 PaletteColorMappingXmlElements.h
+PaletteDesignTypeEnum.h
 PaletteEnums.h
 PaletteHistogramRangeModeEnum.h
 PaletteInvertModeEnum.h
@@ -36,11 +39,14 @@ PaletteScalarAndColor.h
 PaletteThresholdOutlineDrawingModeEnum.h
 PaletteThresholdRangeModeEnum.h
 
-EventPaletteOperation.cxx
+EventPaletteNewOperation.cxx
+EventPalettesGetOperations.cxx
 Palette.cxx
+PaletteBase.cxx
 PaletteColorBarValuesModeEnum.cxx
 PaletteColorMapping.cxx
 PaletteColorMappingSaxReader.cxx
+PaletteDesignTypeEnum.cxx
 PaletteEnums.cxx
 PaletteHistogramRangeModeEnum.cxx
 PaletteInvertModeEnum.cxx

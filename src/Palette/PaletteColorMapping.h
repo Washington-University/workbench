@@ -43,7 +43,7 @@ namespace caret {
 
     class AnnotationColorBar;
     class FastStatistics;
-    class Palette;
+    class PaletteBase;
     class XmlWriter;
     
     /**
@@ -138,7 +138,7 @@ namespace caret {
         
         void setSelectedPaletteName(const AString& selectedPaletteName);
         
-        const Palette* getPalette() const;
+        const PaletteBase* getPalette() const;
         
         void setSelectedPaletteToPsych();
         

@@ -30,7 +30,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "EventPaletteOperation.h"
+#include "EventPaletteNewOperation.h"
 #include "GuiManager.h"
 #include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
@@ -121,7 +121,7 @@ PaletteCreateNewDialog::okButtonClicked()
     switch (m_paletteType) {
         case PaletteType::USER_CUSTOM_PALETTE:
         {
-            FunctionResultValue<const PaletteNew*> result(EventPaletteOperation::createNewPalette(paletteName,
+            FunctionResultValue<const PaletteNew*> result(EventPaletteNewOperation::createNewPalette(paletteName,
                                                                                                   m_newPalettePositiveSpinBox->value(),
                                                                                                   m_newPaletteNegativeSpinBox->value()));
             if (result.isOk()) {

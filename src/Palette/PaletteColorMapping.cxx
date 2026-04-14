@@ -27,7 +27,7 @@
 #include "CaretOMP.h"
 #include "DeveloperFlagsEnum.h"
 #include "EventManager.h"
-#include "EventPaletteGetByName.h"
+#include "EventPalettesGetOperations.h"
 #include "FastStatistics.h"
 #include "MathFunctions.h"
 #include "NumericTextFormatting.h"
@@ -502,8 +502,12 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
     
     colorBar->clearSections();
     
-    const Palette* palette = getPalette();
-    CaretAssert(palette);
+    const PaletteBase* paletteBase = getPalette();
+    CaretAssert(paletteBase);
+    const Palette* palette(paletteBase->castToPalette());
+    if (palette == NULL) {
+        return;
+    }
     
     /*
      * Types of values for display
@@ -1166,14 +1170,11 @@ PaletteColorMapping::setScaleMode(const PaletteScaleModeEnum::Enum scaleMode)
  * If the palette name does not match a valid palette, 
  * the default palette (ROY-BIG-BL) is returned.
  */
-const Palette*
+const PaletteBase*
 PaletteColorMapping::getPalette() const
 {
     const AString paletteName = getSelectedPaletteName();
-    EventPaletteGetByName paletteEvent(paletteName);
-    EventManager::get()->sendEvent(paletteEvent.getPointer());
-    Palette* palette = paletteEvent.getPalette();
-    
+    const PaletteBase* palette(EventPalettesGetOperations::getPaletteWithName(paletteName));
     if (palette == NULL) {
         if (s_missingPaletteNames.find(paletteName) == s_missingPaletteNames.end()) {
             s_missingPaletteNames.insert(paletteName);
@@ -1185,9 +1186,7 @@ PaletteColorMapping::getPalette() const
         /*
          * Use the "default" palette
          */
-        EventPaletteGetByName paletteEvent(Palette::getDefaultPaletteName());
-        EventManager::get()->sendEvent(paletteEvent.getPointer());
-        palette = paletteEvent.getPalette();
+        palette = EventPalettesGetOperations::getPaletteWithName(Palette::getDefaultPaletteName());
         CaretAssert(palette);
     }
     

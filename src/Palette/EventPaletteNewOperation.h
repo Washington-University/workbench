@@ -1,5 +1,5 @@
-#ifndef __EVENT_PALETTE_OPERATION_H__
-#define __EVENT_PALETTE_OPERATION_H__
+#ifndef __EVENT_PALETTE_NEW_OPERATION_H__
+#define __EVENT_PALETTE_NEW_OPERATION_H__
 
 /*LICENSE_START*/
 /*
@@ -32,7 +32,7 @@
 
 namespace caret {
     
-    class EventPaletteOperation : public Event {
+    class EventPaletteNewOperation : public Event {
         
     public:
         static FunctionResultValue<const PaletteNew*> getPaletteWithName(const AString& name);
@@ -53,11 +53,11 @@ namespace caret {
                                             const std::vector<PaletteNew::ScalarColor>& negativeMapping,
                                             const PaletteNew::ScalarColor& zeroMapping);
         
-        virtual ~EventPaletteOperation();
+        virtual ~EventPaletteNewOperation();
         
-        EventPaletteOperation(const EventPaletteOperation&) = delete;
+        EventPaletteNewOperation(const EventPaletteNewOperation&) = delete;
 
-        EventPaletteOperation& operator=(const EventPaletteOperation&) = delete;
+        EventPaletteNewOperation& operator=(const EventPaletteNewOperation&) = delete;
         
         // ADD_NEW_METHODS_HERE
 
@@ -71,7 +71,7 @@ namespace caret {
             UPDATE_PALETTE
         };
         
-        EventPaletteOperation(const Operation operation);
+        EventPaletteNewOperation(const Operation operation);
         
         Operation getOperation() const;
         
@@ -111,9 +111,9 @@ namespace caret {
 
     };
     
-#ifdef __EVENT_PALETTE_OPERATION_DECLARE__
+#ifdef __EVENT_PALETTE_NEW_OPERATION_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_PALETTE_OPERATION_DECLARE__
+#endif // __EVENT_PALETTE_NEW_OPERATION_DECLARE__
 
 } // namespace
-#endif  //__EVENT_PALETTE_OPERATION_H__
+#endif  //__EVENT_PALETTE_NEW_OPERATION_H__

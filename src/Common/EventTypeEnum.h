@@ -260,10 +260,10 @@ public:
         EVENT_OVERLAY_VALIDATE,
         /** request display of palette color mapping editor */
         EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW,
-        /** Get a palette by name from a palette file */
-        EVENT_PALETTE_GET_BY_NAME,
-        /** Palette Operation Event */
-        EVENT_PALETTE_OPERATION,
+        /** PaletteNew Operation Event */
+        EVENT_PALETTE_NEW_OPERATION,
+        /** Operartion to get palettes*/
+        EVENT_PALETTES_GET_OPERATION,
         /** Get the file system access mode for recent files */
         EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE,
         /** Issued when reset view is requested */

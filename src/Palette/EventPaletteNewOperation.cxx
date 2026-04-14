@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __EVENT_PALETTE_OPERATION_DECLARE__
-#include "EventPaletteOperation.h"
-#undef __EVENT_PALETTE_OPERATION_DECLARE__
+#define __EVENT_PALETTE_NEW_OPERATION_DECLARE__
+#include "EventPaletteNewOperation.h"
+#undef __EVENT_PALETTE_NEW_OPERATION_DECLARE__
 
 #include "CaretAssert.h"
 #include "EventManager.h"
@@ -33,7 +33,7 @@ using namespace caret;
 
     
 /**
- * \class caret::EventPaletteOperation 
+ * \class caret::EventPaletteNewOperation 
  * \brief Event for various palette operations
  * \ingroup Palette
  */
@@ -43,8 +43,8 @@ using namespace caret;
  * @param operation
  *    The operation for this event
  */
-EventPaletteOperation::EventPaletteOperation(const Operation operation)
-: Event(EventTypeEnum::EVENT_PALETTE_OPERATION),
+EventPaletteNewOperation::EventPaletteNewOperation(const Operation operation)
+: Event(EventTypeEnum::EVENT_PALETTE_NEW_OPERATION),
 m_operation(operation)
 {
     
@@ -53,15 +53,15 @@ m_operation(operation)
 /**
  * Destructor.
  */
-EventPaletteOperation::~EventPaletteOperation()
+EventPaletteNewOperation::~EventPaletteNewOperation()
 {
 }
 
 /**
  * @return The operation for this event
  */
-EventPaletteOperation::Operation
-EventPaletteOperation::getOperation() const
+EventPaletteNewOperation::Operation
+EventPaletteNewOperation::getOperation() const
 {
     return m_operation;
 }
@@ -70,9 +70,9 @@ EventPaletteOperation::getOperation() const
  * @return Pointer to palette with the given name or NULL if not found.
  */
 FunctionResultValue<const PaletteNew*>
-EventPaletteOperation::getPaletteWithName(const AString& name)
+EventPaletteNewOperation::getPaletteWithName(const AString& name)
 {
-    EventPaletteOperation event(Operation::GET_PALETTE_WITH_NAME);
+    EventPaletteNewOperation event(Operation::GET_PALETTE_WITH_NAME);
     event.m_paletteName = name;
     EventManager::get()->sendEvent(event.getPointer());
     
@@ -97,9 +97,9 @@ EventPaletteOperation::getPaletteWithName(const AString& name)
  * @return Pointers to the user's palettes.  No palettes is valid if none have been created by user.
  */
 FunctionResultValue<std::vector<const PaletteNew*>>
-EventPaletteOperation::getUserPalettes()
+EventPaletteNewOperation::getUserPalettes()
 {
-    EventPaletteOperation event(Operation::GET_USER_PALETTES);
+    EventPaletteNewOperation event(Operation::GET_USER_PALETTES);
     EventManager::get()->sendEvent(event.getPointer());
     
     return FunctionResultValue<std::vector<const PaletteNew*>>(event.m_palettes,
@@ -117,11 +117,11 @@ EventPaletteOperation::getUserPalettes()
  *    Number of negative control points
  */
 FunctionResultValue<const PaletteNew*>
-EventPaletteOperation::createNewPalette(const AString& name,
+EventPaletteNewOperation::createNewPalette(const AString& name,
                                         const int32_t numberOfPositiveControlPoints,
                                         const int32_t numberOfNegativeControlPoints)
 {
-    EventPaletteOperation event(Operation::NEW_PALETTE);
+    EventPaletteNewOperation event(Operation::NEW_PALETTE);
     event.setNewPaletteInfo(name,
                             numberOfPositiveControlPoints,
                             numberOfNegativeControlPoints);
@@ -152,9 +152,9 @@ EventPaletteOperation::createNewPalette(const AString& name,
  *    Function result with sucess/failure
  */
 FunctionResult
-EventPaletteOperation::deletePalette(const PaletteNew* palette)
+EventPaletteNewOperation::deletePalette(const PaletteNew* palette)
 {
-    EventPaletteOperation event(Operation::DELETE_PALETTE);
+    EventPaletteNewOperation event(Operation::DELETE_PALETTE);
     std::vector<const PaletteNew*> palettes { const_cast<PaletteNew*>(palette) };
     event.setPalettes(palettes);
     EventManager::get()->sendEvent(event.getPointer());
@@ -175,10 +175,10 @@ EventPaletteOperation::deletePalette(const PaletteNew* palette)
  *    Function result with sucess/failure
  */
 FunctionResult
-EventPaletteOperation::renamePalette(const PaletteNew* palette,
+EventPaletteNewOperation::renamePalette(const PaletteNew* palette,
                                      const AString& newName)
 {
-    EventPaletteOperation event(Operation::RENAME_PALETTE);
+    EventPaletteNewOperation event(Operation::RENAME_PALETTE);
     event.m_paletteName = newName;
     std::vector<const PaletteNew*> palettes { const_cast<PaletteNew*>(palette) };
     event.setPalettes(palettes);
@@ -196,7 +196,7 @@ EventPaletteOperation::renamePalette(const PaletteNew* palette,
  *   Palettes for the operation
  */
 void
-EventPaletteOperation::setPalettes(std::vector<const PaletteNew*>& palettes)
+EventPaletteNewOperation::setPalettes(std::vector<const PaletteNew*>& palettes)
 {
     m_palettes = palettes;
 }
@@ -211,7 +211,7 @@ EventPaletteOperation::setPalettes(std::vector<const PaletteNew*>& palettes)
  *    Number of negative control points
  */
 void
-EventPaletteOperation::setNewPaletteInfo(const AString& name,
+EventPaletteNewOperation::setNewPaletteInfo(const AString& name,
                                          const int32_t numberOfPositiveControlPoints,
                                          const int32_t numberOfNegativeControlPoints)
 {
@@ -230,7 +230,7 @@ EventPaletteOperation::setNewPaletteInfo(const AString& name,
  *    Number of negative control points
  */
 void
-EventPaletteOperation::getNewPaletteInfo(AString& nameOut,
+EventPaletteNewOperation::getNewPaletteInfo(AString& nameOut,
                                          int32_t& numberOfPositiveControlPointsOut,
                                          int32_t& numberOfNegativeControlPointsOut)
 {
@@ -251,12 +251,12 @@ EventPaletteOperation::getNewPaletteInfo(AString& nameOut,
  *    Updated zero mapping
  */
 FunctionResult
-EventPaletteOperation::updatePalette(const PaletteNew* palette,
+EventPaletteNewOperation::updatePalette(const PaletteNew* palette,
                                      const std::vector<PaletteNew::ScalarColor>& positiveMapping,
                                      const std::vector<PaletteNew::ScalarColor>& negativeMapping,
                                      const PaletteNew::ScalarColor& zeroMapping)
 {
-    EventPaletteOperation event(Operation::UPDATE_PALETTE);
+    EventPaletteNewOperation event(Operation::UPDATE_PALETTE);
     std::vector<const PaletteNew*> palettes { const_cast<PaletteNew*>(palette) };
     event.setPalettes(palettes);
     event.m_positiveMapping = positiveMapping;
@@ -280,7 +280,7 @@ EventPaletteOperation::updatePalette(const PaletteNew* palette,
  *    Updated zero mapping
  */
 void
-EventPaletteOperation::getUpdateMappings(std::vector<PaletteNew::ScalarColor>& positiveMappingOut,
+EventPaletteNewOperation::getUpdateMappings(std::vector<PaletteNew::ScalarColor>& positiveMappingOut,
                                          std::vector<PaletteNew::ScalarColor>& negativeMappingOut,
                                          PaletteNew::ScalarColor& zeroMappingOut)
 {

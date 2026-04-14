@@ -51,6 +51,7 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
+#include "EventPalettesGetOperations.h"
 #include "FastStatistics.h"
 #include "GuiManager.h"
 #include "Histogram.h"
@@ -59,6 +60,7 @@
 #include "NodeAndVoxelColoring.h"
 #include "NumericTextFormatting.h"
 #include "Palette.h"
+#include "PaletteNew.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
 #include "PalettePixmapPainter.h"
@@ -1804,45 +1806,104 @@ MapSettingsPaletteColorMappingWidget::updatePaletteMappedToDataValueLabels()
 void
 MapSettingsPaletteColorMappingWidget::updatePaletteNameComboBox()
 {
-    this->paletteNameComboBox->clear();
-
-    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-    
-    bool firstValidPixmapFlag(true);
-    const int32_t numPalettes = paletteFile->getNumberOfPalettes();
-    for (int32_t i = 0; i < numPalettes; i++) {
-        Palette* palette = paletteFile->getPalette(i);
-        const AString name = palette->getName();
-        /*
-         * Second parameter is user data.  In the future, there may be user-editable
-         * palettes and it is possible there may be palettes with the same name.
-         * Thus, the user-data may change to a unique-identifier that is different
-         * than the palette name.
-         */
-        const AString paletteUniqueID(name);
+    const bool newFlag(true);
+    if (newFlag) {
+        this->paletteNameComboBox->clear();
         
-        const bool showColorMappingFlag(true);
-        if (showColorMappingFlag) {
-            PalettePixmapPainter palettePainter(palette,
-                                                PalettePixmapPainter::Mode::INTERPOLATE_ON);
-            QPixmap pixmap = palettePainter.getPixmap();
-            if (pixmap.isNull()) {
+        std::vector<const PaletteBase*> allPalettes(EventPalettesGetOperations::getAllPalettesSortedByName());
+
+        bool firstValidPixmapFlag(true);
+        const int32_t numPalettes(allPalettes.size());
+        for (int32_t i = 0; i < numPalettes; i++) {
+            CaretAssertVectorIndex(allPalettes, i);
+            const PaletteBase* palette = allPalettes[i];
+            AString name = palette->getName();
+            /*
+             * Second parameter is user data.  In the future, there may be user-editable
+             * palettes and it is possible there may be palettes with the same name.
+             * Thus, the user-data may change to a unique-identifier that is different
+             * than the palette name.
+             */
+            const AString paletteUniqueID(name);
+            
+            const bool showColorMappingFlag(true);
+            if (showColorMappingFlag) {
+                QPixmap pixmap;
+                const Palette* origPalette(palette->castToPalette());
+                const PaletteNew* newPalette(palette->castToPaletteNew());
+                if (origPalette != NULL) {
+                    PalettePixmapPainter palettePainter(origPalette,
+                                                        PalettePixmapPainter::Mode::INTERPOLATE_ON);
+                    pixmap = palettePainter.getPixmap();
+                }
+                else if (newPalette != NULL) {
+                    name.insert(0, "USER: ");
+                    PalettePixmapPainter palettePainter(newPalette,
+                                                        PalettePixmapPainter::Mode::INTERPOLATE_ON);
+                    pixmap = palettePainter.getPixmap();
+                }
+                
+                if (pixmap.isNull()) {
+                    this->paletteNameComboBox->addItem(name,
+                                                       paletteUniqueID);
+                }
+                else {
+                    if (firstValidPixmapFlag) {
+                        firstValidPixmapFlag = false;
+                        this->paletteNameComboBox->setIconSize(pixmap.size());
+                    }
+                    this->paletteNameComboBox->addItem(pixmap,
+                                                       " " + name,
+                                                       paletteUniqueID);
+                }
+            }
+            else {
                 this->paletteNameComboBox->addItem(name,
                                                    paletteUniqueID);
             }
-            else {
-                if (firstValidPixmapFlag) {
-                    firstValidPixmapFlag = false;
-                    this->paletteNameComboBox->setIconSize(pixmap.size());
+        }
+    }
+    else {
+        this->paletteNameComboBox->clear();
+        
+        PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+        
+        bool firstValidPixmapFlag(true);
+        const int32_t numPalettes = paletteFile->getNumberOfPalettes();
+        for (int32_t i = 0; i < numPalettes; i++) {
+            Palette* palette = paletteFile->getPalette(i);
+            const AString name = palette->getName();
+            /*
+             * Second parameter is user data.  In the future, there may be user-editable
+             * palettes and it is possible there may be palettes with the same name.
+             * Thus, the user-data may change to a unique-identifier that is different
+             * than the palette name.
+             */
+            const AString paletteUniqueID(name);
+            
+            const bool showColorMappingFlag(true);
+            if (showColorMappingFlag) {
+                PalettePixmapPainter palettePainter(palette,
+                                                    PalettePixmapPainter::Mode::INTERPOLATE_ON);
+                QPixmap pixmap = palettePainter.getPixmap();
+                if (pixmap.isNull()) {
+                    this->paletteNameComboBox->addItem(name,
+                                                       paletteUniqueID);
                 }
-                this->paletteNameComboBox->addItem(pixmap,
-                                                   " " + name,
+                else {
+                    if (firstValidPixmapFlag) {
+                        firstValidPixmapFlag = false;
+                        this->paletteNameComboBox->setIconSize(pixmap.size());
+                    }
+                    this->paletteNameComboBox->addItem(pixmap,
+                                                       " " + name,
+                                                       paletteUniqueID);
+                }
+            }
+            else {
+                this->paletteNameComboBox->addItem(name,
                                                    paletteUniqueID);
             }
-        }
-        else {
-            this->paletteNameComboBox->addItem(name,
-                                               paletteUniqueID);
         }
     }
 }

@@ -4947,7 +4947,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                 }
                                 
                                 PaletteColorMapping* paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
-                                const Palette* palette = paletteColorMapping->getPalette();
+                                const PaletteBase* palette = paletteColorMapping->getPalette();
                                 if (palette != NULL) {
                                     /*
                                      * Statistics may be NULL for a dense connectome file

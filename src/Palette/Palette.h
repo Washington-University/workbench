@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "CaretAssert.h"
-#include "CaretObject.h"
+#include "PaletteBase.h"
 #include "TracksModificationInterface.h"
 
 
@@ -37,7 +37,7 @@ namespace caret {
     /**
      * A color palette.
      */
-    class Palette : public CaretObject, TracksModificationInterface {
+    class Palette :  public PaletteBase, TracksModificationInterface {
         
     public:
         Palette();
@@ -56,7 +56,7 @@ namespace caret {
     public:
         AString toString() const;
         
-        AString getName() const;
+        virtual AString getName() const override;
         
         void setName(const AString& name);
         
@@ -93,21 +93,25 @@ namespace caret {
         
         void getMinMax(float& minOut, float& maxOut) const;
         
-        void getPaletteColor(const float scalar,
-                             const bool interpolateColorFlag,
-                             float rgbaOut[4]) const;
-        
+        virtual void getPaletteColor(const float scalar,
+                                     const bool interpolateColorFlag,
+                                     float rgbaOut[4]) const override;
+
         void setModified();
         
         void clearModified();
         
         bool isModified() const;
         
-        const Palette* getInvertedPalette() const;
+        virtual const PaletteBase* getInvertedPalette() const override;
         
-        const Palette* getSignSeparateInvertedPalette() const;
+        virtual const PaletteBase* getSignSeparateInvertedPalette() const override;
         
-        const Palette* getNoneSeparateInvertedPalette() const;
+        virtual const PaletteBase* getNoneSeparateInvertedPalette() const override;
+        
+        virtual Palette* castToPalette() { return this; }
+        
+        virtual const Palette* castToPalette() const { return this; }
         
         static AString getDefaultPaletteName();
         

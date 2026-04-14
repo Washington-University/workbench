@@ -35,7 +35,7 @@ using namespace caret;
  *
  */
 Palette::Palette()
-    : CaretObject()
+    : PaletteBase(PaletteDesignTypeEnum::PALETTE)
 {
     this->initializeMembersPalette();
 }
@@ -58,7 +58,7 @@ Palette::~Palette()
  * @param Object that is copied.
  */
 Palette::Palette(const Palette& o)
-    : CaretObject(o), TracksModificationInterface()
+    : PaletteBase(o), TracksModificationInterface()
 {
     this->initializeMembersPalette();
     this->copyHelper(o);
@@ -71,7 +71,7 @@ Palette&
 Palette::operator=(const Palette& o)
 {
     if (this != &o) {
-        CaretObject::operator=(o);
+        PaletteBase::operator=(o);
         this->copyHelper(o);
     };
     return *this;
@@ -215,99 +215,6 @@ Palette::getMinMax(float& minOut, float& maxOut) const
         if (f > maxOut) maxOut = f;
     }    
 }
-
-///**
-// * Get the RGBA (4) colors in the range of zero to one.
-// * 
-// * @param scalar - scalar for which color is sought.
-// * @param interpolateColorFlag - interpolate the color between scalars.
-// * @return Array of 4 containing color components ranging zero to one.
-// *
-// */
-//void
-//Palette::getPaletteColor(
-//                   const float scalarIn,
-//                   const bool interpolateColorFlagIn,
-//                   float rgbaOut[4]) const
-//{
-//    rgbaOut[0] = 0.0f;
-//    rgbaOut[1] = 0.0f;
-//    rgbaOut[2] = 0.0f;
-//    rgbaOut[3] = 1.0f;
-//    
-//    bool interpolateColorFlag = interpolateColorFlagIn;
-//    
-//    float scalar = scalarIn;
-//    if (scalar < -1.0) scalar = -1.0;
-//    if (scalar >  1.0) scalar = 1.0;
-//    
-//    int numScalarColors = this->getNumberOfScalarsAndColors();
-//    if (numScalarColors > 0) {
-//        
-//        int paletteIndex = -1;
-//        if (numScalarColors == 1) {
-//            paletteIndex = 0;
-//            interpolateColorFlag = false;
-//        }
-//        else {
-//            if (scalar >= this->getScalarAndColor(0)->getScalar()) {
-//                paletteIndex = 0;
-//                interpolateColorFlag = false;
-//            }
-//            else if (scalar <=
-//                     this->getScalarAndColor(numScalarColors - 1)->getScalar()) {
-//                paletteIndex = numScalarColors - 1;
-//                interpolateColorFlag = false;
-//            }
-//            else {
-//                for (int i = 1; i < numScalarColors; i++) {
-//                    const PaletteScalarAndColor* psac = this->getScalarAndColor(i);
-//                    if (scalar > psac->getScalar()) {
-//                        paletteIndex = i - 1;
-//                        break;
-//                    }
-//                }
-//                
-//                /*
-//                 * Always interpolate if there are only two colors
-//                 */
-//                if (numScalarColors == 2) {
-//                    interpolateColorFlag = true;
-//                }
-//            }
-//        }
-//        if (paletteIndex >= 0) {
-//            const PaletteScalarAndColor* psac = this->getScalarAndColor(paletteIndex);
-//            psac->getColor(rgbaOut);
-//            if (interpolateColorFlag &&
-//                (paletteIndex < (numScalarColors - 1))) {
-//                const PaletteScalarAndColor* psacBelow =
-//                    this->getScalarAndColor(paletteIndex + 1);
-//                float totalDiff = psac->getScalar() - psacBelow->getScalar();
-//                if (totalDiff != 0.0) {
-//                    float offset = scalar - psacBelow->getScalar();
-//                    float percentAbove = offset / totalDiff;
-//                    float percentBelow = 1.0f - percentAbove;
-//                    if ( ! psacBelow->isNoneColor()) {
-//                        const float* rgbaAbove = psac->getColor();
-//                        const float* rgbaBelow = psacBelow->getColor();
-//                        
-//                        rgbaOut[0] = (percentAbove * rgbaAbove[0]
-//                                      + percentBelow * rgbaBelow[0]);
-//                        rgbaOut[1] = (percentAbove * rgbaAbove[1]
-//                                      + percentBelow * rgbaBelow[1]);
-//                        rgbaOut[2] = (percentAbove * rgbaAbove[2]
-//                                      + percentBelow * rgbaBelow[2]);
-//                    }
-//                }
-//            }
-//            else if (psac->isNoneColor()) {
-//                rgbaOut[3] = 0.0f;
-//            }
-//        }
-//    }
-//}
-
 
 /**
  * Get the RGBA (4) colors in the range of zero to one.
@@ -541,7 +448,7 @@ Palette::isModified() const
  * Example: (1.0, Red), (0.4, Yellow), (0, Black), (-0.3, Green), (-1.0, Blue)
  * becomes  (1.0, Black), (0.6, Yellow), (1.0, Red), (0, Blue), (-0.7, Green), (-1.0, Black)
  */
-const Palette*
+const PaletteBase*
 Palette::getSignSeparateInvertedPalette() const
 {
     if ( ! m_signSeparateInvertedPalette) {
@@ -629,7 +536,7 @@ Palette::createSignSeparateInvertedPalette() const
  * Example: (1.0, Red), (0.4, Yellow), (-0.3, Green), (-1.0, Blue)
  * becomes  (1.0, Blue), (0.3, Green), (-0.4, Yellow), (-1.0, Red)
  */
-const Palette*
+const PaletteBase*
 Palette::getInvertedPalette() const
 {
     if ( ! m_invertedPalette) {
@@ -692,7 +599,7 @@ Palette::getDefaultPaletteName()
  * Example: (1.0, Red), (0.4, Yellow), (0, Black), (-0.3, Green), (-1.0, Blue)
  * becomes  (1.0, Black), (0.6, Yellow), (1.0, Red), (0, Blue), (-0.7, Green), (-1.0, Black)
  */
-const Palette*
+const PaletteBase*
 Palette::getNoneSeparateInvertedPalette() const
 {
     if ( ! m_noneSeparateInvertedPalette) {

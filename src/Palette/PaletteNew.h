@@ -24,10 +24,11 @@
 #include <vector>
 
 #include "AString.h"
+#include "PaletteBase.h"
 
 namespace caret {
     
-    class PaletteNew
+    class PaletteNew : public PaletteBase
     {
     public:
         struct ScalarColor
@@ -82,12 +83,18 @@ namespace caret {
         
         PaletteNew(std::vector<ScalarColor> posRange, float zeroColor[3], std::vector<ScalarColor> negRange);
         PaletteNew(const PaletteNew& paletteNew);
+        ~PaletteNew();
         
         void getPositiveColor(const float scalar, float rgbOut[3]) const;
         void getNegativeColor(const float scalar, float rgbOut[3]) const;
         void getZeroColor(float colorOut[3]) const { for (int i = 0; i < 3; ++i) colorOut[i] = m_zeroColor[i]; }
             
-        AString getName() const { return m_name; }
+        virtual void getPaletteColor(const float scalar,
+                                     const bool interpolateColorFlag,
+                                     float rgbaOut[4]) const override;
+        
+
+        virtual AString getName() const override { return m_name; }
         
         void setName(const AString& name) { m_name = name; }
         
@@ -100,7 +107,19 @@ namespace caret {
         std::vector<float> getPosPerceptualGradient(const int numBuckets) const { return m_posRange.getPerceptualGradient(numBuckets); }
         std::vector<float> getNegPerceptualGradient(const int numBuckets) const { return m_negRange.getPerceptualGradient(numBuckets); }
 
+        virtual const PaletteBase* getInvertedPalette() const override;
+        
+        virtual const PaletteBase* getSignSeparateInvertedPalette() const override;
+        
+        virtual const PaletteBase* getNoneSeparateInvertedPalette() const override;
+
+        virtual PaletteNew* castToPaletteNew() { return this; }
+        
+        virtual const PaletteNew* castToPaletteNew() const { return this; }
+
     private:
+        PaletteNew* createSignSeparateInvertedPalette() const;
+        
         class PaletteRange
         {
             static constexpr int BUCKETS = 256;//keep this at a 2^n to minimize float rounding during lookup

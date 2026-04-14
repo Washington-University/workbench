@@ -133,7 +133,6 @@ EventDarkLightColorSchemeModeGet.h
 EventGetViewportSize.h
 EventListenerInterface.h
 EventManager.h
-EventPaletteGetByName.h
 EventProgressUpdate.h
 EventRecentFilesSystemAccessMode.h
 EventResetView.h
@@ -312,7 +311,6 @@ EventDarkLightColorSchemeModeGet.cxx
 EventGetViewportSize.cxx
 EventListenerInterface.cxx
 EventManager.cxx
-EventPaletteGetByName.cxx
 EventProgressUpdate.cxx
 EventRecentFilesSystemAccessMode.cxx
 EventResetView.cxx

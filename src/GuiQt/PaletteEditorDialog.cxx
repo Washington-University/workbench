@@ -39,7 +39,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
-#include "EventPaletteOperation.h"
+#include "EventPaletteNewOperation.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -136,6 +136,7 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
  */
 PaletteEditorDialog::~PaletteEditorDialog()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -154,7 +155,7 @@ PaletteEditorDialog::receiveEvent(Event* event)
         CaretAssert(updateEvent);
         updateEvent->setEventProcessed();
         
-        FunctionResultValue<std::vector<const PaletteNew*>> result(EventPaletteOperation::getUserPalettes());
+        FunctionResultValue<std::vector<const PaletteNew*>> result(EventPaletteNewOperation::getUserPalettes());
         if (result.isOk()) {
             std::vector<const PaletteNew*> palettes = result.getValue();
             if (palettes != m_previouslyLoadedPalettes) {
@@ -209,7 +210,7 @@ PaletteEditorDialog::updatePaletteListWidget()
     m_paletteListWidget->clear();
 
     QListWidgetItem* selectedItem(NULL);
-    FunctionResultValue<std::vector<const PaletteNew*>> result(EventPaletteOperation::getUserPalettes());
+    FunctionResultValue<std::vector<const PaletteNew*>> result(EventPaletteNewOperation::getUserPalettes());
     if (result.isOk()) {
         palettes = result.getValue();
         if (std::find(palettes.begin(),
@@ -628,7 +629,7 @@ PaletteEditorDialog::renamePaletteActionTriggered()
                                                     paletteName));
         if ( ! newName.isEmpty()) {
             if (newName != paletteName) {
-                FunctionResult result(EventPaletteOperation::renamePalette(m_paletteBeingEdited,
+                FunctionResult result(EventPaletteNewOperation::renamePalette(m_paletteBeingEdited,
                                                                            newName));
                 if (result.isError()) {
                     WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
@@ -650,7 +651,7 @@ PaletteEditorDialog::deletePaletteActionTriggered()
                               + m_paletteBeingEdited->getName()
                               + "\" ?");
         if (WuQMessageBoxTwo::warningOkCancel(this, "Confirm", message)) {
-            FunctionResult result(EventPaletteOperation::deletePalette(m_paletteBeingEdited));
+            FunctionResult result(EventPaletteNewOperation::deletePalette(m_paletteBeingEdited));
             if (result.isError()) {
                 WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
             }
@@ -678,7 +679,7 @@ PaletteEditorDialog::savePaletteActionTriggered()
         std::vector<PaletteNew::ScalarColor> zeroScalars(m_zeroRangeWidget->getScalarColors());
         if (zeroScalars.size() == 1) {
             CaretAssertVectorIndex(zeroScalars, 0);
-            FunctionResult result(EventPaletteOperation::updatePalette(m_paletteBeingEdited,
+            FunctionResult result(EventPaletteNewOperation::updatePalette(m_paletteBeingEdited,
                                                                        m_positiveRangeWidget->getScalarColors(),
                                                                        m_negativeRangeWidget->getScalarColors(),
                                                                        zeroScalars[0]));

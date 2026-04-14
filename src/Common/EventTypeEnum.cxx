@@ -507,13 +507,13 @@ EventTypeEnum::initialize()
                                      "EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW",
                                      "Request display of palette color mapping editor"));
     
-    enumData.push_back(EventTypeEnum(EVENT_PALETTE_GET_BY_NAME,
-                                     "EVENT_PALETTE_GET_BY_NAME",
-                                     "Read the selected files in a spec file"));
+    enumData.push_back(EventTypeEnum(EVENT_PALETTE_NEW_OPERATION,
+                                     "EVENT_PALETTE_NEW_OPERATION",
+                                     "Operations with Palette New"));
     
-    enumData.push_back(EventTypeEnum(EVENT_PALETTE_OPERATION,
-                                     "EVENT_PALETTE_OPERATION",
-                                     "Operations with Palettes"));
+    enumData.push_back(EventTypeEnum(EVENT_PALETTES_GET_OPERATION,
+                                     "EVENT_PALETTES_GET_OPERATION",
+                                     "Operation to get palettes"));
     
     enumData.push_back(EventTypeEnum(EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE,
                                      "EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE",

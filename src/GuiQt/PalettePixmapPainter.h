@@ -47,6 +47,9 @@ namespace caret {
         PalettePixmapPainter(const Palette* palette,
                              const Mode mode);
         
+        PalettePixmapPainter(const PaletteNew* palette,
+                             const Mode mode);
+        
         PalettePixmapPainter(const Palette* palette,
                              const QSize& pixmapSize,
                              const Mode mode);

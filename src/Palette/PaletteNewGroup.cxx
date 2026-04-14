@@ -137,7 +137,10 @@ PaletteNewGroup::addExamplePalettes()
         float zeroRGB[3] = { 0.0, 1.0, 0.0 };
         PaletteNew* p = new PaletteNew(posRange, zeroRGB, negRange);
         p->setName("Psycho");
-        addPalette(p);
+        FunctionResult result(addPalette(p));
+        if (result.isError()) {
+            delete p;
+        }
     }
 
     {
@@ -154,7 +157,10 @@ PaletteNewGroup::addExamplePalettes()
         float zeroRGB[3] = { 0.5, 1.0, 0.0 };
         PaletteNew* p = new PaletteNew(posRange, zeroRGB, negRange);
         p->setName("Roy");
-        addPalette(p);
+        FunctionResult result(addPalette(p));
+        if (result.isError()) {
+            delete p;
+        }
     }
 }
 
@@ -244,8 +250,10 @@ PaletteNewGroup::addNewPalette(const AString& name,
 /**
  * Add a palette.  Palette must contain a name not used by an existing palette in this group.
  * @param palette
- *     Palette to add
- * @return Function result with success/failure
+ *     Palette to add.  Ownership will be taken of this pointer
+ * @return Function result with success/failure.
+ * If success, this group will take possession of pointer and destory it when appropriate.
+ * If failure, caller is responsible for destroying the pointer.
  */
 FunctionResult
 PaletteNewGroup::addPalette(PaletteNew* palette)
@@ -264,7 +272,12 @@ PaletteNewGroup::addPalette(PaletteNew* palette)
     }
     
     std::unique_ptr<PaletteNew> ptr(palette);
-    m_palettes.insert(std::move(ptr));
+    const auto iterAndBoolStatus(m_palettes.insert(std::move(ptr)));
+    if ( ! iterAndBoolStatus.second) {
+        CaretLogWarning("Failed to add PaletteNew ="
+                        + palette->getName()
+                        + " to PaletteNewGroup");
+    }
     
     return FunctionResult::ok();
 }

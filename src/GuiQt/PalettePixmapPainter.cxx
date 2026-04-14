@@ -63,6 +63,21 @@ PalettePixmapPainter::PalettePixmapPainter(const Palette* palette,
  * Constructor.
  * @param palette
  * Palette used to generate the pixmap
+ * @param mode
+ * Interpolation mode (on/off)
+ */
+PalettePixmapPainter::PalettePixmapPainter(const PaletteNew* palette,
+                                           const Mode mode)
+: PalettePixmapPainter(palette,
+                       QSize(100, 14),
+                       mode)
+{
+}
+
+/**
+ * Constructor.
+ * @param palette
+ * Palette used to generate the pixmap
  * @param pixmapSize
  * Size for pixmap
  * @param mode

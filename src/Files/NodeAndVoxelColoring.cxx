@@ -109,7 +109,7 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
         return;
     }
     
-    const Palette* palette = paletteColorMapping->getPalette();
+    const PaletteBase* palette = paletteColorMapping->getPalette();
     CaretAssert(palette);
     
     CaretAssert(statistics);
