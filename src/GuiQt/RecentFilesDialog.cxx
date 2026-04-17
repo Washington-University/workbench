@@ -906,7 +906,36 @@ void
 RecentFilesDialog::tableWidgetItemDoubleClicked(RecentFileItem* item)
 {
     if (item != NULL) {
-        openButtonClicked();
+        bool loadFlag(false);
+        bool openFlag(false);
+        switch (item->getFileItemType()) {
+            case RecentFileItemTypeEnum::DIRECTORY:
+                openFlag = true;
+                break;
+            case RecentFileItemTypeEnum::SCENE_FILE:
+                openFlag = true;
+                break;
+            case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+                loadFlag = true;
+                break;
+            case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
+                loadFlag = true;
+                break;
+            case RecentFileItemTypeEnum::SPEC_FILE:
+                openFlag = true;
+                break;
+        }
+        if (loadFlag) {
+            loadButtonClicked();
+        }
+        else if (openFlag) {
+            openButtonClicked();
+        }
+        else {
+            const AString msg("Failed to set load or open");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+        }
     }
 }
 
