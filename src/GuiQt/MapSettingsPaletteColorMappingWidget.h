@@ -25,6 +25,8 @@
 #include <QWidget>
 #include <qwt_plot.h>
 
+#include "EventListenerInterface.h"
+
 class QAbstractButton;
 class QCheckBox;
 class QDoubleSpinBox;
@@ -53,7 +55,7 @@ namespace caret {
     class WuQWidgetObjectGroup;
     class WuQwtPlot;
     
-    class MapSettingsPaletteColorMappingWidget : public QWidget {
+    class MapSettingsPaletteColorMappingWidget : public QWidget, public EventListenerInterface {
         Q_OBJECT
         
     public:
@@ -66,6 +68,8 @@ namespace caret {
 
         void updateWidget();
         
+        virtual void receiveEvent(Event* event) override;
+
     private:
         MapSettingsPaletteColorMappingWidget(const MapSettingsPaletteColorMappingWidget&);
 

@@ -108,6 +108,23 @@ EventPaletteNewOperation::getUserPalettes()
 }
 
 /**
+ * Add the given palette to the user's palettes.
+ * Ownership is take of palette.
+ */
+FunctionResult
+EventPaletteNewOperation::addPalette(PaletteNew* palette)
+{
+    EventPaletteNewOperation event(Operation::ADD_PALETTE);
+    std::vector<const PaletteNew*> palettes { palette };
+    event.setPalettes(palettes);
+    EventManager::get()->sendEvent(event.getPointer());
+    
+    return FunctionResult(event.getErrorMessage(),
+                          event.getErrorMessage().isEmpty());
+}
+
+
+/**
  * @return A new palette with the given name and number of control points
  * @param name
  *    Name of palette
@@ -142,6 +159,51 @@ EventPaletteNewOperation::createNewPalette(const AString& name,
     return FunctionResultValue<const PaletteNew*>(paletteOut,
                                                  errorMessage,
                                                  errorMessage.isEmpty());
+}
+
+/**
+ * @return A new palette that is a copy of the given palette
+ * @param paletteBase
+ *    Palette that is copied
+ * @param newPaletteName
+ *    Name for new palette
+ */
+FunctionResultValue<const PaletteNew*>
+EventPaletteNewOperation::copyPalette(const PaletteBase* paletteBase,
+                                      const AString& newPaletteName)
+{
+    CaretAssert(paletteBase);
+
+    PaletteNew* paletteOut(NULL);
+    AString errorMessage;
+    
+    if (paletteBase != NULL) {
+        const PaletteNew* paletteNew(paletteBase->castToPaletteNew());
+        const Palette* palette(paletteBase->castToPalette());
+        if (paletteNew != NULL) {
+            PaletteNew* pn(new PaletteNew(*paletteNew));
+            pn->setName(newPaletteName);
+            paletteOut = pn;
+        }
+        else if (palette != NULL) {
+            AString notes;
+            PaletteNew* pn(PaletteNew::createFromPalette(palette, notes));
+            pn->setName(newPaletteName);
+            paletteOut = pn;
+        }
+        
+        if (paletteOut != NULL) {
+            FunctionResult result(EventPaletteNewOperation::addPalette(paletteOut));
+            errorMessage = result.getErrorMessage();
+        }
+    }
+    else {
+        errorMessage = "Palette for copying is NULL";
+    }
+    
+    return FunctionResultValue<const PaletteNew*>(paletteOut,
+                                                  errorMessage,
+                                                  errorMessage.isEmpty());
 }
 
 /**
@@ -189,6 +251,17 @@ EventPaletteNewOperation::renamePalette(const PaletteNew* palette,
     }
     return FunctionResult::ok();
 }
+
+/**
+ * Send a notification that the palettes have changed
+ */
+void
+EventPaletteNewOperation::sendPalettesChangedNotification()
+{
+    EventPaletteNewOperation event(Operation::PALETTES_CHANGED_NOTIFICATION);
+    EventManager::get()->sendEvent(event.getPointer());
+}
+
 
 /**
  * Sets the palettes for an operation

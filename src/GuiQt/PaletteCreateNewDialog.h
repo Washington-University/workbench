@@ -29,11 +29,14 @@
 #include "WuQDialogModal.h"
 
 class QLineEdit;
+class QRadioButton;
 class QSpinBox;
 
 namespace caret {
 
+    class PaletteBase;
     class PaletteNew;
+    class PaletteSelectionWidget;
     
     class PaletteCreateNewDialog : public WuQDialogModal {
         
@@ -66,12 +69,18 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     protected:
+        void radioButtonClicked(QAbstractButton *button);
+        
         virtual void okButtonClicked();
                 
     private:
         static PaletteNew* createPaletteNew(const AString& name,
                                             const int32_t numberOfPositiveControlPoints,
                                             const int32_t numberOfNegativeControlPoints);
+        
+        QWidget* createNewPaletteSection();
+        
+        QWidget* createCopyPaletteSection();
         
         const PaletteType m_paletteType;
         
@@ -83,7 +92,17 @@ namespace caret {
         
         QSpinBox* m_newPaletteNegativeSpinBox;
         
+        PaletteSelectionWidget* m_copyPaletteSelectionWidget;
+        
         const PaletteNew* m_palette = NULL;
+    
+        QRadioButton* m_copyPaletteRadioButton;
+        
+        QRadioButton* m_newPaletteRadioButton;
+        
+        QWidget* m_copyPaletteWidget;
+        
+        QWidget* m_newPaletteWidget;
         
         AString m_errorMessage;
         

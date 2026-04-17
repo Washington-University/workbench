@@ -38,6 +38,7 @@
 #undef __PALETTE_COLOR_MAPPING_DECLARE__
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteColorMappingXmlElements.h"
+#include "PaletteNew.h"
 #include "PaletteScalarAndColor.h"
 #include "XmlSaxParser.h"
 #include "XmlUtilities.h"
@@ -506,7 +507,14 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
     CaretAssert(paletteBase);
     const Palette* palette(paletteBase->castToPalette());
     if (palette == NULL) {
-        return;
+        const PaletteNew* paletteNew(paletteBase->castToPaletteNew());
+        if (paletteNew != NULL) {
+            palette = paletteNew->getAsPalette();
+        }
+        
+        if (palette == NULL) {
+            return;
+        }
     }
     
     /*

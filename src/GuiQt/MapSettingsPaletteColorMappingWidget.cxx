@@ -52,6 +52,7 @@
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "EventPalettesGetOperations.h"
+#include "EventPaletteNewOperation.h"
 #include "FastStatistics.h"
 #include "GuiManager.h"
 #include "Histogram.h"
@@ -174,6 +175,8 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_PALETTE_NEW_OPERATION);
 }
 
 /**
@@ -181,6 +184,43 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
  */
 MapSettingsPaletteColorMappingWidget::~MapSettingsPaletteColorMappingWidget()
 {
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+MapSettingsPaletteColorMappingWidget::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_NEW_OPERATION) {
+        EventPaletteNewOperation* paletteEvent(dynamic_cast<EventPaletteNewOperation*>(event));
+        CaretAssert(paletteEvent);
+        
+        switch (paletteEvent->getOperation()) {
+            case EventPaletteNewOperation::Operation::ADD_PALETTE:
+                break;
+            case EventPaletteNewOperation::Operation::DELETE_PALETTE:
+                break;
+            case EventPaletteNewOperation::Operation::GET_PALETTE_WITH_NAME:
+                break;
+            case EventPaletteNewOperation::Operation::GET_USER_PALETTES:
+                break;
+            case EventPaletteNewOperation::Operation::NEW_PALETTE:
+                break;
+            case EventPaletteNewOperation::Operation::PALETTES_CHANGED_NOTIFICATION:
+                paletteEvent->setEventProcessed();
+                updatePaletteNameComboBox();
+                updateWidget();
+                break;
+            case EventPaletteNewOperation::Operation::RENAME_PALETTE:
+                break;
+            case EventPaletteNewOperation::Operation::UPDATE_PALETTE:
+                break;
+        }
+    }
 }
 
 /**
@@ -1806,11 +1846,16 @@ MapSettingsPaletteColorMappingWidget::updatePaletteMappedToDataValueLabels()
 void
 MapSettingsPaletteColorMappingWidget::updatePaletteNameComboBox()
 {
+    /*
+     * QComboBox::addItem() emits signals
+     */
+    QSignalBlocker bocker(this->paletteNameComboBox);
+    
     const bool newFlag(true);
     if (newFlag) {
         this->paletteNameComboBox->clear();
         
-        std::vector<const PaletteBase*> allPalettes(EventPalettesGetOperations::getAllPalettesSortedByName());
+        std::vector<const PaletteBase*> allPalettes(EventPalettesGetOperations::getAllPaletteTypesSortedByName());
 
         bool firstValidPixmapFlag(true);
         const int32_t numPalettes(allPalettes.size());

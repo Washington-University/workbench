@@ -248,6 +248,12 @@ WuQColorEditorWidget::createControlsWidget()
                       row, COL_SPIN_BOX);
     row++;
     
+    adjustLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
+                            row, COL_LABEL, 1, 3, Qt::AlignVCenter);
+    adjustLayout->setRowMinimumHeight(row, 10);
+    
+    row++;
+    
     adjustLayout->addWidget(new QLabel("Hue:"),
                       row, COL_LABEL);
     adjustLayout->addWidget(m_hueSlider,

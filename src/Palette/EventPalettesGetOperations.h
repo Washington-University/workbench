@@ -32,6 +32,7 @@
 namespace caret {
 
     class PaletteBase;
+    class PaletteNew;
     
     class EventPalettesGetOperations : public Event {
         
@@ -46,7 +47,10 @@ namespace caret {
             GET_PALETTE_WITH_NAME
         };
         
-        static std::vector<const PaletteBase*> getAllPalettesSortedByName();
+        static std::vector<const PaletteBase*> getAllPaletteTypesSortedByName();
+        
+        static std::vector<const PaletteNew*> getAllPaletteNewSortedByName();
+        
         
         static const PaletteBase* getPaletteWithName(const AString& name);
         
@@ -61,6 +65,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        static std::vector<const PaletteBase*> getAllPalettesSortedByName(const bool includePaletteFlag,
+                                                                          const bool includePaletteNewFlag);
+        
         EventPalettesGetOperations(const Operation m_operation);
         
         void addPalette(const PaletteBase* palette);

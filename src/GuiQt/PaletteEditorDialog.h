@@ -132,6 +132,10 @@ namespace caret {
         
         bool modifiedPaletteWarningDialog();
         
+        void updateAfterPalettesChanged();
+        
+        virtual void closeEvent(QCloseEvent* event) override;
+        
         std::tuple<PaletteEditorRangeWidget*, PaletteEditorRangeRow*, QRadioButton*> getSelectedControlPointInfo();
         
         std::tuple<PaletteEditorRangeWidget*, PaletteEditorRangeRow*, QRadioButton*> getControlPointWithScalar(const float scalar);
@@ -179,6 +183,8 @@ namespace caret {
         std::vector<const PaletteNew*> m_previouslyLoadedPalettes;
         
         const PaletteNew* m_paletteBeingEdited = NULL;
+        
+        bool m_ingoreUserInterfaceUpdateEventFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

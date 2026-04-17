@@ -41,6 +41,25 @@ PaletteScalarAndColor::PaletteScalarAndColor(
 }
 
 /**
+ * Constructor.
+ *
+ * @param scalar     - the scalar value
+ * @param colorIndex - the scalar's color index
+ * @param rgba         - the RGBA color
+ *
+ */
+PaletteScalarAndColor::PaletteScalarAndColor(const float scalar,
+                                             const AString& colorName,
+                                             const float rgba[4])
+: CaretObject()
+{
+    this->initializeMembersPaletteScalarAndColor();
+    this->scalar = scalar;
+    setColorName(colorName);
+    setColor(rgba);
+}
+
+/**
  * Destructor
  */
 PaletteScalarAndColor::~PaletteScalarAndColor()

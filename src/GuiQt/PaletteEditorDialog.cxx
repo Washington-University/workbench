@@ -23,6 +23,7 @@
 #undef __PALETTE_EDITOR_DIALOG_DECLARE__
 
 #include <QButtonGroup>
+#include <QCloseEvent>
 #include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -41,7 +42,9 @@
 #include "EventManager.h"
 #include "EventPaletteNewOperation.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventVolumeColoringInvalidate.h"
 #include "GuiManager.h"
 #include "Palette.h"
 #include "PaletteCreateNewDialog.h"
@@ -149,27 +152,62 @@ void
 PaletteEditorDialog::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        bool updateDialogFlag(false);
-        
-        EventUserInterfaceUpdate* updateEvent(dynamic_cast<EventUserInterfaceUpdate*>(event));
-        CaretAssert(updateEvent);
-        updateEvent->setEventProcessed();
-        
-        FunctionResultValue<std::vector<const PaletteNew*>> result(EventPaletteNewOperation::getUserPalettes());
-        if (result.isOk()) {
-            std::vector<const PaletteNew*> palettes = result.getValue();
-            if (palettes != m_previouslyLoadedPalettes) {
+        if ( ! m_ingoreUserInterfaceUpdateEventFlag) {
+            bool updateDialogFlag(false);
+            
+            EventUserInterfaceUpdate* updateEvent(dynamic_cast<EventUserInterfaceUpdate*>(event));
+            CaretAssert(updateEvent);
+            updateEvent->setEventProcessed();
+            
+            FunctionResultValue<std::vector<const PaletteNew*>> result(EventPaletteNewOperation::getUserPalettes());
+            if (result.isOk()) {
+                std::vector<const PaletteNew*> palettes = result.getValue();
+                if (palettes != m_previouslyLoadedPalettes) {
+                    updateDialogFlag = true;
+                }
+            }
+            else {
                 updateDialogFlag = true;
             }
-        }
-        else {
-            updateDialogFlag = true;
-        }
-        
-        if (updateDialogFlag) {
-            updateDialog();
+            
+            if (updateDialogFlag) {
+                updateDialog();
+            }
         }
     }
+}
+
+/**
+ * Called when the close button is clicked
+ */
+void
+PaletteEditorDialog::closeEvent(QCloseEvent* event)
+{
+    if (isPaletteModified()) {
+        const AString text("The selected palette is modified.\n"
+                           "\n"
+                           "Click OK to close the dialog and discard changes to the palette.\n"
+                           "\n"
+                           "Click Cancel to return to the " + windowTitle() + " dialog and resume editing the palette.");
+        if ( ! WuQMessageBoxTwo::warningOkCancel(this, "Warning", text)) {
+            event->ignore();
+        }
+    }
+}
+
+/**
+ * Issue events after palettes changed
+ */
+void
+PaletteEditorDialog::updateAfterPalettesChanged()
+{
+    m_ingoreUserInterfaceUpdateEventFlag = true;
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventVolumeColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+    EventPaletteNewOperation::sendPalettesChangedNotification();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    m_ingoreUserInterfaceUpdateEventFlag = false;
 }
 
 /**
@@ -241,9 +279,7 @@ PaletteEditorDialog::updatePaletteListWidget()
         m_paletteListWidget->setCurrentItem(selectedItem);
         m_paletteListWidget->scrollToItem(selectedItem,
                                           QAbstractItemView::EnsureVisible);
-        if (selectedItem != previousItem) {
-            paletteSelected(selectedItem);
-        }
+        paletteSelected(selectedItem);
     }
     
     m_previouslyLoadedPalettes = palettes;
@@ -551,7 +587,7 @@ QWidget*
 PaletteEditorDialog::createPaletteSelectionWidget()
 {
     m_paletteListWidget = new QListWidget();
-    QObject::connect(m_paletteListWidget, &QListWidget::itemActivated,
+    QObject::connect(m_paletteListWidget, &QListWidget::itemClicked,
                      this, &PaletteEditorDialog::paletteSelected);
     
     m_newPaletteAction = new QAction();
@@ -611,6 +647,8 @@ PaletteEditorDialog::newPaletteActionTriggered()
             WuQMessageBoxTwo::critical(this, "ERROR", dialog.getErrorMessage());
         }
         updateDialog();
+        updateAfterPalettesChanged();
+        updateModifiedLabel();
     }
 }
 
@@ -635,6 +673,7 @@ PaletteEditorDialog::renamePaletteActionTriggered()
                     WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
                 }
                 updateDialog();
+                updateAfterPalettesChanged();
             }
         }
     }
@@ -656,6 +695,7 @@ PaletteEditorDialog::deletePaletteActionTriggered()
                 WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
             }
             updateDialog();
+            updateAfterPalettesChanged();
         }
     }
 }
@@ -687,6 +727,7 @@ PaletteEditorDialog::savePaletteActionTriggered()
                 WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
             }
             loadPaletteIntoEditor();
+            updateAfterPalettesChanged();
         }
     }
 }

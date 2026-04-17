@@ -179,8 +179,6 @@ namespace caret {
 
         QAction* getViewTileTabsConfigurationDialogAction();
 
-        static void setPaletteEditorEnabled(const bool enabled);
-        
     protected:
         void changeEvent(QEvent *event) override;
         void closeEvent(QCloseEvent* event) override;
@@ -547,8 +545,6 @@ namespace caret {
         const float m_developerTimingDuration = 10.0;
         
         const int32_t m_developerTimingIterations = 10;
-        
-        static bool s_paletteEditorEnabledFlag;
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
     std::set<BrainBrowserWindow*> BrainBrowserWindow::s_brainBrowserWindows;
@@ -559,7 +555,6 @@ namespace caret {
     bool BrainBrowserWindow::s_firstWindowFlag = true;
     int32_t BrainBrowserWindow::s_sceneFileFirstWindowX = -1;
     int32_t BrainBrowserWindow::s_sceneFileFirstWindowY = -1;
-    bool BrainBrowserWindow::s_paletteEditorEnabledFlag = false;
 #endif // __BRAIN_BROWSER_WINDOW_DECLARE__
     
 }

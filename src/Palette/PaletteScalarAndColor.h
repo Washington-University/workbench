@@ -41,6 +41,10 @@ public:
     PaletteScalarAndColor(const float scalar,
                           const AString& colorName);
 
+    PaletteScalarAndColor(const float scalar,
+                          const AString& colorName,
+                          const float rgba[4]);
+    
     PaletteScalarAndColor(const PaletteScalarAndColor& o);
 
     PaletteScalarAndColor& operator=(const PaletteScalarAndColor& o);

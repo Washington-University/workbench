@@ -27,6 +27,14 @@
 using namespace caret;
 
 
+static bool sortByName(const PaletteBase* lhs, const PaletteBase* rhs) {
+    const int result(QString::compare(lhs->getName(),
+                                      rhs->getName(),
+                                      Qt::CaseInsensitive));
+    return (result < 0);
+};
+
+
     
 /**
  * \class caret::PaletteBase 
@@ -100,6 +108,23 @@ PaletteDesignTypeEnum::Enum
 PaletteBase::getPaletteDesignType() const
 {
     return m_paletteDesignType;
+}
+
+/**
+ * Sort the palettes by name
+ * @param palettes
+ *   Palettes that are sorted
+ */
+void
+PaletteBase::sortByName(std::vector<const PaletteBase*>& palettes)
+{
+    std::sort(palettes.begin(),
+              palettes.end(),
+              [](const PaletteBase* lhs, const PaletteBase* rhs) {
+        const int result(QString::compare(lhs->getName(),
+                                          rhs->getName(),
+                                          Qt::CaseInsensitive));
+        return (result < 0); });
 }
 
 /**

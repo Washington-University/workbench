@@ -27,6 +27,7 @@
 #include "PaletteBase.h"
 
 namespace caret {
+    class Palette;
     
     class PaletteNew : public PaletteBase
     {
@@ -81,9 +82,12 @@ namespace caret {
             }
         };
         
-        PaletteNew(std::vector<ScalarColor> posRange, float zeroColor[3], std::vector<ScalarColor> negRange);
+        PaletteNew(const std::vector<ScalarColor>& posRange, const float zeroColor[3], const std::vector<ScalarColor>& negRange);
         PaletteNew(const PaletteNew& paletteNew);
         ~PaletteNew();
+        
+        static PaletteNew* createFromPalette(const Palette* palette,
+                                             AString& importNotesOut);
         
         void getPositiveColor(const float scalar, float rgbOut[3]) const;
         void getNegativeColor(const float scalar, float rgbOut[3]) const;
@@ -96,7 +100,9 @@ namespace caret {
 
         virtual AString getName() const override { return m_name; }
         
-        void setName(const AString& name) { m_name = name; }
+        virtual AString toString() const override;
+        
+        void setName(const AString& name);
         
         std::vector<ScalarColor> getPosRange() const { return m_posRange.getRange(); }
         std::vector<ScalarColor> getNegRange() const { return m_negRange.getRange(); }
@@ -117,6 +123,8 @@ namespace caret {
         
         virtual const PaletteNew* castToPaletteNew() const { return this; }
 
+        const Palette* getAsPalette() const;
+        
     private:
         PaletteNew* createSignSeparateInvertedPalette() const;
         
@@ -139,6 +147,10 @@ namespace caret {
         PaletteRange m_posRange, m_negRange;
         float m_zeroColor[3];
         AString m_name;
+        
+        mutable std::unique_ptr<Palette> m_convertedToPalette;
+        
+        mutable std::unique_ptr<PaletteNew> m_invertedPalette;
     };
     
 }//namespace

@@ -8145,10 +8145,12 @@ Brain::receiveEvent(Event* event)
         switch (paletteEvent->getOperation()) {
             case EventPalettesGetOperations::Operation::GET_ALL_PALETTES:
             {
-                std::vector<const PaletteNew*> palettes;
-                m_userPalettes->getPalettes(palettes);
-                for (const PaletteNew* p : palettes) {
-                    paletteEvent->addPalette(p);
+                if (SessionManager::get()->isPaletteNewSupported()) {
+                    std::vector<const PaletteNew*> palettes;
+                    m_userPalettes->getPalettes(palettes);
+                    for (const PaletteNew* p : palettes) {
+                        paletteEvent->addPalette(p);
+                    }
                 }
                 
                 if (m_paletteFile != NULL) {
@@ -8181,6 +8183,13 @@ Brain::receiveEvent(Event* event)
         paletteEvent->setEventProcessed();
         
         switch (paletteEvent->getOperation()) {
+            case EventPaletteNewOperation::Operation::ADD_PALETTE:
+            {
+                for (const PaletteNew* p : paletteEvent->m_palettes) {
+                    m_userPalettes->addPalette(const_cast<PaletteNew*>(p));
+                }
+            }
+                break;
             case EventPaletteNewOperation::Operation::DELETE_PALETTE:
             {
                 std::vector<const PaletteNew*> palettes(paletteEvent->m_palettes);
@@ -8242,6 +8251,8 @@ Brain::receiveEvent(Event* event)
                 }
             }
                 break;
+            case EventPaletteNewOperation::Operation::PALETTES_CHANGED_NOTIFICATION:
+                break;
             case EventPaletteNewOperation::Operation::RENAME_PALETTE:
             {
                 std::vector<const PaletteNew*> palettes(paletteEvent->m_palettes);
@@ -8259,6 +8270,7 @@ Brain::receiveEvent(Event* event)
             }
                 break;
             case EventPaletteNewOperation::Operation::UPDATE_PALETTE:
+            {
                 std::vector<const PaletteNew*> palettes(paletteEvent->m_palettes);
                 if (palettes.size() == 1) {
                     CaretAssertVectorIndex(palettes, 0);
@@ -8280,6 +8292,7 @@ Brain::receiveEvent(Event* event)
                 else {
                     paletteEvent->setErrorMessage("There must be one palette for update operation");
                 }
+            }
                 break;
         }
     }

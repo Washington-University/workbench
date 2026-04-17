@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "EventTypeEnum.h"
+#include "PaletteBase.h"
 
 using namespace caret;
 
@@ -66,18 +67,71 @@ EventPalettesGetOperations::getOperation() const
 }
 
 /**
- * @return All palettes sorted by name
+ * @return All PaletteNew type palettes
+ */
+std::vector<const PaletteNew*>
+EventPalettesGetOperations::getAllPaletteNewSortedByName()
+{
+    std::vector<const PaletteBase*> palettes(getAllPalettesSortedByName(false,
+                                                                        true));
+    std::vector<const PaletteNew*> paletteNews;
+    for (const PaletteBase* pb : palettes) {
+        const PaletteNew* pn(pb->castToPaletteNew());
+        if (pn != NULL) {
+            paletteNews.push_back(pn);
+        }
+    }
+    
+    return paletteNews;
+}
+
+/**
+ * @return All palette types sorted by name
  */
 std::vector<const PaletteBase*>
-EventPalettesGetOperations::getAllPalettesSortedByName()
+EventPalettesGetOperations::getAllPaletteTypesSortedByName()
 {
-    std::vector<const PaletteBase*> palettesOut;
-    
+    return getAllPalettesSortedByName(true,
+                                      true);
+}
+
+/**
+ * @return All palettes of the enabled types sorted by name
+ * @param includePaletteFlag
+ *    Include 'Palette" instances
+ * @param includePaletteNewFlag
+ *    Include 'PaletteNew" instances
+ */
+std::vector<const PaletteBase*>
+EventPalettesGetOperations::getAllPalettesSortedByName(const bool includePaletteFlag,
+                                                       const bool includePaletteNewFlag)
+{
+    std::vector<const PaletteBase*> palettes;
+    std::vector<const PaletteBase*> paletteNews;
+
     EventPalettesGetOperations event(Operation::GET_ALL_PALETTES);
     EventManager::get()->sendEvent(event.getPointer());
     for (const PaletteBase* p : event.m_palettes) {
-        palettesOut.push_back(p);
+        switch (p->getPaletteDesignType()) {
+            case PaletteDesignTypeEnum::PALETTE:
+                if (includePaletteFlag) {
+                    palettes.push_back(p);
+                }
+                break;
+            case PaletteDesignTypeEnum::PALETTE_NEW:
+                if (includePaletteNewFlag) {
+                    paletteNews.push_back(p);
+                }
+                break;
+        }
     }
+    
+    PaletteBase::sortByName(palettes);
+    PaletteBase::sortByName(paletteNews);
+
+    std::vector<const PaletteBase*> palettesOut;
+    palettesOut.insert(palettesOut.end(), paletteNews.begin(), paletteNews.end());
+    palettesOut.insert(palettesOut.end(), palettes.begin(), palettes.end());
     
     return palettesOut;
 }

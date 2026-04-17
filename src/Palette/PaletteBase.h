@@ -36,6 +36,8 @@ namespace caret {
     class PaletteBase : public CaretObject {
         
     public:
+        static void sortByName(std::vector<const PaletteBase*>& palettes);
+        
         PaletteBase(const PaletteDesignTypeEnum::Enum paletteDesignType);
         
         virtual ~PaletteBase();

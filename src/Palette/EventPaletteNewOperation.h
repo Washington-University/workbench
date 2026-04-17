@@ -35,6 +35,21 @@ namespace caret {
     class EventPaletteNewOperation : public Event {
         
     public:
+        enum class Operation {
+            ADD_PALETTE,
+            DELETE_PALETTE,
+            GET_PALETTE_WITH_NAME,
+            GET_USER_PALETTES,
+            NEW_PALETTE,
+            PALETTES_CHANGED_NOTIFICATION,
+            RENAME_PALETTE,
+            UPDATE_PALETTE
+        };
+        
+        Operation getOperation() const;
+        
+        static FunctionResult addPalette(PaletteNew* palette);
+        
         static FunctionResultValue<const PaletteNew*> getPaletteWithName(const AString& name);
         
         static FunctionResultValue<std::vector<const PaletteNew*>> getUserPalettes();
@@ -43,7 +58,12 @@ namespace caret {
                                                                        const int32_t numberOfPositiveControlPoints,
                                                                        const int32_t numberOfNegativeControlPoints);
         
+        static FunctionResultValue<const PaletteNew*> copyPalette(const PaletteBase* paletteBase,
+                                                                  const AString& newPaletteName);
+        
         static FunctionResult deletePalette(const PaletteNew* palette);
+        
+        static void sendPalettesChangedNotification();
         
         static FunctionResult renamePalette(const PaletteNew* palette,
                                             const AString& newName);
@@ -62,18 +82,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        enum class Operation {
-            DELETE_PALETTE,
-            GET_PALETTE_WITH_NAME,
-            GET_USER_PALETTES,
-            NEW_PALETTE,
-            RENAME_PALETTE,
-            UPDATE_PALETTE
-        };
-        
         EventPaletteNewOperation(const Operation operation);
-        
-        Operation getOperation() const;
         
         void setPalettes(std::vector<const PaletteNew*>& palettePointers);
         

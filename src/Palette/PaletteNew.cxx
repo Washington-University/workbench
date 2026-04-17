@@ -23,9 +23,10 @@
 #include "CaretAssert.h"
 #include "CaretException.h"
 #include "CaretLogger.h"
-
 #include "ColorFunctions.h"
 #include "MathFunctions.h"
+#include "Palette.h"
+#include "PaletteScalarAndColor.h"
 
 #include <algorithm>
 
@@ -59,7 +60,7 @@ namespace
     }
 }
 
-PaletteNew::PaletteNew(vector<ScalarColor> posRange, float zeroColor[3], vector<ScalarColor> negRange)
+PaletteNew::PaletteNew(const vector<ScalarColor>& posRange, const float zeroColor[3], const vector<ScalarColor>& negRange)
 : PaletteBase(PaletteDesignTypeEnum::PALETTE_NEW), m_posRange(posRange), m_negRange(negRange)
 {
     CaretAssert(posRange[0].scalar == 0.0f);
@@ -93,6 +94,15 @@ void PaletteNew::updateRanges(std::vector<ScalarColor> posRange, const float zer
     m_posRange = posRange;
     m_negRange = negRange;
     copyColor(m_zeroColor, zeroColor);
+    
+    m_convertedToPalette.reset();
+}
+
+void PaletteNew::setName(const AString& name)
+{
+    m_name = name;
+    
+    m_convertedToPalette.reset();
 }
 
 void PaletteNew::getPositiveColor(const float scalar, float rgbOut[3]) const
@@ -190,6 +200,216 @@ vector<float> PaletteNew::PaletteRange::getPerceptualGradient(const int numBucke
 }
 
 /**
+ * @return This instance converted to a Palette
+ */
+const Palette*
+PaletteNew::getAsPalette() const
+{
+    if (m_convertedToPalette) {
+        return m_convertedToPalette.get();
+    }
+    
+    const std::vector<ScalarColor> posScalars(m_posRange.getRange());
+    const std::vector<ScalarColor> negScalars(m_negRange.getRange());
+
+    Palette* palette(new Palette());
+    palette->setName(getName());
+    
+    /*
+     * Positive range has 0 first and 1 last so interate in reverse
+     * Also, use a small positive value instead of zero
+     */
+    const int32_t numPosScalars(posScalars.size());
+    for (int32_t i = (numPosScalars - 1); i >= 0; i--) {
+        CaretAssertVectorIndex(posScalars, i);
+        const ScalarColor& sc(posScalars[i]);
+        const float scalar((i == 0)
+                           ? 0.00001
+                           : sc.scalar);
+        const AString colorName("PosColor_" + AString::number(scalar, 'f', 6));
+        const float rgba[4] { sc.color[0], sc.color[1], sc.color[2], 1.0 };
+        palette->addScalarAndColor(scalar, colorName, rgba);
+    }
+    
+    const AString colorName("ZeroColor");
+    const float rgba[4] { m_zeroColor[0], m_zeroColor[1], m_zeroColor[2], 1.0 };
+    palette->addScalarAndColor(0.0, colorName, rgba);
+    
+    /*
+     * Negative range has -1 first and 0 last
+     * Use a small negative value instead of zero
+     */
+    const int32_t numNegScalars(negScalars.size());
+    for (int32_t i = (numNegScalars - 1); i >= 0; i--) {
+        CaretAssertVectorIndex(negScalars, i);
+        const ScalarColor& sc(negScalars[i]);
+        const float scalar((i == (numNegScalars - 1))
+                           ? -0.00001
+                           : sc.scalar);
+        const AString colorName("NegColor_" + AString::number(scalar, 'f', 6));
+        const float rgba[4] { sc.color[0], sc.color[1], sc.color[2], 1.0 };
+        palette->addScalarAndColor(scalar, colorName, rgba);
+    }
+    
+    const bool testFlag(false);
+    if (testFlag) {
+        std::cout << "PaletteNew: " << std::endl;
+        std::cout << toString() << std::endl;
+        std::cout << "Palette" << std::endl;
+        std::cout << palette->toString() << std::endl;
+        std::cout << std::flush;
+    }
+    
+    m_convertedToPalette.reset(palette);
+    
+    return m_convertedToPalette.get();
+}
+
+PaletteNew*
+PaletteNew::createFromPalette(const Palette* palette,
+                              AString& importNotesOut)
+{
+    importNotesOut.clear();
+    PaletteNew* paletteOut(NULL);
+    
+    std::vector<ScalarColor> posRange;
+    std::vector<ScalarColor> negRange;
+    float zeroColor[3] = { 0.0, 0.0, 0.0 };
+    bool haveZeroFlag(false);
+    
+    /*
+     * Separate into positive, negative, and zero
+     */
+    const int32_t numScalarsAndColors(palette->getNumberOfScalarsAndColors());
+    for (int32_t i = 0; i < numScalarsAndColors; i++) {
+        const PaletteScalarAndColor* psac(palette->getScalarAndColor(i));
+        const float scalar(psac->getScalar());
+        float rgba[4];
+        psac->getColor(rgba);
+        
+        if (scalar > 0.0) {
+            posRange.push_back(ScalarColor(scalar, rgba));
+        }
+        else if (scalar < 0.0) {
+            negRange.push_back(ScalarColor(scalar, rgba));
+        }
+        else {
+            zeroColor[0] = rgba[0];
+            zeroColor[1] = rgba[1];
+            zeroColor[2] = rgba[2];
+            haveZeroFlag = true;
+        }
+    }
+    
+    const float red[3] { 1.0, 0.0, 0.0 };
+    const float black[3] { 0.0, 0.0, 0.0 };
+    const float blue[3] { 0.0, 0.0, 1.0 };
+    if (posRange.empty()) {
+        posRange.push_back(ScalarColor(1.0, red));
+        posRange.push_back(ScalarColor(0.0, black));
+        importNotesOut.appendWithNewLine("Added positive range.");
+    }
+    else {
+        /*
+         * Must have 1.0 as first positive scalar
+         */
+        if (posRange.front().scalar != 1.0) {
+            float rgba[4];
+            palette->getPaletteColor(1.0, true, rgba);
+            posRange.insert(posRange.begin(), ScalarColor(1.0, rgba));
+            importNotesOut.appendWithNewLine("Added positive 1.0.");
+        }
+        
+        /*
+         * Must have 0.0 as last positive scalar
+         */
+        if (posRange.back().scalar != 0.0) {
+            float rgba[4];
+            palette->getPaletteColor(0.0, true, rgba);
+            posRange.insert(posRange.end(), ScalarColor(0.0, rgba));
+            importNotesOut.appendWithNewLine("Added positive 0.0.");
+        }
+    }
+    
+    if (negRange.empty()) {
+        negRange.push_back(ScalarColor(0.0, black));
+        negRange.push_back(ScalarColor(-1.0, blue));
+        importNotesOut.appendWithNewLine("Added negative range.");
+    }
+    else {
+        /*
+         * Must have 0.0 as first negative scalar
+         */
+        if (negRange.front().scalar != 0.0) {
+            float rgba[4];
+            palette->getPaletteColor(0.0, true, rgba);
+            negRange.insert(negRange.begin(), ScalarColor(0.0, rgba));
+            importNotesOut.appendWithNewLine("Added negative 0.0.");
+        }
+        
+        /*
+         * Must have 1.0 as first positive scalar
+         */
+        if (negRange.back().scalar != -1.0) {
+            float rgba[4];
+            palette->getPaletteColor(-1.0, true, rgba);
+            negRange.insert(negRange.end(), ScalarColor(1.0, rgba));
+            importNotesOut.appendWithNewLine("Added negative -1.0.");
+        }
+    }
+    
+    if ( ! haveZeroFlag) {
+        float rgba[4];
+        palette->getPaletteColor(0.0, true, rgba);
+        zeroColor[0] = rgba[0];
+        zeroColor[1] = rgba[1];
+        zeroColor[2] = rgba[2];
+        importNotesOut.appendWithNewLine("Added 0.0.");
+    }
+    
+    std::reverse(posRange.begin(), posRange.end());
+    std::reverse(negRange.begin(), negRange.end());
+    
+    paletteOut = new PaletteNew(posRange, zeroColor, negRange);
+    
+    std::cout << "Palette In: " << std::endl;
+    std::cout << palette->toString() << std::endl;
+    std::cout << "New Copy: " << std::endl;
+    std::cout << paletteOut->toString() << std::endl;
+    
+    return paletteOut;
+}
+
+AString
+PaletteNew::toString() const
+{
+    AString s;
+    s += "name=" + getName() + "\n";
+    
+    const std::vector<ScalarColor> posScalars(m_posRange.getRange());
+    const std::vector<ScalarColor> negScalars(m_negRange.getRange());
+
+    const int32_t numPosScalars(posScalars.size());
+    for (int32_t i = (numPosScalars - 1); i >= 0; i--) {
+        CaretAssertVectorIndex(posScalars, i);
+        const ScalarColor& sc(posScalars[i]);
+        s += ("    " + AString::number(sc.scalar, 'f', 5) + " " + AString::fromNumbers(sc.color, 3, ",") + "\n");
+    }
+    
+    s += ("       zero " + AString::fromNumbers(m_zeroColor, 3, ",")+ "\n");
+
+    const int32_t numNegScalars(negScalars.size());
+    for (int32_t i = (numNegScalars - 1); i >= 0; i--) {
+        CaretAssertVectorIndex(negScalars, i);
+        const ScalarColor& sc(negScalars[i]);
+        s += ("   " + AString::number(sc.scalar, 'f', 5) + " " + AString::fromNumbers(sc.color, 3, ",")+ "\n");
+    }
+
+    return s;
+}
+
+
+/**
  * @return An sign separate inverted version of this palette.
  * The positive and negative sections are separately inverted.
  *
@@ -217,13 +437,10 @@ vector<float> PaletteNew::PaletteRange::getPerceptualGradient(const int numBucke
 const PaletteBase*
 PaletteNew::getSignSeparateInvertedPalette() const
 {
+    /*
+     * THIS IS NOT USED
+     */
     return NULL;
-//    if ( ! m_signSeparateInvertedPalette) {
-//        
-//        m_signSeparateInvertedPalette.reset(createSignSeparateInvertedPalette());
-//    }
-//    
-//    return m_signSeparateInvertedPalette.get();
 }
 
 /**
@@ -232,69 +449,11 @@ PaletteNew::getSignSeparateInvertedPalette() const
 PaletteNew*
 PaletteNew::createSignSeparateInvertedPalette() const
 {
+    /*
+     * THIS IS NOT USED
+     */
     return NULL;
-//    float leastPositiveScalar =  1000.0f;
-//    float mostPositiveScalar  = -1000.0f;
-//    float leastNegativeScalar = -1000.0f;
-//    float mostNegativeScalar  =  1000.0f;
-//    bool havePositivesFlag = false;
-//    bool haveNegativesFlag = false;
-//    for (const auto ps : paletteScalars) {
-//        const float scalar = ps->getScalar();
-//        
-//        if (scalar >= 0.0) {
-//            if (scalar > mostPositiveScalar)  mostPositiveScalar  = scalar;
-//            if (scalar < leastPositiveScalar) leastPositiveScalar = scalar;
-//            if (scalar > 0.0) {
-//                havePositivesFlag = true;
-//            }
-//        }
-//        
-//        if (scalar <= 0.0) {
-//            if (scalar > leastNegativeScalar) leastNegativeScalar = scalar;
-//            if (scalar < mostNegativeScalar)  mostNegativeScalar  = scalar;
-//            if (scalar < 0.0) {
-//                haveNegativesFlag = true;
-//            }
-//        }
-//    }
-//    
-//    std::deque<PaletteScalarAndColor*> positives;
-//    std::deque<PaletteScalarAndColor*> negatives;
-//    
-//    for (const auto ps : paletteScalars) {
-//        const float scalar = ps->getScalar();
-//        if (havePositivesFlag) {
-//            if (scalar >= 0.0) {
-//                PaletteScalarAndColor* psc = new PaletteScalarAndColor(*ps);
-//                psc->setScalar((leastPositiveScalar + mostPositiveScalar) - scalar);
-//                positives.push_front(psc);
-//            }
-//        }
-//        if (haveNegativesFlag) {
-//            if (scalar <= 0.0) {
-//                PaletteScalarAndColor* psc = new PaletteScalarAndColor(*ps);
-//                psc->setScalar((leastNegativeScalar + mostNegativeScalar) - scalar);
-//                negatives.push_front(psc);
-//            }
-//        }
-//    }
-//    
-//    Palette* palette = new Palette();
-//    palette->setName(getName());
-//    palette->paletteScalars.insert(palette->paletteScalars.end(),
-//                                   positives.begin(), positives.end());
-//    
-//    palette->paletteScalars.insert(palette->paletteScalars.end(),
-//                                   negatives.begin(), negatives.end());
-//    
-//    palette->clearModified();
-//    
-//    return palette;
 }
-
-
-
 
 /**
  * @return An inverted version of this palette.  An inverted
@@ -307,166 +466,49 @@ PaletteNew::createSignSeparateInvertedPalette() const
 const PaletteBase*
 PaletteNew::getInvertedPalette() const
 {
-    return NULL;
-//    if ( ! m_invertedPalette) {
-//        Palette* palette = new Palette(*this);
-//        std::reverse(palette->paletteScalars.begin(), palette->paletteScalars.end());
-//        
-//        /*
-//         * Reverse colors and then flip sign of scalars so
-//         * that it is still negative to positive
-//         */
-//        for (auto scalar : palette->paletteScalars) {
-//            scalar->setScalar( - scalar->getScalar());
-//        }
-//        
-//        palette->clearModified();
-//        
-//        m_invertedPalette.reset(palette);
-//    }
-//    
-//    return m_invertedPalette.get();
+    if ( ! m_invertedPalette) {
+        /*
+         * Note: Positives are in order 0..1
+         *       Negatives are in order -1..0
+         */
+        std::vector<ScalarColor> posScalars(m_posRange.getRange());
+        std::vector<ScalarColor> negScalars(m_negRange.getRange());
+        
+        std::reverse(posScalars.begin(), posScalars.end());
+        std::reverse(negScalars.begin(), negScalars.end());
+        
+        for (auto& sc : posScalars) {
+            sc.scalar *= -1.0;
+        }
+        for (auto& sc : negScalars) {
+            sc.scalar *= -1.0;
+        }
+
+        PaletteNew* p(new PaletteNew(negScalars, m_zeroColor, posScalars));
+        p->setName(getName());
+
+        const bool testFlag(false);
+        if (testFlag) {
+            std::cout << "Palette" << std::endl;
+            std::cout << toString() << std::endl;
+            std::cout << "Inverted" << std::endl;
+            std::cout << p->toString() << std::endl;
+        }
+        
+        m_invertedPalette.reset(p);
+    }
+    
+    return m_invertedPalette.get();
 }
 
 /**
  * @return An NONE separate inverted version of this palette.
- * The positive and negative sections are separately inverted
- * around the NONE color.  If the palette contains zero it MUST
- * be the NONE color.
  *
- * If the palette DOES NOT have NONE or if it has both
- * NONE and zero, the sign separate palette is created and returned.
- *
- * For the POSITIVE region, the conversion formula is:
- *    IS = -S + (Min + Max)
- * Where:
- *    IS => Inverted Scalar
- *    S  => Scalar
- *    Min => Minimum positive value
- *    Max => Maximum positive value
- *
- * The formula was derived by charting:
- *    Plot (x=Min, y=Max) and (x=Max, y=Min)
- *    The slope is negative one [dx = (max - min); dy = (min-max)]
- *    So Y = -(dy/dx) * X + C
- *       Y = -X + C
- *       C = X + Y
- *       C = (Min + Max)
- * And finally:
- *       Y = -X + (Min + Max)
- *
- * Example: (1.0, Red), (0.4, Yellow), (0, Black), (-0.3, Green), (-1.0, Blue)
- * becomes  (1.0, Black), (0.6, Yellow), (1.0, Red), (0, Blue), (-0.7, Green), (-1.0, Black)
+ * PaletteNew does not support a "none" color so just use the inverted palette.
  */
 const PaletteBase*
 PaletteNew::getNoneSeparateInvertedPalette() const
 {
-    return NULL;
-//    if ( ! m_noneSeparateInvertedPalette) {
-//        float leastPositiveScalar =  1000.0f;
-//        float mostPositiveScalar  = -1000.0f;
-//        float leastNegativeScalar = -1000.0f;
-//        float mostNegativeScalar  =  1000.0f;
-//        int32_t noneColorIndex = -1;
-//        int32_t zeroIndex = -1;
-//        
-//        const int32_t numScalars = static_cast<int32_t>(this->paletteScalars.size());
-//        for (int32_t i = 0; i < numScalars; i++) {
-//            CaretAssertVectorIndex(this->paletteScalars, i);
-//            const float scalar = this->paletteScalars[i]->getScalar();
-//            
-//            if (this->paletteScalars[i]->isNoneColor()) {
-//                noneColorIndex = i;
-//            }
-//            else {
-//                if (scalar == 0.0) {
-//                    zeroIndex = i;
-//                }
-//                if (scalar >= 0.0) {
-//                    if (scalar > mostPositiveScalar)  mostPositiveScalar  = scalar;
-//                    if (scalar < leastPositiveScalar) leastPositiveScalar = scalar;
-//                }
-//                if (scalar <= 0.0) {
-//                    if (scalar > leastNegativeScalar) leastNegativeScalar = scalar;
-//                    if (scalar < mostNegativeScalar)  mostNegativeScalar  = scalar;
-//                }
-//                
-//            }
-//        }
-//        
-//        bool badNoneLocationFlag = false;
-//        if (noneColorIndex >= 0) {
-//            CaretAssertVectorIndex(this->paletteScalars, noneColorIndex);
-//            const float noneValue = this->paletteScalars[noneColorIndex]->getScalar();
-//            if ((noneValue >= leastPositiveScalar)
-//                && (noneValue <= mostPositiveScalar)) {
-//                badNoneLocationFlag = true;
-//            }
-//            else if ((noneValue >= mostNegativeScalar)
-//                     && (noneValue <= leastNegativeScalar)) {
-//                badNoneLocationFlag = true;
-//            }
-//        }
-//        
-//        bool validNoneInvertFlag = true;
-//        if (badNoneLocationFlag) {
-//            const AString msg("Palette named " + getName()
-//                              + " has NONE within the positive or negative range.");
-//            CaretAssertMessage(0, msg);
-//            validNoneInvertFlag = false;
-//        }
-//        else if (noneColorIndex < 0) {
-//            /* no NONE so same as sign separate palette */
-//            validNoneInvertFlag = false;
-//        }
-//        else if (zeroIndex >= 0) {
-//            /* both none and zero not allowed */
-//            const AString msg("Palette named " + getName()
-//                              + " has both NONE and zero so NONE separated palette cannot be created.");
-//            CaretAssertMessage(0, msg);
-//            validNoneInvertFlag = false;
-//        }
-//        if ( ! validNoneInvertFlag) {
-//            m_noneSeparateInvertedPalette.reset(createSignSeparateInvertedPalette());
-//            return m_noneSeparateInvertedPalette.get();
-//        }
-//        
-//        std::deque<PaletteScalarAndColor*> positives;
-//        std::deque<PaletteScalarAndColor*> negatives;
-//        
-//        for (int32_t i = 0; i < numScalars; i++) {
-//            CaretAssertVectorIndex(this->paletteScalars, i);
-//            const PaletteScalarAndColor* ps = this->paletteScalars[i];
-//            const float scalar = ps->getScalar();
-//            
-//            if (i < noneColorIndex) {
-//                PaletteScalarAndColor* psc = new PaletteScalarAndColor(*ps);
-//                psc->setScalar((leastPositiveScalar + mostPositiveScalar) - scalar);
-//                positives.push_front(psc);
-//            }
-//            else if (i > noneColorIndex) {
-//                PaletteScalarAndColor* psc = new PaletteScalarAndColor(*ps);
-//                psc->setScalar((leastNegativeScalar + mostNegativeScalar) - scalar);
-//                negatives.push_front(psc);
-//            }
-//        }
-//        
-//        
-//        Palette* palette = new Palette();
-//        palette->setName(getName());
-//        palette->paletteScalars.insert(palette->paletteScalars.end(),
-//                                       positives.begin(), positives.end());
-//        
-//        CaretAssertVectorIndex(this->paletteScalars, noneColorIndex);
-//        palette->paletteScalars.push_back(new PaletteScalarAndColor(*this->paletteScalars[noneColorIndex]));
-//        
-//        palette->paletteScalars.insert(palette->paletteScalars.end(),
-//                                       negatives.begin(), negatives.end());
-//        
-//        palette->clearModified();
-//        
-//        m_noneSeparateInvertedPalette.reset(palette);
-//    }
-//    
-//    return m_noneSeparateInvertedPalette.get();
+    return getInvertedPalette();
 }
+

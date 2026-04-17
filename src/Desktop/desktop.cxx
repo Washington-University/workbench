@@ -875,7 +875,7 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                            || (thisParam == "-no-recent-files-dialog")) {
                     myState.showSplash = false;
                 } else if (thisParam == "-palette") {
-                    BrainBrowserWindow::setPaletteEditorEnabled(true);
+                    SessionManager::get()->setPaletteNewSupported(true);
                 } else if (thisParam == "-recent-files-mode") {
                     if (myParams->hasNext()) {
                         const AString recentFilesModeName = myParams->nextString("Recent Files Mode").toUpper();

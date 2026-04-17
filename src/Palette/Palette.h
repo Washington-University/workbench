@@ -54,7 +54,7 @@ namespace caret {
         void initializeMembersPalette();
         
     public:
-        AString toString() const;
+        virtual AString toString() const override;
         
         virtual AString getName() const override;
         
@@ -84,6 +84,10 @@ namespace caret {
         
         void addScalarAndColor(const float scalar,
                                const AString& colorName);
+        
+        void addScalarAndColor(const float scalar,
+                               const AString& colorName,
+                               const float rgba[4]);
         
         void insertScalarAndColor(
                                   const PaletteScalarAndColor& psac,

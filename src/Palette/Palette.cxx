@@ -164,6 +164,24 @@ Palette::addScalarAndColor(const float scalar,
 }
 
 /**
+ * Add a scalar and color with rgba to the palette.
+ *
+ * @param scalar - scalar value.
+ * @param colorName - color name.
+ * @param rgba - rgba color
+ *
+ */
+void
+Palette::addScalarAndColor(const float scalar,
+                           const AString& colorName,
+                           const float rgba[4])
+{
+    CaretAssert(paletteScalars.size() == 0 || scalar <= paletteScalars.back()->getScalar());//die in debug if a palette is constructed incorrectly
+    this->paletteScalars.push_back(new PaletteScalarAndColor(scalar, colorName, rgba));
+    this->setModified();
+}
+
+/**
  * Insert a scalar/color pair.
  * 
  * @param psac - item to add.

@@ -1837,3 +1837,23 @@ SessionManager::resetSceneWithMprOld()
     m_sceneRestoredWithMprOldFlag = false;
 }
 
+/**
+ * Set PaletteNew (user custom palettes with editing) supported
+ * @param status
+ *    New status
+ */
+void
+SessionManager::setPaletteNewSupported(const bool status)
+{
+    m_paletteNewSupportedFlag = status;
+}
+
+/**
+ * @return Is PaletteNew (user custom palettes with editing) supported
+ */
+bool
+SessionManager::isPaletteNewSupported() const
+{
+    return m_paletteNewSupportedFlag;
+}
+

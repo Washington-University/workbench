@@ -110,6 +110,9 @@ namespace caret {
         
         void resetSceneWithMprOld();
         
+        void setPaletteNewSupported(const bool status);
+        
+        bool isPaletteNewSupported() const;
 
     private:
         SessionManager();
@@ -209,6 +212,8 @@ namespace caret {
         bool m_sceneRestoredWithMprOldFlag = false;
         
         bool m_sceneRestorationInProgressFlag = false;
+        
+        bool m_paletteNewSupportedFlag = true;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__
