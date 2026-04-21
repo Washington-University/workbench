@@ -66,9 +66,13 @@ m_paletteDesignTypes(paletteDesignTypes)
         case WidgetType::COMBO_BOX:
             m_paletteComboBox = new QComboBox();
             selectionWidget   = m_paletteComboBox;
+            QObject::connect(m_paletteComboBox, &QComboBox::activated,
+                             this, &PaletteSelectionWidget::comboBoxActivated);
             break;
         case WidgetType::LIST_WIDGET:
             m_paletteListWidget = new QListWidget();
+            QObject::connect(m_paletteListWidget, &QListWidget::itemClicked,
+                             this, &PaletteSelectionWidget::listWidgetItemClicked);
             selectionWidget     = m_paletteListWidget;
             break;
     }
@@ -89,6 +93,32 @@ PaletteSelectionWidget::~PaletteSelectionWidget()
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
+const PaletteBase*
+PaletteSelectionWidget::getSelectedPalette() const
+{
+    const PaletteBase* palette(NULL);
+    
+    switch (m_widgetType) {
+        case WidgetType::COMBO_BOX:
+        {
+            const int32_t index(m_paletteComboBox->currentIndex());
+            if (index >= 0) {
+                palette = m_paletteComboBox->itemData(index).value<const PaletteBase*>();
+            }
+        }
+            break;
+        case WidgetType::LIST_WIDGET:
+        {
+            const QListWidgetItem* item(m_paletteListWidget->currentItem());
+            if (item != NULL) {
+                palette = item->data(Qt::UserRole).value<const PaletteBase*>();
+            }
+        }
+            break;
+    }
+
+    return palette;
+}
 /**
  * @return Name of the selected palette or empty if no selection
  */
@@ -114,6 +144,75 @@ PaletteSelectionWidget::getSelectedPaletteName() const
     return name;
 }
 
+/**
+ * Called when the combo box is activated
+ * @param index
+ *    Index of item selected
+ */
+void
+PaletteSelectionWidget::comboBoxActivated(int index)
+{
+    CaretAssert(m_paletteComboBox);
+    if ((index >= 0)
+        && (index < m_paletteComboBox->count())) {
+        const PaletteBase* palette(m_paletteComboBox->itemData(index).value<const PaletteBase*>());
+        if (palette != NULL) {
+            emit paletteSelected(palette);
+        }
+    }
+}
+
+/**
+ * Called when a  palette is selected in the list widget
+ * @param item
+ *    List widget item containing palette that was selected
+ */
+void
+PaletteSelectionWidget::listWidgetItemClicked(QListWidgetItem* item)
+{
+//    m_paletteBeingEdited = NULL;
+    if (item != NULL) {
+        const PaletteBase* palette(item->data(Qt::UserRole).value<const PaletteBase*>());
+        if (palette != NULL) {
+            emit paletteSelected(palette);
+        }
+    }
+//    
+//    loadPaletteIntoEditor();
+//    
+//    updatePaletteMovementButtons();
+}
+
+void
+PaletteSelectionWidget::selectPalette(const PaletteBase* paletteBase)
+{
+    switch (m_widgetType) {
+        case WidgetType::COMBO_BOX:
+        {
+            CaretAssert(m_paletteComboBox);
+            QSignalBlocker blocker(m_paletteComboBox);
+            for (int32_t i = 0; i < m_paletteComboBox->count(); i++) {
+                if (paletteBase == m_paletteComboBox->itemData(i).value<const PaletteBase*>()) {
+                    m_paletteComboBox->setCurrentIndex(i);
+                    break;
+                }
+            }
+        }
+            break;
+        case WidgetType::LIST_WIDGET:
+        {
+            QSignalBlocker blocker(m_paletteListWidget);
+            CaretAssert(m_paletteListWidget);
+            for (int32_t i = 0; i < m_paletteListWidget->count(); i++) {
+                if (paletteBase == m_paletteListWidget->item(i)->data(Qt::UserRole).value<const PaletteBase*>()) {
+                    m_paletteListWidget->setCurrentRow(i);
+                    break;
+                }
+            }
+        }
+            break;
+    }
+}
 
 /**
  * Update the content of the dialog
@@ -152,7 +251,7 @@ PaletteSelectionWidget::updateContent()
         if (std::find(m_paletteDesignTypes.begin(),
                       m_paletteDesignTypes.end(),
                       p->getPaletteDesignType()) != m_paletteDesignTypes.end()) {
-            const AString paletteUniqueID(p->getName());
+//            const AString paletteUniqueID(p->getName());
             const QPixmap pixmap(createPixmapForPalette(p));
             
             AString paletteName(p->getName());
@@ -164,12 +263,13 @@ PaletteSelectionWidget::updateContent()
                     break;
             }
             
+            const QVariant paletteKey(QVariant::fromValue(p));
             switch (m_widgetType) {
                 case WidgetType::COMBO_BOX:
                 {
                     if (pixmap.isNull()) {
                         m_paletteComboBox->addItem(paletteName,
-                                                   paletteUniqueID);
+                                                   paletteKey);
                     }
                     else {
                         if (firstValidPixmapFlag) {
@@ -178,7 +278,7 @@ PaletteSelectionWidget::updateContent()
                         }
                         m_paletteComboBox->addItem(pixmap,
                                                    paletteName,
-                                                   paletteUniqueID);
+                                                   paletteKey);
                     }
                 }
                     break;
@@ -187,9 +287,13 @@ PaletteSelectionWidget::updateContent()
                     QListWidgetItem* item = new QListWidgetItem();
                     item->setText(paletteName);
                     if ( ! pixmap.isNull()) {
+                        if (firstValidPixmapFlag) {
+                            firstValidPixmapFlag = false;
+                            m_paletteListWidget->setIconSize(pixmap.size());
+                        }
                         item->setIcon(pixmap);
                     }
-                    item->setData(Qt::UserRole, QVariant::fromValue(p));
+                    item->setData(Qt::UserRole, paletteKey);
                     m_paletteListWidget->addItem(item);
                     
                     if (p->getName() == m_paletteBeingEditedName) {

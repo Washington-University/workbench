@@ -348,12 +348,12 @@ PaletteNew::createFromPalette(const Palette* palette,
         }
         
         /*
-         * Must have 1.0 as first positive scalar
+         * Must have -1.0 as first positive scalar
          */
         if (negRange.back().scalar != -1.0) {
             float rgba[4];
             palette->getPaletteColor(-1.0, true, rgba);
-            negRange.insert(negRange.end(), ScalarColor(1.0, rgba));
+            negRange.insert(negRange.end(), ScalarColor(-1.0, rgba));
             importNotesOut.appendWithNewLine("Added negative -1.0.");
         }
     }
@@ -372,10 +372,8 @@ PaletteNew::createFromPalette(const Palette* palette,
     
     paletteOut = new PaletteNew(posRange, zeroColor, negRange);
     
-    std::cout << "Palette In: " << std::endl;
-    std::cout << palette->toString() << std::endl;
-    std::cout << "New Copy: " << std::endl;
-    std::cout << paletteOut->toString() << std::endl;
+    CaretLogFine("Palette In:\n" + palette->toString());
+    CaretLogFine("New Copy:\n" + paletteOut->toString());
     
     return paletteOut;
 }

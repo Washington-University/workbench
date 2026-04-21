@@ -30,11 +30,13 @@
 #include "PaletteDesignTypeEnum.h"
 
 class QListWidget;
+class QListWidgetItem;
 
 namespace caret {
     class PaletteBase;
 
     class PaletteSelectionWidget : public QWidget, public EventListenerInterface {
+        Q_OBJECT
         
     public:
         enum class WidgetType {
@@ -52,15 +54,27 @@ namespace caret {
 
         PaletteSelectionWidget& operator=(const PaletteSelectionWidget&) = delete;
         
+        const PaletteBase* getSelectedPalette() const;
+
         AString getSelectedPaletteName() const;
+        
+        void selectPalette(const PaletteBase* paletteBase);
+        
+        void updateContent();
         
         // ADD_NEW_METHODS_HERE
 
         virtual void receiveEvent(Event* event);
 
-    private:
-        void updateContent();
+    signals:
+        void paletteSelected(const PaletteBase* paletteBase);
         
+    private slots:
+        void comboBoxActivated(int index);
+        
+        void listWidgetItemClicked(QListWidgetItem* item);
+        
+    private:
         QPixmap createPixmapForPalette(const PaletteBase* paletteBase);
         
         const WidgetType m_widgetType;

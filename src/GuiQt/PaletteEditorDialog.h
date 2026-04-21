@@ -49,6 +49,7 @@ namespace caret {
     class PaletteEditorRangeRow;
     class PaletteEditorRangeWidget;
     class PaletteNew;
+    class PaletteSelectionWidget;
     class WuQColorEditorWidget;
     class WuQDataEntryDialog;
     class WuQScrollArea;
@@ -77,7 +78,7 @@ namespace caret {
         
         void colorEditorColorChanged(const QColor& color);
         
-        void paletteSelected(QListWidgetItem* item);
+        void paletteSelected(const PaletteBase* paletteBase);
         
         void rangeWidgetDataChanged();
         
@@ -166,7 +167,7 @@ namespace caret {
 
         PalettePixmapPainter::Mode m_pixmapMode = PalettePixmapPainter::Mode::INTERPOLATE_ON_LINES_AT_SCALARS;
 
-        QListWidget* m_paletteListWidget;
+        PaletteSelectionWidget* m_paletteSelectionWidget;
         
         QAction* m_newPaletteAction;
         

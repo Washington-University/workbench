@@ -53,6 +53,7 @@
 #include "PaletteFile.h"
 #include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
+#include "PaletteSelectionWidget.h"
 #include "WuQColorEditorWidget.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBoxTwo.h"
@@ -132,6 +133,10 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    
+    updateDialog();
+    const PaletteBase* paletteBase = m_paletteSelectionWidget->getSelectedPalette();
+    paletteSelected(paletteBase);
 }
 
 /**
@@ -237,52 +242,12 @@ PaletteEditorDialog::colorEditorColorChanged(const QColor& color)
 void
 PaletteEditorDialog::updatePaletteListWidget()
 {
-    std::vector<const PaletteNew*> palettes;
-    
-    QListWidgetItem* previousItem(NULL);
-    const QList<QListWidgetItem*> previousItemsList(m_paletteListWidget->selectedItems());
-    if ( ! previousItemsList.isEmpty()) {
-        previousItem = previousItemsList.at(0);
+    m_paletteBeingEdited = NULL;
+    m_paletteSelectionWidget->updateContent();
+    const PaletteBase* paletteBase(m_paletteSelectionWidget->getSelectedPalette());
+    if (paletteBase != NULL) {
+        m_paletteBeingEdited = paletteBase->castToPaletteNew();
     }
-    
-    m_paletteListWidget->clear();
-
-    QListWidgetItem* selectedItem(NULL);
-    FunctionResultValue<std::vector<const PaletteNew*>> result(EventPaletteNewOperation::getUserPalettes());
-    if (result.isOk()) {
-        palettes = result.getValue();
-        if (std::find(palettes.begin(),
-                      palettes.end(),
-                      m_paletteBeingEdited) == palettes.end()) {
-            m_paletteBeingEdited = NULL;
-        }
-        
-        for (const PaletteNew* p : palettes) {
-            QListWidgetItem* item = new QListWidgetItem();
-            item->setText(p->getName());
-            item->setData(Qt::UserRole, QVariant::fromValue(p));
-            m_paletteListWidget->addItem(item);
-            
-            if (p == m_paletteBeingEdited) {
-                selectedItem = item;
-            }
-        }
-    }
-    
-    if (selectedItem == NULL) {
-        if (m_paletteListWidget->count() > 0) {
-            const int32_t row(0);
-            selectedItem = m_paletteListWidget->item(row);
-        }
-    }
-    if (selectedItem != NULL) {
-        m_paletteListWidget->setCurrentItem(selectedItem);
-        m_paletteListWidget->scrollToItem(selectedItem,
-                                          QAbstractItemView::EnsureVisible);
-        paletteSelected(selectedItem);
-    }
-    
-    m_previouslyLoadedPalettes = palettes;
 }
 
 /**
@@ -586,8 +551,11 @@ PaletteEditorDialog::createPaletteBarWidget()
 QWidget*
 PaletteEditorDialog::createPaletteSelectionWidget()
 {
-    m_paletteListWidget = new QListWidget();
-    QObject::connect(m_paletteListWidget, &QListWidget::itemClicked,
+    std::vector<PaletteDesignTypeEnum::Enum> paletteTypes;
+    paletteTypes.push_back(PaletteDesignTypeEnum::PALETTE_NEW);
+    m_paletteSelectionWidget = new PaletteSelectionWidget(PaletteSelectionWidget::WidgetType::LIST_WIDGET,
+                                                          paletteTypes);
+    QObject::connect(m_paletteSelectionWidget, &PaletteSelectionWidget::paletteSelected,
                      this, &PaletteEditorDialog::paletteSelected);
     
     m_newPaletteAction = new QAction();
@@ -616,7 +584,7 @@ PaletteEditorDialog::createPaletteSelectionWidget()
 
     QWidget* widget(new QWidget());
     QGridLayout* layout(new QGridLayout(widget));
-    layout->addWidget(m_paletteListWidget, 0, 0, 3, 1);
+    layout->addWidget(m_paletteSelectionWidget, 0, 0, 3, 1);
     layout->addWidget(newPaletteToolButton, 0, 1);
     layout->addWidget(renamePaletteToolButton, 1, 1);
     layout->addWidget(deletePaletteToolButton, 2, 1);
@@ -642,11 +610,15 @@ PaletteEditorDialog::newPaletteActionTriggered()
         m_paletteBeingEdited = NULL;
         if (palette != NULL) {
             m_paletteBeingEdited = palette;
+            m_paletteSelectionWidget->updateContent();
+            m_paletteSelectionWidget->selectPalette(palette);
         }
         else {
             WuQMessageBoxTwo::critical(this, "ERROR", dialog.getErrorMessage());
         }
         updateDialog();
+        const PaletteBase* paletteBase = m_paletteSelectionWidget->getSelectedPalette();
+        paletteSelected(paletteBase);
         updateAfterPalettesChanged();
         updateModifiedLabel();
     }
@@ -667,12 +639,15 @@ PaletteEditorDialog::renamePaletteActionTriggered()
                                                     paletteName));
         if ( ! newName.isEmpty()) {
             if (newName != paletteName) {
+                const PaletteBase* paletteBase = m_paletteSelectionWidget->getSelectedPalette();
                 FunctionResult result(EventPaletteNewOperation::renamePalette(m_paletteBeingEdited,
                                                                            newName));
                 if (result.isError()) {
                     WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
                 }
                 updateDialog();
+                m_paletteSelectionWidget->selectPalette(paletteBase);
+                paletteSelected(paletteBase);
                 updateAfterPalettesChanged();
             }
         }
@@ -695,6 +670,8 @@ PaletteEditorDialog::deletePaletteActionTriggered()
                 WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
             }
             updateDialog();
+            const PaletteBase* paletteBase = m_paletteSelectionWidget->getSelectedPalette();
+            paletteSelected(paletteBase);
             updateAfterPalettesChanged();
         }
     }
@@ -738,11 +715,11 @@ PaletteEditorDialog::savePaletteActionTriggered()
  *    List widget item containing palette that was selected
  */
 void
-PaletteEditorDialog::paletteSelected(QListWidgetItem* item)
+PaletteEditorDialog::paletteSelected(const PaletteBase* paletteBase)
 {
     m_paletteBeingEdited = NULL;
-    if (item != NULL) {
-        m_paletteBeingEdited = item->data(Qt::UserRole).value<const PaletteNew*>();
+    if (paletteBase != NULL) {
+        m_paletteBeingEdited = paletteBase->castToPaletteNew();
     }
     
     loadPaletteIntoEditor();
