@@ -104,6 +104,9 @@ namespace caret {
         
         void importPaletteActionTriggered();
         
+    protected:
+        virtual DialogUserButtonResult userButtonPressed(QPushButton* userPushButton) override;
+        
     private:
         enum class IconType {
             ARROW_LEFT_DOWN,
@@ -140,6 +143,8 @@ namespace caret {
         void updateAfterPalettesChanged();
         
         virtual void closeEvent(QCloseEvent* event) override;
+        
+        QString getDocumentationHtml() const;
         
         std::tuple<PaletteEditorRangeWidget*, PaletteEditorRangeRow*, QRadioButton*> getSelectedControlPointInfo();
         
@@ -182,6 +187,8 @@ namespace caret {
         QAction* m_importPaletteAction;
         
         QAction* m_exportPaletteAction;
+        
+        QPushButton* m_helpPushbutton;
         
         struct UnmodifiedPalette {
             std::vector<PaletteNew::ScalarColor> m_positiveMapping;

@@ -61,6 +61,7 @@
 #include "WuQScrollArea.h"
 #include "WorkbenchToolButton.h"
 #include "WuQtUtilities.h"
+#include "WuQTextEditorDialog.h"
 
 using namespace caret;
 
@@ -126,8 +127,6 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
      */
     setFixedSize(sizeHint());
     
-    disableAutoDefaultForAllPushButtons();
-    
     const bool demoModeFlag(false);
     if (demoModeFlag) {
         paletteSelectionWidget->setEnabled(false);
@@ -138,6 +137,11 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     updateDialog();
     const PaletteBase* paletteBase = m_paletteSelectionWidget->getSelectedPalette();
     paletteSelected(paletteBase);
+    
+    m_helpPushbutton = addUserPushButton("Help",
+                                         QDialogButtonBox::HelpRole);
+
+    disableAutoDefaultForAllPushButtons();    
 }
 
 /**
@@ -1089,4 +1093,446 @@ PaletteEditorDialog::importPaletteActionTriggered()
         }
     }
 }
+
+WuQDialog::DialogUserButtonResult
+PaletteEditorDialog::userButtonPressed(QPushButton* userPushButton)
+{
+    if (userPushButton == m_helpPushbutton) {
+        WuQTextEditorDialog::runNonModal("Palette Editor Documentation",
+                                         getDocumentationHtml(),
+                                         WuQTextEditorDialog::TextMode::HTML,
+                                         WuQTextEditorDialog::WrapMode::YES,
+                                         this);
+    }
+    else {
+        CaretAssert(0);
+    }
+    return WuQDialog::RESULT_NONE;
+}
+
+
+/**
+ * @return the help information in a QString
+ */
+QString
+PaletteEditorDialog::getDocumentationHtml() const
+{
+    const std::string text = R"(
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Palette Editor &mdash; User Documentation</title>
+<style type="text/css">
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    color: #222222;
+    background-color: #ffffff;
+    margin: 16px 24px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1a1a2e;
+    border-bottom: 2px solid #5a2d8a;
+    padding-bottom: 6px;
+    margin-top: 0;
+    margin-bottom: 4px;
+  }
+
+  h2 {
+    font-size: 16px;
+    font-weight: bold;
+    color: #3b1f6e;
+    background-color: #f0eafa;
+    padding: 5px 10px;
+    margin-top: 24px;
+    margin-bottom: 8px;
+    border-left: 4px solid #7c3aed;
+  }
+
+  h3 {
+    font-size: 13px;
+    font-weight: bold;
+    color: #4b2080;
+    margin-top: 14px;
+    margin-bottom: 6px;
+  }
+
+  p {
+    margin-top: 4px;
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+
+  ul {
+    margin-top: 4px;
+    margin-bottom: 8px;
+    padding-left: 20px;
+  }
+
+  ol {
+    margin-top: 4px;
+    margin-bottom: 8px;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 4px;
+    line-height: 1.6;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 6px;
+    margin-bottom: 12px;
+    font-size: 12px;
+  }
+
+  th {
+    background-color: #e8e0f5;
+    color: #2d1a5e;
+    font-weight: bold;
+    text-align: left;
+    padding: 6px 10px;
+    border: 1px solid #c0aee0;
+  }
+
+  td {
+    padding: 5px 10px;
+    border: 1px solid #d8d0ec;
+    vertical-align: top;
+    color: #333333;
+  }
+
+  tr.alt td {
+    background-color: #f7f4fd;
+  }
+
+  .tip {
+    background-color: #eef3ff;
+    border-left: 4px solid #3b5bdb;
+    padding: 8px 12px;
+    margin: 10px 0;
+    font-size: 12px;
+    color: #1e3a8a;
+  }
+
+  .note {
+    background-color: #edfaf4;
+    border-left: 4px solid #2f9e6a;
+    padding: 8px 12px;
+    margin: 10px 0;
+    font-size: 12px;
+    color: #1a5c3a;
+  }
+
+  .section-num {
+    color: #9d77cc;
+    font-size: 11px;
+    font-weight: bold;
+  }
+
+  .toc {
+    background-color: #f8f5ff;
+    border: 1px solid #d0bff0;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    font-size: 12px;
+  }
+
+  .toc-title {
+    font-weight: bold;
+    color: #3b1f6e;
+    margin-bottom: 6px;
+  }
+
+  .toc a {
+    color: #5a2d8a;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Palette Editor &mdash; User Documentation</h1>
+
+<div class="toc">
+  <div class="toc-title">Contents</div>
+  <ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#palette-list">Palette List</a></li>
+    <li><a href="#gradient-preview">Gradient Preview Bar</a></li>
+    <li><a href="#control-points">Control Points Panel</a></li>
+    <li><a href="#color-panel">Selected Control Point Color Panel</a></li>
+    <li><a href="#sliders">Color Value Sliders</a></li>
+    <li><a href="#closing">Closing the Dialog</a></li>
+    <li><a href="#workflow">Typical Workflow</a></li>
+  </ol>
+</div>
+
+<!-- 1. Overview -->
+<a name="overview"></a>
+<h2><span class="section-num">01 &nbsp;</span>Overview</h2>
+<p>
+  The <b>Palette Editor</b> lets you create, manage, and fine-tune color palettes.
+  Each palette is a gradient defined by a set of <b>control points</b>, where each
+  point maps a position value to a specific color. The gradient is interpolated
+  between control points to produce a smooth color ramp.
+</p>
+
+<hr>
+
+<!-- 2. Palette List -->
+<a name="palette-list"></a>
+<h2><span class="section-num">02 &nbsp;</span>Palette List</h2>
+<p>
+  The panel at the top of the dialog displays all available palettes by name,
+  each previewed with its color gradient. Click any row to select that palette
+  for editing.
+</p>
+
+<h3>Palette Management Buttons</h3>
+<table>
+  <tr>
+    <th>Button</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><b>New</b></td>
+    <td>Creates a new, empty palette.</td>
+  </tr>
+  <tr class="alt">
+    <td><b>Import</b></td>
+    <td>Loads a palette from an external file.</td>
+  </tr>
+  <tr>
+    <td><b>Rename</b></td>
+    <td>Renames the currently selected palette.</td>
+  </tr>
+  <tr class="alt">
+    <td><b>Export</b></td>
+    <td>Saves the currently selected palette to a file.</td>
+  </tr>
+  <tr>
+    <td><b>Delete</b></td>
+    <td>Permanently removes the currently selected palette.</td>
+  </tr>
+</table>
+
+<hr>
+
+<!-- 3. Gradient Preview Bar -->
+<a name="gradient-preview"></a>
+<h2><span class="section-num">03 &nbsp;</span>Gradient Preview Bar</h2>
+<p>
+  Directly below the palette list, a wide bar displays a live preview of the
+  selected palette's full gradient, split into two segments:
+</p>
+<ul>
+  <li><b>Left segment</b> &mdash; Shows the positive range of the gradient.</li>
+  <li><b>Right segment</b> &mdash; Shows the negative range of the gradient (below zero).</li>
+</ul>
+<p>
+  Small tick marks along the bottom of the bar indicate the positions of
+  existing control points.
+</p>
+
+<h3>Save / Revert</h3>
+<ul>
+  <li><b>Save</b> &mdash; Commits all unsaved edits to the palette.</li>
+  <li><b>Revert</b> &mdash; Discards all unsaved edits and restores the last saved state.</li>
+</ul>
+
+<hr>
+
+<!-- 4. Control Points -->
+<a name="control-points"></a>
+<h2><span class="section-num">04 &nbsp;</span>Control Points Panel</h2>
+<p>
+  Control points define the colors at specific positions along the gradient.
+  The list is divided into two sections by a <b>Zero</b> marker:
+</p>
+<ul>
+  <li><b>Positive values</b> (above Zero) &mdash; listed from 1.000 down to 0.000.</li>
+  <li><b>Negative values</b> (below Zero) &mdash; listed from 0.000 downward.</li>
+</ul>
+<p>Each row shows:</p>
+<ul>
+  <li>A <b>radio button</b> to select that control point.</li>
+  <li>The <b>position value</b> (a number along the gradient axis).</li>
+  <li>A <b>color swatch</b> showing the color assigned to that point.</li>
+  <li><b>Up/Down arrows</b> to nudge the position value.</li>
+</ul>
+
+<h3>Control Point Buttons</h3>
+<table>
+  <tr>
+    <th>Button</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><b>Insert Above</b></td>
+    <td>Adds a new control point just above the currently selected one.</td>
+  </tr>
+  <tr class="alt">
+    <td><b>Insert Below</b></td>
+    <td>Adds a new control point just below the currently selected one.</td>
+  </tr>
+  <tr>
+    <td><b>Remove</b></td>
+    <td>Deletes the currently selected control point.</td>
+  </tr>
+</table>
+
+<div class="tip">
+  <b>Tip:</b> Select a control point by clicking its radio button. The
+  <b>Selected Control Point Color</b> panel on the right will update immediately
+  so you can edit that point's color.
+</div>
+
+<hr>
+
+<!-- 5. Color Panel -->
+<a name="color-panel"></a>
+<h2><span class="section-num">05 &nbsp;</span>Selected Control Point Color Panel</h2>
+<p>
+  When a control point is selected, this panel lets you adjust its color
+  using multiple methods.
+</p>
+
+<h3>Color Square</h3>
+<p>
+  The large square displays the full saturation/brightness space for the
+  current hue. Click or drag within it to pick a color:
+</p>
+<ul>
+  <li><b>Horizontal axis</b> &mdash; Saturation (left = grey/white, right = fully saturated).</li>
+  <li><b>Vertical axis</b> &mdash; Brightness (top = bright, bottom = dark).</li>
+</ul>
+
+<h3>Hue Slider (Vertical Bar)</h3>
+<p>
+  The narrow vertical bar to the right of the color square is the <b>hue slider</b>.
+  The triangle marker (&#9658;) shows the current hue. Drag it up or down to
+  change the hue.
+</p>
+
+<h3>Preset Color Swatches</h3>
+<p>
+  A grid of preset color swatches sits to the right of the hue slider.
+  Click any swatch to instantly apply that color to the selected control point.
+</p>
+
+<h3>Color / Original / Revert</h3>
+<ul>
+  <li><b>Color swatch</b> &mdash; Shows the current (edited) color.</li>
+  <li><b>Original swatch</b> &mdash; Shows the color before the current editing session began.</li>
+  <li><b>Revert</b> &mdash; Resets the selected control point's color back to the original.</li>
+</ul>
+
+<hr>
+
+<!-- 6. Sliders -->
+<a name="sliders"></a>
+<h2><span class="section-num">06 &nbsp;</span>Color Value Sliders</h2>
+<p>
+  Fine-tune the color numerically using the sliders. Values can also be typed
+  directly or incremented with the arrow spinners to the right of each slider.
+</p>
+
+<h3>RGB Controls</h3>
+<table>
+  <tr>
+    <th>Slider</th>
+    <th>Range</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><b>Red</b></td>
+    <td>0 &ndash; 255</td>
+    <td>Red channel intensity.</td>
+  </tr>
+  <tr class="alt">
+    <td><b>Green</b></td>
+    <td>0 &ndash; 255</td>
+    <td>Green channel intensity.</td>
+  </tr>
+  <tr>
+    <td><b>Blue</b></td>
+    <td>0 &ndash; 255</td>
+    <td>Blue channel intensity.</td>
+  </tr>
+</table>
+
+<h3>HSV Controls</h3>
+<table>
+  <tr>
+    <th>Slider</th>
+    <th>Range</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><b>Hue</b></td>
+    <td>0 &ndash; 360</td>
+    <td>Color hue in degrees (0 = red, 60 = yellow, 120 = green, 240 = blue).</td>
+  </tr>
+  <tr class="alt">
+    <td><b>Sat</b></td>
+    <td>0 &ndash; 255</td>
+    <td>Saturation (0 = grey, 255 = fully saturated).</td>
+  </tr>
+  <tr>
+    <td><b>Value</b></td>
+    <td>0 &ndash; 255</td>
+    <td>Brightness (0 = black, 255 = full brightness).</td>
+  </tr>
+</table>
+
+<div class="note">
+  <b>Note:</b> RGB and HSV controls are linked &mdash; editing one set
+  automatically updates the other in real time.
+</div>
+
+<hr>
+
+<!-- 7. Closing -->
+<a name="closing"></a>
+<h2><span class="section-num">07 &nbsp;</span>Closing the Dialog</h2>
+<ul>
+  <li>Click <b>Save</b> before closing if you want to keep your changes.</li>
+  <li>Click <b>Close</b> (bottom-right) to dismiss the dialog. Any unsaved changes will be lost.</li>
+</ul>
+
+<hr>
+
+<!-- 8. Workflow -->
+<a name="workflow"></a>
+<h2><span class="section-num">08 &nbsp;</span>Typical Workflow</h2>
+<ol>
+  <li>Select a palette from the list, or click <b>New</b> to start fresh.</li>
+  <li>Review the gradient in the <b>preview bar</b>.</li>
+  <li>Select a control point from the <b>Control Points</b> list by clicking its radio button.</li>
+  <li>Adjust its color using the <b>color square</b>, <b>hue slider</b>, <b>preset swatches</b>, or <b>RGB/HSV sliders</b>.</li>
+  <li>Add or remove control points with <b>Insert Above</b>, <b>Insert Below</b>, or <b>Remove</b> as needed.</li>
+  <li>Click <b>Save</b> to commit your changes.</li>
+  <li>Click <b>Export</b> if you want to share or back up the palette.</li>
+</ol>
+
+</body>
+</html>
+)";
+    
+    
+    return QString::fromStdString(text);
+}
+
 
