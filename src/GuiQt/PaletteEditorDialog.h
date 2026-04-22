@@ -100,6 +100,10 @@ namespace caret {
         
         void revertPaletteActionTriggered();
         
+        void exportPaletteActionTriggered();
+        
+        void importPaletteActionTriggered();
+        
     private:
         enum class IconType {
             ARROW_LEFT_DOWN,
@@ -175,6 +179,10 @@ namespace caret {
         
         QAction* m_deletePaletteAction;
 
+        QAction* m_importPaletteAction;
+        
+        QAction* m_exportPaletteAction;
+        
         struct UnmodifiedPalette {
             std::vector<PaletteNew::ScalarColor> m_positiveMapping;
             std::vector<PaletteNew::ScalarColor> m_negativeMapping;

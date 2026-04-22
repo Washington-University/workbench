@@ -215,6 +215,8 @@ MapSettingsPaletteColorMappingWidget::receiveEvent(Event* event)
                 updatePaletteNameComboBox();
                 updateWidget();
                 break;
+            case EventPaletteNewOperation::Operation::READ_PALETTE:
+                break;
             case EventPaletteNewOperation::Operation::RENAME_PALETTE:
                 break;
             case EventPaletteNewOperation::Operation::UPDATE_PALETTE:

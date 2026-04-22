@@ -484,6 +484,64 @@ CaretFileDialog::getSaveFileNameDialog(const DataFileTypeEnum::Enum dataFileType
 /**
  * Like QFileDialog::getSaveFileName() except that this
  * NEVER uses the native file dialog thus providing
+ * a consistent user-interface across platforms.
+ *
+ * The file filter will be from the given data file type.
+ * The returned file will contain a valid extension from the
+ * given data file type.
+ *
+ * @param dataFileType
+ *    Type of file being saved.
+ * @param selectFileName
+ *    Filename placed into dialog
+ * @param parent
+ *    Parent on which this dialog is displayed.
+ * @param caption
+ *    Caption for dialog (if not provided a default caption is shown)
+ * @param dir
+ *    Directory show by dialog (Brain's current directory if empty string)
+ * @param options
+ *    Options (see QFileDialog).
+ * @return
+ *    Name of file selected or empty string if user cancelled.  If there is
+ *    no file extension or it is invalid, a valid extension will be added.
+ */
+QString
+CaretFileDialog::getSaveFileNameDialog(const DataFileTypeEnum::Enum dataFileType,
+                                       const QString& selectFileName,
+                                       QWidget *parent,
+                                       const QString &caption,
+                                       const QString &dir,
+                                       Options options)
+{
+    CaretFileDialog cfd(Mode::MODE_SAVE,
+                        parent,
+                        caption,
+                        dir,
+                        DataFileTypeEnum::toQFileDialogFilterForWriting(dataFileType));
+    cfd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilterForWriting(dataFileType));
+    cfd.setOptions(options);
+    cfd.setAcceptMode(QFileDialog::AcceptSave);
+    cfd.setFileMode(CaretFileDialog::AnyFile);
+    if ( ! selectFileName.isEmpty()) {
+        cfd.selectFile(selectFileName);
+    }
+    
+    if (cfd.exec() == CaretFileDialog::Accepted) {
+        QStringList selectedFiles = cfd.selectedFiles();
+        if (selectedFiles.size() > 0) {
+            AString filename = DataFileTypeEnum::addFileExtensionIfMissing(selectedFiles[0],
+                                                                           dataFileType);
+            return std::move(filename);
+        }
+    }
+    
+    return QString();
+}
+
+/**
+ * Like QFileDialog::getSaveFileName() except that this
+ * NEVER uses the native file dialog thus providing
  * a consistent user-interface across platforms.  It also will
  * display "Choose" for the selection button.
  *

@@ -34,6 +34,9 @@ PaletteInvertModeEnum.h
 PaletteModifiedStatusEnum.h
 PaletteNew.h
 PaletteNewGroup.h
+PaletteNewXmlStreamBase.h
+PaletteNewXmlStreamReader.h
+PaletteNewXmlStreamWriter.h
 PaletteNormalizationModeEnum.h
 PaletteScalarAndColor.h
 PaletteThresholdOutlineDrawingModeEnum.h
@@ -52,6 +55,9 @@ PaletteHistogramRangeModeEnum.cxx
 PaletteInvertModeEnum.cxx
 PaletteNew.cxx
 PaletteNewGroup.cxx
+PaletteNewXmlStreamBase.cxx
+PaletteNewXmlStreamReader.cxx
+PaletteNewXmlStreamWriter.cxx
 PaletteModifiedStatusEnum.cxx
 PaletteNormalizationModeEnum.cxx
 PaletteScalarAndColor.cxx

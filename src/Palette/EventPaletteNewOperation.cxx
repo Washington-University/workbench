@@ -68,30 +68,22 @@ EventPaletteNewOperation::getOperation() const
 
 /**
  * @return Pointer to palette with the given name or NULL if not found.
+ * Failure to find palette with name is not an error.
  */
-FunctionResultValue<const PaletteNew*>
+const PaletteNew*
 EventPaletteNewOperation::getPaletteWithName(const AString& name)
 {
     EventPaletteNewOperation event(Operation::GET_PALETTE_WITH_NAME);
     event.m_paletteName = name;
     EventManager::get()->sendEvent(event.getPointer());
     
-    AString errorMessage;
     const PaletteNew* paletteOut(NULL);
-    if (event.m_palettes.empty()) {
-        errorMessage = ("Palette named \""
-                        + name
-                        + "\" not found.");
-    }
-    else {
+    if ( ! event.m_palettes.empty()) {
         CaretAssertVectorIndex(event.m_palettes, 0);
         paletteOut = event.m_palettes[0];
     }
-    return FunctionResultValue<const PaletteNew*>(paletteOut,
-                                                  errorMessage,
-                                                  errorMessage.isEmpty());
+    return paletteOut;
 }
-
 
 /**
  * @return Pointers to the user's palettes.  No palettes is valid if none have been created by user.
@@ -121,6 +113,35 @@ EventPaletteNewOperation::addPalette(PaletteNew* palette)
     
     return FunctionResult(event.getErrorMessage(),
                           event.getErrorMessage().isEmpty());
+}
+
+/**
+ * @return A palette read from the given file
+ * @param filenamne
+ *    Name of file
+ */
+FunctionResultValue<const PaletteNew*>
+EventPaletteNewOperation::readPalette(const AString& filename)
+{
+    EventPaletteNewOperation event(Operation::READ_PALETTE);
+    event.m_filename = filename;
+    EventManager::get()->sendEvent(event.getPointer());
+    
+    AString errorMessage;
+    const PaletteNew* paletteOut(NULL);
+    if (event.m_palettes.empty()) {
+        errorMessage = event.getErrorMessage();
+        if (errorMessage.isEmpty()) {
+            errorMessage = ("Failed to read palette.");
+        }
+    }
+    else {
+        CaretAssertVectorIndex(event.m_palettes, 0);
+        paletteOut = event.m_palettes[0];
+    }
+    return FunctionResultValue<const PaletteNew*>(paletteOut,
+                                                  errorMessage,
+                                                  errorMessage.isEmpty());
 }
 
 

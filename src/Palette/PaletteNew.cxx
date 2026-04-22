@@ -24,8 +24,11 @@
 #include "CaretException.h"
 #include "CaretLogger.h"
 #include "ColorFunctions.h"
+#include "DataFileTypeEnum.h"
 #include "MathFunctions.h"
 #include "Palette.h"
+#include "PaletteNewXmlStreamReader.h"
+#include "PaletteNewXmlStreamWriter.h"
 #include "PaletteScalarAndColor.h"
 
 #include <algorithm>
@@ -508,5 +511,33 @@ const PaletteBase*
 PaletteNew::getNoneSeparateInvertedPalette() const
 {
     return getInvertedPalette();
+}
+
+/**
+ * @return Function result with palette read from file or error
+ * @param filename
+ *    Name of file
+ */
+FunctionResultValue<PaletteNew*>
+PaletteNew::readFromFile(const AString& filename)
+{
+    PaletteNewXmlStreamReader paletteXmlReader;
+    return paletteXmlReader.readFromFile(filename);
+}
+
+/**
+ * Write the palette to the given file
+ * @param filename
+ *    Name of file
+ * @return
+ *    Function result with success or failure
+ */
+FunctionResult
+PaletteNew::writeToFile(const AString& filename) const
+{
+    PaletteNewXmlStreamWriter paletteXmlWriter;
+    FunctionResult result(paletteXmlWriter.writeToFile(*this,
+                                                       filename));
+    return result;
 }
 

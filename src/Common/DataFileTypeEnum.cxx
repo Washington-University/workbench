@@ -373,7 +373,6 @@ DataFileTypeEnum::initialize()
                                         "Palette",
                                         "PALETTE",
                                         false,
-                                        "palette",
                                         "wb_palette"));
     
     enumData.push_back(DataFileTypeEnum(RGBA, 

@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "AString.h"
+#include "FunctionResult.h"
 #include "PaletteBase.h"
 
 namespace caret {
@@ -124,6 +125,10 @@ namespace caret {
         virtual const PaletteNew* castToPaletteNew() const { return this; }
 
         const Palette* getAsPalette() const;
+        
+        static FunctionResultValue<PaletteNew*> readFromFile(const AString& filename);
+        
+        FunctionResult writeToFile(const AString& filename) const;
         
     private:
         PaletteNew* createSignSeparateInvertedPalette() const;

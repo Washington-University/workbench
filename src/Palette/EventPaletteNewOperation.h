@@ -42,6 +42,7 @@ namespace caret {
             GET_USER_PALETTES,
             NEW_PALETTE,
             PALETTES_CHANGED_NOTIFICATION,
+            READ_PALETTE,
             RENAME_PALETTE,
             UPDATE_PALETTE
         };
@@ -50,7 +51,7 @@ namespace caret {
         
         static FunctionResult addPalette(PaletteNew* palette);
         
-        static FunctionResultValue<const PaletteNew*> getPaletteWithName(const AString& name);
+        static const PaletteNew* getPaletteWithName(const AString& name);
         
         static FunctionResultValue<std::vector<const PaletteNew*>> getUserPalettes();
         
@@ -64,6 +65,8 @@ namespace caret {
         static FunctionResult deletePalette(const PaletteNew* palette);
         
         static void sendPalettesChangedNotification();
+        
+        static FunctionResultValue<const PaletteNew*> readPalette(const AString& filename);
         
         static FunctionResult renamePalette(const PaletteNew* palette,
                                             const AString& newName);
@@ -114,6 +117,8 @@ namespace caret {
         
         PaletteNew::ScalarColor m_zeroMapping;
 
+        AString m_filename;
+        
         // ADD_NEW_MEMBERS_HERE
         
         friend class Brain;

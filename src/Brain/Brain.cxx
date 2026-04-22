@@ -8213,7 +8213,9 @@ Brain::receiveEvent(Event* event)
                     paletteEvent->setPalettes(palettes);
                 }
                 else {
-                    paletteEvent->setErrorMessage(result.getErrorMessage());
+                    /*
+                     * Not an error if palette with name is not found
+                     */
                 }
             }
                 break;
@@ -8252,6 +8254,39 @@ Brain::receiveEvent(Event* event)
             }
                 break;
             case EventPaletteNewOperation::Operation::PALETTES_CHANGED_NOTIFICATION:
+                break;
+            case EventPaletteNewOperation::Operation::READ_PALETTE:
+            {
+                FunctionResultValue<PaletteNew*> readResult(PaletteNew::readFromFile(paletteEvent->m_filename));
+                if (readResult.isOk()) {
+                    PaletteNew* paletteRead(readResult.getValue());
+                    CaretAssert(paletteRead);
+                    
+                    const AString paletteName(paletteRead->getName());
+                    const PaletteNew* existingPalette(EventPaletteNewOperation::getPaletteWithName(paletteEvent->m_filename));
+                    if (existingPalette != NULL) {
+                        event->setErrorMessage("Palette with name \""
+                                               + paletteName
+                                               + "\" already exists.  Duplicate palette names not allowed.");
+                        delete paletteRead;
+                    }
+                    else {
+                        FunctionResult addResult(m_userPalettes->addPalette(paletteRead));
+                        if (addResult.isOk()) {
+                            std::vector<const PaletteNew*> palettes { paletteRead };
+                            paletteEvent->setPalettes(palettes);
+                        }
+                        else {
+                            delete paletteRead;
+                            event->setErrorMessage("Error adding palette to user palettes: "
+                                                   + addResult.getErrorMessage());
+                        }
+                    }
+                }
+                else {
+                    event->setErrorMessage(readResult.getErrorMessage());
+                }
+            }
                 break;
             case EventPaletteNewOperation::Operation::RENAME_PALETTE:
             {

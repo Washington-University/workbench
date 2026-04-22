@@ -39,6 +39,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretFileDialog.h"
 #include "EventManager.h"
 #include "EventPaletteNewOperation.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
@@ -582,12 +583,31 @@ PaletteEditorDialog::createPaletteSelectionWidget()
     QToolButton* deletePaletteToolButton(new QToolButton());
     deletePaletteToolButton->setDefaultAction(m_deletePaletteAction);
 
+    m_importPaletteAction = new QAction();
+    m_importPaletteAction->setText("Import...");
+    m_importPaletteAction->setToolTip("Import palette from a file");
+    QObject::connect(m_importPaletteAction, &QAction::triggered,
+                     this, &PaletteEditorDialog::importPaletteActionTriggered);
+    QToolButton* importPaletteToolButton(new QToolButton());
+    importPaletteToolButton->setDefaultAction(m_importPaletteAction);
+    
+    m_exportPaletteAction = new QAction();
+    m_exportPaletteAction->setText("Export...");
+    m_exportPaletteAction->setToolTip("Export palette to a file");
+    QObject::connect(m_exportPaletteAction, &QAction::triggered,
+                     this, &PaletteEditorDialog::exportPaletteActionTriggered);
+    QToolButton* exportPaletteToolButton(new QToolButton());
+    exportPaletteToolButton->setDefaultAction(m_exportPaletteAction);
+    
     QWidget* widget(new QWidget());
     QGridLayout* layout(new QGridLayout(widget));
+    layout->setVerticalSpacing(3);
     layout->addWidget(m_paletteSelectionWidget, 0, 0, 3, 1);
     layout->addWidget(newPaletteToolButton, 0, 1);
     layout->addWidget(renamePaletteToolButton, 1, 1);
     layout->addWidget(deletePaletteToolButton, 2, 1);
+    layout->addWidget(importPaletteToolButton, 0, 2);
+    layout->addWidget(exportPaletteToolButton, 1, 2);
     
     return widget;
 }
@@ -1009,3 +1029,64 @@ PaletteEditorDialog::controlPointButtonClicked(QAbstractButton* /*button*/)
         m_removeControlPointAction->setEnabled(row->m_removeValidFlag);
     }
 }
+
+/**
+ * Called when export palette action is triggered
+ */
+void
+PaletteEditorDialog::exportPaletteActionTriggered()
+{
+    if (m_paletteBeingEdited != NULL) {
+        AString defaultFileName;
+        const std::vector<AString> extensions(DataFileTypeEnum::getAllFileExtensionsForWriting(DataFileTypeEnum::PALETTE));
+        if ( ! extensions.empty()) {
+            defaultFileName = (m_paletteBeingEdited->getName().replace(' ', '_')
+                               + "."
+                               + extensions.front());
+        }
+            
+        const AString filename(CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::PALETTE,
+                                                                      defaultFileName,
+                                                                      this,
+                                                                      "Choose Palette File Name"));
+        if ( ! filename.isEmpty()) {
+            FunctionResult result(m_paletteBeingEdited->writeToFile(filename));
+            if (result.isError()) {
+                WuQMessageBoxTwo::critical(this,
+                                           "ERROR",
+                                           result.getErrorMessage());
+            }
+        }
+    }
+}
+
+/**
+ * Called when import palette action is triggered
+ */
+void
+PaletteEditorDialog::importPaletteActionTriggered()
+{
+    const AString filename(CaretFileDialog::getOpenFileNameDialog(DataFileTypeEnum::PALETTE,
+                                                                  this,
+                                                                  "Choose Palette File Name"));
+    if ( ! filename.isEmpty()) {
+        FunctionResultValue<const PaletteNew*> result(EventPaletteNewOperation::readPalette(filename));
+        if (result.isOk()) {
+            const PaletteNew* palette(result.getValue());
+            CaretAssert(palette);
+            m_paletteBeingEdited = palette;
+            m_paletteSelectionWidget->updateContent();
+            m_paletteSelectionWidget->selectPalette(palette);
+
+            updateDialog();
+            const PaletteBase* paletteBase = m_paletteSelectionWidget->getSelectedPalette();
+            paletteSelected(paletteBase);
+            updateAfterPalettesChanged();
+            updateModifiedLabel();
+        }
+        else {
+            WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
+        }
+    }
+}
+
