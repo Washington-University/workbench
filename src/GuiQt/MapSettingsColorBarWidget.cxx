@@ -342,10 +342,18 @@ MapSettingsColorBarWidget::createDataNumericsSection()
     QObject::connect(m_colorBarDataModeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(colorBarItemActivated()));
     m_colorBarDataModeComboBox->setup<PaletteColorBarValuesModeEnum, PaletteColorBarValuesModeEnum::Enum>();
-    m_colorBarDataModeComboBox->getWidget()->setToolTip("Format of numbers above color bar\n"
-                                                        "   DATA: Numbers show mapping of data to the colobar\n"
-                                                        "   PERCENTILE: Numbers show data percentiles\n"
-                                                        "   SIGN ONLY: Text above colorbar indicates sign of data");
+    m_colorBarDataModeComboBox->getWidget()->setToolTip("<html>"
+                                                        "<ul>"
+                                                        "<li>DATA: Numbers above color bar show mapping of data to the colorbar."
+                                                        "<li>PERCENTILE: Represent the proportion of positive values that fall between zero "
+                                                        "and a given position on the color bar. For example, given 200 positive values, a "
+                                                        "percentile of 60% means that 120 values lie between zero and that color bar position, "
+                                                        "while the remaining 80 values are greater.  "
+                                                        "In short, a percentile reflects the quantity of data values at or below a given threshold. "
+                                                        "A percentage, by contrast, is purely positional: (data value ÷ maximum value) × 100.\n"
+                                                        "<li>SIGN ONLY: Plus or minus character above colorbar indicates sign of data."
+                                                        "</ul>"
+                                                        "</html>");
     
     m_colorBarNumericFormatModeLabel = new QLabel("Numeric Format");
     m_colorBarNumericFormatModeComboBox = new EnumComboBoxTemplate(this);
