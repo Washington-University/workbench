@@ -184,6 +184,7 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
  */
 MapSettingsPaletteColorMappingWidget::~MapSettingsPaletteColorMappingWidget()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
