@@ -35,7 +35,13 @@ namespace caret {
     class VolumeFileVoxelColorizer : public CaretObject {
         
     public:
-        VolumeFileVoxelColorizer(VolumeFile* volumeFile);
+        enum class ColoringMode {
+            NORMAL,
+            MPR_LABEL
+        };
+        
+        VolumeFileVoxelColorizer(VolumeFile* volumeFile,
+                                 const ColoringMode coloringMode);
         
         virtual ~VolumeFileVoxelColorizer();
         
@@ -89,6 +95,18 @@ namespace caret {
 
         VolumeFileVoxelColorizer& operator=(const VolumeFileVoxelColorizer&);
         
+        void applyLabelOutlines(const int32_t mapIndex) const;
+        
+        /**
+         * Get theRGBA offset for a voxel index
+         */
+        inline int64_t getVoxelOffsetForVoxelIndex(const int64_t i,
+                                                   const int64_t j,
+                                                   const int64_t k) const {
+            return (i
+                    + (j * m_dimI)
+                    + ((k * m_dimI * m_dimJ)));
+        }
         /**
          * Get theRGBA offset for a voxel index
          */
@@ -115,6 +133,8 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
 
         VolumeFile* m_volumeFile;
+        
+        const ColoringMode m_coloringMode;
         
         int64_t m_dimI;
         int64_t m_dimJ;

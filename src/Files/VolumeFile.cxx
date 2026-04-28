@@ -270,6 +270,7 @@ VolumeFile::clear()
 {
     CaretMappableDataFile::clear();
     m_voxelColorizer.grabNew(NULL);
+    m_mprLabelVoxelColorizer.grabNew(NULL);
     m_classNameHierarchy.grabNew(NULL);
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_fileFastStatistics.grabNew(NULL);
@@ -919,8 +920,15 @@ void VolumeFile::validateMembers()
     if (m_voxelColorizer != NULL) {
         m_voxelColorizer.grabNew(NULL);
     }
+    if (m_mprLabelVoxelColorizer != NULL) {
+        m_mprLabelVoxelColorizer.grabNew(NULL);
+    }
     if (s_voxelColoringEnabled) {
-        m_voxelColorizer.grabNew(new VolumeFileVoxelColorizer(this));
+        m_voxelColorizer.grabNew(new VolumeFileVoxelColorizer(this,
+                                                              VolumeFileVoxelColorizer::ColoringMode::NORMAL));
+        /* Must always create label colorizer because type of volume is unknown at this point */
+        m_mprLabelVoxelColorizer.grabNew(new VolumeFileVoxelColorizer(this,
+                                                                      VolumeFileVoxelColorizer::ColoringMode::MPR_LABEL));
     }
     if (m_classNameHierarchy == NULL) {
         m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel(this));
@@ -1498,7 +1506,6 @@ VolumeFile::isMappedWithPalette() const
             break;
     }
     return mapsWithPaletteFlag;
-//    return (m_caretVolExt.m_attributes[0]->m_type != SubvolumeAttributes::LABEL);
 }
 
 /**
@@ -1875,6 +1882,11 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex)
     CaretAssert(m_voxelColorizer);
 
     m_voxelColorizer->assignVoxelColorsForMap(mapIndex);
+    if (isMappedWithLabelTable()) {
+        if (m_mprLabelVoxelColorizer) {
+            m_mprLabelVoxelColorizer->assignVoxelColorsForMap(mapIndex);
+        }
+    }
 
     m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
     
@@ -1917,6 +1929,65 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                   sliceIndex,
                                                   tabDrawingInfo,
                                                   rgbaOut);
+}
+
+/**
+ * Get voxel coloring for a set of voxels for MPR mode
+ *
+ * @param mapIndex
+ *     Index of map.
+ * @param firstVoxelIJK
+ *    IJK Indices of first voxel
+ * @param rowStepIJK
+ *    IJK Step for moving to next row.
+ * @param columnStepIJK
+ *    IJK Step for moving to next column.
+ * @param numberOfRows
+ *    Number of rows.
+ * @param numberOfColumns
+ *    Number of columns.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
+ * @param rgbaOut
+ *    RGBA color components out.
+ * @return
+ *    Number of voxels with alpha greater than zero
+ */
+int64_t
+VolumeFile::getMprVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                           const int64_t firstVoxelIJK[3],
+                                           const int64_t rowStepIJK[3],
+                                           const int64_t columnStepIJK[3],
+                                           const int64_t numberOfRows,
+                                           const int64_t numberOfColumns,
+                                           const TabDrawingInfo& tabDrawingInfo,
+                                           uint8_t* rgbaOut) const
+{
+    if (s_voxelColoringEnabled == false) {
+        return 0;
+    }
+    
+    if (isMappedWithLabelTable()) {
+        CaretAssert(m_mprLabelVoxelColorizer);
+        return m_mprLabelVoxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
+                                                                     firstVoxelIJK,
+                                                                     rowStepIJK,
+                                                                     columnStepIJK,
+                                                                     numberOfRows,
+                                                                     numberOfColumns,
+                                                                     tabDrawingInfo,
+                                                                     rgbaOut);
+    }
+    
+    CaretAssert(m_voxelColorizer);
+    return m_voxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
+                                                         firstVoxelIJK,
+                                                         rowStepIJK,
+                                                         columnStepIJK,
+                                                         numberOfRows,
+                                                         numberOfColumns,
+                                                         tabDrawingInfo,
+                                                         rgbaOut);
 }
 
 /**
@@ -2304,9 +2375,12 @@ VolumeFile::clearVoxelColoringForMap(const int64_t mapIndex)
         return;
     }
     CaretAssert(m_voxelColorizer);
-    
     m_voxelColorizer->clearVoxelColoringForMap(mapIndex);
-    
+    if (isMappedWithLabelTable()) {
+        if (m_mprLabelVoxelColorizer != NULL) {
+            m_mprLabelVoxelColorizer->clearVoxelColoringForMap(mapIndex);
+        }
+    }
     if (isMappedWithLabelTable()) {
         m_forceUpdateOfGroupAndNameHierarchy = true;
     }
@@ -2576,7 +2650,7 @@ VolumeFile::preColorAllMaps()
     const int32_t numMaps(getNumberOfMaps());
     for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
         const int32_t tabIndex(0);
-        const TabDrawingInfo tabDrawingInfo(this, //dynamic_cast<CaretMappableDataFile*>(volumeFile),
+        const TabDrawingInfo tabDrawingInfo(this,
                                             mapIndex,
                                             DisplayGroupEnum::DISPLAY_GROUP_TAB,
                                             LabelViewModeEnum::HIERARCHY,
@@ -3293,6 +3367,11 @@ VolumeFile::setValuesForVoxelEditing(const int32_t mapIndex,
                     m_voxelColorizer->updateVoxelColorsInMap(voxelColorUpdate);
                     updateAllColoringFlag = false;
                 }
+                if (isMappedWithLabelTable()) {
+                    if (m_mprLabelVoxelColorizer) {
+                        m_mprLabelVoxelColorizer->updateVoxelColorsInMap(voxelColorUpdate);
+                    }
+                }
                 
                 if (m_graphicsPrimitiveManager) {
                     m_graphicsPrimitiveManager->updateVoxelColorsInMapTexture(voxelColorUpdate);
@@ -3308,7 +3387,11 @@ VolumeFile::setValuesForVoxelEditing(const int32_t mapIndex,
             if (m_voxelColorizer) {
                 m_voxelColorizer->invalidateColoring();
             }
-            
+            if (isMappedWithLabelTable()) {
+                if (m_mprLabelVoxelColorizer) {
+                    m_mprLabelVoxelColorizer->invalidateColoring();
+                }
+            }
             if (m_graphicsPrimitiveManager) {
                 /*
                  * Need to invalidate the GraphicsPrimitive so that the

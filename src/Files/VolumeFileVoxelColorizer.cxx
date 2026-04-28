@@ -29,6 +29,7 @@
 #include "ElapsedTimer.h"
 #include "GiftiLabel.h"
 #include "GroupAndNameHierarchyItem.h"
+#include "LabelDrawingProperties.h"
 #include "LabelSelectionItemModel.h"
 #include "NodeAndVoxelColoring.h"
 #include "Palette.h"
@@ -53,12 +54,13 @@ using namespace caret;
  * @param volumeFile
  *    Volume file on which this instance colors voxels.
  */
-VolumeFileVoxelColorizer::VolumeFileVoxelColorizer(VolumeFile* volumeFile)
-: CaretObject()
+VolumeFileVoxelColorizer::VolumeFileVoxelColorizer(VolumeFile* volumeFile,
+                                                   const ColoringMode coloringMode)
+: CaretObject(),
+m_volumeFile(volumeFile),
+m_coloringMode(coloringMode)
 {
-    CaretAssert(volumeFile);
-    
-    m_volumeFile = volumeFile;
+    CaretAssert(m_volumeFile);
     
     int64_t dimNumberOfComponents;
     m_volumeFile->getDimensions(m_dimI,
@@ -220,6 +222,14 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
                                                                  m_voxelCountPerMap,
                                                                  m_mapRGBA[mapIndex]);
                 m_mapColoringValid[mapIndex] = true;
+                
+                switch (m_coloringMode) {
+                    case ColoringMode::NORMAL:
+                        break;
+                    case ColoringMode::MPR_LABEL:
+                        applyLabelOutlines(mapIndex);
+                        break;
+                }
             }
             break;
         case SubvolumeAttributes::RGB:
@@ -287,6 +297,116 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
                    + AString::number(timer.getElapsedTimeMilliseconds())
                    + " milliseconds");
 }
+
+/**
+ * Apply label outline draiwng type to a rgba colored label volume
+ */
+void
+VolumeFileVoxelColorizer::applyLabelOutlines(const int32_t mapIndex) const
+{
+    const LabelDrawingProperties* ldp(m_volumeFile->getLabelDrawingProperties());
+    
+    switch (ldp->getDrawingType()) {
+        case LabelDrawingTypeEnum::DRAW_FILLED:
+            return;
+            break;
+        case LabelDrawingTypeEnum::DRAW_FILLED_WITH_OUTLINE_COLOR:
+            break;
+        case LabelDrawingTypeEnum::DRAW_OUTLINE_COLOR:
+            break;
+        case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
+            break;
+    }
+    
+    const float* mapDataPointer = m_volumeFile->getFrame(mapIndex);
+    uint8_t* rgba(m_mapRGBA[mapIndex]);
+    
+    int64_t dimI(0), dimJ(0), dimK(0), dimTime(0), numComp(0);
+    m_volumeFile->getDimensions(dimI, dimJ, dimK, dimTime, numComp);
+    
+    const int64_t lastI(dimI - 1);
+    const int64_t lastJ(dimJ - 1);
+    const int64_t lastK(dimK - 1);
+    
+    const GiftiLabelTable* labelTable(m_volumeFile->getMapLabelTable(mapIndex));
+    CaretAssert(labelTable);
+    const float unassignedLabelKey(labelTable->getUnassignedLabelKey());
+    
+    const int64_t numVoxels(dimI * dimJ * dimK);
+    std::vector<uint8_t> boundaryVoxelFlags(numVoxels, 0);
+    
+    /*
+     * Loop through all voxels except those on edge of volume
+     */
+    for (int32_t iVoxel = 1; iVoxel < lastI; iVoxel++) {
+        for (int32_t jVoxel = 1; jVoxel < lastJ; jVoxel++) {
+            for (int32_t kVoxel = 1; kVoxel < lastK; kVoxel++) {
+                const int64_t voxelOffset(getVoxelOffsetForVoxelIndex(iVoxel, jVoxel, kVoxel));
+                const float voxelValue(mapDataPointer[voxelOffset]);
+                if (voxelValue != unassignedLabelKey) {
+                    uint8_t boundaryFlag(0);
+                    for (int32_t i = (iVoxel - 1); i <= (iVoxel + 1); i++) {
+                        for (int32_t j = (jVoxel - 1); j <= (jVoxel + 1); j++) {
+                            for (int32_t k = (kVoxel - 1); k <= (kVoxel + 1); k++) {
+                                const int64_t neighborOffset(getVoxelOffsetForVoxelIndex(i, j, k));
+                                if (voxelValue != mapDataPointer[neighborOffset]) {
+                                    boundaryFlag = true;
+                                    break;
+                                }
+                            }
+                            if (boundaryFlag) {
+                                break;
+                            }
+                        }
+                        if (boundaryFlag) {
+                            break;
+                        }
+                    }
+                    
+                    CaretAssertVectorIndex(boundaryVoxelFlags, voxelOffset);
+                    boundaryVoxelFlags[voxelOffset] = boundaryFlag;
+                }
+            }
+        }
+    }
+    
+    const CaretColorEnum::Enum caretColor(ldp->getOutlineColor());
+    uint8_t outlineRGBA[4];
+    CaretColorEnum::toRGBAByte(caretColor, outlineRGBA);
+    
+    for (int32_t i = 0; i < numVoxels; i++) {
+        CaretAssertVectorIndex(boundaryVoxelFlags, i);
+            const int64_t rgbaIndex(i * 4);
+            switch (ldp->getDrawingType()) {
+                case LabelDrawingTypeEnum::DRAW_FILLED:
+                    CaretAssert(0);
+                    break;
+                case LabelDrawingTypeEnum::DRAW_FILLED_WITH_OUTLINE_COLOR:
+                    if (boundaryVoxelFlags[i]) {
+                        rgba[rgbaIndex]   = outlineRGBA[0];
+                        rgba[rgbaIndex+1] = outlineRGBA[1];
+                        rgba[rgbaIndex+2] = outlineRGBA[2];
+                    }
+                    break;
+                case LabelDrawingTypeEnum::DRAW_OUTLINE_COLOR:
+                    if (boundaryVoxelFlags[i]) {
+                        rgba[rgbaIndex]   = outlineRGBA[0];
+                        rgba[rgbaIndex+1] = outlineRGBA[1];
+                        rgba[rgbaIndex+2] = outlineRGBA[2];
+                    }
+                    else {
+                        rgba[rgbaIndex+3] = 0; /* zero alpha */
+                    break;
+                case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
+                        if ( ! boundaryVoxelFlags[i]) {
+                            rgba[rgbaIndex+3] = 0; /* zero alpha */
+                        }
+                    break;
+            }
+        }
+    }
+}
+
 
 /**
  * Apply color modulation with another volume file.
@@ -870,23 +990,6 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
                                              const TabDrawingInfo& tabDrawingInfo,
                                              uint8_t rgbaOut[4]) const
 {
-//    CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
-//    if ( ! m_mapColoringValid[mapIndex]) {
-//        assignVoxelColorsForMap(mapIndex);
-//    }
-//
-//    /*
-//     * Pointer to maps RGBA values
-//     */
-//    CaretAssertVectorIndex(m_mapRGBA, mapIndex);
-//    const uint8_t* mapRGBA = m_mapRGBA[mapIndex];
-//    const int64_t rgbaOffset = getRgbaOffsetForVoxelIndex(i, j, k);
-//    CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
-//    rgbaOut[0] = mapRGBA[rgbaOffset];
-//    rgbaOut[1] = mapRGBA[rgbaOffset+1];
-//    rgbaOut[2] = mapRGBA[rgbaOffset+2];
-//    uint8_t alpha = mapRGBA[rgbaOffset+3];
-
     const LabelSelectionItemModel* labelSelectionItemModel(m_volumeFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
                                                                                                                 tabDrawingInfo.getDisplayGroup(),
                                                                                                                 tabDrawingInfo.getTabIndex()));

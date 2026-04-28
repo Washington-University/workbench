@@ -104,6 +104,9 @@ namespace caret {
         /** Performs coloring of voxels.  Will be NULL if coloring is disabled. */
         CaretPointer<VolumeFileVoxelColorizer> m_voxelColorizer;
         
+        /** Performs coloring of voxels for MPR mode and a label volume.  Will be NULL if coloring is disabled. */
+        CaretPointer<VolumeFileVoxelColorizer> m_mprLabelVoxelColorizer;
+        
         std::unique_ptr<VolumeDynamicConnectivityFile> m_lazyInitializedDynamicConnectivityFile;
         
         std::unique_ptr<VolumeGraphicsPrimitiveManager> m_graphicsPrimitiveManager;
@@ -351,14 +354,23 @@ namespace caret {
         void updateScalarColoringForMap(const int32_t mapIndex) override;
         
         virtual int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
-                                            const int64_t firstVoxelIJK[3],
-                                            const int64_t rowStepIJK[3],
-                                            const int64_t columnStepIJK[3],
-                                            const int64_t numberOfRows,
-                                            const int64_t numberOfColumns,
+                                                    const int64_t firstVoxelIJK[3],
+                                                    const int64_t rowStepIJK[3],
+                                                    const int64_t columnStepIJK[3],
+                                                    const int64_t numberOfRows,
+                                                    const int64_t numberOfColumns,
                                                     const TabDrawingInfo& tabDrawingInfo,
-                                            uint8_t* rgbaOut) const override;
+                                                    uint8_t* rgbaOut) const override;
         
+        virtual int64_t getMprVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                                       const int64_t firstVoxelIJK[3],
+                                                       const int64_t rowStepIJK[3],
+                                                       const int64_t columnStepIJK[3],
+                                                       const int64_t numberOfRows,
+                                                       const int64_t numberOfColumns,
+                                                       const TabDrawingInfo& tabDrawingInfo,
+                                                       uint8_t* rgbaOut) const;
+
         virtual int64_t getVoxelColorsForSliceInMap(
                                          const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,

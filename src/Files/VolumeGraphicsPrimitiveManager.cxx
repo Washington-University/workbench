@@ -32,6 +32,7 @@
 #include "HistologySlice.h"
 #include "ImageFile.h"
 #include "TabDrawingInfo.h"
+#include "VolumeFile.h"
 #include "VolumeMappableInterface.h"
 #include "VolumeToImageMapping.h"
 
@@ -454,14 +455,31 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
         int64_t columnStepIJK[3] = { 1, 0, 0 };
         
         std::fill(rgbaSlice.begin(), rgbaSlice.end(), 0);
-        m_volumeInterface->getVoxelColorsForSliceInMap(mapIndex,
-                                                     firstVoxelIJK,
-                                                     rowStepIJK,
-                                                     columnStepIJK,
-                                                     numberOfRows,
-                                                     numberOfColumns,
-                                                     tabDrawingInfo,
-                                                     &rgbaSlice[0]);
+
+        VolumeFile* volumeFile(dynamic_cast<VolumeFile*>(m_volumeInterface));
+        if (volumeFile != NULL) {
+            /*
+             * Volume file has special logic for label volumes due to label outlines
+             */
+            volumeFile->getMprVoxelColorsForSliceInMap(mapIndex,
+                                                       firstVoxelIJK,
+                                                       rowStepIJK,
+                                                       columnStepIJK,
+                                                       numberOfRows,
+                                                       numberOfColumns,
+                                                       tabDrawingInfo,
+                                                       &rgbaSlice[0]);
+        }
+        else {
+            m_volumeInterface->getVoxelColorsForSliceInMap(mapIndex,
+                                                           firstVoxelIJK,
+                                                           rowStepIJK,
+                                                           columnStepIJK,
+                                                           numberOfRows,
+                                                           numberOfColumns,
+                                                           tabDrawingInfo,
+                                                           &rgbaSlice[0]);
+        }
         
         for (int64_t j = 0; j < numberOfRows; j++) {
             for (int64_t i = 0; i < numberOfColumns; i++) {

@@ -36,10 +36,12 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventVolumeColoringInvalidate.h"
 #include "GiftiLabelTableEditor.h"
 #include "LabelDrawingTypeEnum.h"
 #include "LabelDrawingProperties.h"
 #include "Overlay.h"
+#include "VolumeFile.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -165,6 +167,10 @@ MapSettingsLabelsWidget::applySelections()
                 labelProps->setOutlineColor(outlineColor);
                 labelProps->setDrawMedialWallFilled(m_drawMedialWallFilledCheckBox->isChecked());
                 
+                VolumeFile* volumeFile(dynamic_cast<VolumeFile*>(mapFile));
+                if (volumeFile != NULL) {
+                    EventManager::get()->sendEvent(EventVolumeColoringInvalidate().getPointer());
+                }
                 EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
                 EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             }
