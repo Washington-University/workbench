@@ -1285,8 +1285,9 @@ PaletteEditorDialog::getDocumentationHtml() const
 <p>
   The <b>Palette Editor</b> lets you create, manage, and fine-tune color palettes.
   Each palette is a gradient defined by a set of <b>control points</b>, where each
-  point maps a position value to a specific color. The gradient is interpolated
-  between control points to produce a smooth color ramp.
+  point maps a scalar value to a specific color. The gradient is interpolated
+  between control points to produce a smooth color ramp.  Custom palettes are
+  stored in the user's preferences.
 </p>
 
 <hr>
@@ -1308,7 +1309,9 @@ PaletteEditorDialog::getDocumentationHtml() const
   </tr>
   <tr>
     <td><b>New</b></td>
-    <td>Creates a new, empty palette.</td>
+    <td>Creates a new palette that has a specified number of control points or imports a standard palette. 
+        Note that (1) an imported standard palette may be modified to meet the editable palette criteria;
+        and (2) the <i>none</i> color is not supported.</td>
   </tr>
   <tr class="alt">
     <td><b>Import</b></td>
@@ -1324,7 +1327,7 @@ PaletteEditorDialog::getDocumentationHtml() const
   </tr>
   <tr>
     <td><b>Delete</b></td>
-    <td>Permanently removes the currently selected palette.</td>
+    <td>Permanently removes the currently selected palette from the user's preferences.</td>
   </tr>
 </table>
 
@@ -1335,11 +1338,12 @@ PaletteEditorDialog::getDocumentationHtml() const
 <h2><span class="section-num">03 &nbsp;</span>Gradient Preview Bar</h2>
 <p>
   Directly below the palette list, a wide bar displays a live preview of the
-  selected palette's full gradient, split into two segments:
+  selected palette's full gradient, split into three segments:
 </p>
 <ul>
   <li><b>Left segment</b> &mdash; Shows the positive range of the gradient.</li>
-  <li><b>Right segment</b> &mdash; Shows the negative range of the gradient (below zero).</li>
+  <li><b>Right segment</b> &mdash; Shows the negative range of the gradient.</li>
+  <li><b>Zero segment</b> &mdash; Shows the zero color as a narrow rectangle.</li>
 </ul>
 <p>
   Small tick marks along the bottom of the bar indicate the positions of
@@ -1362,15 +1366,15 @@ PaletteEditorDialog::getDocumentationHtml() const
   The list is divided into two sections by a <b>Zero</b> marker:
 </p>
 <ul>
-  <li><b>Positive values</b> (above Zero) &mdash; listed from 1.000 down to 0.000.</li>
-  <li><b>Negative values</b> (below Zero) &mdash; listed from 0.000 downward.</li>
+  <li><b>Positive values</b> (above Zero) &mdash; listed from 1.000 down to 0.0.</li>
+  <li><b>Negative values</b> (below Zero) &mdash; listed from 0.000 down to -1.0.</li>
 </ul>
 <p>Each row shows:</p>
 <ul>
-  <li>A <b>radio button</b> to select that control point.</li>
-  <li>The <b>position value</b> (a number along the gradient axis).</li>
+  <li>A <b>radio button</b> to select that control point for editing its color.</li>
+  <li>The <b>scalar value</b> (a number along the gradient axis).</li>
   <li>A <b>color swatch</b> showing the color assigned to that point.</li>
-  <li><b>Up/Down arrows</b> to nudge the position value.</li>
+  <li><b>Up/Down arrows</b> to adjust the scalar value.</li>
 </ul>
 
 <h3>Control Point Buttons</h3>
@@ -1389,7 +1393,7 @@ PaletteEditorDialog::getDocumentationHtml() const
   </tr>
   <tr>
     <td><b>Remove</b></td>
-    <td>Deletes the currently selected control point.</td>
+    <td>Deletes the currently selected control point. </td>
   </tr>
 </table>
 
@@ -1422,8 +1426,8 @@ PaletteEditorDialog::getDocumentationHtml() const
 <h3>Hue Slider (Vertical Bar)</h3>
 <p>
   The narrow vertical bar to the right of the color square is the <b>hue slider</b>.
-  The triangle marker (&#9658;) shows the current hue. Drag it up or down to
-  change the hue.
+  The triangle marker (&#9658;) shows the current hue. Click in the vertical bar 
+  (not the arrow) to change the hue.
 </p>
 
 <h3>Preset Color Swatches</h3>
@@ -1446,7 +1450,7 @@ PaletteEditorDialog::getDocumentationHtml() const
 <h2><span class="section-num">06 &nbsp;</span>Color Value Sliders</h2>
 <p>
   Fine-tune the color numerically using the sliders. Values can also be typed
-  directly or incremented with the arrow spinners to the right of each slider.
+  directly or incremented with the numeric spin boxes to the right of each slider.
 </p>
 
 <h3>RGB Controls</h3>
@@ -1509,7 +1513,8 @@ PaletteEditorDialog::getDocumentationHtml() const
 <h2><span class="section-num">07 &nbsp;</span>Closing the Dialog</h2>
 <ul>
   <li>Click <b>Save</b> before closing if you want to keep your changes.</li>
-  <li>Click <b>Close</b> (bottom-right) to dismiss the dialog. Any unsaved changes will be lost.</li>
+  <li>Click <b>Close</b> (bottom-right) to dismiss the dialog.  If there are
+      unsaved changes, a dialog warns the user.</li>
 </ul>
 
 <hr>
@@ -1518,7 +1523,7 @@ PaletteEditorDialog::getDocumentationHtml() const
 <a name="workflow"></a>
 <h2><span class="section-num">08 &nbsp;</span>Typical Workflow</h2>
 <ol>
-  <li>Select a palette from the list, or click <b>New</b> to start fresh.</li>
+  <li>Select a palette from the list, or click <b>New</b> to create a new palette.</li>
   <li>Review the gradient in the <b>preview bar</b>.</li>
   <li>Select a control point from the <b>Control Points</b> list by clicking its radio button.</li>
   <li>Adjust its color using the <b>color square</b>, <b>hue slider</b>, <b>preset swatches</b>, or <b>RGB/HSV sliders</b>.</li>
