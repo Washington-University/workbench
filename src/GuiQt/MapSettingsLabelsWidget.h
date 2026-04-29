@@ -64,6 +64,9 @@ namespace caret {
         EnumComboBoxTemplate* m_drawingTypeComboBox;
         
         QCheckBox* m_drawMedialWallFilledCheckBox;
+
+        EnumComboBoxTemplate* m_mprOutline2dModeComboBox;
+        
     };
     
 #ifdef __MAP_SETTINGS_LABELS_WIDGET_DECLARE__

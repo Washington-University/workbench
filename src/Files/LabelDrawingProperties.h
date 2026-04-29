@@ -25,8 +25,8 @@
 #include "CaretObject.h"
 #include "CaretColorEnum.h"
 #include "LabelDrawingTypeEnum.h"
-
 #include "SceneableInterface.h"
+#include "VolumeSliceViewPlaneEnum.h"
 
 
 namespace caret {
@@ -54,6 +54,10 @@ namespace caret {
         bool isDrawMedialWallFilled() const;
         
         void setDrawMedialWallFilled(const bool drawMedialWallFilled);
+        
+        VolumeSliceViewPlaneEnum::Enum getMprOutline2dMode() const;
+        
+        void setMprOutline2dMode(const VolumeSliceViewPlaneEnum::Enum mprOutline2dMode);
         
         // ADD_NEW_METHODS_HERE
 
@@ -89,6 +93,8 @@ namespace caret {
         LabelDrawingTypeEnum::Enum m_drawingType;
         
         CaretColorEnum::Enum m_outlineColor;
+        
+        VolumeSliceViewPlaneEnum::Enum m_mprOutline2dMode = VolumeSliceViewPlaneEnum::ALL;
         
         /** medial wall is drawn filled*/
         bool m_drawMedialWallFilled;

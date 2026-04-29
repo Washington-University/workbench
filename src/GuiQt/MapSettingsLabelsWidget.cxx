@@ -71,6 +71,21 @@ MapSettingsLabelsWidget::MapSettingsLabelsWidget(QWidget* parent)
     QObject::connect(m_outlineColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(applySelections()));
     
+    const AString mprOutlineToolTip("When viewing volume slices in MPR mode, the label outlines are "
+                                    "computed in 3D using '26-connected' voxel neighbors.  This can "
+                                    "be changed to 8-connected voxel neighbors in one of the volumes "
+                                    "slice planes which will improve the outlines for that axis view "
+                                    "but may also degrade the other axis views.");
+    QLabel* mprOutlineModeLabel(new QLabel("Mpr Outline Axis Bias"));
+    m_mprOutline2dModeComboBox = new EnumComboBoxTemplate(this);
+    m_mprOutline2dModeComboBox->setup<VolumeSliceViewPlaneEnum, VolumeSliceViewPlaneEnum::Enum>();
+    QObject::connect(m_mprOutline2dModeComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(applySelections()));
+    CaretAssert(m_mprOutline2dModeComboBox->getComboBox()->count() == 4);
+    m_mprOutline2dModeComboBox->getComboBox()->setItemText(0, "None");
+    WuQtUtilities::setWordWrappedToolTip(m_mprOutline2dModeComboBox->getComboBox(),
+                                         mprOutlineToolTip);    
+
     m_drawMedialWallFilledCheckBox = new QCheckBox("Draw Surface Medial Wall Filled");
     QObject::connect(m_drawMedialWallFilledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(applySelections()));
@@ -91,10 +106,12 @@ MapSettingsLabelsWidget::MapSettingsLabelsWidget(QWidget* parent)
     gridLayout->addWidget(m_drawingTypeComboBox->getWidget(), 0, 1);
     gridLayout->addWidget(outlineColorLabel, 1, 0);
     gridLayout->addWidget(m_outlineColorComboBox->getWidget(), 1, 1);
+    gridLayout->addWidget(mprOutlineModeLabel, 2, 0);
+    gridLayout->addWidget(m_mprOutline2dModeComboBox->getWidget(), 2, 1);
     gridLayout->addWidget(m_drawMedialWallFilledCheckBox,
-                          2, 0, 1, 2, Qt::AlignLeft);
-    gridLayout->addWidget(editLabelsPushButton,
                           3, 0, 1, 2, Qt::AlignLeft);
+    gridLayout->addWidget(editLabelsPushButton,
+                          4, 0, 1, 2, Qt::AlignLeft);
     gridWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -133,6 +150,7 @@ MapSettingsLabelsWidget::updateContent(Overlay* overlay)
             if (mapFile->isMappedWithLabelTable()) {
                 const LabelDrawingProperties* labelProps = mapFile->getLabelDrawingProperties();
                 m_drawingTypeComboBox->setSelectedItem<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>(labelProps->getDrawingType());
+                m_mprOutline2dModeComboBox->setSelectedItem<VolumeSliceViewPlaneEnum, VolumeSliceViewPlaneEnum::Enum>(labelProps->getMprOutline2dMode());
                 m_outlineColorComboBox->setSelectedColor(labelProps->getOutlineColor());
                 m_drawMedialWallFilledCheckBox->setChecked(labelProps->isDrawMedialWallFilled());
                 m_drawMedialWallFilledCheckBox->setEnabled(mapFile->isMedialWallLabelInMapLabelTable(mapIndex));
@@ -161,10 +179,12 @@ MapSettingsLabelsWidget::applySelections()
             if (mapFile->isMappedWithLabelTable()) {
                 const LabelDrawingTypeEnum::Enum drawType = m_drawingTypeComboBox->getSelectedItem<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>();
                 const CaretColorEnum::Enum outlineColor   = m_outlineColorComboBox->getSelectedColor();
-                
+                const VolumeSliceViewPlaneEnum::Enum mprOutlineMode(m_mprOutline2dModeComboBox->getSelectedItem<VolumeSliceViewPlaneEnum, VolumeSliceViewPlaneEnum::Enum>());
+
                 LabelDrawingProperties* labelProps = mapFile->getLabelDrawingProperties();
                 labelProps->setDrawingType(drawType);
                 labelProps->setOutlineColor(outlineColor);
+                labelProps->setMprOutline2dMode(mprOutlineMode);
                 labelProps->setDrawMedialWallFilled(m_drawMedialWallFilledCheckBox->isChecked());
                 
                 VolumeFile* volumeFile(dynamic_cast<VolumeFile*>(mapFile));

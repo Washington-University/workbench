@@ -93,12 +93,15 @@ LabelDrawingProperties::initializeInstance()
     m_drawingType          = LabelDrawingTypeEnum::DRAW_FILLED;
     m_outlineColor         = CaretColorEnum::BLACK;
     m_drawMedialWallFilled = true;
+    m_mprOutline2dMode     = VolumeSliceViewPlaneEnum::ALL;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>("m_drawingType",
                                                                             &m_drawingType);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_outlineColor",
                                                                 &m_outlineColor);
+    m_sceneAssistant->add<VolumeSliceViewPlaneEnum, VolumeSliceViewPlaneEnum::Enum>("m_mprOutline2dMode",
+                                                                                    &m_mprOutline2dMode);
     m_sceneAssistant->add("m_drawMedialWallFilled",
                           &m_drawMedialWallFilled);
 }
@@ -115,6 +118,7 @@ LabelDrawingProperties::copyHelper(const LabelDrawingProperties& obj)
     m_drawingType          = obj.m_drawingType;
     m_outlineColor         = obj.m_outlineColor;
     m_drawMedialWallFilled = obj.m_drawMedialWallFilled;
+    m_mprOutline2dMode     = obj.m_mprOutline2dMode;
 }
 
 /**
@@ -177,6 +181,26 @@ void
 LabelDrawingProperties::setDrawMedialWallFilled(const bool drawMedialWallFilled)
 {
     m_drawMedialWallFilled = drawMedialWallFilled;
+}
+
+/**
+ * @return The MPR outline 2D mode (ALL is off or 3D)
+ */
+VolumeSliceViewPlaneEnum::Enum
+LabelDrawingProperties::getMprOutline2dMode() const
+{
+    return m_mprOutline2dMode;
+}
+
+/**
+  * Set the MPR outline 2D mode (ALL is off or 3D)
+  * @param mprOutline2dMode
+  *    new mode
+  */
+void
+LabelDrawingProperties::setMprOutline2dMode(const VolumeSliceViewPlaneEnum::Enum mprOutline2dMode)
+{
+    m_mprOutline2dMode = mprOutline2dMode;
 }
 
 /**

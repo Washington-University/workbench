@@ -338,16 +338,41 @@ VolumeFileVoxelColorizer::applyLabelOutlines(const int32_t mapIndex) const
     /*
      * Loop through all voxels except those on edge of volume
      */
-    for (int32_t iVoxel = 1; iVoxel < lastI; iVoxel++) {
-        for (int32_t jVoxel = 1; jVoxel < lastJ; jVoxel++) {
-            for (int32_t kVoxel = 1; kVoxel < lastK; kVoxel++) {
+    for (int64_t iVoxel = 1; iVoxel < lastI; iVoxel++) {
+        for (int64_t jVoxel = 1; jVoxel < lastJ; jVoxel++) {
+            for (int64_t kVoxel = 1; kVoxel < lastK; kVoxel++) {
                 const int64_t voxelOffset(getVoxelOffsetForVoxelIndex(iVoxel, jVoxel, kVoxel));
                 const float voxelValue(mapDataPointer[voxelOffset]);
                 if (voxelValue != unassignedLabelKey) {
                     uint8_t boundaryFlag(0);
-                    for (int32_t i = (iVoxel - 1); i <= (iVoxel + 1); i++) {
-                        for (int32_t j = (jVoxel - 1); j <= (jVoxel + 1); j++) {
-                            for (int32_t k = (kVoxel - 1); k <= (kVoxel + 1); k++) {
+                    
+                    int64_t iStart(iVoxel - 1);
+                    int64_t iEnd(iVoxel + 1);
+                    int64_t jStart(jVoxel - 1);
+                    int64_t jEnd(jVoxel + 1);
+                    int64_t kStart(kVoxel - 1);
+                    int64_t kEnd(kVoxel + 1);
+                    
+                    switch (ldp->getMprOutline2dMode()) {
+                        case VolumeSliceViewPlaneEnum::ALL:
+                            break;
+                        case VolumeSliceViewPlaneEnum::AXIAL:
+                            kStart = kVoxel;
+                            kEnd   = kVoxel;
+                            break;
+                        case VolumeSliceViewPlaneEnum::CORONAL:
+                            jStart = jVoxel;
+                            jEnd   = jVoxel;
+                            break;
+                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                            iStart = iVoxel;
+                            iEnd   = iVoxel;
+                            break;
+                    }
+                    
+                    for (int64_t i = iStart; i <= iEnd; i++) {
+                        for (int64_t j = jStart; j <= jEnd; j++) {
+                            for (int64_t k = kStart; k <= kEnd; k++) {
                                 const int64_t neighborOffset(getVoxelOffsetForVoxelIndex(i, j, k));
                                 if (voxelValue != mapDataPointer[neighborOffset]) {
                                     boundaryFlag = true;
