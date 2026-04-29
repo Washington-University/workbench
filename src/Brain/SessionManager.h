@@ -213,7 +213,7 @@ namespace caret {
         
         bool m_sceneRestorationInProgressFlag = false;
         
-        bool m_paletteNewSupportedFlag = true;
+        bool m_paletteNewSupportedFlag = false;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__
