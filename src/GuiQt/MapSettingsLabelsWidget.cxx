@@ -76,7 +76,7 @@ MapSettingsLabelsWidget::MapSettingsLabelsWidget(QWidget* parent)
                                     "be changed to 8-connected voxel neighbors in one of the volumes "
                                     "slice planes which will improve the outlines for that axis view "
                                     "but may also degrade the other axis views.");
-    QLabel* mprOutlineModeLabel(new QLabel("Mpr Outline Axis Bias"));
+    QLabel* mprOutlineModeLabel(new QLabel("MPR Outline Axis Bias"));
     m_mprOutline2dModeComboBox = new EnumComboBoxTemplate(this);
     m_mprOutline2dModeComboBox->setup<VolumeSliceViewPlaneEnum, VolumeSliceViewPlaneEnum::Enum>();
     QObject::connect(m_mprOutline2dModeComboBox, SIGNAL(itemActivated()),
