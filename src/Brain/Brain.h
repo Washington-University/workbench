@@ -951,6 +951,10 @@ namespace caret {
         
         std::vector<CaretDataFile*> getReloadableDataFiles() const;
         
+        void readUserPalettesFromPreferences(CaretPreferences* caretPreferences);
+        
+        void saveUserPalettesToPreferences();
+        
         std::vector<BrainStructure*> m_brainStructures;
         
         std::vector<AnnotationFile*> m_annotationFiles;
@@ -1136,7 +1140,7 @@ namespace caret {
         
         std::unique_ptr<PaletteNewGroup> m_userPalettes;
         
-        mutable std::unique_ptr<SamplesMetaDataManager> m_samplesMetaDataManager;        
+        mutable std::unique_ptr<SamplesMetaDataManager> m_samplesMetaDataManager;
     };
 
 } // namespace

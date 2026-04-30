@@ -243,12 +243,14 @@ PaletteEditorDialog::colorEditorColorChanged(const QColor& color)
 
 /**
  * Update the palette list widget
+ * @param forceUpdate
+ *    Update even if palettes may not have changed
  */
 void
-PaletteEditorDialog::updatePaletteListWidget()
+PaletteEditorDialog::updatePaletteListWidget(const bool forceUpdate)
 {
     m_paletteBeingEdited = NULL;
-    m_paletteSelectionWidget->updateContent();
+    m_paletteSelectionWidget->updateContent(forceUpdate);
     const PaletteBase* paletteBase(m_paletteSelectionWidget->getSelectedPalette());
     if (paletteBase != NULL) {
         m_paletteBeingEdited = paletteBase->castToPaletteNew();
@@ -257,11 +259,13 @@ PaletteEditorDialog::updatePaletteListWidget()
 
 /**
  * Update the dialog.
+ * @param forceUpdate
+ *    Update even if palettes may not have changed
  */
 void
-PaletteEditorDialog::updateDialog()
+PaletteEditorDialog::updateDialog(const bool forceUpdate)
 {
-    updatePaletteListWidget();
+    updatePaletteListWidget(forceUpdate);
     
     updatePaletteMovementButtons();
     
@@ -669,7 +673,8 @@ PaletteEditorDialog::renamePaletteActionTriggered()
                 if (result.isError()) {
                     WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
                 }
-                updateDialog();
+                const bool forceUpdate(true);
+                updateDialog(forceUpdate);
                 m_paletteSelectionWidget->selectPalette(paletteBase);
                 paletteSelected(paletteBase);
                 updateAfterPalettesChanged();

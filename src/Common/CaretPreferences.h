@@ -373,6 +373,10 @@ namespace caret {
         
         void setDarkLightColorSchemeMode(const GuiDarkLightColorSchemeModeEnum::Enum darkLightColorSchemeMode);
         
+        std::vector<AString> getUserPalettesAsStrings() const;
+        
+        void setUsersPalettesFromStrings(std::vector<AString>& paletteStrings);
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -511,6 +515,8 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_volumeSurfaceOutlineSeparation;
 
         std::unique_ptr<CaretPreferenceDataValue> m_darkLightColorSchemeMode;
+        
+        std::unique_ptr<CaretPreferenceDataValueList> m_userPalettesList;
         
         bool splashScreenEnabled;
         

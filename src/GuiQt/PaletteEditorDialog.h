@@ -67,7 +67,7 @@ namespace caret {
 
         PaletteEditorDialog& operator=(const PaletteEditorDialog&) = delete;
         
-        virtual void updateDialog();
+        virtual void updateDialog(const bool forceUpdate = false);
 
         virtual void receiveEvent(Event* event) override;
 
@@ -126,7 +126,7 @@ namespace caret {
         QPixmap createIcon(QWidget* widget,
                            const IconType iconType);
         
-        void updatePaletteListWidget();
+        void updatePaletteListWidget(const bool forceUpdate = false);
         
         void updatePaletteColorBarImage();
         

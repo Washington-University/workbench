@@ -329,8 +329,8 @@ EventPaletteNewOperation::getNewPaletteInfo(AString& nameOut,
                                          int32_t& numberOfNegativeControlPointsOut)
 {
     nameOut = m_paletteName;
-    numberOfPositiveControlPointsOut = m_numberOfNegativeControlPoints;
-    numberOfNegativeControlPointsOut = m_numberOfPositiveControlPoints;
+    numberOfPositiveControlPointsOut = m_numberOfPositiveControlPoints;
+    numberOfNegativeControlPointsOut = m_numberOfNegativeControlPoints;
 }
 
 /**

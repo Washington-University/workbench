@@ -72,6 +72,8 @@ namespace caret {
         
         void pushFront(const QVariant& value);
         
+        void setAllValues(std::vector<QVariant>& values);
+        
         void setValue(const int32_t index,
                       const QVariant& value);
         

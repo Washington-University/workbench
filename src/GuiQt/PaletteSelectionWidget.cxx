@@ -216,13 +216,20 @@ PaletteSelectionWidget::selectPalette(const PaletteBase* paletteBase)
 
 /**
  * Update the content of the dialog
+ * @param forceUpdate
+ *   If update only if the palette pointers have changed.
  */
 void
-PaletteSelectionWidget::updateContent()
+PaletteSelectionWidget::updateContent(const bool forceUpdate)
 {
     const std::vector<const PaletteBase*> palettes(EventPalettesGetOperations::getAllPaletteTypesSortedByName());
-    if (palettes == m_previouslyLoadedPalettes) {
-        return;
+    if ( ! forceUpdate) {
+        /*
+         * Any changes?
+         */
+        if (palettes == m_previouslyLoadedPalettes) {
+            return;
+        }
     }
     
     m_paletteBeingEditedName.clear();
@@ -251,7 +258,6 @@ PaletteSelectionWidget::updateContent()
         if (std::find(m_paletteDesignTypes.begin(),
                       m_paletteDesignTypes.end(),
                       p->getPaletteDesignType()) != m_paletteDesignTypes.end()) {
-//            const AString paletteUniqueID(p->getName());
             const QPixmap pixmap(createPixmapForPalette(p));
             
             AString paletteName(p->getName());
@@ -366,7 +372,7 @@ PaletteSelectionWidget::createPixmapForPalette(const PaletteBase* paletteBase)
  *    An event for which this instance is listening.
  */
 void
-PaletteSelectionWidget::receiveEvent(Event* event)
+PaletteSelectionWidget::receiveEvent(Event* /*event*/)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);

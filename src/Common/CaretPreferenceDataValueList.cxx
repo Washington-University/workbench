@@ -49,7 +49,7 @@ using namespace caret;
  * @param dataType
  *     Data type of the preference
  * @param maximumNumberOfElements
- *     Maximum number of elements
+ *     Maximum number of elements.  Zero or less is unlimited.
  */
 CaretPreferenceDataValueList::CaretPreferenceDataValueList(QSettings* preferenceSettings,
                                                              const QString& preferenceName,
@@ -63,7 +63,6 @@ m_maximumNumberOfElements(maximumNumberOfElements)
 {
     CaretAssert(m_preferenceSettings);
     CaretAssert( ! m_preferenceName.isEmpty());
-    CaretAssert(m_maximumNumberOfElements > 0);
     
     readFromPreferences();
 }
@@ -165,6 +164,21 @@ CaretPreferenceDataValueList::pushFront(const QVariant& value)
 }
 
 /**
+ * Set (replace) all values
+ * @param values
+ *    The new values
+ */
+void
+CaretPreferenceDataValueList::setAllValues(std::vector<QVariant>& values)
+{
+    m_dataList.clear();
+    for (QVariant& v : values) {
+        pushBack(v);
+    }
+    writeToPreferences();
+}
+
+/**
  * Set the value.  This does invalidate the scene value.
  * @param index
  *    Index of element
@@ -232,6 +246,13 @@ CaretPreferenceDataValueList::writeToPreferences()
 void
 CaretPreferenceDataValueList::resizeListToMaximumNumberOfElements()
 {
+    if (m_maximumNumberOfElements <= 0) {
+        /*
+         * Unlimited numnber of elements
+         */
+        return;
+    }
+    
     const int32_t numElements(m_dataList.size());
     if (numElements > m_maximumNumberOfElements) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)

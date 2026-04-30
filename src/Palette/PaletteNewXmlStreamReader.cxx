@@ -92,6 +92,38 @@ PaletteNewXmlStreamReader::readFromFile(const AString& filename)
                                             (paletteOut != NULL));
 }
 
+/**
+ * Read a palette from the given string
+ * @param string
+ *    String containing a palette in XML
+ * @return
+ *    Function result with palette or error
+ */
+FunctionResultValue<PaletteNew*>
+PaletteNewXmlStreamReader::readFromString(const AString& string)
+{
+    if (string.isEmpty()) {
+        return FunctionResultValue<PaletteNew*>(NULL,
+                                                "String containing palette is empty.",
+                                                false);
+    }
+    
+    PaletteNew* paletteOut(NULL);
+    AString errorMessage;
+    QXmlStreamReader xmlReader(string);
+    if ( ! xmlReader.hasError()) {
+        paletteOut = readPaletteContent(xmlReader);
+    }
+    
+    if (xmlReader.hasError()) {
+        errorMessage = xmlReader.errorString();
+    }
+    
+    return FunctionResultValue<PaletteNew*>(paletteOut,
+                                            errorMessage,
+                                            (paletteOut != NULL));
+}
+
 
 /**
  * Read the palette from the xml reader

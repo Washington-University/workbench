@@ -541,3 +541,29 @@ PaletteNew::writeToFile(const AString& filename) const
     return result;
 }
 
+/**
+ * @return Function result with palette read from file or error
+ * @param filename
+ *    Name of file
+ */
+FunctionResultValue<PaletteNew*>
+PaletteNew::readFromString(const AString& string)
+{
+    PaletteNewXmlStreamReader paletteXmlReader;
+    return paletteXmlReader.readFromString(string);
+}
+
+/**
+ * Write the palette to the given file
+ * @param filename
+ *    Name of file
+ * @return
+ *    Function result with success or failure
+ */
+FunctionResultValue<AString>
+PaletteNew::writeToString() const
+{
+    PaletteNewXmlStreamWriter paletteXmlWriter;
+    return paletteXmlWriter.writeToString(*this);
+}
+

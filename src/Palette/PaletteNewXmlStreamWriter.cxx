@@ -97,6 +97,40 @@ PaletteNewXmlStreamWriter::writeToFile(const PaletteNew& palette,
     return FunctionResult::ok();
 }
 
+/**
+ * Write the given palette to a string
+ * @param palette
+ *    Palette that will be written
+ * @return
+ *    Function result with string or error
+ */
+FunctionResultValue<AString>
+PaletteNewXmlStreamWriter::writeToString(const PaletteNew& palette)
+{
+    AString string;
+    AString errorMessage;
+    QXmlStreamWriter xmlWriter(&string);
+    if (xmlWriter.hasError()) {
+        errorMessage = ("Unable to create XML stream writer for palette="
+                        + palette.getName() + "\n"
+                        "Error=" + xmlWriter.errorString());
+    }
+    
+    if (errorMessage.isEmpty()) {
+        writePaletteContent(xmlWriter,
+                            palette);
+        
+        if (xmlWriter.hasError()) {
+            errorMessage = ("Error writing XML for palette="
+                            + palette.getName() + "\n"
+                            "Error=" + xmlWriter.errorString());
+        }
+    }
+    
+    return FunctionResultValue<AString>(string,
+                                        errorMessage,
+                                        errorMessage.isEmpty());
+}
 
 /**
  * Write the palette to the XML stream writer

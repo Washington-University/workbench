@@ -130,6 +130,10 @@ namespace caret {
         
         FunctionResult writeToFile(const AString& filename) const;
         
+        static FunctionResultValue<PaletteNew*> readFromString(const AString& string);
+        
+        FunctionResultValue<AString> writeToString() const;
+        
     private:
         PaletteNew* createSignSeparateInvertedPalette() const;
         

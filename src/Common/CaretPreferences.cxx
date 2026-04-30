@@ -187,6 +187,11 @@ CaretPreferences::CaretPreferences()
                                                                   CaretPreferenceDataValueList::DataType::QVARIANT,
                                                                   5)); /* maximum number of elements */
     
+    m_userPalettesList.reset(new CaretPreferenceDataValueList(this->qSettings,
+                                                              "m_userPalettesList",
+                                                              CaretPreferenceDataValueList::DataType::STRING,
+                                                              -1)); /* unlimited number of elements */
+                             
     m_volumeMontageCoordinateDisplayType.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                             "m_volumeMontageCoordinateDisplayType",
                                                                             CaretPreferenceDataValue::DataType::STRING,
@@ -3776,3 +3781,35 @@ CaretPreferences::setDarkLightColorSchemeMode(const GuiDarkLightColorSchemeModeE
     const QString stringValue = GuiDarkLightColorSchemeModeEnum::toName(darkLightColorSchemeMode);
     m_darkLightColorSchemeMode->setValue(stringValue);
 }
+
+/**
+ * @return The user's palettes as strings
+ */
+std::vector<AString>
+CaretPreferences::getUserPalettesAsStrings() const
+{
+    std::vector<AString> paletteStrings;
+    
+    const int32_t num(m_userPalettesList->getSize());
+    for (int32_t i = 0; i < num; i++) {
+        paletteStrings.push_back(m_userPalettesList->getValue(i).toString());
+    }
+    
+    return paletteStrings;
+}
+
+/**
+ * Set the user's palettes from string
+ * @param paletteString
+ *    Strings containing the user's palettes
+ */
+void
+CaretPreferences::setUsersPalettesFromStrings(std::vector<AString>& paletteStrings)
+{
+    std::vector<QVariant> values;
+    for (AString& s : paletteStrings) {
+        values.push_back(QString(s));
+    }
+    m_userPalettesList->setAllValues(values);
+}
+

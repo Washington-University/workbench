@@ -47,6 +47,8 @@ namespace caret {
         FunctionResult writeToFile(const PaletteNew& palette,
                                    const AString& filename);
         
+        FunctionResultValue<AString> writeToString(const PaletteNew& palette);
+        
         // ADD_NEW_METHODS_HERE
 
     private:

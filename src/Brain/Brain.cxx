@@ -361,9 +361,10 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_brainordinateHighlightRegionOfInterest = new BrainordinateRegionOfInterest();
     
     m_userPalettes.reset(new PaletteNewGroup(PaletteNewGroup::GroupType::USER_CUSTOM));
-    m_userPalettes->addExamplePalettes();
     
     updateChartModel();
+    
+    readUserPalettesFromPreferences(caretPreferences);
 }
 
 /**
@@ -8188,6 +8189,7 @@ Brain::receiveEvent(Event* event)
                 for (const PaletteNew* p : paletteEvent->m_palettes) {
                     m_userPalettes->addPalette(const_cast<PaletteNew*>(p));
                 }
+                saveUserPalettesToPreferences();
             }
                 break;
             case EventPaletteNewOperation::Operation::DELETE_PALETTE:
@@ -8198,6 +8200,9 @@ Brain::receiveEvent(Event* event)
                     FunctionResult result(m_userPalettes->removePalette(palettes[0]));
                     if (result.isError()) {
                         paletteEvent->setErrorMessage(result.getErrorMessage());
+                    }
+                    else {
+                        saveUserPalettesToPreferences();
                     }
                 }
                 else {
@@ -8247,6 +8252,7 @@ Brain::receiveEvent(Event* event)
                     else {
                         paletteEvent->setErrorMessage(addResult.getErrorMessage());
                     }
+                    saveUserPalettesToPreferences();
                 }
                 else {
                     paletteEvent->setErrorMessage(result.getErrorMessage());
@@ -8298,6 +8304,9 @@ Brain::receiveEvent(Event* event)
                     if (result.isError()) {
                         paletteEvent->setErrorMessage(result.getErrorMessage());
                     }
+                    else {
+                        saveUserPalettesToPreferences();
+                    }
                 }
                 else {
                     paletteEvent->setErrorMessage("There must be one palette for delete operation");
@@ -8322,6 +8331,9 @@ Brain::receiveEvent(Event* event)
                                                                         zeroMapping));
                     if (result.isError()) {
                         paletteEvent->setErrorMessage(result.getErrorMessage());
+                    }
+                    else {
+                        saveUserPalettesToPreferences();
                     }
                 }
                 else {
@@ -8382,6 +8394,47 @@ Brain::receiveEvent(Event* event)
             }
         }
     }
+}
+
+/**
+ * Read the user's palettes from preferences
+ */
+void Brain::readUserPalettesFromPreferences(CaretPreferences* caretPreferences)
+{
+    std::vector<AString> paletteStrings(caretPreferences->getUserPalettesAsStrings());
+    for (const AString& s : paletteStrings) {
+        FunctionResultValue<PaletteNew*> result(PaletteNew::readFromString(s));
+        if (result.isOk()) {
+            m_userPalettes->addPalette(result.getValue());
+        }
+        else {
+            CaretLogWarning("Failed to read user palette from text="
+                            + s);
+        }
+    }
+}
+
+/**
+ * Write the user's palettes to preferences
+ */
+void Brain::saveUserPalettesToPreferences()
+{
+    std::vector<PaletteNew*> palettes;
+    m_userPalettes->getPalettes(palettes);
+    
+    std::vector<AString> paletteStrings;
+    for (PaletteNew* p : palettes) {
+        FunctionResultValue<AString> result(p->writeToString());
+        if (result.isOk()) {
+            paletteStrings.push_back(result.getValue());
+        }
+        else {
+            CaretLogWarning("Filed to write palette to string="
+                            + p->toString());
+        }
+    }
+    
+    SessionManager::get()->getCaretPreferences()->setUsersPalettesFromStrings(paletteStrings);
 }
 
 /**

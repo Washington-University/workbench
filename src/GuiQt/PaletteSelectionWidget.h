@@ -60,7 +60,7 @@ namespace caret {
         
         void selectPalette(const PaletteBase* paletteBase);
         
-        void updateContent();
+        void updateContent(const bool forceUpdate = false);
         
         // ADD_NEW_METHODS_HERE
 

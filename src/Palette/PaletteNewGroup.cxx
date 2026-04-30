@@ -56,8 +56,6 @@ m_groupType(groupType)
             m_editableFlag = true;
             break;
     }
-    
-    addExamplePalettes();
 }
 
 /**

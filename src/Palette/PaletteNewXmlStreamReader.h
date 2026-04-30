@@ -46,6 +46,8 @@ namespace caret {
         
         FunctionResultValue<PaletteNew*> readFromFile(const AString& filename);
 
+        FunctionResultValue<PaletteNew*> readFromString(const AString& string);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
