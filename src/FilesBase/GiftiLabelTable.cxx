@@ -133,9 +133,7 @@ GiftiLabelTable::clear()
     }
     this->labelsMap.clear();
     
-    GiftiLabel gl(0, "???", 1.0, 1.0, 1.0, 0.0);
-    this->addLabel(&gl);
-    this->modifiedFlag = false;
+    getUnassignedLabelKey(); //use 0, 0, 0, 0 color default instead of having two definitions
 }
 
 /**
@@ -642,7 +640,14 @@ GiftiLabelTable::getUnassignedLabelKey() const
      * label can be added.
      */
     GiftiLabelTable* glt = (GiftiLabelTable*)this;
-    const int32_t key = glt->addLabel("???", 0.0f, 0.0f, 0.0f, 0.0f);
+    int32_t key = 0;
+    if (getLabel(0) == NULL)
+    { //make it key 0 if available
+        GiftiLabel unlabeled(0, "???", 0.0f, 0.0f, 0.0f, 0.0f);
+        glt->addLabel(&unlabeled); //does not take ownership
+    } else {
+        key = glt->addLabel("???", 0.0f, 0.0f, 0.0f, 0.0f); //add it somewhere it will fit
+    }
     return key;
 }
 
