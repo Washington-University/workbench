@@ -467,15 +467,12 @@ CiftiFiberOrientationFile::readFile(const AString& filename)
             ciftiFile.getRow(rowPointer, i);
             FiberOrientation* fiberOrient = new FiberOrientation(numberOfFibers,
                                                                  rowPointer);
-            if (fiberOrient->m_valid) {
-                m_fiberOrientations.push_back(fiberOrient);
-            }
-            else {
-                CaretLogSevere("Fiber invalid at row "
+            m_fiberOrientations.push_back(fiberOrient); //the constructor now replaces bad values, so we can include it regardless, so that the indices still match
+            if (!(fiberOrient->m_valid)) {
+                CaretLogWarning("Replaced invalid fiber at row "
                                + QString::number(i)
-                               + " is invalid: "
+                               + ", bad values were: "
                                + fiberOrient->m_invalidMessage);
-                delete fiberOrient;
             }
         }
         

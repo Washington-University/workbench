@@ -63,36 +63,44 @@ Fiber::Fiber(const float* pointerToData)
      */
     if (m_meanF != m_meanF) {
         m_invalidMessage += " meanF=NaN";
+        m_meanF = 0.0f; //fix them to something that won't crash, because we still need a dummy element to make the indexes line up
     }
     if (m_varF != m_varF) {
         m_invalidMessage += " varF=NaN";
+        m_varF = 1.0f;
     }
     if (m_theta != m_theta) {
         m_invalidMessage += " theta=NaN";
+        m_theta = 0.0f;
     }
     if (m_phi != m_phi) {
         m_invalidMessage += " phi=NaN";
+        m_phi = 0.0f;
     }
     if (m_k1 != m_k1) {
         m_invalidMessage += " k1=NaN";
+        m_k1 = 1.0f;
     }
     else if (m_k1 < 0.0) {
         m_invalidMessage += " k1=negative=" + QString::number(m_k1);
-        
+        m_k1 = 1.0f;
     }
     if (m_k2 != m_k2) {
         m_invalidMessage += " k2=NaN";
+        m_k2 = 1.0f;
     }
     else if (m_k1 < 0.0) {
         m_invalidMessage += " k2=negative=" + QString::number(m_k2);
-        
+        m_k2 = 1.0f;
     }
     if (m_psi != m_psi) {
         m_invalidMessage += " psi=NaN";
+        m_psi = 0.0f;
     }
     m_valid = m_invalidMessage.isEmpty();
 
-    if (m_valid) {
+    //we replaced bad values, so always compute the other expected things
+    //if (m_valid) {
         /*
          * Set computed values used for visualization
          */
@@ -140,7 +148,7 @@ Fiber::Fiber(const float* pointerToData)
 //            << (oppositeTheta * radiansToDegrees) << " "
 //            << (m_phi * radiansToDegrees) << " "
 //            << (oppositePhi * radiansToDegrees) << std::endl << std::endl;
-    }
+    //}
 }
 
 void
