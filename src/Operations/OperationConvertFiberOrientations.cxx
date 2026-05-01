@@ -20,7 +20,10 @@
 
 #include "OperationConvertFiberOrientations.h"
 #include "OperationException.h"
+
+#include "CaretLogger.h"
 #include "CiftiFile.h"
+#include "MathFunctions.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -62,6 +65,26 @@ OperationParameters* OperationConvertFiberOrientations::getParameters()
     }
     ret->setHelpText(myText);
     return ret;
+}
+
+namespace
+{
+    static bool haveWarned = false;
+
+    float fixnan(const float input, const float replace = 0.0f)
+    {
+        if (MathFunctions::isNumeric(input)) //might as well replace infinities, too
+        {
+            return input;
+        } else {
+            if (!haveWarned)
+            {
+                CaretLogWarning("found and replaced at least one non-numeric value in -convert-fiber-orientations");
+                haveWarned = true;
+            }
+            return replace;
+        }
+    }
 }
 
 void OperationConvertFiberOrientations::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
@@ -197,13 +220,13 @@ void OperationConvertFiberOrientations::useParameters(OperationParameters* myPar
             VolumeFile* psivol = myInstances[j]->getVolume(5);
             VolumeFile* kavol = myInstances[j]->getVolume(6);
             VolumeFile* kbvol = myInstances[j]->getVolume(7);
-            temprow[base] = meanfvol->getValue(volMap[i].m_ijk);
-            temprow[base + 1] = stdevfvol->getValue(volMap[i].m_ijk);
-            temprow[base + 2] = thetavol->getValue(volMap[i].m_ijk);
-            temprow[base + 3] = phivol->getValue(volMap[i].m_ijk);
-            temprow[base + 4] = kavol->getValue(volMap[i].m_ijk);
-            temprow[base + 5] = kbvol->getValue(volMap[i].m_ijk);
-            temprow[base + 6] = psivol->getValue(volMap[i].m_ijk);
+            temprow[base] = fixnan(meanfvol->getValue(volMap[i].m_ijk), 0.0f);
+            temprow[base + 1] = fixnan(stdevfvol->getValue(volMap[i].m_ijk), 1.0f);
+            temprow[base + 2] = fixnan(thetavol->getValue(volMap[i].m_ijk), 0.0f);
+            temprow[base + 3] = fixnan(phivol->getValue(volMap[i].m_ijk), 0.0f);
+            temprow[base + 4] = fixnan(kavol->getValue(volMap[i].m_ijk), 1.0f);
+            temprow[base + 5] = fixnan(kbvol->getValue(volMap[i].m_ijk), 1.0f);
+            temprow[base + 6] = fixnan(psivol->getValue(volMap[i].m_ijk), 0.0f);
         }
         ciftiOut->setRow(temprow, volMap[i].m_ciftiIndex);
     }
