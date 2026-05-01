@@ -219,9 +219,7 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
      */
     m_labelSelectionListWidget = new QListWidget();
     m_labelSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
-//    QObject::connect(m_labelSelectionListWidget, SIGNAL(currentRowChanged(int)),
-//                     this, SLOT(listWidgetLabelSelected()));
-    QObject::connect(m_labelSelectionListWidget, SIGNAL(itemClicked(QListWidgetItem*)), //SIGNAL(currentRowChanged(int)),
+    QObject::connect(m_labelSelectionListWidget, SIGNAL(itemClicked(QListWidgetItem*)),
                      this, SLOT(listWidgetLabelSelected()));
     
     /*
@@ -251,7 +249,8 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
     /*
      * Color editor widget
      */
-    m_colorEditorWidget = new ColorEditorWidget();
+    const bool enabledAlphaFlag(true);
+    m_colorEditorWidget = new ColorEditorWidget(enabledAlphaFlag);
     QObject::connect(m_colorEditorWidget, SIGNAL(colorChanged(const float*)),
                      this, SLOT(colorEditorColorChanged(const float*)));
     
@@ -359,8 +358,6 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
         m_applyPushButton = addUserPushButton("Apply",
                                               QDialogButtonBox::ApplyRole);
     }
-    //setOkButtonText("Close");
-    //setCancelButtonText("");
     
     /*
      * No auto default button processing (Qt highlights button)
@@ -429,52 +426,6 @@ GiftiLabelTableEditor::selectLabelWithName(const AString& labelName)
     }
 }
 
-///**
-// * Called when a label in the list widget is selected.
-// * @param row
-// *    Row of label selected.
-// */
-//void
-//GiftiLabelTableEditor::listWidgetLabelSelected(int /*row*/)
-//{
-//    if (m_undoGiftiLabel != NULL) {
-//        delete m_undoGiftiLabel;
-//        m_undoGiftiLabel = NULL;
-//    }
-//    
-//    bool isEditingAllowed = false;
-//    GiftiLabel* gl = getSelectedLabel();
-//    if (gl != NULL) {
-//        const bool isUnassignedLabel = (gl->getKey() == m_giftiLableTable->getUnassignedLabelKey());
-//        float rgba[4];
-//        gl->getColor(rgba);
-//        m_colorEditorWidget->setColor(rgba);
-//        m_labelNameLineEdit->setText(gl->getName());
-//        if (m_keyValueLabel != NULL) {
-//            m_keyValueLabel->setNum(gl->getKey());
-//        }
-//        
-//        m_lastSelectedLabelName = gl->getName();
-//        
-//        if (isUnassignedLabel) {
-//            m_undoGiftiLabel = NULL;
-//        }
-//        else {
-//            m_undoGiftiLabel = new GiftiLabel(*gl);
-//            isEditingAllowed = true;
-//        }
-//    }
-//    else {
-//        m_lastSelectedLabelName = "";
-//        if (m_keyValueLabel != NULL) {
-//            m_keyValueLabel->setText("");
-//        }
-//
-//    }
-//    
-//    m_editingGroup->setEnabled(isEditingAllowed);
-//}
-
 /**
  * Called when a label in the list widget is selected.
  */
@@ -489,7 +440,11 @@ GiftiLabelTableEditor::listWidgetLabelSelected()
     bool isEditingAllowed = false;
     GiftiLabel* gl = getSelectedLabel();
     if (gl != NULL) {
-        const bool isUnassignedLabel = (gl->getKey() == m_giftiLableTable->getUnassignedLabelKey());
+        bool isUnassignedLabel = (gl->getKey() == m_giftiLableTable->getUnassignedLabelKey());
+        if (m_showUnassignedLabelInEditor) {
+            /* allow editing of unassigned label */
+            isUnassignedLabel = false;
+        }
         float rgba[4];
         gl->getColor(rgba);
         m_colorEditorWidget->setColor(rgba);
@@ -515,7 +470,6 @@ GiftiLabelTableEditor::listWidgetLabelSelected()
         }
     }
     
-    //m_editingGroup->setEnabled(isEditingAllowed);
     allowLabelDataEditing(isEditingAllowed);
 }
 
@@ -588,8 +542,6 @@ GiftiLabelTableEditor::loadLabels(const AString& selectedNameIn,
     if (usePreviouslySelectedIndex) {
         previousSelectedIndex = m_labelSelectionListWidget->currentRow();
     }
-//    const int32_t invalidLabelKey = GiftiLabel::getInvalidLabelKey();
-//    const GiftiLabel* invalidLabel = m_giftiLableTable->getLabel(invalidLabelKey);
     const GiftiLabel* selectedLabel = getSelectedLabel();
     AString selectedName;
     if (selectedLabel != NULL) {
@@ -671,7 +623,6 @@ GiftiLabelTableEditor::loadLabels(const AString& selectedNameIn,
         m_labelSelectionListWidget->setCurrentRow(defaultIndex);
     }
     else {
-        //m_editingGroup->setEnabled(false);
         allowLabelDataEditing(false);
     }
 }
@@ -763,8 +714,6 @@ GiftiLabelTableEditor::newButtonClicked()
     
     loadLabels(name, false);
     
-//    m_labelNameLineEdit->grabKeyboard();
-//    m_labelNameLineEdit->grabMouse();
     listWidgetLabelSelected();
     m_labelNameLineEdit->setFocus();
     m_labelNameLineEdit->selectAll();
@@ -1041,14 +990,4 @@ ChangeLabelKeyDialog::okButtonClicked()
     
     WuQDialogModal::okButtonClicked();
 }
-
-///**
-// *
-// */
-//int32_t
-//ChangeLabelKeyDialog::getNewKeyValue() const
-//{
-//    
-//}
-//
 

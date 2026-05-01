@@ -71,11 +71,6 @@ namespace caret {
             OPTION_ADD_KEY_EDITING = 4
         };
         
-//        GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
-//                              const AString& dialogTitle,
-//                              const uint32_t options,
-//                              QWidget* parent);
-        
         GiftiLabelTableEditor(CaretMappableDataFile* caretMappableDataFile,
                               const int32_t mapIndex,
                               const AString& dialogTitle,
@@ -110,8 +105,6 @@ namespace caret {
         void deleteButtonClicked();
         void undoButtonClicked();
         void changeLabelKeyLockButtonClicked();
-        
-//        void listWidgetLabelSelected(int row);
         
         void listWidgetLabelSelected();
         
@@ -200,8 +193,6 @@ namespace caret {
                              QWidget* parent);
         
         ~ChangeLabelKeyDialog();
-        
-//        int32_t getNewKeyValue() const;
         
     protected:
         virtual void okButtonClicked();

@@ -187,10 +187,11 @@ MapSettingsLabelsWidget::editLabelTablePushButtonClicked()
         if (mapFile != NULL) {
             if (mapFile->isMappedWithLabelTable()) {
                 if (mapIndex >= 0) {
+                    const uint32_t options(GiftiLabelTableEditor::OPTION_ADD_APPLY_BUTTON);
                     GiftiLabelTableEditor labelTableEditor(mapFile,
                                                            mapIndex,
                                                            "Edit Labels",
-                                                           GiftiLabelTableEditor::OPTION_ADD_APPLY_BUTTON,
+                                                           options,
                                                            this);
                     labelTableEditor.exec();
                 }
