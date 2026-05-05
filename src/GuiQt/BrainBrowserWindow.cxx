@@ -2146,9 +2146,6 @@ BrainBrowserWindow::createMenuDevelop()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(developerMenuAboutToShow()));
     
-    if (SessionManager::get()->isPaletteNewSupported()) {
-        menu->addAction(m_dataPaletteEditorDialogAction);
-    }
     const bool showExportToVTKFlag(false);
     if (showExportToVTKFlag) {
         menu->addAction(m_developerExportVtkFileAction);
@@ -2929,6 +2926,10 @@ BrainBrowserWindow::createMenuData()
     menu->addAction(m_dataFociEditAction);
     menu->addAction(m_dataFociProjectAction);
     menu->addSeparator();
+    if (SessionManager::get()->isPaletteNewSupported()) {
+        menu->addAction(m_dataPaletteEditorDialogAction);
+        menu->addSeparator();
+    }
     menu->addAction(m_dataSamplesEditAction);
     
     return menu;
