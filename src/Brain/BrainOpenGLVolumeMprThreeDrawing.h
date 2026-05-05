@@ -57,6 +57,22 @@ namespace caret {
     class BrainOpenGLVolumeMprThreeDrawing : public CaretObject {
         
     public:
+        enum class BlendingMode {
+            ALL_VIEW,
+            AVERAGE,
+            BACKGROUND_INTENSITY_AVERAGE,
+            BACKGROUND_MINIMUM_INTENSITY_SLICE,
+            BACKGROUND_MAXIMUM_INTENSITY_SLICE,
+            INTENSITY_MAXIMUM,
+            INTENSITY_MINIMUM,
+            MPR_UNDERLAY_SLICE,
+            MPR_OVERLAY_SLICE,
+        };
+        
+        static void setupMprBlending(const BlendingMode blendingMode,
+                                     const float alphaValue,
+                                     const int32_t averageNumberOfSlices);
+        
         BrainOpenGLVolumeMprThreeDrawing();
         
         virtual ~BrainOpenGLVolumeMprThreeDrawing();
@@ -84,18 +100,6 @@ namespace caret {
             INVALID,
             ALL_3D,
             VOLUME_2D
-        };
-        
-        enum class BlendingMode {
-            ALL_VIEW,
-            AVERAGE,
-            BACKGROUND_INTENSITY_AVERAGE,
-            BACKGROUND_MINIMUM_INTENSITY_SLICE,
-            BACKGROUND_MAXIMUM_INTENSITY_SLICE,
-            INTENSITY_MAXIMUM,
-            INTENSITY_MINIMUM,
-            MPR_UNDERLAY_SLICE,
-            MPR_OVERLAY_SLICE,
         };
         
         class GridInfo {
@@ -287,10 +291,6 @@ namespace caret {
         bool setPrimitiveCoordinates(const VolumeMprVirtualSliceView& mprSliceView,
                                      const VolumeMappableInterface* volume,
                                      GraphicsPrimitiveV3fT3f* primitive);
-        
-        void setupMprBlending(const BlendingMode blendingMode,
-                              const float alphaValue,
-                              const int32_t averageNumberOfSlices) const;
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 

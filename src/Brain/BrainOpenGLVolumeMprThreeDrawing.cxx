@@ -5153,7 +5153,7 @@ BrainOpenGLVolumeMprThreeDrawing::setPrimitiveCoordinates(const VolumeMprVirtual
 void
 BrainOpenGLVolumeMprThreeDrawing::setupMprBlending(const BlendingMode blendingMode,
                                                    const float alphaValue,
-                                                   const int32_t averageNumberOfSlices) const
+                                                   const int32_t averageNumberOfSlices)
 {
     switch (blendingMode) {
         case BlendingMode::ALL_VIEW:
