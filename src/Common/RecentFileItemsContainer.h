@@ -163,6 +163,8 @@ namespace caret {
         
         void readFromXMLVersionOneRecentFileItem(QXmlStreamReader& reader);
         
+        void addDirectoriesThatShouldNotBeSearched(std::set<AString>& canonicalPathsSearched);
+        
         RecentFileItemsContainerModeEnum::Enum m_mode;
         
         CaretPreferences* m_caretPreferences = NULL;

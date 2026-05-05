@@ -28,6 +28,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QStandardPaths>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
@@ -317,10 +318,13 @@ RecentFileItemsContainer::loadRecursiveDirectoryContainer(const AString& topLeve
     /*
      * Could symbolic links to a parent directory create a loop???
      * Track canonical paths (sym links replaced by path)
+     * Exclude some directories
      */
     std::set<AString> canonicalPathsSearched;
+    addDirectoriesThatShouldNotBeSearched(canonicalPathsSearched);
     canonicalPathsSearched.insert(topLevelDirectoryPath);
     
+
     int32_t directoriesSearchedCount(1);
     while ( ! directoryPathsToSearch.empty()) {
         const AString dirName(directoryPathsToSearch.front());
@@ -435,6 +439,50 @@ RecentFileItemsContainer::stopLoadRecursiveDirectoryContainer()
 {
     QMutexLocker locker(&m_loadRecursiveDirectoryContainerMutex);
     m_stopLoadRecursiveDirectoryContainerFlag = true;
+}
+
+/**
+ * Add directories that should not be searched for data files
+ * @param canonicalPathsSearched
+ *    Paths are added to this.
+ */
+void
+RecentFileItemsContainer::addDirectoriesThatShouldNotBeSearched(std::set<AString>& canonicalPathsSearched)
+{
+    std::vector<QStandardPaths::StandardLocation> locations {
+        QStandardPaths::FontsLocation,
+        QStandardPaths::ApplicationsLocation,
+        QStandardPaths::MusicLocation,
+        QStandardPaths::MoviesLocation,
+        QStandardPaths::PicturesLocation,
+    };
+    
+    for (QStandardPaths::StandardLocation& sl : locations) {
+        QStringList names(QStandardPaths::standardLocations(sl));
+        for (int32_t i = 0; i < names.length(); i++) {
+            QFileInfo fileInfo(names.at(i));
+            canonicalPathsSearched.insert(fileInfo.canonicalFilePath());
+        }
+    }
+    
+    /*
+     * Exclude some other paths
+     */
+    {
+        QFileInfo homeDirInfo(QDir::homePath() + QDir::separator() + "caret64_sdk");
+        canonicalPathsSearched.insert(homeDirInfo.canonicalFilePath());
+    }
+    {
+        QFileInfo homeDirInfo(QDir::homePath() + QDir::separator() + "caret7_development");
+        canonicalPathsSearched.insert(homeDirInfo.canonicalFilePath());
+    }
+#ifdef CARET_OS_MACOSX
+    /*
+     * On macOS, exclude the user's Library Directory
+     */
+    QFileInfo homeDirInfo(QDir::homePath() + QDir::separator() + "Library");
+    canonicalPathsSearched.insert(homeDirInfo.canonicalFilePath());
+#endif
 }
 
 /**
