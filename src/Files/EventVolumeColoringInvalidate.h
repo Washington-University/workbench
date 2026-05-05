@@ -30,11 +30,14 @@
 
 
 namespace caret {
+    class VolumeMappableInterface;
 
     class EventVolumeColoringInvalidate : public Event {
         
     public:
         EventVolumeColoringInvalidate();
+        
+        EventVolumeColoringInvalidate(const VolumeMappableInterface* volumeMappableInterface);
         
         virtual ~EventVolumeColoringInvalidate();
         
@@ -42,10 +45,13 @@ namespace caret {
 
         EventVolumeColoringInvalidate& operator=(const EventVolumeColoringInvalidate&) = delete;
         
+        const VolumeMappableInterface* getVolumeMappableIterface() const;
 
         // ADD_NEW_METHODS_HERE
 
     private:
+        const VolumeMappableInterface* m_volumeMappableInterface;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

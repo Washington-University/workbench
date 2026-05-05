@@ -189,7 +189,7 @@ MapSettingsLabelsWidget::applySelections()
                 
                 VolumeFile* volumeFile(dynamic_cast<VolumeFile*>(mapFile));
                 if (volumeFile != NULL) {
-                    EventManager::get()->sendEvent(EventVolumeColoringInvalidate().getPointer());
+                    EventManager::get()->sendEvent(EventVolumeColoringInvalidate(volumeFile).getPointer());
                 }
                 EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
                 EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());

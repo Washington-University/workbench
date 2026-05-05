@@ -8385,12 +8385,25 @@ Brain::receiveEvent(Event* event)
         CaretAssert(colorEvent);
         colorEvent->setEventProcessed();
         
+        const VolumeMappableInterface* volumeToUpdate(colorEvent->getVolumeMappableIterface());
+        
         std::vector<CaretMappableDataFile*> allMapFiles;
         getAllMappableDataFiles(allMapFiles);
         
         for (auto& mf : allMapFiles) {
             if (mf->isVolumeMappable()) {
-                mf->updateScalarColoringForAllMaps();
+                if (volumeToUpdate != NULL) {
+                    const VolumeMappableInterface* volumeMapFile(dynamic_cast<VolumeMappableInterface*>(mf));
+                    if (volumeMapFile != NULL) {
+                        if (volumeToUpdate == volumeMapFile) {
+                            mf->updateScalarColoringForAllMaps();
+                            break;
+                        }
+                    }
+                }
+                else {
+                    mf->updateScalarColoringForAllMaps();
+                }
             }
         }
     }

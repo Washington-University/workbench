@@ -32,17 +32,28 @@ using namespace caret;
     
 /**
  * \class caret::EventVolumeColoringInvalidate 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Event to update coloring for one or all volume files
  * \ingroup Files
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
  */
 
 /**
- * Constructor.
+ * Constructor for coloring all volume files
  */
 EventVolumeColoringInvalidate::EventVolumeColoringInvalidate()
-: Event(EventTypeEnum::EVENT_VOLUME_COLORING_INVALIDATE)
+: Event(EventTypeEnum::EVENT_VOLUME_COLORING_INVALIDATE),
+m_volumeMappableInterface(NULL)
+{
+    
+}
+
+/**
+ * Constructor for coloring one volume file
+ * @param volumeMappableInterface
+ *    Volume that is to have coloring updated
+ */
+EventVolumeColoringInvalidate::EventVolumeColoringInvalidate(const VolumeMappableInterface* volumeMappableInterface)
+: Event(EventTypeEnum::EVENT_VOLUME_COLORING_INVALIDATE),
+m_volumeMappableInterface(volumeMappableInterface)
 {
     
 }
@@ -52,5 +63,14 @@ EventVolumeColoringInvalidate::EventVolumeColoringInvalidate()
  */
 EventVolumeColoringInvalidate::~EventVolumeColoringInvalidate()
 {
+}
+
+/**
+ * @return The volume to have coloring updated or NULL if all volumes to have coloring updated
+ */
+const VolumeMappableInterface*
+EventVolumeColoringInvalidate::getVolumeMappableIterface() const
+{
+    return m_volumeMappableInterface;
 }
 
