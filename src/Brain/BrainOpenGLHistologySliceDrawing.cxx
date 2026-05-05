@@ -33,6 +33,7 @@
 #include "BrainOpenGLFociDrawing.h"
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLViewportContent.h"
+#include "BrainOpenGLVolumeMprThreeDrawing.h"
 #include "BrainOpenGLVolumeSurfaceOutlineDrawing.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -1153,25 +1154,38 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
                             && (alphaValue <= 1.0));
                 
                 /*
-                 * The constant alpha comes from the overlay.
-                 * The layer being drawn gets (RGB * alphaValue)
-                 * and current frame buffer gets (FrameRGB * (1 - alphaValue)
+                 * Fix white outline on a label volume over histology with opacity 04may2026
+                 * Only when opacity is less than one.
                  */
-                glBlendColor(alphaValue, alphaValue, alphaValue, 0.0);
-                glBlendFuncSeparate(GL_CONSTANT_COLOR,           /* source (incoming) RGB blending factor */
-                                    GL_ONE_MINUS_CONSTANT_COLOR, /* destination (frame buffer) RGB blending factor */
-                                    GL_ONE,                /* source (incoming) Alpha blending factor */
-                                    GL_ZERO);                /* destination (frame buffer) Alpha blending factor */
-                glEnable(GL_BLEND);
-                
-                /*
-                 * Only allow framebuffer update if the incoming alpha is greater than
-                 * zero.  For a label volume, voxels have alpha equal to zero
-                 * where there is no label.  This prevents an drawing of these
-                 * zero alpha voxels while allowing blending.
-                 */
-                glAlphaFunc(GL_GREATER, 0.0);
-                glEnable(GL_ALPHA_TEST);
+                const bool whiteOutlineFixOnLabelVolumeWithOpacityFlag(alphaValue < 1.0);
+                if (whiteOutlineFixOnLabelVolumeWithOpacityFlag) {
+                    const int32_t invalidNumberOfSlices(0);
+                    BrainOpenGLVolumeMprThreeDrawing::setupMprBlending(BrainOpenGLVolumeMprThreeDrawing::BlendingMode::ALL_VIEW,
+                                                                       alphaValue,
+                                                                       invalidNumberOfSlices);
+                }
+                else {
+                    /*
+                     * The constant alpha comes from the overlay.
+                     * The layer being drawn gets (RGB * alphaValue)
+                     * and current frame buffer gets (FrameRGB * (1 - alphaValue)
+                     */
+                    glBlendColor(alphaValue, alphaValue, alphaValue, 0.0);
+                    glBlendFuncSeparate(GL_CONSTANT_COLOR,           /* source (incoming) RGB blending factor */
+                                        GL_ONE_MINUS_CONSTANT_COLOR, /* destination (frame buffer) RGB blending factor */
+                                        GL_ONE,                /* source (incoming) Alpha blending factor */
+                                        GL_ZERO);                /* destination (frame buffer) Alpha blending factor */
+                    glEnable(GL_BLEND);
+                    
+                    /*
+                     * Only allow framebuffer update if the incoming alpha is greater than
+                     * zero.  For a label volume, voxels have alpha equal to zero
+                     * where there is no label.  This prevents an drawing of these
+                     * zero alpha voxels while allowing blending.
+                     */
+                    glAlphaFunc(GL_GREATER, 0.0);
+                    glEnable(GL_ALPHA_TEST);
+                }
             }
             else {
                 m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
