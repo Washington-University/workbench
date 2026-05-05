@@ -271,6 +271,7 @@ GuiManager::initializeGuiManager()
      */
     m_identifyBrainordinateDialogEnabledAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_IDENTIFY_BRAINORDINATE,
                                                                      this);
+    m_identifyBrainordinateDialogEnabledAction->setText("Identify Brainordinate...");
     m_identifyBrainordinateDialogEnabledAction->setToolTip("Enables display of the Identify Brainordinate Window");
     QObject::connect(m_identifyBrainordinateDialogEnabledAction, &QAction::triggered,
                      this, &GuiManager::showIdentifyBrainordinateDialogActionToggled);
@@ -289,6 +290,7 @@ GuiManager::initializeGuiManager()
      */
     m_sceneDialogDisplayAction = new WorkbenchAction(WorkbenchIconTypeEnum::TABBAR_SCENES_CLAP_BOARD,
                                                      this);
+    m_sceneDialogDisplayAction->setText("Scenes...");
     QObject::connect(m_sceneDialogDisplayAction, &QAction::triggered,
                      this, &GuiManager::sceneDialogDisplayActionTriggered);
     m_sceneDialogDisplayAction->setIconVisibleInMenu(false);
