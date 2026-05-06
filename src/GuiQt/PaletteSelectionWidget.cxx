@@ -103,7 +103,7 @@ PaletteSelectionWidget::getSelectedPalette() const
         {
             const int32_t index(m_paletteComboBox->currentIndex());
             if (index >= 0) {
-                palette = m_paletteComboBox->itemData(index).value<const PaletteBase*>();
+                palette = (const PaletteBase*)m_paletteComboBox->itemData(index).value<void*>();
             }
         }
             break;
@@ -111,7 +111,7 @@ PaletteSelectionWidget::getSelectedPalette() const
         {
             const QListWidgetItem* item(m_paletteListWidget->currentItem());
             if (item != NULL) {
-                palette = item->data(Qt::UserRole).value<const PaletteBase*>();
+                palette = (const PaletteBase*)item->data(Qt::UserRole).value<void*>();
             }
         }
             break;
@@ -155,7 +155,7 @@ PaletteSelectionWidget::comboBoxActivated(int index)
     CaretAssert(m_paletteComboBox);
     if ((index >= 0)
         && (index < m_paletteComboBox->count())) {
-        const PaletteBase* palette(m_paletteComboBox->itemData(index).value<const PaletteBase*>());
+        const PaletteBase* palette((const PaletteBase*)m_paletteComboBox->itemData(index).value<void*>());
         if (palette != NULL) {
             emit paletteSelected(palette);
         }
@@ -172,7 +172,7 @@ PaletteSelectionWidget::listWidgetItemClicked(QListWidgetItem* item)
 {
 //    m_paletteBeingEdited = NULL;
     if (item != NULL) {
-        const PaletteBase* palette(item->data(Qt::UserRole).value<const PaletteBase*>());
+        const PaletteBase* palette((const PaletteBase*)item->data(Qt::UserRole).value<void*>());
         if (palette != NULL) {
             emit paletteSelected(palette);
         }
@@ -192,7 +192,7 @@ PaletteSelectionWidget::selectPalette(const PaletteBase* paletteBase)
             CaretAssert(m_paletteComboBox);
             QSignalBlocker blocker(m_paletteComboBox);
             for (int32_t i = 0; i < m_paletteComboBox->count(); i++) {
-                if (paletteBase == m_paletteComboBox->itemData(i).value<const PaletteBase*>()) {
+                if (paletteBase == (const PaletteBase*)m_paletteComboBox->itemData(i).value<void*>()) {
                     m_paletteComboBox->setCurrentIndex(i);
                     break;
                 }
@@ -204,7 +204,7 @@ PaletteSelectionWidget::selectPalette(const PaletteBase* paletteBase)
             QSignalBlocker blocker(m_paletteListWidget);
             CaretAssert(m_paletteListWidget);
             for (int32_t i = 0; i < m_paletteListWidget->count(); i++) {
-                if (paletteBase == m_paletteListWidget->item(i)->data(Qt::UserRole).value<const PaletteBase*>()) {
+                if (paletteBase == (const PaletteBase*)m_paletteListWidget->item(i)->data(Qt::UserRole).value<void*>()) {
                     m_paletteListWidget->setCurrentRow(i);
                     break;
                 }
