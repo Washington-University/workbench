@@ -82,16 +82,17 @@ PaletteNewXmlStreamWriter::writeToFile(const PaletteNew& palette,
     if (xmlWriter.hasError()) {
         return FunctionResult::error("Unable to create XML stream writer\n"
                                      "Filename=" + filename + "\n"
-                                     "Error=" + xmlWriter.errorString());
+                                     "Error=" + getXmlWriterErrorString(xmlWriter));
     }
     
-    writePaletteContent(xmlWriter,
-                        palette);
+    const bool errorFlag( ! writePaletteContent(xmlWriter,
+                                                palette));
     
-    if (xmlWriter.hasError()) {
+    if (xmlWriter.hasError()
+        || errorFlag) {
         return FunctionResult::error("Error writing XML\n"
                                      "Filename=" + filename + "\n"
-                                     "Error=" + xmlWriter.errorString());
+                                     "Error=" + getXmlWriterErrorString(xmlWriter));
     }
 
     return FunctionResult::ok();
@@ -113,17 +114,19 @@ PaletteNewXmlStreamWriter::writeToString(const PaletteNew& palette)
     if (xmlWriter.hasError()) {
         errorMessage = ("Unable to create XML stream writer for palette="
                         + palette.getName() + "\n"
-                        "Error=" + xmlWriter.errorString());
+                        "Error=" + getXmlWriterErrorString(xmlWriter));
     }
     
     if (errorMessage.isEmpty()) {
-        writePaletteContent(xmlWriter,
-                            palette);
+        const bool errorFlag( ! writePaletteContent(xmlWriter,
+                                                    palette));
         
-        if (xmlWriter.hasError()) {
+
+        if (xmlWriter.hasError()
+            || errorFlag) {
             errorMessage = ("Error writing XML for palette="
                             + palette.getName() + "\n"
-                            "Error=" + xmlWriter.errorString());
+                            "Error=" + getXmlWriterErrorString(xmlWriter));
         }
     }
     
@@ -139,9 +142,9 @@ PaletteNewXmlStreamWriter::writeToString(const PaletteNew& palette)
  * @param palette
  *    The palette
  * @return
- *    Function result with success/failure
+ *    True if successful, else false (returning result is needed since QXmlStreamWriter::raiseError() not supported before Qt 6.10).
  */
-void
+bool
 PaletteNewXmlStreamWriter::writePaletteContent(QXmlStreamWriter& xmlWriter,
                                                const PaletteNew& palette)
 {
@@ -155,8 +158,10 @@ PaletteNewXmlStreamWriter::writePaletteContent(QXmlStreamWriter& xmlWriter,
         errorMessage.appendWithNewLine("Negative range must contain at least two elements");
     }
     if ( ! errorMessage.isEmpty()) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
         xmlWriter.raiseError(errorMessage);
-        return;
+#endif
+        return false;
     }
 
     const AString versionString("2");
@@ -193,6 +198,8 @@ PaletteNewXmlStreamWriter::writePaletteContent(QXmlStreamWriter& xmlWriter,
     xmlWriter.writeEndElement();
     
     xmlWriter.writeEndDocument();
+    
+    return true;
 }
 
 /**
@@ -223,6 +230,22 @@ PaletteNewXmlStreamWriter::writeRange(QXmlStreamWriter& xmlWriter,
         xmlWriter.writeEndElement();
     }
     xmlWriter.writeEndElement();
+}
+
+/**
+ * QXmlWriter::errorString() was added in Qt 6.10.
+ * @return The XML error string, if supported.
+ * @param xmlWriter
+ *    The XML writer with error.
+ */
+AString
+PaletteNewXmlStreamWriter::getXmlWriterErrorString(QXmlStreamWriter& xmlWriter)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    return xmlWriter.errorString();
+#else
+    return AString("Unknown error.  Qt is too old to provide error message.");
+#endif
 }
 
 

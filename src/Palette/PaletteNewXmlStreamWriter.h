@@ -52,12 +52,14 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        void writePaletteContent(QXmlStreamWriter& xmlWriter,
+        bool writePaletteContent(QXmlStreamWriter& xmlWriter,
                                  const PaletteNew& palette);
         
         void writeRange(QXmlStreamWriter& xmlWriter,
                         const AString& rangeXmlElement,
                         const std::vector<PaletteNew::ScalarColor>& rangeScalarColors);
+        
+        AString getXmlWriterErrorString(QXmlStreamWriter& xmlWriter);
         
         // ADD_NEW_MEMBERS_HERE
 
