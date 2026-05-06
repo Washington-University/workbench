@@ -66,7 +66,7 @@ m_paletteDesignTypes(paletteDesignTypes)
         case WidgetType::COMBO_BOX:
             m_paletteComboBox = new QComboBox();
             selectionWidget   = m_paletteComboBox;
-            QObject::connect(m_paletteComboBox, &QComboBox::activated,
+            QObject::connect(m_paletteComboBox, QOverload<int>::of(&QComboBox::activated),
                              this, &PaletteSelectionWidget::comboBoxActivated);
             break;
         case WidgetType::LIST_WIDGET:

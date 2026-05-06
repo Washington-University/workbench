@@ -23,6 +23,7 @@
 #include "PaletteEditorRangeWidget.h"
 #undef __PALETTE_EDITOR_RANGE_WIDGET_DECLARE__
 
+#include <cmath>
 #include <cstdlib>
 
 #include <QButtonGroup>
