@@ -75,7 +75,7 @@ m_pixmapMode(pixmapMode)
     QButtonGroup* buttonGroup(new QButtonGroup(this));
     buttonGroup->addButton(m_copyPaletteRadioButton);
     buttonGroup->addButton(m_newPaletteRadioButton);
-    QObject::connect(buttonGroup, &QButtonGroup::buttonClicked,
+    QObject::connect(buttonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
                      this, &PaletteCreateNewDialog::radioButtonClicked);
     
     m_copyPaletteWidget = createCopyPaletteSection();

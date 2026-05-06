@@ -89,7 +89,7 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     
     m_colorEditButtonGroup = new QButtonGroup(this);
     m_colorEditButtonGroup->setExclusive(true);
-    QObject::connect(m_colorEditButtonGroup, &QButtonGroup::buttonClicked,
+    QObject::connect(m_colorEditButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
                      this, &PaletteEditorDialog::controlPointButtonClicked);
     
     QWidget* paletteBarWidget = createPaletteBarWidget();
