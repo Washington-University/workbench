@@ -269,7 +269,7 @@ PaletteSelectionWidget::updateContent(const bool forceUpdate)
                     break;
             }
             
-            const QVariant paletteKey(QVariant::fromValue(p));
+            const QVariant paletteKey(QVariant::fromValue((void*)p));  /* Void required with older Qt*/
             switch (m_widgetType) {
                 case WidgetType::COMBO_BOX:
                 {
