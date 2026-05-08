@@ -560,6 +560,10 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
     getDrawingWindowContent(viewport,
                             windowContent);
     
+    CaretLogConfig("Offscreen OpenGL --------------------"
+                   + s_singletonOpenGL->getOpenGLInformation()
+                   + "---------------------------------");
+    
     const GraphicsFramesPerSecond* noGraphicsTiming(NULL);
     s_singletonOpenGL->drawModels(this->windowIndex,
                                   getSelectedInputMode(),
