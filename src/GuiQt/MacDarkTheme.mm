@@ -19,8 +19,6 @@
  */
 /*LICENSE_END*/
 
-#ifdef WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
-
 /*
  * Code from https://successfulsoftware.net/2021/03/31/how-to-add-a-dark-theme-to-your-qt-application/
  */
@@ -29,6 +27,7 @@
 
 #import <Cocoa/Cocoa.h>
 
+#ifdef WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
 bool macDarkThemeAvailable()
 {
     if (__builtin_available(macOS 10.14, *))
@@ -40,6 +39,7 @@ bool macDarkThemeAvailable()
         return false;
     }
 }
+#endif
 
 bool macIsInDarkTheme()
 {
@@ -52,6 +52,7 @@ bool macIsInDarkTheme()
     return false;
 }
 
+#ifdef WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
 void macSetToDarkTheme()
 {
     // https://stackoverflow.com/questions/55925862/how-can-i-set-my-os-x-application-theme-in-code

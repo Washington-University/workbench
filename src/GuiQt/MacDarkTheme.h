@@ -25,10 +25,11 @@
 
 #ifdef WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
 bool macDarkThemeAvailable();
-bool macIsInDarkTheme();
 void macSetToDarkTheme();
 void macSetToLightTheme();
 void macSetToAutoTheme();
 #endif // WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
+
+bool macIsInDarkTheme();
 
 #endif // __MAC_DARK_THEME_H__

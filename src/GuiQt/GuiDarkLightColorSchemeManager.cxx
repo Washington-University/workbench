@@ -144,7 +144,13 @@ GuiDarkLightColorSchemeManager::qtColorSchemeChanged(Qt::ColorScheme colorScheme
     
     CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
     CaretAssert(prefs);
+    /*
+     * We DO NOT want to set the color scheme in PREFERENCES
+     * on macOS as macOS provide the color scheme.
+     */
+#ifndef CARET_OS_MACOSX
     prefs->setDarkLightColorSchemeMode(wbColorScheme);
+#endif
     
 #ifdef WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_QT
     applyDarkLightColorScheme();
@@ -167,19 +173,19 @@ GuiDarkLightColorSchemeManager::getActiveDarkLightColorScheme() const
         case GuiDarkLightColorSchemeModeEnum::LIGHT:
             break;
         case GuiDarkLightColorSchemeModeEnum::SYSTEM:
-#ifdef WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
+//#ifdef WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
             if (macIsInDarkTheme()) {
                 activeDarkLightColorSchemeMode = GuiDarkLightColorSchemeModeEnum::DARK;
             }
             else {
                 activeDarkLightColorSchemeMode = GuiDarkLightColorSchemeModeEnum::LIGHT;
             }
-#else
-            /*
-             * Use LIGHT on Linux and Windows
-             */
-            activeDarkLightColorSchemeMode = GuiDarkLightColorSchemeModeEnum::LIGHT;
-#endif
+//#else
+//            /*
+//             * Use LIGHT on Linux and Windows
+//             */
+//            activeDarkLightColorSchemeMode = GuiDarkLightColorSchemeModeEnum::LIGHT;
+//#endif
             break;
     }
     
