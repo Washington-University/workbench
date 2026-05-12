@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "DeveloperFlagsEnum.h"
 #include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsUtilitiesOpenGL.h"
@@ -516,6 +517,31 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
         magFilter  = GraphicsTextureMagnificationFilterEnum::NEAREST;
         minFilter  = GraphicsTextureMinificationFilterEnum::NEAREST;
     }
+    
+    if (m_mapDataFile->isMappedWithPalette()) {
+        /*
+         * Use pre-multiplication to prevent white halos or lines
+         * See note in BrainOpenGLVolumeMprThreeDrawing::setupMprBlending()
+         */
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA)) {
+            const int64_t numVoxels(numberOfRows * numberOfColumns);
+            uint8_t* rgba(&rgbaSlice[0]);
+            for (int64_t i = 0; i < numVoxels; i++) {
+                const int64_t i4(i * 4);
+                const uint8_t alphaByte(rgba[i4 + 3]);
+                if (alphaByte < 255) {
+                    const float alphaFloat(static_cast<float>(alphaByte) / 255.0);
+                    for (int32_t m = 0; m < 3; m++) {
+                        const float compMultAlpha(static_cast<float>(rgba[i4+m]) * alphaFloat);
+                        int32_t compInt(static_cast<int32_t>(compMultAlpha));
+                        if (compInt > 255) compInt = 255;
+                        rgba[i4+m] = static_cast<uint8_t>(compInt);
+                    }
+                }
+            }
+        }
+    }
+    
     std::array<float, 4> backgroundColor { 0.0, 0.0, 0.0, 0.0 };
     GraphicsTextureSettings textureSettings(imageRgbaData,
                                             numberOfColumns,

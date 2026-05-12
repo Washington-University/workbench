@@ -150,6 +150,12 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA,
+                                                "DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA",
+                                                "Pre-Multiply Alpha in Volume MPR Voxels",
+                                                CheckableEnum::YES,
+                                                false));
+    
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_CHART_OPENGL_LINES,
                                                 "DEVELOPER_FLAG_CHART_OPENGL_LINES",
                                                 "Drawing: Draw Chart Lines with OpenGL Lines",
@@ -322,6 +328,10 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
             toolTip = ("For voxel cubes in ALL view, only draw \"outside faces\" "
                        "(faster but causes problem when opacity is less than one so disable "
                        "in that instance)");
+            break;
+        case DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA:
+            toolTip = ("When coloring function volumes for MPR drawing, pre-multiply "
+                       "the RGB components by the Alpha value");
             break;
     }
     

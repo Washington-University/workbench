@@ -3169,7 +3169,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                                  s_INVALID_NUMBER_OF_SLICES);
             }
             else if (enabledBlendingFlag) {
-                if (firstFlag) {
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA)) {
+                    setupMprBlending(BlendingMode::MPR_PRE_MULTIPLY_ALPHA,
+                                     vdi.opacity,
+                                     s_INVALID_NUMBER_OF_SLICES);
+                }
+                else if (firstFlag) {
                     firstFlag = false;
                     
                     /*
@@ -5294,6 +5299,45 @@ BrainOpenGLVolumeMprThreeDrawing::setupMprBlending(const BlendingMode blendingMo
                                 GL_ONE,   /* source (incoming) Alpha blending factor */
                                 GL_ONE); /* destination (frame buffer) Alpha blending factor */
             glEnable(GL_BLEND);
+        }
+            break;
+        case BlendingMode::MPR_PRE_MULTIPLY_ALPHA:
+        {
+            /*
+             * From a Google AI Overview:
+             * When using GL_LINEAR filtering in OpenGL with textures containing transparent
+             * texels (alpha = 0), you will often encounter dark or colored "halos" at the edges
+             * of opaque areas. This happens because OpenGL interpolates the Color (RGB) and
+             * Transparency (Alpha) channels independently.If a fully opaque pixel is next to
+             * a "transparent black" pixel (RGBA = 0,0,0,0), the linear filter will average
+             * their colors to a semi-transparent dark grey, creating a dark fringe.Recommended
+             * Solutions:
+             *    Use Premultiplied Alpha: This is the industry-standard solution. Instead
+             *    of storing \((R, G, B, A)\), you store \((R \times A, G \times A, B \times A, A)\).
+             *
+             *    Benefit: When filtering occurs, the math naturally handles transparency without bleeding.
+             *    Implementation: Change your blend function to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
+             *    You can premultiply during texture loading or directly in your image files.
+             * Note: Pre-multiplication occurs in VolumeGraphicsPrimitiveManager::createPrimitive()
+             */
+            CaretAssert((alphaValue >= 0.0)
+                        && (alphaValue <= 1.0));
+            
+            /*
+             * RGB values have been pre-multiplied by alpha
+             */
+            glBlendFunc(GL_ONE,                  /* source (incoming) RGB blending factor */
+                        GL_ONE_MINUS_SRC_ALPHA); /* destination (frame buffer) RGB blending factor */
+            glEnable(GL_BLEND);
+            
+            /*
+             * Only allow framebuffer update if the incoming alpha is greater than
+             * zero.  For a label volume, voxels have alpha equal to zero
+             * where there is no label.  This prevents an drawing of these
+             * zero alpha voxels while allowing blending.
+             */
+            glAlphaFunc(GL_GREATER, 0.0);
+            glEnable(GL_ALPHA_TEST);
         }
             break;
     }

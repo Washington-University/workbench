@@ -67,6 +67,7 @@ namespace caret {
             INTENSITY_MINIMUM,
             MPR_UNDERLAY_SLICE,
             MPR_OVERLAY_SLICE,
+            MPR_PRE_MULTIPLY_ALPHA
         };
         
         static void setupMprBlending(const BlendingMode blendingMode,

@@ -154,6 +154,9 @@ PreferencesDevelopOptionsWidget::developerFlagSelected(const DeveloperFlagsEnum:
     if (flag == DeveloperFlagsEnum::DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION) {
         EventManager::get()->sendEvent(EventVolumeColoringInvalidate().getPointer());
     }
+    else if (flag == DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA) {
+        EventManager::get()->sendEvent(EventVolumeColoringInvalidate().getPointer());
+    }
     updateGraphicsAndUserInterface();
 }
 
