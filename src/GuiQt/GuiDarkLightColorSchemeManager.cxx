@@ -173,19 +173,14 @@ GuiDarkLightColorSchemeManager::getActiveDarkLightColorScheme() const
         case GuiDarkLightColorSchemeModeEnum::LIGHT:
             break;
         case GuiDarkLightColorSchemeModeEnum::SYSTEM:
-//#ifdef WORKBENCH_DARK_LIGHT_COLOR_SCHEME_USE_MACOS
+#ifdef CARET_OS_MACOSX
             if (macIsInDarkTheme()) {
                 activeDarkLightColorSchemeMode = GuiDarkLightColorSchemeModeEnum::DARK;
             }
             else {
                 activeDarkLightColorSchemeMode = GuiDarkLightColorSchemeModeEnum::LIGHT;
             }
-//#else
-//            /*
-//             * Use LIGHT on Linux and Windows
-//             */
-//            activeDarkLightColorSchemeMode = GuiDarkLightColorSchemeModeEnum::LIGHT;
-//#endif
+#endif
             break;
     }
     
