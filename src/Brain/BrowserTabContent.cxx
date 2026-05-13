@@ -65,6 +65,7 @@
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFoci.h"
 #include "EventAnnotationBarsGet.h"
+#include "EventBrowserTabRotateSurfaceToShowVertex.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventCaretMappableDataFileMapsViewedInOverlays.h"
 #include "EventIdentificationHighlightLocation.h"
@@ -334,6 +335,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_ANNOTATION_BARS_GET);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_BROWSER_TAB_ROTATE_SURFACE_TO_SHOW_VERTEX);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     EventManager::get()->addEventListener(this,
@@ -1899,6 +1902,96 @@ BrowserTabContent::receiveEvent(Event* event)
                  * Scale bar is derived from color bar
                  */
                 barsEvent->addAnnotationScaleBar(m_scaleBar.get());
+            }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_ROTATE_SURFACE_TO_SHOW_VERTEX) {
+        EventBrowserTabRotateSurfaceToShowVertex* rotateToVertexEvent =
+        dynamic_cast<EventBrowserTabRotateSurfaceToShowVertex*>(event);
+        CaretAssert(rotateToVertexEvent);
+        
+        if (rotateToVertexEvent->getBrowserTabIndex() == m_tabNumber) {
+            rotateToVertexEvent->setEventProcessed();
+            
+            bool rightSurfaceFlag(false);
+            Surface* surface(NULL);
+            ModelSurface* modelSurface(getDisplayedSurfaceModel());
+            ModelSurfaceMontage* modelMontageSurface(getDisplayedSurfaceMontageModel());
+            if (modelSurface != NULL) {
+                surface = modelSurface->getSurface();
+                rightSurfaceFlag = (surface->getStructure() == StructureEnum::CORTEX_RIGHT);
+                if (surface->getStructure() != rotateToVertexEvent->getSurfaceStructure()) {
+                    surface = NULL;
+                }
+            }
+            else if (modelMontageSurface != NULL) {
+                surface = modelMontageSurface->getSelectedSurface(rotateToVertexEvent->getSurfaceStructure(),
+                                                                  m_tabNumber);
+            }
+            if (surface == NULL) {
+                rotateToVertexEvent->setErrorMessage("No surface with structure="
+                                                     + StructureEnum::toName(rotateToVertexEvent->getSurfaceStructure())
+                                                     + " is in browser tab index="
+                                                     + AString::number(m_tabNumber)
+                                                     + " (zero-based).");
+            }
+            else {
+                const std::vector<int32_t>& surfaceVertexIndices(rotateToVertexEvent->getSurfaceVertexIndices());
+                if (surfaceVertexIndices.size() == 0) {
+                    rotateToVertexEvent->setErrorMessage("Vertex indices are empty.");
+                }
+                else {
+                    const BoundingBox* bb(surface->getBoundingBox());
+                    if (bb->isValid()) {
+                        Vector3D centerOfSurfaceXYZ;
+                        surface->getCenterOfGravity(centerOfSurfaceXYZ);
+                        
+                        /*
+                         * Move 'X' to be closer to medial wall rather than
+                         * the center of the surface
+                         */
+                        switch (surface->getStructure()) {
+                            case StructureEnum::CORTEX_LEFT:
+                                centerOfSurfaceXYZ[0] = bb->getMaxX();
+                                break;
+                            case StructureEnum::CORTEX_RIGHT:
+                                centerOfSurfaceXYZ[0] = bb->getMinX();
+                                break;
+                            default:
+                                break;
+                        }
+                        
+                        const bool moveToNearestNodeFlag(true);
+                        FunctionResultValue<Vector3D> vertexAvgResult(surface->getAverageOfNodes(surfaceVertexIndices,
+                                                                                  moveToNearestNodeFlag));
+                        CaretAssert(vertexAvgResult.isOk());
+                        const Vector3D vertexXYZ(vertexAvgResult.getValue());
+                        const Vector3D centerToVertexVector((vertexXYZ - centerOfSurfaceXYZ).normal());
+                        
+                        /*
+                         * Matrix that rotates the vertex vector to align with the right vector
+                         */
+                        Vector3D pointToVector(1.0, 0.0, 0.0);
+                        if (rightSurfaceFlag) {
+                            pointToVector[0] = -1.0;
+                        }
+                        Matrix4x4 m = Matrix4x4::rotationTo(centerToVertexVector,
+                                                            pointToVector);
+                        
+                        /*
+                         * Reset view to a left view and then rotate vertex so that it faces user
+                         */
+                        if (rightSurfaceFlag) {
+                            rightView();
+                        }
+                        else {
+                            leftView();
+                        }
+                        Matrix4x4 rotMat(getRotationMatrix());
+                        rotMat.premultiply(m);
+                        setRotationMatrix(rotMat);
+                    }
+                }
             }
         }
     }

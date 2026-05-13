@@ -26,13 +26,15 @@
 
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
+#include "StructureEnum.h"
 #include "WuQDialogNonModal.h"
 
+class QCheckBox;
 class QLabel;
+class QLineEdit;
 class QRadioButton;
 class QSpinBox;
 class QStackedWidget;
-class QTextEdit;
 
 namespace caret {
 
@@ -124,6 +126,11 @@ namespace caret {
 
         ParcelSourceDimension getParcelSourceDimensionFromFile(const CaretMappableDataFile* mapFile);
         
+        QWidget* createRotateToViewWidget();
+        
+        void rotateSurfaceToVertices(const StructureEnum::Enum surfaceStructure,
+                                     const std::vector<int32_t>& surfaceVertexIndices);
+        
         StructureEnumComboBox* m_vertexStructureComboBox;
         
         QWidget* m_surfaceVertexWidget;
@@ -155,7 +162,11 @@ namespace caret {
             
             QLabel* m_fileLabellLabel;
             
+            QLabel* m_structureLabel;
+            
             GiftiLabelTableSelectionComboBox* m_fileLabelComboBox;
+            
+            StructureEnumComboBox* m_structureComboBox;
         };
         
         LabelFileWidgets m_labelFileWidgets;
@@ -200,7 +211,7 @@ namespace caret {
         
         QSpinBox* m_imagePixelJSpinBox;
         
-        QTextEdit* m_stereotaxicTextEdit;
+        QLineEdit* m_stereotaxicLineEdit;
         
         WuQDoubleSpinBox* m_stereotaxicXWidget;
         
@@ -216,6 +227,12 @@ namespace caret {
         QRadioButton* m_labelRadioButton;
         QRadioButton* m_stereotaxicRadioButton;
         QRadioButton* m_surfaceVertexRadioButton;
+        
+        QWidget* m_rotateSurfaceWidget;
+        
+        QCheckBox* m_rotateSurfaceCheckBox;
+        
+        QSpinBox* m_rotateSurfaceWindowSpinBox;
         
         std::map<DataFileTypeEnum::Enum, ParcelSourceDimension> m_parcelSourceDimensionMap;
         std::vector<DataFileTypeEnum::Enum> m_supportedCiftiRowFileTypes;

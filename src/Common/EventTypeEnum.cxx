@@ -222,6 +222,10 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_TAB_REOPEN_CLOSED",
                                      "Event for reopening a closed browser tab"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_ROTATE_SURFACE_TO_SHOW_VERTEX,
+                                     "EVENT_BROWSER_TAB_ROTATE_SURFACE_TO_SHOW_VERTEX",
+                                     "Event to rotate surface in browser tab to show a vertex"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_SELECT_IN_WINDOW,
                                      "EVENT_BROWSER_TAB_SELECT_IN_WINDOW",
                                      "Event for selecting a browser tab in a window"));

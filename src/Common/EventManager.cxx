@@ -429,6 +429,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE:
         case EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_AVAILBLE:
         case EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED:
+        case EventTypeEnum::EVENT_BROWSER_TAB_ROTATE_SURFACE_TO_SHOW_VERTEX:
         case EventTypeEnum::EVENT_BROWSER_TAB_SELECT_IN_WINDOW:
         case EventTypeEnum::EVENT_BROWSER_TAB_VALIDATE:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT:

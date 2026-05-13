@@ -26,18 +26,21 @@
 using namespace caret;
 
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QLineEdit>
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QStackedWidget>
-#include <QTextEdit>
 
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "BrainordinateRegionOfInterest.h"
 #include "BrainStructure.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionComboBox.h"
 #include "CaretDataFileSelectionModel.h"
@@ -51,12 +54,14 @@ using namespace caret;
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiDenseSparseFile.h"
 #include "CiftiFiberTrajectoryManager.h"
+#include "CiftiBrainordinateLabelFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
 #include "CiftiParcelSelectionComboBox.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "CziImageFile.h"
+#include "EventBrowserTabRotateSurfaceToShowVertex.h"
 #include "EventCaretDataFilesGet.h"
 #include "EventGraphicsPaintNowAllWindows.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
@@ -70,6 +75,7 @@ using namespace caret;
 #include "IdentificationManager.h"
 #include "IdentifiedItemUniversal.h"
 #include "ImageFile.h"
+#include "LabelFile.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
@@ -304,10 +310,13 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     radioButtonLayout->addWidget(m_stereotaxicRadioButton);
     radioButtonLayout->addWidget(m_surfaceVertexRadioButton);
     
+    m_rotateSurfaceWidget = createRotateToViewWidget();
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(radioButtonGroupBox);
     layout->addWidget(m_stackedWidget, 0, Qt::AlignLeft);
+    layout->addWidget(m_rotateSurfaceWidget);
     layout->addStretch();
     
     setCentralWidget(widget,
@@ -345,6 +354,35 @@ IdentifyBrainordinateDialog::receiveEvent(Event* event)
         updateDialog();
     }
 }
+
+/**
+ * @return new instance of rotate to view widget
+ */
+QWidget*
+IdentifyBrainordinateDialog::createRotateToViewWidget()
+{
+    m_rotateSurfaceCheckBox = new QCheckBox("Rotate Surface");
+    
+    QLabel* windowLabel(new QLabel("Window"));
+    m_rotateSurfaceWindowSpinBox = new QSpinBox();
+    m_rotateSurfaceWindowSpinBox->setRange(1,
+                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS);
+    m_rotateSurfaceWindowSpinBox->setFixedWidth(80);
+    m_rotateSurfaceWindowSpinBox->setValue(1);
+    
+    QGroupBox* groupBox(new QGroupBox("Rotate Surface to Show Identified Region"));
+    
+    QGridLayout* layout(new QGridLayout(groupBox));
+    layout->setColumnStretch(1, 100);
+    int row(layout->rowCount());
+    layout->addWidget(m_rotateSurfaceCheckBox, row, 0, 1, 2);
+    ++row;
+    layout->addWidget(windowLabel, row, 0);
+    layout->addWidget(m_rotateSurfaceWindowSpinBox, row, 1, Qt::AlignLeft);
+    
+    return groupBox;
+}
+
 
 /**
  * Create and return the CIFTI Parcel Widget
@@ -494,6 +532,9 @@ IdentifyBrainordinateDialog::createLabelFilesWidget(const std::vector<DataFileTy
     m_labelFileWidgets.m_fileLabellLabel = new QLabel("Label");
     m_labelFileWidgets.m_fileLabelComboBox = new GiftiLabelTableSelectionComboBox(this);
     
+    m_labelFileWidgets.m_structureLabel = new QLabel("Structure");
+    m_labelFileWidgets.m_structureComboBox = new StructureEnumComboBox(this);
+    
     /*
      * Widget and layout
      */
@@ -506,6 +547,8 @@ IdentifyBrainordinateDialog::createLabelFilesWidget(const std::vector<DataFileTy
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileMapComboBox, 1, COLUMN_MAP_RIGHT);
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileLabellLabel, 2, COLUMN_LABEL);
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileLabelComboBox->getWidget(), 2, COLUMN_MAP_LEFT, 1, 2);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_structureLabel, 3, COLUMN_LABEL);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_structureComboBox->getWidget(), 3, COLUMN_MAP_LEFT, 1, 2);
     labelWidgetLayout->setRowStretch(1000, 1000);
     labelWidgetLayout->setColumnStretch(1000, 1000);
 
@@ -548,7 +591,7 @@ IdentifyBrainordinateDialog::createStereotaxicWidget()
     m_stereotaxicZWidget->setSingleStep(1.0);
     m_stereotaxicZWidget->setDecimals(4);
 
-    m_stereotaxicTextEdit = new QTextEdit();
+    m_stereotaxicLineEdit = new QLineEdit();
     
     QWidget* widget = new QWidget();
     QGridLayout* layout = new QGridLayout(widget);
@@ -561,7 +604,7 @@ IdentifyBrainordinateDialog::createStereotaxicWidget()
     layout->addWidget(m_stereotaxicYWidget->getWidget(), row, COLUMN_Y, Qt::AlignHCenter);
     layout->addWidget(m_stereotaxicZWidget->getWidget(), row, COLUMN_Z, Qt::AlignHCenter);
     ++row;
-    layout->addWidget(m_stereotaxicTextEdit, row, COLUMN_X, 1, 3);
+    layout->addWidget(m_stereotaxicLineEdit, row, COLUMN_X, 1, 3);
     layout->setRowStretch(1000, 1000);
     layout->setColumnStretch(4, 1000);
     
@@ -662,6 +705,7 @@ IdentifyBrainordinateDialog::slotParcelFileOrMapSelectionChanged()
 void
 IdentifyBrainordinateDialog::idTypeRadioButtonClicked(QAbstractButton* button)
 {
+    bool enableRotateWidgetFlag(false);
     if (button == m_ciftiFileRowRadioButton) {
         m_stackedWidget->setCurrentWidget(m_ciftiRowWidget);
     }
@@ -673,16 +717,21 @@ IdentifyBrainordinateDialog::idTypeRadioButtonClicked(QAbstractButton* button)
     }
     else if (button == m_labelRadioButton) {
         m_stackedWidget->setCurrentWidget(m_labelFileWidgets.m_widget);
+        enableRotateWidgetFlag = true;
     }
     else if (button == m_stereotaxicRadioButton) {
         m_stackedWidget->setCurrentWidget(m_stereotaxicWidget);
     }
     else if (button == m_surfaceVertexRadioButton) {
         m_stackedWidget->setCurrentWidget(m_surfaceVertexWidget);
+        enableRotateWidgetFlag = true;
     }
     else {
         CaretAssertMessage(0, "Invalid button");
     }
+    
+    m_rotateSurfaceWidget->setEnabled(enableRotateWidgetFlag);
+    
     updateDialog();
 }
 
@@ -824,6 +873,38 @@ IdentifyBrainordinateDialog::applyButtonClicked()
 }
 
 /**
+ * Rotate surface in window so that average of vertices face the user
+ * @param surfaceStructure
+ *    The surface structure
+ * @param surfaceVertexIndices
+ *    Indices of the vertices
+ */
+void
+IdentifyBrainordinateDialog::rotateSurfaceToVertices(const StructureEnum::Enum surfaceStructure,
+                                                     const std::vector<int32_t>& surfaceVertexIndices)
+{
+    if (m_rotateSurfaceCheckBox->isChecked()
+        && ( ! surfaceVertexIndices.empty())) {
+        BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_rotateSurfaceWindowSpinBox->value() - 1);
+        if (bbw != NULL) {
+            BrowserTabContent* btc = bbw->getBrowserTabContent();
+            if (btc != NULL) {
+                const int32_t tabIndex(btc->getTabNumber());
+                EventBrowserTabRotateSurfaceToShowVertex rotateEvent(tabIndex,
+                                                                     surfaceStructure,
+                                                                     surfaceVertexIndices);
+                EventManager::get()->sendEvent(rotateEvent.getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+                if (rotateEvent.isError()) {
+                    WuQMessageBox::errorOk(this,
+                                           rotateEvent.getErrorMessage());
+                }
+            }
+        }
+    }
+}
+
+/**
  * Update coloring and redraw all windows.
  */
 void
@@ -874,6 +955,36 @@ IdentifyBrainordinateDialog::processLabelFileWidget(AString& errorMessageOut)
     CaretMappableDataFile* mapFile = m_labelFileWidgets.m_fileSelector->getModel()->getSelectedFile();
     const int32_t mapIndex = m_labelFileWidgets.m_fileSelector->getModel()->getSelectedMapIndex();
     if (mapFile != NULL) {
+        const LabelFile* labelFile(dynamic_cast<const LabelFile*>(mapFile));
+        const int32_t labelKey(m_labelFileWidgets.m_fileLabelComboBox->getSelectedLabelKey());
+        const CiftiBrainordinateLabelFile* ciftiLabelFile(dynamic_cast<const CiftiBrainordinateLabelFile*>(mapFile));
+        if (labelKey >= 0) {
+            if (labelFile != NULL) {
+                std::vector<int32_t> vertexIndices;
+                labelFile->getNodeIndicesWithLabelKey(mapIndex,
+                                                      labelKey,
+                                                      vertexIndices);
+                
+                rotateSurfaceToVertices(labelFile->getStructure(),
+                                        vertexIndices);
+            }
+            else if (ciftiLabelFile != NULL) {
+                const StructureEnum::Enum structure(m_labelFileWidgets.m_structureComboBox->getSelectedStructure());
+                const bool createIfNotFoundFlag(false);
+                const BrainStructure* brainStructure(GuiManager::get()->getBrain()->getBrainStructure(structure,
+                                                                                                      createIfNotFoundFlag));
+                if (brainStructure != NULL) {
+                    std::vector<int32_t> vertexIndices;
+                    ciftiLabelFile->getNodeIndicesWithLabelKey(structure,
+                                                               brainStructure->getNumberOfNodes(),
+                                                               mapIndex,
+                                                               labelKey,
+                                                               vertexIndices);
+                    rotateSurfaceToVertices(structure,
+                                            vertexIndices);
+                }
+            }
+        }
         const AString labelName = m_labelFileWidgets.m_fileLabelComboBox->getSelectedLabelName();
         
         BrainordinateRegionOfInterest* brainROI = brain->getBrainordinateHighlightRegionOfInterest();
@@ -1217,6 +1328,10 @@ IdentifyBrainordinateDialog::processSurfaceVertexWidget(AString& errorMessageOut
                 GuiManager::get()->processIdentification(-1,
                                                          selectionManager,
                                                          this);
+                
+                std::vector<int32_t> vertexIndices { selectedVertexIndex };
+                rotateSurfaceToVertices(selectedStructure,
+                                        vertexIndices);
             }
             else {
                 errorMessageOut = ("PROGRAM ERROR: Primary Anatomical Surface not found for structure "
@@ -1260,7 +1375,7 @@ IdentifyBrainordinateDialog::processStereotaxicWidget(AString& errorMessageOut)
                        m_stereotaxicZWidget->value());
     
 
-    const AString text(m_stereotaxicTextEdit->toPlainText());
+    const AString text(m_stereotaxicLineEdit->text());
     IdentifiedItemUniversal* item(IdentifiedItemUniversal::newInstanceStereotaxicIdentification(text,
                                                                                                 text,
                                                                                                 xyz));
@@ -1270,6 +1385,5 @@ IdentifyBrainordinateDialog::processStereotaxicWidget(AString& errorMessageOut)
     
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-
 }
 

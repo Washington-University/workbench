@@ -116,6 +116,8 @@ public:
         EVENT_BROWSER_TAB_REOPEN_AVAILBLE,
         /** Reopen a closed tab */
         EVENT_BROWSER_TAB_REOPEN_CLOSED,
+        /** Rotate surface in a browser to show a vertex */
+        EVENT_BROWSER_TAB_ROTATE_SURFACE_TO_SHOW_VERTEX,
         /** Select  a  tab in a window */
         EVENT_BROWSER_TAB_SELECT_IN_WINDOW,
         /** Event to test validity of a browser tab */

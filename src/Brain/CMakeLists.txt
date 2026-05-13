@@ -129,6 +129,7 @@ EventBrowserTabGetAllViewed.h
 EventBrowserTabGetAtWindowXY.h
 EventBrowserTabIndexGetWindowIndex.h
 EventBrowserTabReopenAvailable.h
+EventBrowserTabRotateSurfaceToShowVertex.h
 EventBrowserTabValidate.h
 EventBrowserWindowContent.h
 EventBrowserWindowGetTabs.h
@@ -373,6 +374,7 @@ EventBrowserTabGetAllViewed.cxx
 EventBrowserTabGetAtWindowXY.cxx
 EventBrowserTabIndexGetWindowIndex.cxx
 EventBrowserTabReopenAvailable.cxx
+EventBrowserTabRotateSurfaceToShowVertex.cxx
 EventBrowserTabValidate.cxx
 EventBrowserWindowContent.cxx
 EventBrowserWindowGetTabs.cxx
