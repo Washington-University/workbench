@@ -30,8 +30,10 @@
 #include "CaretPointer.h"
 #include "EventManager.h"
 #include "EventListenerInterface.h"
+#include "FunctionResult.h"
 #include "GiftiTypeFile.h"
 #include "SurfaceTypeEnum.h"
+#include "Vector3D.h"
 
 namespace caret {
 
@@ -169,6 +171,9 @@ namespace caret {
         
         ///find the closest node on the surface, within maxDist if maxDist is positive
         int32_t closestNode(const float target[3], const float maxDist = -1.0f) const;
+        
+        FunctionResultValue<Vector3D> getAverageOfNodes(const std::vector<int32_t>& nodeIndices,
+                                                        const bool moveToNearestNodeFlag) const;
         
         virtual void setModified();
         

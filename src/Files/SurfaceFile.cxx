@@ -1459,6 +1459,45 @@ int32_t SurfaceFile::closestNode(const float target[3], const float maxDist) con
     }
 }
 
+/**
+ * @return Function result with average XYZ for the given nodes
+ * @param nodeIndices
+ *    Indices of the node
+ * @param moveToNearestNodeFlag
+ *    If true, move the average to the nearest node
+ */
+FunctionResultValue<Vector3D>
+SurfaceFile::getAverageOfNodes(const std::vector<int32_t>& nodeIndices,
+                               const bool moveToNearestNodeFlag) const
+{
+    if (nodeIndices.empty()) {
+        return FunctionResultValue<Vector3D>(Vector3D(),
+                                             "Node indices are empty",
+                                             false);
+    }
+    
+    Vector3D sum(0.0, 0.0, 0.0);
+    for (const int32_t& ni : nodeIndices) {
+        Vector3D xyz;
+        getCoordinate(ni, xyz);
+        sum += xyz;
+    }
+    
+    Vector3D averageXYZ(sum / static_cast<float>(nodeIndices.size()));
+    
+    if (moveToNearestNodeFlag) {
+        const int32_t nearestNode(closestNode(averageXYZ));
+        CaretAssert(nearestNode >= 0);
+        getCoordinate(nearestNode,
+                      averageXYZ);
+    }
+    
+    return FunctionResultValue<Vector3D>(averageXYZ,
+                                         "",
+                                         true);
+}
+
+
 CaretPointer<const CaretPointLocator> SurfaceFile::getPointLocator() const
 {
     if (m_locator == NULL)//try to avoid locking even once
