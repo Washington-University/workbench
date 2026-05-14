@@ -154,7 +154,7 @@ DeveloperFlagsEnum::initialize()
                                                 "DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA",
                                                 "Pre-Multiply Alpha in Volume MPR Voxels",
                                                 CheckableEnum::YES,
-                                                false));
+                                                true));
     
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_CHART_OPENGL_LINES,
                                                 "DEVELOPER_FLAG_CHART_OPENGL_LINES",
