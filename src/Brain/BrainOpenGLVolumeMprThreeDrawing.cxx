@@ -186,7 +186,7 @@ BrainOpenGLVolumeMprThreeDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     /*
      * Filter the volume drawing info
      */
-    filterVolumeDrawInfo(m_volumeDrawInfo);
+//    filterVolumeDrawInfo(m_volumeDrawInfo);
     
     const int32_t numberOfVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
     if (numberOfVolumes <= 0) {
@@ -2384,11 +2384,47 @@ BrainOpenGLVolumeMprThreeDrawing::getOrthographicProjection(const BoundingBox& b
 void
 BrainOpenGLVolumeMprThreeDrawing::setOrthographicProjection(const GraphicsViewport& viewport)
 {
+    bool intensityModeFlag(false);
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
+            break;
+        case BrainModelMode::ALL_3D:
+            break;
+        case BrainModelMode::VOLUME_2D:
+            switch (m_mprViewMode) {
+                case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+                    intensityModeFlag = true;
+                    break;
+                case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
+                    intensityModeFlag = true;
+                    break;
+                case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
+                    intensityModeFlag = true;
+                    break;
+                case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
+                    break;
+            }
+            break;
+    }
+    
     /*
      * Bounds of volume
      */
     BoundingBox boundingBox;
     m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+    
+    if (intensityModeFlag) {
+        /*
+         * For intensity mode, need bounding box of all volumes since
+         * they are all drawn and may have different extent
+         */
+        for (uint32_t i = 1; i < m_volumeDrawInfo.size(); i++) {
+            BoundingBox bb;
+            m_volumeDrawInfo[i].volumeFile->getVoxelSpaceBoundingBox(bb);
+            boundingBox.unionOperation(bb);
+        }
+    }
+    
     const float zoomFactor(m_browserTabContent->getScaling());
     double orthographicBounds[6];
     getOrthographicProjection(boundingBox,
@@ -2779,15 +2815,17 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
                                                                  const Vector3D& sliceCoordinates,
                                                                  const GraphicsViewport& viewport)
 {
-    /*
-     * Intensity drawing can only be performed on a single volume
-     */
-    CaretAssert(m_volumeDrawInfo.size() == 1);
-    if (m_volumeDrawInfo.empty()) {
-        return;
-    }
+//    /*
+//     * Intensity drawing can only be performed on a single volume
+//     */
+//    CaretAssert(m_volumeDrawInfo.size() == 1);
+//    if (m_volumeDrawInfo.empty()) {
+//        return;
+//    }
+    
+    CaretAssert(m_volumeDrawInfo.size() >= 1);
     CaretAssertVectorIndex(m_volumeDrawInfo, 0);
-    const BrainOpenGLFixedPipeline::VolumeDrawInfo& intensityVolumeDrawInfo(m_volumeDrawInfo[0]);
+    const BrainOpenGLFixedPipeline::VolumeDrawInfo& bottomIntensityVolumeDrawInfo(m_volumeDrawInfo[0]);
     
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
     SelectionItemVoxelEditing* voxelEditingID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
@@ -2838,189 +2876,191 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
             break;
     }
     
-    VolumeMappableInterface* volumeFile(intensityVolumeDrawInfo.volumeFile);
-    const int32_t mapIndex(intensityVolumeDrawInfo.mapIndex);
-    CaretAssert(volumeFile);
-    if (idModeFlag) {
-        CaretAssertToDoFatal(); /* should be using normal slice ID */
-        performIntensityIdentification(mprSliceView,
-                                       sliceViewPlane,
-                                       volumeFile,
-                                       mapIndex);
-        return;
-    }
-    
-    BoundingBox boundingBox;
-    volumeFile->getVoxelSpaceBoundingBox(boundingBox);
-    const float farAway(boundingBox.getMaximumDifferenceOfXYZ()
-                        * 20.0);
-    const Vector3D sliceCenterXYZ(sliceCoordinates);
-    const Vector3D rayVector((mprSliceView.getCameraLookAtXYZ()
-                              - mprSliceView.getCameraXYZ()).normal());
-    const Vector3D rayOrigin(sliceCenterXYZ
-                             - (rayVector * farAway));
-    if (m_debugFlag) {
-        std::cout << "Ray origin: " << rayOrigin.toString() << std::endl;
-        std::cout << "    vector: " << rayVector.toString() << std::endl;
-    }
-    
-    std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
-                                                                     rayOrigin,
-                                                                     rayVector));
-    const int32_t numIntersections(allIntersections.size());
-    
-    if (numIntersections == 2) {
-        CaretAssertVectorIndex(allIntersections, 1);
-        const Vector3D nearestIntersectionXYZ(allIntersections[0]);
-        const Vector3D furthestIntersectionXYZ(allIntersections[1]);
-        const Vector3D farToNearVector((nearestIntersectionXYZ - furthestIntersectionXYZ).normal());
-        const Vector3D nearToFarVector(-farToNearVector);
-        
-        Vector3D startXYZ(furthestIntersectionXYZ);
-        Vector3D endXYZ(nearestIntersectionXYZ);
-        
-        if (sliceThicknessValidFlag) {
-            if (sliceThickness > 0.0) {
-                const float halfThickness(sliceThickness / 2.0);
-                
-                /*
-                 * If the 'half thickness' distance is within the volume
-                 * adjust the start to the 'half thickness'
-                 */
-                if ((sliceCenterXYZ - startXYZ).length() > halfThickness) {
-                    startXYZ = (sliceCenterXYZ
-                                + (nearToFarVector * halfThickness));
-                }
-                
-                /*
-                 * If the 'half thickness' distance is within the volume
-                 * adjust the end to the 'half thickness'
-                 */
-                if ((sliceCenterXYZ - endXYZ).length() > halfThickness) {
-                    endXYZ = (sliceCenterXYZ
-                              - (nearToFarVector * halfThickness));
-                }
-            }
-            else {
-                /*
-                 * For zero thickness, just use the single slice
-                 */
-                startXYZ = sliceCenterXYZ;
-                endXYZ   = sliceCenterXYZ;
-            }
-        }
-        
-        if (m_debugFlag) {
-            std::cout << VolumeSliceViewPlaneEnum::toName(sliceViewPlane)
-            << " Start XYZ: " << startXYZ.toString() << " End XYZ: " << endXYZ.toString() << std::endl;
-        }
-        
-        const float voxelSize(getVoxelSize(volumeFile));
-        if (voxelSize < 0.01) {
-            CaretLogSevere("Voxel size is too small for Intensity Projection: "
-                           + AString::number(voxelSize));
+    for (const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi : m_volumeDrawInfo) {
+        VolumeMappableInterface* volumeFile(vdi.volumeFile);
+        const int32_t mapIndex(vdi.mapIndex);
+        CaretAssert(volumeFile);
+        if (idModeFlag) {
+            CaretAssertToDoFatal(); /* should be using normal slice ID */
+            performIntensityIdentification(mprSliceView,
+                                           sliceViewPlane,
+                                           volumeFile,
+                                           mapIndex);
             return;
         }
         
-        const float distance = (endXYZ - startXYZ).length();
-        const Vector3D stepXYZ(farToNearVector * voxelSize);
-        int32_t numSteps = static_cast<int32_t>(distance / voxelSize);
-        if (numSteps < 1) {
-            numSteps = 1;
-        }
-        if (numSteps == 1) {
-            startXYZ = sliceCenterXYZ;
-        }
+        BoundingBox boundingBox;
+        volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+        const float farAway(boundingBox.getMaximumDifferenceOfXYZ()
+                            * 20.0);
+        const Vector3D sliceCenterXYZ(sliceCoordinates);
+        const Vector3D rayVector((mprSliceView.getCameraLookAtXYZ()
+                                  - mprSliceView.getCameraXYZ()).normal());
+        const Vector3D rayOrigin(sliceCenterXYZ
+                                 - (rayVector * farAway));
         if (m_debugFlag) {
-            std::cout << "Num Steps: " << numSteps << " Step XYZ: " << AString::fromNumbers(stepXYZ) << std::endl;
+            std::cout << "Ray origin: " << rayOrigin.toString() << std::endl;
+            std::cout << "    vector: " << rayVector.toString() << std::endl;
         }
         
-        /*
-         * Save state to preserve blending setup
-         */
-        glPushAttrib(GL_COLOR_BUFFER_BIT
-                     | GL_ENABLE_BIT);
+        std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
+                                                                         rayOrigin,
+                                                                         rayVector));
+        const int32_t numIntersections(allIntersections.size());
         
-        /*
-         * Disable culling so that both sides of the triangles/quads are drawn.
-         */
-        glDisable(GL_CULL_FACE);
-        
-        switch (m_mprViewMode) {
-            case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-                setupMprBlending(BlendingMode::AVERAGE,
-                                 s_INVALID_ALPHA_VALUE,
-                                 numSteps);
-                break;
-            case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
-                setupMprBlending(BlendingMode::INTENSITY_MAXIMUM,
-                                 s_INVALID_ALPHA_VALUE,
-                                 s_INVALID_NUMBER_OF_SLICES);
-                break;
-            case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
-                setupMprBlending(BlendingMode::INTENSITY_MINIMUM,
-                                 s_INVALID_ALPHA_VALUE,
-                                 s_INVALID_NUMBER_OF_SLICES);
-                break;
-            case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
-                CaretAssert(0);
-                break;
-        }
-        
-        Vector3D xyz(startXYZ);
-        
-        for (int32_t iStep = 0; iStep < numSteps; iStep++) {
-            const VolumeMprVirtualSliceView mprSliceView(createSliceInfo(volumeFile,
-                                                                         sliceViewPlane,
-                                                                         xyz));
-            if (m_debugFlag) {
-                if (iStep == 0) {
-                    std::cout << "First slice: " << xyz.toString() << std::endl;
+        if (numIntersections == 2) {
+            CaretAssertVectorIndex(allIntersections, 1);
+            const Vector3D nearestIntersectionXYZ(allIntersections[0]);
+            const Vector3D furthestIntersectionXYZ(allIntersections[1]);
+            const Vector3D farToNearVector((nearestIntersectionXYZ - furthestIntersectionXYZ).normal());
+            const Vector3D nearToFarVector(-farToNearVector);
+            
+            Vector3D startXYZ(furthestIntersectionXYZ);
+            Vector3D endXYZ(nearestIntersectionXYZ);
+            
+            if (sliceThicknessValidFlag) {
+                if (sliceThickness > 0.0) {
+                    const float halfThickness(sliceThickness / 2.0);
+                    
+                    /*
+                     * If the 'half thickness' distance is within the volume
+                     * adjust the start to the 'half thickness'
+                     */
+                    if ((sliceCenterXYZ - startXYZ).length() > halfThickness) {
+                        startXYZ = (sliceCenterXYZ
+                                    + (nearToFarVector * halfThickness));
+                    }
+                    
+                    /*
+                     * If the 'half thickness' distance is within the volume
+                     * adjust the end to the 'half thickness'
+                     */
+                    if ((sliceCenterXYZ - endXYZ).length() > halfThickness) {
+                        endXYZ = (sliceCenterXYZ
+                                  - (nearToFarVector * halfThickness));
+                    }
                 }
-                else if (iStep == (numSteps - 1)) {
-                    std::cout << "Last Slice: " << xyz.toString() << std::endl;
+                else {
+                    /*
+                     * For zero thickness, just use the single slice
+                     */
+                    startXYZ = sliceCenterXYZ;
+                    endXYZ   = sliceCenterXYZ;
                 }
             }
             
-            const bool enableBlendingFlag(false);
-            const bool drawAttributesFlag(false);
-            const bool drawIntensitySliceBackgroundFlag(iStep == 0);
-            drawSliceWithPrimitive(mprSliceView,
-                                   sliceViewPlane,
-                                   viewport,
-                                   enableBlendingFlag,
-                                   drawAttributesFlag,
-                                   drawIntensitySliceBackgroundFlag);
-            xyz += stepXYZ;
+            if (m_debugFlag) {
+                std::cout << VolumeSliceViewPlaneEnum::toName(sliceViewPlane)
+                << " Start XYZ: " << startXYZ.toString() << " End XYZ: " << endXYZ.toString() << std::endl;
+            }
+            
+            const float voxelSize(getVoxelSize(volumeFile));
+            if (voxelSize < 0.01) {
+                CaretLogSevere("Voxel size is too small for Intensity Projection: "
+                               + AString::number(voxelSize));
+                return;
+            }
+            
+            const float distance = (endXYZ - startXYZ).length();
+            const Vector3D stepXYZ(farToNearVector * voxelSize);
+            int32_t numSteps = static_cast<int32_t>(distance / voxelSize);
+            if (numSteps < 1) {
+                numSteps = 1;
+            }
+            if (numSteps == 1) {
+                startXYZ = sliceCenterXYZ;
+            }
+            if (m_debugFlag) {
+                std::cout << "Num Steps: " << numSteps << " Step XYZ: " << AString::fromNumbers(stepXYZ) << std::endl;
+            }
+            
+            /*
+             * Save state to preserve blending setup
+             */
+            glPushAttrib(GL_COLOR_BUFFER_BIT
+                         | GL_ENABLE_BIT);
+            
+            /*
+             * Disable culling so that both sides of the triangles/quads are drawn.
+             */
+            glDisable(GL_CULL_FACE);
+            
+            switch (m_mprViewMode) {
+                case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+                    setupMprBlending(BlendingMode::AVERAGE,
+                                     s_INVALID_ALPHA_VALUE,
+                                     numSteps);
+                    break;
+                case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
+                    setupMprBlending(BlendingMode::INTENSITY_MAXIMUM,
+                                     s_INVALID_ALPHA_VALUE,
+                                     s_INVALID_NUMBER_OF_SLICES);
+                    break;
+                case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
+                    setupMprBlending(BlendingMode::INTENSITY_MINIMUM,
+                                     s_INVALID_ALPHA_VALUE,
+                                     s_INVALID_NUMBER_OF_SLICES);
+                    break;
+                case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
+                    CaretAssert(0);
+                    break;
+            }
+            
+            Vector3D xyz(startXYZ);
+            
+            for (int32_t iStep = 0; iStep < numSteps; iStep++) {
+                const VolumeMprVirtualSliceView mprSliceView(createSliceInfo(volumeFile,
+                                                                             sliceViewPlane,
+                                                                             xyz));
+                if (m_debugFlag) {
+                    if (iStep == 0) {
+                        std::cout << "First slice: " << xyz.toString() << std::endl;
+                    }
+                    else if (iStep == (numSteps - 1)) {
+                        std::cout << "Last Slice: " << xyz.toString() << std::endl;
+                    }
+                }
+                
+                const bool enableBlendingFlag(false);
+                const bool drawAttributesFlag(false);
+                const bool drawIntensitySliceBackgroundFlag(iStep == 0);
+                drawSliceWithPrimitive(mprSliceView,
+                                       sliceViewPlane,
+                                       viewport,
+                                       enableBlendingFlag,
+                                       drawAttributesFlag,
+                                       drawIntensitySliceBackgroundFlag);
+                xyz += stepXYZ;
+            }
+            
+            glPopAttrib();
         }
+        else if (numIntersections > 0) {
+            AString txt;
+            txt.appendWithNewLine("Ray origin: " + AString::fromNumbers(rayOrigin));
+            txt.appendWithNewLine("Ray Vector: " + AString::fromNumbers(rayVector));
+            txt.appendWithNewLine("Intersections: ");
+            for (int32_t i = 0; i < numIntersections; i++) {
+                CaretAssertVectorIndex(allIntersections, i);
+                txt.appendWithNewLine("   " + AString::fromNumbers(allIntersections[i]));
+            }
+            CaretLogSevere("Possible vector volume algorithm failure for Intensity Projection.  "
+                           + txt);
+        }
+    
+        BrainOpenGLIdentificationDrawing idDrawing(m_fixedPipelineDrawing,
+                                                   m_brain,
+                                                   m_browserTabContent,
+                                                   m_fixedPipelineDrawing->mode);
+        idDrawing.drawVolumeIntensity2dIdentificationSymbols(volumeFile,
+                                                             mapIndex,
+                                                             m_browserTabContent->getScaling(),
+                                                             viewport.getHeight());
         
-        glPopAttrib();
+        
+        m_fixedPipelineDrawing->disableClippingPlanes();
     }
-    else if (numIntersections > 0) {
-        AString txt;
-        txt.appendWithNewLine("Ray origin: " + AString::fromNumbers(rayOrigin));
-        txt.appendWithNewLine("Ray Vector: " + AString::fromNumbers(rayVector));
-        txt.appendWithNewLine("Intersections: ");
-        for (int32_t i = 0; i < numIntersections; i++) {
-            CaretAssertVectorIndex(allIntersections, i);
-            txt.appendWithNewLine("   " + AString::fromNumbers(allIntersections[i]));
-        }
-        CaretLogSevere("Possible vector volume algorithm failure for Intensity Projection.  "
-                       + txt);
-    }
-    
-    BrainOpenGLIdentificationDrawing idDrawing(m_fixedPipelineDrawing,
-                                               m_brain,
-                                               m_browserTabContent,
-                                               m_fixedPipelineDrawing->mode);
-    idDrawing.drawVolumeIntensity2dIdentificationSymbols(volumeFile,
-                                                         mapIndex,
-                                                         m_browserTabContent->getScaling(),
-                                                         viewport.getHeight());
-    
-    
-    m_fixedPipelineDrawing->disableClippingPlanes();
-    
+
     switch (m_brainModelMode) {
         case BrainModelMode::INVALID:
             CaretAssert(0);
@@ -3028,7 +3068,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
         case BrainModelMode::ALL_3D:
             break;
         case BrainModelMode::VOLUME_2D:
-            drawCrosshairs(volumeFile,
+            drawCrosshairs(bottomIntensityVolumeDrawInfo.volumeFile,
+//                           volumeFile,
                            mprSliceView,
                            sliceViewPlane,
                            sliceCoordinates,
@@ -3109,7 +3150,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
              * Intensity use buffer to average/min/max so drawing
              * is limited to one volume
              */
-            CaretAssert(numVolumes == 1);
+ //           CaretAssert(numVolumes == 1);
             break;
         case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
             break;
