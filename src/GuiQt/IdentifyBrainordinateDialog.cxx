@@ -955,18 +955,29 @@ IdentifyBrainordinateDialog::processLabelFileWidget(AString& errorMessageOut)
     CaretMappableDataFile* mapFile = m_labelFileWidgets.m_fileSelector->getModel()->getSelectedFile();
     const int32_t mapIndex = m_labelFileWidgets.m_fileSelector->getModel()->getSelectedMapIndex();
     if (mapFile != NULL) {
+        AString labelName;
+        AString errorMessage;
         const LabelFile* labelFile(dynamic_cast<const LabelFile*>(mapFile));
         const int32_t labelKey(m_labelFileWidgets.m_fileLabelComboBox->getSelectedLabelKey());
         const CiftiBrainordinateLabelFile* ciftiLabelFile(dynamic_cast<const CiftiBrainordinateLabelFile*>(mapFile));
         if (labelKey >= 0) {
+            labelName = m_labelFileWidgets.m_fileLabelComboBox->getSelectedLabelName();
             if (labelFile != NULL) {
                 std::vector<int32_t> vertexIndices;
                 labelFile->getNodeIndicesWithLabelKey(mapIndex,
                                                       labelKey,
                                                       vertexIndices);
-                
-                rotateSurfaceToVertices(labelFile->getStructure(),
-                                        vertexIndices);
+                if (vertexIndices.empty()) {
+                    errorMessage = ("No vertices found for label "
+                                    + labelName
+                                    + " on "
+                                    + StructureEnum::toGuiName(labelFile->getStructure())
+                                    + ", cannot rotate surface.");
+                }
+                else {
+                    rotateSurfaceToVertices(labelFile->getStructure(),
+                                            vertexIndices);
+                }
             }
             else if (ciftiLabelFile != NULL) {
                 const StructureEnum::Enum structure(m_labelFileWidgets.m_structureComboBox->getSelectedStructure());
@@ -980,19 +991,30 @@ IdentifyBrainordinateDialog::processLabelFileWidget(AString& errorMessageOut)
                                                                mapIndex,
                                                                labelKey,
                                                                vertexIndices);
-                    rotateSurfaceToVertices(structure,
-                                            vertexIndices);
+                    if (vertexIndices.empty()) {
+                        errorMessage = ("No vertices found for label "
+                                        + labelName
+                                        + " on "
+                                        + StructureEnum::toGuiName(structure)
+                                        + ", cannot rotate surface.");
+                    }
+                    else {
+                        rotateSurfaceToVertices(structure,
+                                                vertexIndices);
+                    }
                 }
             }
         }
-        const AString labelName = m_labelFileWidgets.m_fileLabelComboBox->getSelectedLabelName();
-        
         BrainordinateRegionOfInterest* brainROI = brain->getBrainordinateHighlightRegionOfInterest();
         if (brainROI->setWithLabelFileLabel(mapFile,
                                         mapIndex,
                                         labelName,
                                             errorMessageOut)) {
             flashBrainordinateHighlightingRegionOfInterest(brainROI);
+        }
+        
+        if ( ! errorMessage.isEmpty()) {
+            WuQMessageBox::warningOk(this, errorMessage);
         }
     }
 }
