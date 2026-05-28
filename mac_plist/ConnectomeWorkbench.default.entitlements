@@ -1,12 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+
 	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<key>com.apple.security.print</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
-	<true/>
+	<false/>
+	<!-- <key>com.apple.security.inherit</key> -->
+	<!-- <true/> -->
+
+  <!-- ═══ Hardened Runtime (required for notarization) ═══ -->
+  <key>com.apple.security.hardened-runtime</key>
+  <true/>
+
+  <!-- ═══ File System ═══ -->
+  <!-- Read/write access to user-selected files (via open/save panels) -->
+  <key>com.apple.security.files.user-selected.read-write</key>
+  <true/>
+
+  <!-- Read/write access to files (allows writing files) -->
+  <key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
+        <array>
+            <string>/</string>
+        </array>
+
+  <!-- Read-only access to Downloads folder -->
+  <key>com.apple.security.files.downloads.read-only</key>
+  <true/>
+
+  <!-- Read/write access to Downloads folder (use one or the other) -->
+  <!-- <key>com.apple.security.files.downloads.read-write</key> -->
+  <!-- <true/> -->
+
+  <!-- Access to user's Documents folder (requires justification for App Store) -->
+  <!-- <key>com.apple.security.files.bookmarks.document-scope-bookmark</key> -->
+  <!-- <true/> -->
+
+  <!-- ═══ Network ═══ -->
+  <!-- Outbound connections (HTTP, APIs, etc.) -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+
+  <!-- Inbound connections (only if your app acts as a server/listener) -->
+  <!-- <key>com.apple.security.network.server</key> -->
+  <!-- <true/> -->
+
+  <!-- ═══ Printing ═══ -->
+  <key>com.apple.security.print</key>
+  <true/>
+
 </dict>
 </plist>
+
