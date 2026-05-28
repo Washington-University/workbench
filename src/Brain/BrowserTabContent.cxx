@@ -1927,6 +1927,7 @@ BrowserTabContent::receiveEvent(Event* event)
             else if (modelMontageSurface != NULL) {
                 surface = modelMontageSurface->getSelectedSurface(rotateToVertexEvent->getSurfaceStructure(),
                                                                   m_tabNumber);
+                rightSurfaceFlag = (surface->getStructure() == StructureEnum::CORTEX_RIGHT);
             }
             if (surface == NULL) {
                 rotateToVertexEvent->setErrorMessage("No surface with structure="
@@ -1943,53 +1944,40 @@ BrowserTabContent::receiveEvent(Event* event)
                 else {
                     const BoundingBox* bb(surface->getBoundingBox());
                     if (bb->isValid()) {
-                        Vector3D centerOfSurfaceXYZ;
-                        surface->getCenterOfGravity(centerOfSurfaceXYZ);
-                        
                         /*
-                         * Move 'X' to be closer to medial wall rather than
-                         * the center of the surface
+                         * Find midpoint (center) of surface
                          */
-                        switch (surface->getStructure()) {
-                            case StructureEnum::CORTEX_LEFT:
-                                centerOfSurfaceXYZ[0] = bb->getMaxX();
-                                break;
-                            case StructureEnum::CORTEX_RIGHT:
-                                centerOfSurfaceXYZ[0] = bb->getMinX();
-                                break;
-                            default:
-                                break;
-                        }
-                        
+                        Vector3D surfaceMidpointXYZ;
+                        const BoundingBox* bb(surface->getBoundingBox());
+                        bb->getCenter(surfaceMidpointXYZ);
+                                                
+                        /*
+                         * Get average of the surface vertices (nodes)
+                         */
                         const bool moveToNearestNodeFlag(true);
                         FunctionResultValue<Vector3D> vertexAvgResult(surface->getAverageOfNodes(surfaceVertexIndices,
                                                                                   moveToNearestNodeFlag));
                         CaretAssert(vertexAvgResult.isOk());
                         const Vector3D vertexXYZ(vertexAvgResult.getValue());
-                        const Vector3D centerToVertexVector((vertexXYZ - centerOfSurfaceXYZ).normal());
                         
                         /*
-                         * Matrix that rotates the vertex vector to align with the right vector
+                         * Vector from surface midpoint to average of surface vertices.
+                         * Rotation matrix is always for a left surface so negate the
+                         * vertices center for a right surface
                          */
-                        Vector3D pointToVector(1.0, 0.0, 0.0);
+                        Vector3D centerToVertexVector((vertexXYZ - surfaceMidpointXYZ).normal());
                         if (rightSurfaceFlag) {
-                            pointToVector[0] = -1.0;
+                            centerToVertexVector[0] *= -1.0;
                         }
-                        Matrix4x4 m = Matrix4x4::rotationTo(centerToVertexVector,
-                                                            pointToVector);
-                        
+
                         /*
-                         * Reset view to a left view and then rotate vertex so that it faces user
+                         * An identity matrix results in a dorsal view so 'rotationTo'
+                         * will rotate the average of the nodes to dorsal view
                          */
-                        if (rightSurfaceFlag) {
-                            rightView();
-                        }
-                        else {
-                            leftView();
-                        }
-                        Matrix4x4 rotMat(getRotationMatrix());
-                        rotMat.premultiply(m);
-                        setRotationMatrix(rotMat);
+                        const Vector3D pointToVector(0.0, 0.0, 1.0);
+                        Matrix4x4 m = Matrix4x4::rotationTo(pointToVector,
+                                                            centerToVertexVector);
+                        setRotationMatrix(m);
                     }
                 }
             }
