@@ -396,6 +396,10 @@ namespace caret {
                                                     ModelSurfaceMontage* surfaceMontageModel,
                                                     const int32_t viewport[4]);
 
+        bool drawSurfaceMontageHippocampsFlatCompact(BrowserTabContent* browserTabContent,
+                                                     ModelSurfaceMontage* surfaceMontageModel,
+                                                     const int32_t viewport[4]);
+
         GraphicsOrthographicProjection getOrthographicProjectionWithFixedOrthoSize(const ProjectionViewTypeEnum::Enum projectionType,
                                                                                    const OrthoFitMode orthoFitMode,
                                                                                    const GraphicsViewport& viewport,

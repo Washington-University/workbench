@@ -1982,12 +1982,19 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                     
                     bool compactDrawnFlag(false);
                     if (selectedConfiguration->isCompactLayout()) {
-                        /*
-                         * Compact drawing does not work in all cases and will return false when it fails
-                         */
-                        compactDrawnFlag = this->drawSurfaceMontageModelCompactVertical(browserTabContent,
-                                                                                        surfaceMontageModel,
-                                                                                        modelViewport);
+                        if (selectedConfiguration->getConfigurationType() == SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_FLAT_CONFIGURATION) {
+                            compactDrawnFlag = this->drawSurfaceMontageHippocampsFlatCompact(browserTabContent,
+                                                                                             surfaceMontageModel,
+                                                                                             modelViewport);
+                        }
+                        else {
+                            /*
+                             * Compact drawing does not work in all cases and will return false when it fails
+                             */
+                            compactDrawnFlag = this->drawSurfaceMontageModelCompactVertical(browserTabContent,
+                                                                                            surfaceMontageModel,
+                                                                                            modelViewport);
+                        }
                     }
                     
                     if ( ! compactDrawnFlag) {
@@ -7764,6 +7771,392 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModelCompactVertical(BrowserTabConte
     return true;
 }
 
+
+
+
+
+/**
+ * Draw the surface montage model in a compact layout (removes space between adjacent surfaces)
+ * @param browserTabContent
+ *   Content of the window.
+ * @param surfaceMontageModel
+ *   The surface montage displayed in the window.
+ * @param tabViewportIn
+ *   Viewport for drawing that has been adjusted in size for margins
+ */
+bool
+BrainOpenGLFixedPipeline::drawSurfaceMontageHippocampsFlatCompact(BrowserTabContent* browserTabContent,
+                                                                  ModelSurfaceMontage* surfaceMontageModel,
+                                                                  const int32_t tabViewportIn[4])
+{
+    const bool debugFlag(false);
+    if (debugFlag) {
+        std::cout << "----------------------------------------------------------------------" << std::endl;
+    }
+    const int32_t tabIndex = browserTabContent->getTabNumber();
+    
+    /*
+     * The contents of the montage viewports may not be in left to right
+     * ordering so ensure that they are in left to right order.
+     */
+    std::vector<SurfaceMontageViewport*> unorderedMontageViewports;
+    surfaceMontageModel->getSurfaceMontageViewportsForDrawing(tabIndex,
+                                                              unorderedMontageViewports);
+    const int32_t numMontageViewports(unorderedMontageViewports.size());
+    if (numMontageViewports <= 0) {
+        return false;
+    }
+    std::vector<SurfaceMontageViewport*> montageViewports;
+    for (int32_t iCol = 0; iCol < numMontageViewports; iCol++) {
+        for (int32_t jvp = 0; jvp < numMontageViewports; jvp++) {
+            CaretAssertVectorIndex(unorderedMontageViewports, jvp);
+            if (unorderedMontageViewports[jvp]->getColumn() == iCol) {
+                montageViewports.push_back(unorderedMontageViewports[jvp]);
+                break;
+            }
+        }
+    }
+    CaretAssert(numMontageViewports == static_cast<int32_t>(montageViewports.size()));
+    
+    /**
+     * All of the hippocampus and dentate surfaces have height much greater than width.
+     * Find the maximum orthographic (model) height and the aspect ratios.
+     */
+    float maxOrthoHeight(0.0);
+    std::vector<float> surfaceAspectRatios;
+    for (const SurfaceMontageViewport* smv : montageViewports) {
+        CaretAssert(smv);
+        const Surface* surface(smv->getSurface());
+        CaretAssert(surface);
+        
+        float orthoWidth(0.0), orthoHeight(0.0), orthoAspectRatio(0.0);
+        if (surface->getSurfaceDisplayOrthographicInfo(orthoWidth,
+                                                       orthoHeight,
+                                                       orthoAspectRatio)) {
+            
+            maxOrthoHeight = std::max(maxOrthoHeight,
+                                      orthoHeight);
+            surfaceAspectRatios.push_back(orthoAspectRatio);
+            if (debugFlag) {
+                std::cout << "Surface: " << surface->getFileNameNoPath() << std::endl;
+                std::cout << "      Width=" << orthoWidth
+                << ", Height=" << orthoHeight
+                << ", Aspect Ratio=" << orthoAspectRatio << std::endl;
+            }
+        }
+    }
+    CaretAssert(surfaceAspectRatios.size() == montageViewports.size());
+    
+    /*
+     * Always in one row for hippocampus flat maps
+     * There are at most four surfaces drawn
+     */
+    const int32_t numberOfRows = 1;
+    const int32_t numberOfColumns = numMontageViewports;
+    
+    /*
+     * Get horizontal spacing.
+     * Since one row do not need vertical spacing.
+     */
+    const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
+    const int32_t horizSpacing(gapsAndMargins->getSurfaceMontageHorizontalGapForWindow(m_windowIndex));
+    if (debugFlag) {
+        std::cout << "HorizSpace=" << horizSpacing << std::endl;
+    }
+    
+    int32_t tabVpX(tabViewportIn[0]);
+    int32_t tabVpY(tabViewportIn[1]);
+    int32_t tabVpWidth(tabViewportIn[2]);
+    int32_t tabVpHeight(tabViewportIn[3]);
+    if (debugFlag) {
+        std::cout << "VP: x=" << tabVpX << ", vpY=" << tabVpY << ", w=" << tabVpWidth << ", h=" << tabVpHeight << std::endl;
+    }
+    const GraphicsViewport tabViewport(tabViewportIn[0],
+                                       tabViewportIn[1],
+                                       tabViewportIn[2],
+                                       tabViewportIn[3]);
+    if ( ! tabViewport.isValid()) {
+        CaretLogWarning("Viewport for drawing hippocampus is too small "
+                        + tabViewport.toString());
+        return false;
+    }
+    
+    /*
+     * Calculate width and height of each viewport
+     * and sum of all widths
+     */
+    std::vector<int32_t> modelViewportHeights;
+    std::vector<int32_t> modelViewportWidths;
+    std::vector<float> modelOrthoWidths;
+    std::vector<float> modelOrthoHeights;
+    int32_t allModelHeight(0);
+    int32_t allModelWidth(0);
+    const int32_t numberOfViewports(montageViewports.size());
+    for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
+        CaretAssertVectorIndex(montageViewports, ivp);
+        SurfaceMontageViewport* smv(montageViewports[ivp]);
+        CaretAssert(smv);
+        CaretAssertVectorIndex(surfaceAspectRatios, ivp);
+        const int32_t vpHeight(tabViewport.getHeight());
+        const int32_t vpWidth(static_cast<float>(vpHeight) / surfaceAspectRatios[ivp]);
+        modelViewportWidths.push_back(vpWidth);
+        modelViewportHeights.push_back(vpHeight);
+        
+        allModelWidth += vpWidth;
+        allModelHeight = std::max(allModelHeight, vpHeight);
+        
+        modelOrthoHeights.push_back(maxOrthoHeight);
+        CaretAssertVectorIndex(surfaceAspectRatios, ivp);
+        modelOrthoWidths.push_back(maxOrthoHeight / surfaceAspectRatios[ivp]);
+    }
+    CaretAssert(modelViewportWidths.size() == modelViewportHeights.size());
+    CaretAssert(modelOrthoWidths.size() == modelOrthoHeights.size());
+    CaretAssert(modelViewportWidths.size() == modelOrthoWidths.size());
+    
+    /*
+     * Spacing is between models so it increases the total width
+     */
+    allModelWidth += (horizSpacing * numberOfColumns - 1);
+
+    /*
+     * Calculate where the X-coordinate of the first model.
+     * If this is negative, it indicates that the tab viewport
+     * is too narrow so we must reduce the sizes of the viewports
+     * to fit the tab's width.
+     */
+    int32_t yOffset(0);
+    int32_t xOffset((tabViewport.getWidth() - allModelWidth) / 2);
+    if (debugFlag) {
+        std::cout << "Tab viewport width: " << tabViewport.getWidth()
+        << "All model width: " << allModelWidth << std::endl;
+        std::cout << "Offset X: " << xOffset << std::endl;
+    }
+    if (xOffset < 0) {
+        xOffset = -xOffset;
+        const float percentTooWide(static_cast<float>(xOffset / static_cast<float>(allModelWidth)));
+        if (percentTooWide > 0.0) {
+            if (debugFlag) {
+                std::cout << "--- START X IS LESS THAN ZERO ---" << std::endl;
+            }
+            xOffset = 0;
+            
+            int32_t oldHeight(0);
+            int32_t newHeight(0);
+            const float percentSize(1.0 - percentTooWide);
+            if (debugFlag) {
+                std::cout << "Reduced size percentage: " << percentSize << std::endl;
+            }
+            for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
+                CaretAssertVectorIndex(modelViewportWidths, ivp);
+                modelViewportWidths[ivp] = static_cast<int32_t>(static_cast<float>(modelViewportWidths[ivp])
+                                                                * percentSize);
+                CaretAssertVectorIndex(modelViewportHeights, ivp);
+                oldHeight = std::max(modelViewportHeights[ivp], oldHeight);
+                modelViewportHeights[ivp] = static_cast<int32_t>(static_cast<float>(modelViewportHeights[ivp])
+                                                                 * percentSize);
+                newHeight = std::max(modelViewportHeights[ivp], newHeight);
+            }
+            
+            const int32_t diffHeight(oldHeight - newHeight);
+            yOffset = (diffHeight / 2);
+            if (debugFlag) {
+                std::cout << "yOffset: " << yOffset << std::endl;
+            }
+        }
+    }
+    
+    EventDrawingViewportContentAdd addViewportEvent;
+    addViewportEvent.addModelSurfaceGrid(m_windowIndex,
+                                         this->windowTabIndex,
+                                         GraphicsViewport(tabViewport),
+                                         numberOfRows,
+                                         numberOfColumns);
+    EventManager::get()->sendEvent(addViewportEvent.getPointer());
+    
+    std::vector<GraphicsViewport> newViewports;
+    
+    /*
+     * Calculate the viewport for each of the models
+     */
+    int32_t vpX(tabViewport.getX() + xOffset);
+    const int32_t vpY(tabViewport.getY() + yOffset);
+    if (debugFlag) {
+        std::cout << "Drawing, vpX=" << vpX << ", vpY=" << vpY << std::endl;
+    }
+
+    for (int32_t vpIndex = 0; vpIndex < numberOfViewports; vpIndex++) {
+        SurfaceMontageViewport* mvp = montageViewports[vpIndex];
+        float center[3];
+        mvp->getSurface()->getBoundingBox()->getCenter(center);
+        
+        if (debugFlag) {
+            std::cout << " Surface: " << mvp->getSurface()->getFileNameNoPath() << std::endl;
+        }
+        
+        /*
+         * Initial position and size of sub-viewport
+         */
+        CaretAssertVectorIndex(modelViewportWidths, vpIndex);
+        CaretAssertVectorIndex(modelViewportHeights, vpIndex);
+        const int32_t vpWidth(modelViewportWidths[vpIndex]);
+        const int32_t vpHeight(modelViewportHeights[vpIndex]);
+        int32_t surfaceViewport[4] = {
+            vpX,
+            vpY,
+            vpWidth,
+            vpHeight
+        };
+        mvp->setViewport(surfaceViewport);
+        
+        if (debugFlag) {
+            std::cout << "Drawing (" << vpIndex << "): x=" << vpX << ", y=" << vpY
+            << ", w=" << vpWidth << ", h=" << vpHeight << std::endl;
+        }
+        
+        GraphicsViewport gv(surfaceViewport);
+        newViewports.push_back(gv);
+        
+        vpX += (vpWidth + horizSpacing);
+    }
+    
+    CaretAssert(newViewports.size() == montageViewports.size());
+    
+    /*
+     * Get the current viewport
+     */
+    GLint savedVP[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  savedVP);
+    
+    /*
+     * Final Loop to draw the models
+     */
+    for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
+        SurfaceMontageViewport* mvp = montageViewports[ivp];
+        
+        const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel,
+                                                                                     mvp->getSurface(),
+                                                                                     this->windowTabIndex);
+        switch (mvp->getProjectionViewType()) {
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
+                break;
+        }
+        
+        const int32_t row    = mvp->getRow();
+        const int32_t column = mvp->getColumn();
+        if (debugFlag) {
+            std::cout << "Drawing row=" << row << ", column=" << column << std::endl;
+        }
+        
+        const GraphicsViewport& viewport(newViewports[ivp]);
+        if (debugFlag) {
+            std::cout << "   VP: " << viewport.toString() << std::endl;
+        }
+        
+        EventDrawingViewportContentAdd addViewportEvent;
+        addViewportEvent.addModelSurfaceGridCell(m_windowIndex,
+                                                 this->windowTabIndex,
+                                                 GraphicsViewport(viewport),
+                                                 numberOfRows,
+                                                 numberOfColumns,
+                                                 row,
+                                                 column);
+        EventManager::get()->sendEvent(addViewportEvent.getPointer());
+        
+        /*
+         * Set the viewport and the orthographic projection
+         */
+        viewport.applyWithOpenGL();
+        
+        /*
+         * Create the orthographic projection for the surface
+         */
+        CaretAssertVectorIndex(modelOrthoWidths, ivp);
+        CaretAssertVectorIndex(modelOrthoHeights, ivp);
+        GraphicsOrthographicProjection orthoProj(getOrthographicProjectionWithFixedOrthoSize(mvp->getProjectionViewType(),
+                                                                                             OrthoFitMode::SET_FROM_HEIGHT,
+                                                                                             viewport,
+                                                                                             modelOrthoWidths[ivp] * 1.02,
+                                                                                             modelOrthoHeights[ivp] * 1.02));
+        orthoProj.applyWithOpenGL();
+        
+        float center[3];
+        mvp->getSurface()->getBoundingBox()->getCenter(center);
+        this->applyViewingTransformations(surfaceMontageModel,
+                                          center,
+                                          mvp->getProjectionViewType());
+        
+        if (ivp == 0) {
+            setupScaleBarDrawingInformation(browserTabContent);
+        }
+        
+        const DisplayPropertiesFiberOrientation* dpf(m_brain->getDisplayPropertiesFiberOrientation());
+        const int32_t tabIndex = browserTabContent->getTabNumber();
+        const DisplayGroupEnum::Enum displayGroup = dpf->getDisplayGroupForTab(tabIndex);
+        const bool drawFiberTrajectoriesInFrontFlag(dpf->isDrawFiberTrajectoriesInFront(displayGroup,
+                                                                                        tabIndex));
+        const StructureEnum::Enum structure(mvp->getSurface()->getStructure());
+        drawSurfaceFiberOrientations(structure);
+        if ( ! drawFiberTrajectoriesInFrontFlag) {
+            drawSurfaceFiberTrajectories(structure);
+        }
+        
+        CaretAssertVectorIndex(modelViewportHeights, ivp);
+        const bool depthTestingEnabled(true);
+        this->drawSurface(mvp->getSurface(),
+                          SurfaceTabType::SURFACE_MONTAGE,
+                          browserTabContent->getScaling(),
+                          modelViewportHeights[ivp],
+                          nodeColoringRGBA,
+                          true,
+                          depthTestingEnabled);
+        
+        if (drawFiberTrajectoriesInFrontFlag) {
+            /*
+             * Clear the depth buffer but use the scissor test to only clear
+             * the depth buffer for this tab.
+             */
+            glPushAttrib(GL_SCISSOR_BIT);
+            glEnable(GL_SCISSOR_TEST);
+            glScissor(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            glPopAttrib();
+            
+            drawSurfaceFiberTrajectories(structure);
+        }
+    }
+    
+    glViewport(savedVP[0],
+               savedVP[1],
+               savedVP[2],
+               savedVP[3]);
+    
+    return true;
+}
 
 /**
  * While drawing in model space provide information to the scale bar so that it
