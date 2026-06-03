@@ -333,11 +333,11 @@ GapsAndMarginsDialog::updateDialog()
     
     const int32_t windowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
     
-    updateGapsSpinBoxes(windowIndex);
-    
-    updateMarginSpinBoxes(windowIndex);
-    
     if (windowIndex >= 0) {
+        updateGapsSpinBoxes(windowIndex);
+        
+        updateMarginSpinBoxes(windowIndex);
+        
         setEnabled(true);
     }
     else {
