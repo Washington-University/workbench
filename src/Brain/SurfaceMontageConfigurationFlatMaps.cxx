@@ -44,8 +44,7 @@ using namespace caret;
  * Constructor.
  */
 SurfaceMontageConfigurationFlatMaps::SurfaceMontageConfigurationFlatMaps(const int32_t tabIndex)
-: SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION,
-                                      SUPPORTS_LAYOUT_ORIENTATION_NO)
+: SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION)
 {
     std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
     validSurfaceTypes.push_back(SurfaceTypeEnum::FLAT);

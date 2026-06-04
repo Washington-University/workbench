@@ -44,8 +44,7 @@ using namespace caret;
  * Constructor.
  */
 SurfaceMontageConfigurationCerebellar::SurfaceMontageConfigurationCerebellar(const int32_t tabIndex)
-: SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION,
-                                      SUPPORTS_LAYOUT_ORIENTATION_YES)
+: SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION)
 {
     std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
     SurfaceTypeEnum::getAllEnumsExceptFlat(validSurfaceTypes);

@@ -47,8 +47,7 @@ using namespace caret;
  * Constructor.
  */
 SurfaceMontageConfigurationCerebral::SurfaceMontageConfigurationCerebral(const int32_t tabIndex)
-: SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION,
-                                      SUPPORTS_LAYOUT_ORIENTATION_YES)
+: SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION)
 {
     std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
     SurfaceTypeEnum::getAllEnumsExceptFlat(validSurfaceTypes);

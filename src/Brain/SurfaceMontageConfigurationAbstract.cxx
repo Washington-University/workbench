@@ -41,18 +41,19 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param supportsLayoutOrientation
- *    True if the subclass supports layout orientation (landscape/portrait).
+ * @param configurationType
+ *    Subclass configuration type
  */
-SurfaceMontageConfigurationAbstract::SurfaceMontageConfigurationAbstract(const SurfaceMontageConfigurationTypeEnum::Enum configurationType,
-                                                                         const SupportLayoutOrientation supportsLayoutOrientation)
+SurfaceMontageConfigurationAbstract::SurfaceMontageConfigurationAbstract(const SurfaceMontageConfigurationTypeEnum::Enum configurationType)
 : CaretObject(),
-m_configurationType(configurationType),
-m_supportsLayoutOrientation(supportsLayoutOrientation)
+m_configurationType(configurationType)
 {
     m_sceneAssistant = new SceneClassAssistant();
     
     m_overlaySet = NULL;
+    
+    /* Support all layout orientations by default */
+    SurfaceMontageLayoutOrientationEnum::getAllEnums(m_supportedLayoutOrientations);
     m_layoutOrientation = SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION;
     
     /*
@@ -197,20 +198,18 @@ SurfaceMontageConfigurationAbstract::getConfigurationType() const
 }
 
 /**
- * @return Configuration has a layout orientation.
- */
-bool
-SurfaceMontageConfigurationAbstract::hasLayoutOrientation() const
-{
-    return (m_supportsLayoutOrientation == SUPPORTS_LAYOUT_ORIENTATION_YES);
-}
-
-/**
  * @return The selected layout orientation.
  */
 SurfaceMontageLayoutOrientationEnum::Enum
 SurfaceMontageConfigurationAbstract::getLayoutOrientation() const
 {
+    CaretAssert( ! m_supportedLayoutOrientations.empty());
+    if (std::find(m_supportedLayoutOrientations.begin(),
+                  m_supportedLayoutOrientations.end(),
+                  m_layoutOrientation) == m_supportedLayoutOrientations.end()) {
+        CaretAssertVectorIndex(m_supportedLayoutOrientations, 0);
+        m_layoutOrientation = m_supportedLayoutOrientations[0];
+    }
     return m_layoutOrientation;
 }
 
@@ -224,6 +223,29 @@ void
 SurfaceMontageConfigurationAbstract::setLayoutOrientation(const SurfaceMontageLayoutOrientationEnum::Enum layoutOrientation)
 {
     m_layoutOrientation = layoutOrientation;
+}
+
+/**
+ * Get the supported layout orientations.
+ * @param layoutOrientationsOut
+ *    Supported layout orientations.
+ */
+void
+SurfaceMontageConfigurationAbstract::getSupportedLayoutOrientations(std::vector<SurfaceMontageLayoutOrientationEnum::Enum>& layoutOrientationsOut) const
+{
+    layoutOrientationsOut = m_supportedLayoutOrientations;
+}
+
+/**
+ * Set the supported layout orientations.  This should be called by a sub-class constructor.
+ * @param layoutOrientations
+ *    Supported layout orientations.  Must contains at least one element
+ */
+void
+SurfaceMontageConfigurationAbstract::setSupportedLayoutOrientations(const std::vector<SurfaceMontageLayoutOrientationEnum::Enum>& layoutOrientations)
+{
+    m_supportedLayoutOrientations = layoutOrientations;
+    CaretAssert( ! m_supportedLayoutOrientations.empty());
 }
 
 /**
@@ -284,7 +306,7 @@ SurfaceMontageConfigurationAbstract::isCompactLayout() const
  *    New compact layout status
  */
 void
-SurfaceMontageConfigurationAbstract::setComplactLayout(const bool status)
+SurfaceMontageConfigurationAbstract::setCompactLayout(const bool status)
 {
     m_compactLayoutFlag = status;
 }

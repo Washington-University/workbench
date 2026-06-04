@@ -47,8 +47,7 @@ using namespace caret;
  * Constructor.
  */
 SurfaceMontageConfigurationHippocampus::SurfaceMontageConfigurationHippocampus(const int32_t tabIndex)
-: SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION,
-                                      SUPPORTS_LAYOUT_ORIENTATION_YES)
+: SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION)
 {
     std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
     SurfaceTypeEnum::getAllEnumsExceptFlat(validSurfaceTypes);

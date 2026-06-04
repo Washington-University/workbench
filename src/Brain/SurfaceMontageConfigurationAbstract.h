@@ -39,13 +39,7 @@ namespace caret {
     class SurfaceMontageConfigurationAbstract : public CaretObject, public SceneableInterface {
         
     public:
-        enum SupportLayoutOrientation {
-            SUPPORTS_LAYOUT_ORIENTATION_YES,
-            SUPPORTS_LAYOUT_ORIENTATION_NO,
-        };
-        
-        SurfaceMontageConfigurationAbstract(const SurfaceMontageConfigurationTypeEnum::Enum configuration,
-                                            const SupportLayoutOrientation supportsLayoutOrientation);
+        SurfaceMontageConfigurationAbstract(const SurfaceMontageConfigurationTypeEnum::Enum configurationType);
         
         virtual ~SurfaceMontageConfigurationAbstract();
         
@@ -59,7 +53,7 @@ namespace caret {
         
         const OverlaySet* getOverlaySet() const;
         
-        bool hasLayoutOrientation() const;
+        void getSupportedLayoutOrientations(std::vector<SurfaceMontageLayoutOrientationEnum::Enum>& layoutOrientationsOut) const;
         
         SurfaceMontageLayoutOrientationEnum::Enum getLayoutOrientation() const;
         
@@ -77,7 +71,7 @@ namespace caret {
         
         bool isCompactLayout() const;
         
-        void setComplactLayout(const bool status);
+        void setCompactLayout(const bool status);
         
         virtual void copyConfiguration(SurfaceMontageConfigurationAbstract* configuration);
         
@@ -87,6 +81,7 @@ namespace caret {
         SurfaceMontageConfigurationAbstract& operator=(const SurfaceMontageConfigurationAbstract&);
         
     protected:
+        void setSupportedLayoutOrientations(const std::vector<SurfaceMontageLayoutOrientationEnum::Enum>& layoutOrientations);
         
         /**
          * Update the montage viewports using the current selected surfaces and settings.
@@ -121,9 +116,9 @@ namespace caret {
 
         const SurfaceMontageConfigurationTypeEnum::Enum m_configurationType;
         
-        const SupportLayoutOrientation m_supportsLayoutOrientation;
+        mutable SurfaceMontageLayoutOrientationEnum::Enum m_layoutOrientation;
         
-        SurfaceMontageLayoutOrientationEnum::Enum m_layoutOrientation;
+        std::vector<SurfaceMontageLayoutOrientationEnum::Enum> m_supportedLayoutOrientations;
         
         OverlaySet* m_overlaySet;
         

@@ -45,8 +45,7 @@ using namespace caret;
  * Constructor.
  */
 SurfaceMontageConfigurationHippocampusFlatMaps::SurfaceMontageConfigurationHippocampusFlatMaps(const int32_t tabIndex)
-: SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_FLAT_CONFIGURATION,
-                                      SUPPORTS_LAYOUT_ORIENTATION_YES)
+: SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_FLAT_CONFIGURATION)
 {
     const std::vector<SurfaceTypeEnum::Enum> validFlatSurfaceTypes { SurfaceTypeEnum::FLAT };
     
@@ -99,8 +98,12 @@ SurfaceMontageConfigurationHippocampusFlatMaps::SurfaceMontageConfigurationHippo
     /*
      * Default hippocampus flat maps to ROW layout and COMPACT layout enabled.
      */
-    setLayoutOrientation(SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION);
-    setComplactLayout(true);
+    std::vector<SurfaceMontageLayoutOrientationEnum::Enum> supportedOrientations;
+    supportedOrientations.push_back(SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION);
+    CaretAssertVectorIndex(supportedOrientations, 0);
+    setSupportedLayoutOrientations(supportedOrientations);
+    setLayoutOrientation(supportedOrientations[0]);
+    setCompactLayout(true);
 }
 
 /**

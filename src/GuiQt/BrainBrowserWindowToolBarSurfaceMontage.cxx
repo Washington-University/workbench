@@ -204,7 +204,7 @@ BrainBrowserWindowToolBarSurfaceMontage::compactLayoutCheckBoxClicked(bool check
     ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
     const int32_t tabIndex = btc->getTabNumber();
     SurfaceMontageConfigurationAbstract* selectedConfiguration = msm->getSelectedConfiguration(tabIndex);
-    selectedConfiguration->setComplactLayout(checked);
+    selectedConfiguration->setCompactLayout(checked);
 
     invalidateColoringAndUpdateGraphicsWindow();
 }
@@ -247,6 +247,9 @@ BrainBrowserWindowToolBarSurfaceMontage::updateContent(BrowserTabContent* browse
     SurfaceMontageConfigurationAbstract* selectedConfiguration = msm->getSelectedConfiguration(tabIndex);
     m_surfaceMontageConfigurationTypeEnumComboBox->setSelectedItem<SurfaceMontageConfigurationTypeEnum,SurfaceMontageConfigurationTypeEnum::Enum>(msm->getSelectedConfigurationType(tabIndex));
 
+    std::vector<SurfaceMontageLayoutOrientationEnum::Enum> supportedOrientations;
+    selectedConfiguration->getSupportedLayoutOrientations(supportedOrientations);
+    m_surfaceMontageLayoutOrientationEnumComboBox->setupWithItems<SurfaceMontageLayoutOrientationEnum,SurfaceMontageLayoutOrientationEnum::Enum>(supportedOrientations);
     m_surfaceMontageLayoutOrientationEnumComboBox->setSelectedItem<SurfaceMontageLayoutOrientationEnum,SurfaceMontageLayoutOrientationEnum::Enum>(selectedConfiguration->getLayoutOrientation());
     
     m_compactLayoutCheckBox->setChecked(selectedConfiguration->isCompactLayout());
