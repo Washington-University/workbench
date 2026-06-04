@@ -7933,8 +7933,9 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageHippocampsFlatCompact(BrowserTabCont
     }
     if (xOffset < 0) {
         xOffset = -xOffset;
-        const float percentTooWide(static_cast<float>(xOffset / static_cast<float>(allModelWidth)));
-        if (percentTooWide > 0.0) {
+        const float percentSize(tabViewport.getWidthF()
+                                / static_cast<float>(allModelWidth));
+        if (percentSize > 0.0) {
             if (debugFlag) {
                 std::cout << "--- START X IS LESS THAN ZERO ---" << std::endl;
             }
@@ -7942,7 +7943,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageHippocampsFlatCompact(BrowserTabCont
             
             int32_t oldHeight(0);
             int32_t newHeight(0);
-            const float percentSize(1.0 - percentTooWide);
             if (debugFlag) {
                 std::cout << "Reduced size percentage: " << percentSize << std::endl;
             }
@@ -7981,7 +7981,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageHippocampsFlatCompact(BrowserTabCont
     int32_t vpX(tabViewport.getX() + xOffset);
     const int32_t vpY(tabViewport.getY() + yOffset);
     if (debugFlag) {
-        std::cout << "Drawing, vpX=" << vpX << ", vpY=" << vpY << std::endl;
+        std::cout << "Drawing Tab Viewport:" << tabViewport.toString() << std::endl;
     }
 
     for (int32_t vpIndex = 0; vpIndex < numberOfViewports; vpIndex++) {
@@ -7990,7 +7990,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageHippocampsFlatCompact(BrowserTabCont
         mvp->getSurface()->getBoundingBox()->getCenter(center);
         
         if (debugFlag) {
-            std::cout << " Surface: " << mvp->getSurface()->getFileNameNoPath() << std::endl;
+            std::cout << "   Surface " << vpIndex << " : " << mvp->getSurface()->getFileNameNoPath() << std::endl;
         }
         
         /*
@@ -8009,7 +8009,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageHippocampsFlatCompact(BrowserTabCont
         mvp->setViewport(surfaceViewport);
         
         if (debugFlag) {
-            std::cout << "Drawing (" << vpIndex << "): x=" << vpX << ", y=" << vpY
+            std::cout << "   Setting viewport (" << vpIndex << "): x=" << vpX << ", y=" << vpY
             << ", w=" << vpWidth << ", h=" << vpHeight << std::endl;
         }
         
