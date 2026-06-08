@@ -85,6 +85,7 @@ namespace caret {
         void thresholdLinkCheckBoxToggled(bool);
         void thresholdMapFileIndexSelectorChanged();
         void thresholdSetAllMapsToolButtonClicked();
+        void thresholdResetToolButtonClicked();
         
         void scaleAutoPercentageNegativeMaximumValueChanged(double value);
         void scaleAutoPercentageNegativeMinimumValueChanged(double value);
@@ -180,6 +181,7 @@ namespace caret {
         
         QComboBox* thresholdTypeComboBox;
         QToolButton* thresholdSetAllMapsToolButton;
+        QToolButton* thresholdResetToolButton;
         
         CaretMappableDataFileAndMapSelectorObject* thresholdMapFileIndexSelector;
         QWidget* thresholdFileWidget;

@@ -535,6 +535,10 @@ namespace caret {
         
         CaretMappableDataFileAndMapSelectionModel* getMapThresholdFileSelectionModel(const int32_t mapIndex);
         
+        void resetMapThresholdingSelections(const int32_t mapIndex);
+        
+        void resetAllMapThresholdingSelections();
+        
         DataFileColorModulateSelector* getMapColorModulateFileSelector(const int32_t mapIndex);
         
         /*

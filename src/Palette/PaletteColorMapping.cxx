@@ -262,7 +262,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->displayZeroDataFlag = false;
     this->displayNegativeDataFlag = true;
     this->thresholdType = PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF;
-    this->thresholdTest = PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE;
+    this->thresholdTest = PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE;
     this->thresholdNormalMinimum = -1.0f;
     this->thresholdNormalMaximum = 1.0f;
     this->thresholdMappedMinimum = -1.0f;
@@ -271,7 +271,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdMappedAverageAreaMaximum =  1.0f;
     this->thresholdDataName = "";
     this->thresholdShowFailureInGreen = false;
-    this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE;
+    this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP;
     this->thresholdNegMinPosMaxLinked = false;
     this->histogramRangeMode = PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL;
     this->histogramBarsVisible = true;

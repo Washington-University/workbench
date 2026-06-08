@@ -1587,6 +1587,146 @@ CaretMappableDataFile::getMapThresholdFileSelectionModel(const int32_t mapIndex)
 }
 
 /**
+ * Reset the thresholding selections for the given map
+ * @param mapIndex
+ *    Index of map.
+ */
+void
+CaretMappableDataFile::resetMapThresholdingSelections(const int32_t mapIndex)
+{
+    CaretAssert((mapIndex >= 0)
+                && (mapIndex < getNumberOfMaps()));
+    if ( ! isMappedWithPalette()) {
+        return;
+    }
+    
+    float dataMinimum(0.0);
+    float dataMaximum(0.0);
+
+    PaletteThresholdRangeModeEnum::Enum thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP;
+    switch (getDataFileType()) {
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+            break;
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE;
+            break;
+        case DataFileTypeEnum::CZI_IMAGE_FILE:
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::META_VOLUME:
+            break;
+        case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SAMPLES:
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            break;
+    }
+
+    FastStatistics* statistics(NULL);
+    float scaleValue(1.0);
+    switch (thresholdRangeMode) {
+        case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE:
+            statistics = const_cast<FastStatistics*>(getFileFastStatistics());
+            break;
+        case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP:
+            statistics = const_cast<FastStatistics*>(getMapFastStatistics(mapIndex));
+            break;
+        case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_UNLIMITED:
+            statistics = const_cast<FastStatistics*>(getFileFastStatistics());
+            scaleValue = 2.0;
+            break;
+    }
+
+    if (statistics != NULL) {
+        dataMinimum = statistics->getMin() * scaleValue;
+        dataMaximum = statistics->getMax() * scaleValue;
+        
+        PaletteColorMapping* pcm(getMapPaletteColorMapping(mapIndex));
+        pcm->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE);
+        pcm->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL);
+        pcm->setThresholdRangeMode(thresholdRangeMode);
+        pcm->setThresholdMinimum(pcm->getThresholdType(), dataMinimum);
+        pcm->setThresholdMaximum(pcm->getThresholdType(), dataMaximum);
+    }
+}
+
+/**
+ * Reset the thresholding selections for all maps
+ */
+void
+CaretMappableDataFile::resetAllMapThresholdingSelections()
+{
+    const int32_t numMaps(getNumberOfMaps());
+    for (int32_t i = 0; i < numMaps; i++) {
+        resetMapThresholdingSelections(i);
+    }
+}
+
+/**
  * @return The modulate file selection model for the given map index.
  */
 DataFileColorModulateSelector*

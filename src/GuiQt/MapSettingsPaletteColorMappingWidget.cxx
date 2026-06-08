@@ -289,6 +289,18 @@ MapSettingsPaletteColorMappingWidget::thresholdSetAllMapsToolButtonClicked()
 }
 
 /**
+ * Called when the reset button is clicked
+ */
+void
+MapSettingsPaletteColorMappingWidget::thresholdResetToolButtonClicked()
+{
+    this->caretMappableDataFile->resetMapThresholdingSelections(this->mapFileIndex);
+    this->updateEditorInternal(this->caretMappableDataFile,
+                               this->mapFileIndex);
+    this->applySelections();
+}
+
+/**
  * Update the minimum and maximum values for the thresholding controls.
  */
 void
@@ -657,6 +669,12 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     QObject::connect(this->thresholdSetAllMapsToolButton, &QToolButton::clicked,
                      this, &MapSettingsPaletteColorMappingWidget::thresholdSetAllMapsToolButtonClicked);
     
+    this->thresholdResetToolButton = new QToolButton();
+    this->thresholdResetToolButton->setText("Reset");
+    this->thresholdResetToolButton->setToolTip("Reset thresholding for selected map");
+    QObject::connect(this->thresholdResetToolButton, &QToolButton::clicked,
+                     this, &MapSettingsPaletteColorMappingWidget::thresholdResetToolButtonClicked);
+    
     QLabel* thresholdRangeLabel = new QLabel("Range");
     this->thresholdRangeModeComboBox = new EnumComboBoxTemplate(this);
     QObject::connect(this->thresholdRangeModeComboBox, SIGNAL(itemActivated()),
@@ -839,6 +857,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     topLayout->addWidget(thresholdTypeLabel);
     topLayout->addWidget(this->thresholdTypeComboBox);
     topLayout->addWidget(this->thresholdSetAllMapsToolButton);
+    topLayout->addWidget(this->thresholdResetToolButton);
     topLayout->addStretch();
     
     QGroupBox* thresholdGroupBox = new QGroupBox("Threshold");
@@ -867,6 +886,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdAdjustmentWidgetGroup->add(threshMapIndexSpinBox);
     this->thresholdAdjustmentWidgetGroup->add(threshMapNameComboBox);
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdSetAllMapsToolButton);
+    this->thresholdAdjustmentWidgetGroup->add(this->thresholdResetToolButton);
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdOutlineDrawingColorComboBox->getWidget());
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdOutlineDrawingModeComboBox->getWidget());
     
