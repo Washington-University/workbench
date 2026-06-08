@@ -2522,79 +2522,42 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
         
         maxDataFrequency *= 1.05;
         
-        bool showBlueThresholdedRegionsFlag(false);
+        bool showThresholdedRegionsFlag(false);
         if (this->paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL) {
-            showBlueThresholdedRegionsFlag = true;
+            showThresholdedRegionsFlag = true;
         }
         
-        if (showBlueThresholdedRegionsFlag) {
+        if (showThresholdedRegionsFlag) {
+            const float crossZ(100.0);  /* in front of histogram */
             switch (this->paletteColorMapping->getThresholdTest()) {
                 case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
                 {
                     const float plotMinValue = this->thresholdPlot->axisScaleDiv(QwtPlot::xBottom).lowerBound();
                     const float plotMaxValue = this->thresholdPlot->axisScaleDiv(QwtPlot::xBottom).upperBound();
                     
-                    /*
-                     * Draw shaded region to left of minimum threshold
-                     */
-                    QVector<QPointF> minSamples;
-                    minSamples.push_back(QPointF(plotMinValue, maxDataFrequency));
-                    minSamples.push_back(QPointF(threshMinValue, maxDataFrequency));
-                    
-                    QwtPlotCurve* minBox = new QwtPlotCurve();
-                    minBox->setRenderHint(QwtPlotItem::RenderAntialiased);
-                    minBox->setVisible(true);
-                    
-                    QColor minColor(100, 100, 255, 160);
-                    minBox->setBrush(QBrush(minColor));
-                    minBox->setPen(QPen(minColor));
-                    minBox->setSamples(minSamples);
-                    
-                    minBox->setZ(z);
-                    minBox->attach(this->thresholdPlot);
+                    drawHistogramPlotRedX(thresholdPlot,
+                                          plotMinValue,
+                                          threshMinValue,
+                                          maxDataFrequency,
+                                          crossZ);
                     
                     /*
                      * Draw shaded region to right of maximum threshold
                      */
-                    QVector<QPointF> maxSamples;
-                    maxSamples.push_back(QPointF(threshMaxValue, maxDataFrequency));
-                    maxSamples.push_back(QPointF(plotMaxValue, maxDataFrequency));
-                    
-                    QwtPlotCurve* maxBox = new QwtPlotCurve();
-                    maxBox->setRenderHint(QwtPlotItem::RenderAntialiased);
-                    maxBox->setVisible(true);
-                    
-                    QColor maxColor(100, 100, 255, 160);
-                    maxBox->setBrush(QBrush(maxColor));
-                    maxBox->setPen(QPen(maxColor));
-                    maxBox->setSamples(maxSamples);
-                    
-                    maxBox->setZ(z);
-                    maxBox->attach(this->thresholdPlot);
+                    drawHistogramPlotRedX(thresholdPlot,
+                                          threshMaxValue,
+                                          plotMaxValue,
+                                          maxDataFrequency,
+                                          crossZ);
+
                 }
                     break;
                 case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
-                {
-                    /*
-                     * Draw shaded region between minimum and maximum threshold
-                     */
-                    QVector<QPointF> minSamples;
-                    minSamples.push_back(QPointF(threshMinValue, maxDataFrequency));
-                    minSamples.push_back(QPointF(threshMaxValue, maxDataFrequency));
-                    
-                    QwtPlotCurve* minBox = new QwtPlotCurve();
-                    minBox->setRenderHint(QwtPlotItem::RenderAntialiased);
-                    minBox->setVisible(true);
-                    
-                    QColor minColor(100, 100, 255, 160);
-                    minBox->setBrush(QBrush(minColor));
-                    minBox->setPen(QPen(minColor));
-                    minBox->setSamples(minSamples);
-                    
-                    minBox->setZ(z);
-                    
-                    minBox->attach(this->thresholdPlot);
-                }
+                    drawHistogramPlotRedX(thresholdPlot,
+                                          threshMinValue,
+                                          threshMaxValue,
+                                          maxDataFrequency,
+                                          crossZ);
                     break;
             }
         }
@@ -2652,6 +2615,69 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
      * Causes updates of plots.
      */
     this->thresholdPlot->replot();
+}
+
+/**
+ * Draw a red X over the histogram plot in the given range
+ * @param thresholdPlot
+ *    The histogram plot
+ * @param minX
+ *    Minimum for the x
+ * @param maxX
+ *    Maximum for the x
+ * @param maxY
+ *    Maximum Y of X (min is at Y=0)
+ * @param z
+ *    The Z-value
+ */
+void MapSettingsPaletteColorMappingWidget::drawHistogramPlotRedX(WuQwtPlot* thresholdPlot,
+                                                                 const float minX,
+                                                                 const float maxX,
+                                                                 const float maxY,
+                                                                 const float z)
+{
+    QPen pen(QPen(QColor(255, 0, 0, 255)));
+    pen.setWidth(3);
+    
+    /*
+     * Leg one of the X
+     */
+    {
+        QVector<QPointF> samples;
+        samples.push_back(QPointF(minX, 0));
+        samples.push_back(QPointF(maxX, maxY));
+        
+        QwtPlotCurve* box = new QwtPlotCurve();
+        box->setRenderHint(QwtPlotItem::RenderAntialiased);
+        box->setVisible(true);
+        
+        box->setPen(pen);
+        box->setSamples(samples);
+        
+        box->setZ(z);
+        
+        box->attach(thresholdPlot);
+    }
+
+    /*
+     * Leg two of the X
+     */
+    {
+        QVector<QPointF> samples;
+        samples.push_back(QPointF(minX, maxY));
+        samples.push_back(QPointF(maxX, 0));
+        
+        QwtPlotCurve* box = new QwtPlotCurve();
+        box->setRenderHint(QwtPlotItem::RenderAntialiased);
+        box->setVisible(true);
+        
+        box->setPen(pen);
+        box->setSamples(samples);
+        
+        box->setZ(z);
+        
+        box->attach(thresholdPlot);
+    }
 }
 
 /**

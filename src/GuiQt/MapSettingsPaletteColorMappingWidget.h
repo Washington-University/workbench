@@ -205,6 +205,12 @@ namespace caret {
 
         WuQwtPlot* thresholdPlot;
         
+        void drawHistogramPlotRedX(WuQwtPlot* thresholdPlot,
+                                   const float minX,
+                                   const float maxX,
+                                   const float maxY,
+                                   const float z);
+
         QLabel* statisticsMinimumValueLabel;
         QLabel* statisticsMaximumValueLabel;
         QLabel* statisticsMeanValueLabel;
