@@ -294,6 +294,9 @@ MapSettingsPaletteColorMappingWidget::thresholdSetAllMapsToolButtonClicked()
 void
 MapSettingsPaletteColorMappingWidget::thresholdResetToolButtonClicked()
 {
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     this->caretMappableDataFile->resetMapThresholdingSelections(this->mapFileIndex);
     this->updateEditorInternal(this->caretMappableDataFile,
                                this->mapFileIndex);
