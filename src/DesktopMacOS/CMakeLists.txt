@@ -7,7 +7,7 @@ PROJECT(DesktopMacOS)
 # Name of executable
 #
 set (EXE_NAME ConnectomeWorkbench)
-set (CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
+#set (CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
 
 #
 # QT Include directories
