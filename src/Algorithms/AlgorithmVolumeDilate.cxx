@@ -195,7 +195,7 @@ namespace
         const VolumeSpace& myVolSpace = volIn->getVolumeSpace();
         myVolSpace.getSpacingVectors(voxStep[0], voxStep[1], voxStep[2], origin);
         //if the distance is within 1% of excluding a neighbor, we need to additionally check the neighbors
-        bool checkNeighbors = distance <= voxStep[0].length() * 1.01f || distance <= voxStep[1].length() * 1.01f || distance <= voxStep[2].length() * 1.01f;
+        bool checkNeighbors = (distance <= 1.01f * max(max(voxStep[0].length(), voxStep[1].length()), voxStep[2].length()));
         //the single-voxel rule means we can't just base the maximum search distance on the dilation distance
         float cutoffBase = max(2.0f * distance, 2.0f * min(min(voxStep[0].length(), voxStep[1].length()), voxStep[2].length()));
         float minKernel = 1.5f * min(min(voxStep[0].length(), voxStep[1].length()), voxStep[2].length());//small kernels are cheap, so use a minimum of face+edge neighbors in isotropic volumes in weighted mode

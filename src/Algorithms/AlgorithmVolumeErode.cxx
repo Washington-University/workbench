@@ -96,8 +96,8 @@ namespace
                             0, 0, 1 };
         Vector3D ivec, jvec, kvec, origin;
         volIn->getVolumeSpace().getSpacingVectors(ivec, jvec, kvec, origin);
-        float minSpacing = min(min(ivec.length(), jvec.length()), kvec.length());
-        bool checkNeighbors = (minSpacing > distance);
+        float maxSpacing = max(max(ivec.length(), jvec.length()), kvec.length());
+        bool checkNeighbors = (maxSpacing * 1.01f >= distance);
         vector<int64_t> myDims;
         volIn->getDimensions(myDims);
         const float* inData = volIn->getFrame(inFrame, component), *roiData = NULL;
