@@ -152,7 +152,7 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
         "Dilation is done with the 'weighted' method by default (except for label data on the surface - volume label data uses weighted popularity logic by default), and is done on <new-sphere> for surface data.  " +
         "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.  " +
         "If neither -affine nor -warpfield are specified, the identity transform is assumed for the volume data.\n\n" +
-        "The recommended resampling methods are ADAP_BARY_AREA and CUBIC (cubic spline), except for label data which should use ADAP_BARY_AREA and ENCLOSING_VOXEL.  " +
+        "The recommended resampling methods are ADAP_BARY_AREA and CUBIC (cubic spline), except for label data which should use ADAP_BARY_AREA and LABEL.  " +
         "Using ADAP_BARY_AREA requires specifying an area option to each used -*-spheres option.\n\n" +
         "The <volume-method> argument must be one of the following:\n\n" +
         "CUBIC\nENCLOSING_VOXEL\nTRILINEAR\nLABEL\n\n" +
