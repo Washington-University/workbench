@@ -764,7 +764,7 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName)
     }
     
     updateAfterFileDataChanges();
-    
+    resetAllMapThresholdingSelections();
     setFileName(ciftiMapFileName);
     clearModified();
 }

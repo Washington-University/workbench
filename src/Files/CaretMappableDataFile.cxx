@@ -1705,12 +1705,23 @@ CaretMappableDataFile::resetMapThresholdingSelections(const int32_t mapIndex)
         dataMinimum = statistics->getMin() * scaleValue;
         dataMaximum = statistics->getMax() * scaleValue;
         
+        /*
+         * Note: Do not call pcm->setThresholdType().
+         * Leave the theshold type to its current setting.
+         */
         PaletteColorMapping* pcm(getMapPaletteColorMapping(mapIndex));
+        const bool modStatus(pcm->isModified());
         pcm->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE);
-        pcm->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL);
         pcm->setThresholdRangeMode(thresholdRangeMode);
-        pcm->setThresholdMinimum(pcm->getThresholdType(), dataMinimum);
-        pcm->setThresholdMaximum(pcm->getThresholdType(), dataMaximum);
+        pcm->setThresholdMinimum(PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF, dataMinimum);
+        pcm->setThresholdMaximum(PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF, dataMaximum);
+        pcm->setThresholdMinimum(PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL, dataMinimum);
+        pcm->setThresholdMaximum(PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL, dataMaximum);
+        pcm->setThresholdMinimum(PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE, dataMinimum);
+        pcm->setThresholdMaximum(PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE, dataMaximum);
+        if ( ! modStatus) {
+            pcm->clearModified();
+        }
     }
 }
 

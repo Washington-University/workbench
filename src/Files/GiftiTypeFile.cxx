@@ -156,6 +156,7 @@ GiftiTypeFile::readFile(const AString& filename)
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
     updateAfterFileDataChanges();
+    resetAllMapThresholdingSelections();
     this->clearModified();
 }
 

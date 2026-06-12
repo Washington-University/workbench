@@ -2526,7 +2526,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
         maxDataFrequency *= 1.05;
         
         bool showThresholdedRegionsFlag(false);
-        if (this->paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL) {
+        if (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
             showThresholdedRegionsFlag = true;
         }
         

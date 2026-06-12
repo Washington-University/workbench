@@ -1395,6 +1395,7 @@ PaletteColorMapping::getThresholdMinimum(const PaletteThresholdTypeEnum::Enum th
     
     switch (thresholdType) {
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            value = this->thresholdNormalMinimum;
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
             value = this->thresholdNormalMinimum;
@@ -1428,6 +1429,7 @@ PaletteColorMapping::getThresholdMaximum(const PaletteThresholdTypeEnum::Enum th
     
     switch (thresholdType) {
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            value = this->thresholdNormalMaximum;
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
             value = this->thresholdNormalMaximum;
