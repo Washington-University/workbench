@@ -1600,6 +1600,16 @@ CaretMappableDataFile::resetMapThresholdingSelections(const int32_t mapIndex)
         return;
     }
     
+    PaletteColorMapping* pcm(getMapPaletteColorMapping(mapIndex));
+    CaretAssert(pcm);
+    if (pcm->isThresholdingInitializedToDataRange()) {
+        /*
+         * Thresholing has already been set.  Most likely is that the
+         * palette color mapping is saved in the data file
+         */
+        return;
+    }
+    
     float dataMinimum(0.0);
     float dataMaximum(0.0);
 
@@ -1709,7 +1719,6 @@ CaretMappableDataFile::resetMapThresholdingSelections(const int32_t mapIndex)
          * Note: Do not call pcm->setThresholdType().
          * Leave the theshold type to its current setting.
          */
-        PaletteColorMapping* pcm(getMapPaletteColorMapping(mapIndex));
         const bool modStatus(pcm->isModified());
         pcm->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE);
         pcm->setThresholdRangeMode(thresholdRangeMode);

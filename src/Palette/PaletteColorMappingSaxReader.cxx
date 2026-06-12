@@ -494,7 +494,18 @@ PaletteColorMappingSaxReader::error(const XmlSaxParserException& e)
 
 void 
 PaletteColorMappingSaxReader::startDocument() 
-{    
+{
+    /*
+     * This function is called just prior to reading PaletteColorMapping
+     * for a data file.  It reads palette color mapping that is either
+     * saved in the file's metadata or a scene.
+     * By calling setThresholdingInitializedToDataRange(true) it
+     * prevents CaretMappableDataFile::resetMapThresholdingSelections() from
+     * overwriting the threshold values read by an instance of this class.
+     */
+    if (this->paletteColorMapping != NULL) {
+        this->paletteColorMapping->setThresholdingInitializedToDataRange(true);
+    }
 }
 
 void 

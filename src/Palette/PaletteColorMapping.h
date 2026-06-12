@@ -164,6 +164,10 @@ namespace caret {
         
         void setUserScalePositiveMinimum(const float userScalePositiveMinimum);
         
+        bool isThresholdingInitializedToDataRange() const;
+        
+        void setThresholdingInitializedToDataRange(const bool status);
+        
         float getThresholdMappedAverageAreaMinimum() const;
         
         void setThresholdMappedAverageAreaMinimum(const float thresholdMappedAverageAreaMinimum);
@@ -393,6 +397,13 @@ namespace caret {
         PaletteThresholdOutlineDrawingModeEnum::Enum thresholdOutlineDrawingMode;
         
         CaretColorEnum::Enum thresholdOutlineDrawingColor;
+        
+        /**
+         * Tracks if palette color mapping has been read to prevent override of these
+         * values by code that initializes thresholding values at the end of file reading
+         * by CaretMappableDataFile::resetAllMapThresholdingSelections()
+         */
+        mutable bool thresholdingInitializedToDataRangeFlag = false;
         
         /**Tracks modification, DO NOT copy */
         PaletteModifiedStatusEnum::Enum modifiedStatus;

@@ -166,6 +166,8 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm,
     this->thresholdOutlineDrawingMode = pcm.thresholdOutlineDrawingMode;
     this->thresholdOutlineDrawingColor = pcm.thresholdOutlineDrawingColor;
     
+    this->thresholdingInitializedToDataRangeFlag = true;
+    
     this->clearModified();
 }
 
@@ -235,6 +237,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
                 allMatchFlag = false;
             }
         }
+        
+        this->thresholdingInitializedToDataRangeFlag = true;
     }
     
     return allMatchFlag;
@@ -288,6 +292,8 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdOutlineDrawingMode = PaletteThresholdOutlineDrawingModeEnum::OFF;
     this->thresholdOutlineDrawingColor = CaretColorEnum::WHITE;
     this->modifiedStatus = PaletteModifiedStatusEnum::UNMODIFIED;
+    
+    this->thresholdingInitializedToDataRangeFlag = false;
 }
 
 /**
@@ -1508,6 +1514,30 @@ PaletteColorMapping::setThresholdMaximum(const PaletteThresholdTypeEnum::Enum th
             break;
     }
 }
+
+/**
+ * @return True if thresholding has been initialized to the data range
+ */
+bool
+PaletteColorMapping::isThresholdingInitializedToDataRange() const
+{
+    return this->thresholdingInitializedToDataRangeFlag;
+}
+
+/**
+ * @return Set thresholding has been initialized to the data range
+ * @param status
+ *    New status
+ */
+void
+PaletteColorMapping::setThresholdingInitializedToDataRange(const bool status)
+{
+    /*
+     * Note: DOES NOT affect palette modified status
+     */
+    this->thresholdingInitializedToDataRangeFlag = status;
+}
+
 
 /**
  * Get mapped average area minimum threshold
