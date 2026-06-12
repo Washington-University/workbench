@@ -1731,7 +1731,7 @@ CaretMappableDataFile::resetMapThresholdingSelections(const int32_t mapIndex)
 void
 CaretMappableDataFile::resetAllMapThresholdingSelections()
 {
-    const int32_t numMaps(getNumberOfMaps());
+    const int32_t numMaps(getNumberOfMaps()) ;
     for (int32_t i = 0; i < numMaps; i++) {
         resetMapThresholdingSelections(i);
     }
