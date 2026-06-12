@@ -955,6 +955,7 @@ IdentifyBrainordinateDialog::processLabelFileWidget(AString& errorMessageOut)
     CaretMappableDataFile* mapFile = m_labelFileWidgets.m_fileSelector->getModel()->getSelectedFile();
     const int32_t mapIndex = m_labelFileWidgets.m_fileSelector->getModel()->getSelectedMapIndex();
     if (mapFile != NULL) {
+        bool validFlag(true);
         AString labelName;
         AString errorMessage;
         const LabelFile* labelFile(dynamic_cast<const LabelFile*>(mapFile));
@@ -968,11 +969,12 @@ IdentifyBrainordinateDialog::processLabelFileWidget(AString& errorMessageOut)
                                                       labelKey,
                                                       vertexIndices);
                 if (vertexIndices.empty()) {
-                    errorMessage = ("No vertices found for label "
+                    validFlag = false;
+                    errorMessage = ("No brainordinates found for label "
                                     + labelName
                                     + " on "
                                     + StructureEnum::toGuiName(labelFile->getStructure())
-                                    + ", cannot rotate surface.");
+                                    + ".");
                 }
                 else {
                     rotateSurfaceToVertices(labelFile->getStructure(),
@@ -992,11 +994,12 @@ IdentifyBrainordinateDialog::processLabelFileWidget(AString& errorMessageOut)
                                                                labelKey,
                                                                vertexIndices);
                     if (vertexIndices.empty()) {
-                        errorMessage = ("No vertices found for label "
+                        validFlag = false;
+                        errorMessage = ("No brainordinates found for label "
                                         + labelName
                                         + " on "
                                         + StructureEnum::toGuiName(structure)
-                                        + ", cannot rotate surface.");
+                                        + ".");
                     }
                     else {
                         rotateSurfaceToVertices(structure,
@@ -1005,12 +1008,14 @@ IdentifyBrainordinateDialog::processLabelFileWidget(AString& errorMessageOut)
                 }
             }
         }
-        BrainordinateRegionOfInterest* brainROI = brain->getBrainordinateHighlightRegionOfInterest();
-        if (brainROI->setWithLabelFileLabel(mapFile,
-                                        mapIndex,
-                                        labelName,
-                                            errorMessageOut)) {
-            flashBrainordinateHighlightingRegionOfInterest(brainROI);
+        if (validFlag) {
+            BrainordinateRegionOfInterest* brainROI = brain->getBrainordinateHighlightRegionOfInterest();
+            if (brainROI->setWithLabelFileLabel(mapFile,
+                                                mapIndex,
+                                                labelName,
+                                                errorMessageOut)) {
+                flashBrainordinateHighlightingRegionOfInterest(brainROI);
+            }
         }
         
         if ( ! errorMessage.isEmpty()) {

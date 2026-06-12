@@ -1930,11 +1930,7 @@ BrowserTabContent::receiveEvent(Event* event)
                 rightSurfaceFlag = (surface->getStructure() == StructureEnum::CORTEX_RIGHT);
             }
             if (surface == NULL) {
-                rotateToVertexEvent->setErrorMessage("No surface with structure="
-                                                     + StructureEnum::toName(rotateToVertexEvent->getSurfaceStructure())
-                                                     + " is in browser tab index="
-                                                     + AString::number(m_tabNumber)
-                                                     + " (zero-based).");
+                /* Ignore if tab does not contain a surface */
             }
             else {
                 const std::vector<int32_t>& surfaceVertexIndices(rotateToVertexEvent->getSurfaceVertexIndices());

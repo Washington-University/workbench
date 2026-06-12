@@ -31,12 +31,17 @@
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWindowContent.h"
+#include "BrainStructure.h"
+#include "BrowserTabContent.h"
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "CaretLogger.h"
+#include "CiftiBrainordinateLabelFile.h"
 #include "DataFileException.h"
 #include "EventBrowserTabGet.h"
+#include "EventBrowserTabGetAll.h"
+#include "EventBrowserTabRotateSurfaceToShowVertex.h"
 #include "EventBrowserWindowContent.h"
 #include "EventGraphicsOpenGLDeleteTextureName.h"
 #include "EventMapYokingSelectMap.h"
@@ -104,6 +109,7 @@ enum ParamKeys : int32_t {
     PARAM_KEY_OPTION_PRINT_IMAGE_INFO,
     PARAM_KEY_OPTION_RENDERER,
     PARAM_KEY_OPTION_RESOLUTION,
+    PARAM_KEY_OPTION_ROTATE_SURFACE_TO_SHOW_LABEL,
     PARAM_KEY_OPTION_SET_MAP_YOKING,
     PARAM_KEY_OPTION_SIZE_UNITS,
     PARAM_KEY_SHOW_CAPTURE_SETTINGS
@@ -289,6 +295,22 @@ OperationShowSceneTwo::getParameters()
                                   "password",
                                   "Connectome DB Password");
     
+    /*
+     * Option to rotate surface to show a label
+     */
+    OptionalParameter* rotateToLabelOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_ROTATE_SURFACE_TO_SHOW_LABEL,
+                                                                       "-surface-rotate-to-cifti-label",
+                                                                       "Rotate a surface so that label is visible");
+    rotateToLabelOpt->addStringParameter(1, "cifti-label-in", "the input cifti label file");
+    rotateToLabelOpt->addStringParameter(2, "map", "the number (starts at 1) or name of the label map to use");
+    rotateToLabelOpt->addStringParameter(3, "label-name", "surface is rotated to show this label name");
+    rotateToLabelOpt->addStringParameter(4, "structure", "structure of surface showing label (CORTEX_LEFT or CORTEX_RIGHT)");
+    
+    /*
+     <label-in> - the input cifti label file
+     <map> - the number or name of the label map to use
+
+     */
     /*
      * Option to show settings but not output image
      */
@@ -649,6 +671,59 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     }
         
     /*
+     * Option to rotate surface to show label
+     */
+    std::unique_ptr<CiftiBrainordinateLabelFile> rotateSurfaceCiftiLabelFile;
+    int32_t rotateSurfaceMapIndex(-1);
+    int32_t rotateSurfaceLabelKey(-1);
+    StructureEnum::Enum rotateSurfaceStructure(StructureEnum::INVALID);
+    bool rotateSurfaceToCiftiLabelValidFlag(false);
+    OptionalParameter* rotateSurfaceToLabelOpt = myParams->getOptionalParameter(PARAM_KEY_OPTION_ROTATE_SURFACE_TO_SHOW_LABEL);
+    if (rotateSurfaceToLabelOpt->m_present) {
+        const AString ciftiLabelFileName(rotateSurfaceToLabelOpt->getString(1));
+        const AString mapIndexOrName(rotateSurfaceToLabelOpt->getString(2));
+        const AString labelName(rotateSurfaceToLabelOpt->getString(3));
+        const AString structureName(rotateSurfaceToLabelOpt->getString(4));
+
+        rotateSurfaceCiftiLabelFile.reset(new CiftiBrainordinateLabelFile());
+        try {
+            rotateSurfaceCiftiLabelFile->readFile(ciftiLabelFileName);
+        }
+        catch (const DataFileException& e) {
+            throw OperationException(e.whatString());
+        }
+        
+        rotateSurfaceMapIndex = rotateSurfaceCiftiLabelFile->getMapIndexFromNameOrNumber(mapIndexOrName);
+        if ((rotateSurfaceMapIndex < 0)
+            || (rotateSurfaceMapIndex >= rotateSurfaceCiftiLabelFile->getNumberOfMaps())) {
+            throw OperationException("Map index/name is invalid");
+        }
+        
+        bool okFlag(false);
+        rotateSurfaceStructure = StructureEnum::fromName(structureName,
+                                                         &okFlag);
+        if ( ! okFlag) {
+            throw OperationException("Structure name is invalid");
+        }
+        
+        const GiftiLabelTable* labelTable(rotateSurfaceCiftiLabelFile->getMapLabelTable(rotateSurfaceMapIndex));
+        CaretAssert(labelTable);
+        rotateSurfaceLabelKey = labelTable->getLabelKeyFromName(labelName);
+        if (rotateSurfaceLabelKey < 0) {
+            throw OperationException("Label Name is invalid");
+        }
+
+        /*
+         * If we got here label file info is good
+         */
+        if ((rotateSurfaceCiftiLabelFile != NULL)
+            && (rotateSurfaceMapIndex >= 0)
+            && (rotateSurfaceLabelKey > 0)) {
+            rotateSurfaceToCiftiLabelValidFlag = true;
+        }
+    }
+    
+    /*
      * Option for connectome db login
      */
     AString username;
@@ -903,6 +978,41 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         const int32_t outputImageIndex = ((numberOfWindows > 1)
                                           ? iWindow
                                           : -1);
+        
+        if (rotateSurfaceToCiftiLabelValidFlag) {
+            Brain* brain(SessionManager::get()->getBrain(0));
+            CaretAssert(brain);
+            const bool createIfNotFound(false);
+            const BrainStructure* bs(brain->getBrainStructure(rotateSurfaceStructure,
+                                                              createIfNotFound));
+            const int32_t surfaceNumberOfNodes(bs->getNumberOfNodes());
+           
+            std::vector<int32_t> surfaceNodeIndices;
+            rotateSurfaceCiftiLabelFile->getNodeIndicesWithLabelKey(rotateSurfaceStructure,
+                                                                    surfaceNumberOfNodes,
+                                                                    rotateSurfaceMapIndex,
+                                                                    rotateSurfaceLabelKey,
+                                                                    surfaceNodeIndices);
+            
+            if (surfaceNodeIndices.empty()) {
+                std::cout << "WARNING: Rotate to label does not map to any surface vertices" << std::endl;
+            }
+            else {
+                EventBrowserTabGetAll allTabsEvent;
+                EventManager::get()->sendEvent(allTabsEvent.getPointer());
+                std::vector<int32_t> allBrowserTabIndices(allTabsEvent.getBrowserTabIndices());
+                for (int32_t tabIndex : allBrowserTabIndices) {
+                    EventBrowserTabRotateSurfaceToShowVertex rotateEvent(tabIndex,
+                                                                         rotateSurfaceStructure,
+                                                                         surfaceNodeIndices);
+                    EventManager::get()->sendEvent(rotateEvent.getPointer());
+                    if (rotateEvent.isError()) {
+                        std::cout << "Rotate surface to label in tab " << tabIndex << " failed: "
+                        << rotateEvent.getErrorMessage() << std::endl;
+                    }
+                }
+             }
+        }
         Inputs inputs(offscreenRenderer,
                       bwc,
                       &captureEvent,
