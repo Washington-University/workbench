@@ -156,7 +156,8 @@ GiftiTypeFile::readFile(const AString& filename)
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
     updateAfterFileDataChanges();
-    resetAllMapThresholdingSelections();
+    const bool forceFlag(false); /* Do not override settings from file or scene */
+    resetAllMapThresholdingSelections(forceFlag);
     this->clearModified();
 }
 

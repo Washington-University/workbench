@@ -407,7 +407,8 @@ void VolumeFile::readFile(const AString& filename)
         addFileReadWarning("No spatial information in file (in NIFTI header, both qform and sform are invalid).");
     }
     
-    resetAllMapThresholdingSelections();
+    const bool forceFlag(false); /* Do not override settings from file or scene */
+    resetAllMapThresholdingSelections(forceFlag);
     
     CaretLogFine("Total Time to read and process volume is "
                  + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)

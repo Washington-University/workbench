@@ -764,7 +764,8 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName)
     }
     
     updateAfterFileDataChanges();
-    resetAllMapThresholdingSelections();
+    const bool forceFlag(false); /* Do not override settings from file or scene */
+    resetAllMapThresholdingSelections(forceFlag);
     setFileName(ciftiMapFileName);
     clearModified();
 }

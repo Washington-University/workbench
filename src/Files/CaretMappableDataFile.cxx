@@ -1590,9 +1590,15 @@ CaretMappableDataFile::getMapThresholdFileSelectionModel(const int32_t mapIndex)
  * Reset the thresholding selections for the given map
  * @param mapIndex
  *    Index of map.
+ * @param forceFlag
+ *    If true, thresholding will always be reset.
+ *    If false, thresholding will be reset only if it has not been initialized.  Thresholding has
+ *    been "initialized" when the palette coloring mapping was read from the data file or
+ *    the palette coloring mapping was read from a scene.
  */
 void
-CaretMappableDataFile::resetMapThresholdingSelections(const int32_t mapIndex)
+CaretMappableDataFile::resetMapThresholdingSelections(const int32_t mapIndex,
+                                                      const bool forceFlag)
 {
     CaretAssert((mapIndex >= 0)
                 && (mapIndex < getNumberOfMaps()));
@@ -1602,12 +1608,15 @@ CaretMappableDataFile::resetMapThresholdingSelections(const int32_t mapIndex)
     
     PaletteColorMapping* pcm(getMapPaletteColorMapping(mapIndex));
     CaretAssert(pcm);
-    if (pcm->isThresholdingInitializedToDataRange()) {
-        /*
-         * Thresholing has already been set.  Most likely is that the
-         * palette color mapping is saved in the data file
-         */
-        return;
+    if ( ! forceFlag) {
+        if (pcm->isThresholdingInitializedToDataRange()) {
+            /*
+             * Thresholing has already been set.  Most likely is that the
+             * palette color mapping is saved in the data file or has
+             * been read from a scene.
+             */
+            return;
+        }
     }
     
     float dataMinimum(0.0);
@@ -1736,13 +1745,16 @@ CaretMappableDataFile::resetMapThresholdingSelections(const int32_t mapIndex)
 
 /**
  * Reset the thresholding selections for all maps
+ * @param forceFlag
+ *    See comment for resetMapThresholdingSelections().
  */
 void
-CaretMappableDataFile::resetAllMapThresholdingSelections()
+CaretMappableDataFile::resetAllMapThresholdingSelections(const bool forceFlag)
 {
     const int32_t numMaps(getNumberOfMaps()) ;
     for (int32_t i = 0; i < numMaps; i++) {
-        resetMapThresholdingSelections(i);
+        resetMapThresholdingSelections(i,
+                                       forceFlag);
     }
 }
 

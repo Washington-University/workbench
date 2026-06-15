@@ -237,8 +237,6 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
                 allMatchFlag = false;
             }
         }
-        
-        this->thresholdingInitializedToDataRangeFlag = true;
     }
     
     return allMatchFlag;
