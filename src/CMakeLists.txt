@@ -138,7 +138,7 @@ IF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang2\\+\\+.*")
     SET(CLANG_FLAG TRUE)
 ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang2\\+\\+.*")
 IF (CLANG_FLAG)
-    ADD_DEFINITIONS("-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter -Wno-deprecated-declarations")
+    ADD_DEFINITIONS("-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter -Wno-deprecated-declarations -Wno-deprecated-this-capture")
 
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
                         OUTPUT_VARIABLE CLANG_VERSION)
