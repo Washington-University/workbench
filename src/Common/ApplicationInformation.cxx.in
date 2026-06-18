@@ -168,6 +168,10 @@ ApplicationInformation::getCompiledWithDebugStatus() const
 void 
 ApplicationInformation::getAllInformation(std::vector<AString>& informationValues) const
 {
+    const AString blankLine("");
+    const bool guiFlag(getApplicationType() 
+             == ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE);
+
     informationValues.clear();
     
     informationValues.push_back(this->name);
@@ -175,15 +179,21 @@ ApplicationInformation::getAllInformation(std::vector<AString>& informationValue
     informationValues.push_back("Type: " + ApplicationTypeEnum::toGuiName(s_applicationType));
 
     informationValues.push_back("Version: " + this->version);
+
+    if (guiFlag) informationValues.push_back(blankLine);
     
     informationValues.push_back("Qt Compiled Version: " + QString(QT_VERSION_STR));
     
     informationValues.push_back("Qt Runtime Version: " + QString(qVersion()));
     
+    if (guiFlag) informationValues.push_back(blankLine);
+    
     informationValues.push_back(commit);
     
     informationValues.push_back(commitDate);
 
+    if (guiFlag) informationValues.push_back(blankLine);
+    
 #if defined COMPILER_NAME
     FileInformation fileInfo(COMPILER_NAME);
     informationValues.push_back(QString("Compiler: ") + fileInfo.getFileNameFollowedByPathNameForGUI());
@@ -196,6 +206,8 @@ ApplicationInformation::getAllInformation(std::vector<AString>& informationValue
 
     informationValues.push_back(this->operatingSystemName);
 
+    if (guiFlag) informationValues.push_back(blankLine);
+    
     informationValues.push_back(compiledWithOpenMP);
 }
 

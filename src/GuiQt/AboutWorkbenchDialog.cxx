@@ -184,6 +184,8 @@ AboutWorkbenchDialog::displayMoreInformation()
     std::vector<AString> informationData;
     appInfo.getAllInformation(informationData);
     
+    const AString blankLine("");
+    
 #ifdef CARET_OMP
     int numThreads(-1);
 #pragma omp parallel
@@ -202,7 +204,8 @@ AboutWorkbenchDialog::displayMoreInformation()
     informationData.push_back("OpenMP Maximum Number of Threads: "
                               + AString::number(omp_get_max_threads()));
 #endif
-    
+    informationData.push_back(blankLine);
+
     int32_t cziMajorVersion(-1), cziMinorVersion(-1);
     libCZI::GetLibCZIVersion(&cziMajorVersion, &cziMinorVersion);
     informationData.push_back("libCZI Version: "
@@ -216,14 +219,16 @@ AboutWorkbenchDialog::displayMoreInformation()
         informationData.push_back(s);
     }
 #endif
-    
+    informationData.push_back(blankLine);
+
     QString styleName("Undefined");
     QStyle* appStyle = QApplication::style();
     if (appStyle != NULL) {
         styleName = appStyle->objectName();
     }
     informationData.push_back(QString("Style Name: " + styleName));
-    
+    informationData.push_back(blankLine);
+
     informationData.push_back("Network Proxies:");
     QList<QNetworkProxy> proxies(QNetworkProxyFactory::systemProxyForQuery());
     if (proxies.isEmpty()) {
@@ -234,7 +239,8 @@ AboutWorkbenchDialog::displayMoreInformation()
             informationData.push_back("   Host: " + proxy.hostName());
         }
     }
-    
+    informationData.push_back(blankLine);
+
     std::vector<AString> imageReadExtensions, imageWriteExtensions;
     ImageFile::getQtSupportedImageFileExtensions(imageReadExtensions,
                                                  imageWriteExtensions);
@@ -242,6 +248,7 @@ AboutWorkbenchDialog::displayMoreInformation()
                               + AString::join(imageReadExtensions, ", "));
     informationData.push_back("Qt Writable Images: "
                               + AString::join(imageWriteExtensions, ", "));
+    informationData.push_back(blankLine);
 
     std::vector<AString> clipRectReadableExtensions;
     std::vector<AString> scaledClipRectReadableExtensions;
@@ -255,6 +262,7 @@ AboutWorkbenchDialog::displayMoreInformation()
                               + AString::join(scaledClipRectReadableExtensions, ", "));
     informationData.push_back("Qt Readable/Writable Metadata Support (Text Key/Value) Images: "
                               + AString::join(metaDataReadableWritableExtensions, ", "));
+    informationData.push_back(blankLine);
 
     AString imageWriteDefaultExtension;
     ImageFile::getWorkbenchSupportedImageFileExtensions(imageReadExtensions,
@@ -271,6 +279,7 @@ AboutWorkbenchDialog::displayMoreInformation()
     DataFileTypeEnum::getQtSupportedMovieFileExtensions(movieReadExtensions);
     informationData.push_back("Qt Readable Movies (QMovie): "
                               + AString::join(movieReadExtensions, ", "));
+    informationData.push_back(blankLine);
 
     /*
      * Show image formats that support "clipRect" which is supposed
@@ -308,6 +317,7 @@ AboutWorkbenchDialog::displayMoreInformation()
                                   + AString::join(clipRectExtensions, ", "));
         informationData.push_back("Qt Scaled ClipRect Readable: "
                                   + AString::join(scaledClipRectExtensions, ", "));
+        informationData.push_back(blankLine);
     }
     
     informationData.push_back("Library paths:");
@@ -316,7 +326,8 @@ AboutWorkbenchDialog::displayMoreInformation()
     while (libPathsIter.hasNext()) {
         informationData.push_back("   " + libPathsIter.next());
     }
-    
+    informationData.push_back(blankLine);
+
     informationData.push_back("File and extensions for reading and writing:");
     std::vector<DataFileTypeEnum::Enum> allDataFileTypes;
     uint32_t dataFileTypeOptions(0);
@@ -349,10 +360,10 @@ AboutWorkbenchDialog::displayMoreInformation()
     WuQDataEntryDialog ded("More " + appInfo.getName() + " Information",
                            this,
                            true);
-    const int32_t numInfo = static_cast<int32_t>(informationData.size());
-    for (int32_t i = 0; i < numInfo; i++) {
-        ded.addWidget("", new QLabel(informationData[i]));
-    }
+    ded.addTextEdit("",
+                    AString::join(informationData, "\n"),
+                    true);
+    ded.setSizeOfDialogWhenDisplayed(QSize(750, 600));
     ded.setCancelButtonText("");
     ded.exec();
 }
