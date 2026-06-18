@@ -1278,7 +1278,7 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                                     case DataFileTypeEnum::METRIC_DYNAMIC:
                                         validDiskFileFlag = false;
                                         break;
-                                    case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                                    case DataFileTypeEnum::OME_ZARR_IMAGE:
                                         break;
                                     case DataFileTypeEnum::PALETTE:
                                         break;

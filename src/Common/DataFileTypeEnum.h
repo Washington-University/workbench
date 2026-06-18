@@ -91,8 +91,8 @@ public:
         METRIC,
         /** Metric Dynamic Connectivity */
         METRIC_DYNAMIC,
-        /** OME-ZARR Image File*/
-        OME_ZARR_IMAGE_FILE,
+        /** OME-ZARR Image */
+        OME_ZARR_IMAGE,
         /** Palette */
         PALETTE,
         /** RGBA */

@@ -360,9 +360,9 @@ DataFileTypeEnum::initialize()
                                         true,
                                         "func_dynconn")); // this file is never written
     
-    enumData.push_back(DataFileTypeEnum(OME_ZARR_IMAGE_FILE,
-                                        "OME_ZARR_IMAGE_FILE",
-                                        "OME-ZARR Image File",
+    enumData.push_back(DataFileTypeEnum(OME_ZARR_IMAGE,
+                                        "OME_ZARR_IMAGE",
+                                        "OME-ZARR Image",
                                         "OME-ZARR",
                                         false,
                                         "ome.zarr",
@@ -894,7 +894,7 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 validFlag = includeNonWritableFileTypesFlag;
                 break;
-            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
             case DataFileTypeEnum::PALETTE:
                 break;
@@ -1288,7 +1288,7 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
                     addEnumFlag = false;
                 }
                 break;
-            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
             case DataFileTypeEnum::PALETTE:
                 break;
@@ -1671,7 +1671,7 @@ DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
             dialogFilterShowType = DialogFilterShowType::SHOW_DIRECTORY;
             break;
         case DataFileTypeEnum::PALETTE:

@@ -957,7 +957,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::METRIC_DYNAMIC:
                     haveConnFiles = true;
                     break;
-                case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                case DataFileTypeEnum::OME_ZARR_IMAGE:
                     haveImages = true;
                     break;
                 case DataFileTypeEnum::PALETTE:

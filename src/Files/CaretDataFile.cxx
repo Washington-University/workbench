@@ -135,7 +135,7 @@ SceneableInterface()
         case DataFileTypeEnum::METRIC_DYNAMIC:
             supportsIdentificationAttributesFlag = true;
             break;
-        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
             supportsIdentificationAttributesFlag = true;
             break;
         case DataFileTypeEnum::PALETTE:

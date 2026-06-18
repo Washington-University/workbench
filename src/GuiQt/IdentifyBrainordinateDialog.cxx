@@ -203,7 +203,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 break;
-            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            case DataFileTypeEnum::OME_ZARR_IMAGE:
                 imageFlag = true;
                 break;
             case DataFileTypeEnum::PALETTE:

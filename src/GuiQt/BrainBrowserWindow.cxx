@@ -3706,7 +3706,7 @@ BrainBrowserWindow::processOmeZarrDirectoryOpen()
     CaretFileDialog fd(CaretFileDialog::Mode::MODE_OPEN,
                        this);
     fd.setAcceptMode(CaretFileDialog::AcceptOpen);
-    AString filterName = DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::OME_ZARR_IMAGE_FILE);
+    AString filterName = DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::OME_ZARR_IMAGE);
     QStringList filenameFilterList;
     filenameFilterList.append(filterName);
     fd.setNameFilters(filenameFilterList);

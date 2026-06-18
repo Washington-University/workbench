@@ -989,7 +989,7 @@ Brain::resetBrainKeepSceneFiles()
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 break;
-            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
             case DataFileTypeEnum::PALETTE:
                 keepFileFlag = false;
@@ -5473,7 +5473,7 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
         case DataFileTypeEnum::METRIC_DYNAMIC:
             CaretAssertMessage(0, "Metric dynamic files should never be added to brain");
             break;
-        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
         {
             OmeZarrImageFile* file(dynamic_cast<OmeZarrImageFile*>(caretDataFile));
             CaretAssert(file);
@@ -6621,7 +6621,7 @@ Brain::getReloadableDataFiles() const
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 reloadFlag = false;
                 break;
-            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
             case DataFileTypeEnum::PALETTE:
                 reloadFlag = false;
@@ -6988,7 +6988,7 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 CaretAssertMessage(0, "Metric dynamic files are never read by Brain");
                 break;
-            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            case DataFileTypeEnum::OME_ZARR_IMAGE:
                 caretDataFileRead = addReadOrReloadOmeZarrImageFile(fileMode,
                                                                     caretDataFile,
                                                                     dataFileName);
@@ -9102,7 +9102,7 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
         case DataFileTypeEnum::PALETTE:
             break;
@@ -9215,7 +9215,7 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::METRIC_DYNAMIC:
             canBeRemovedFlag = false;
             break;
-        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
         case DataFileTypeEnum::PALETTE:
             break;

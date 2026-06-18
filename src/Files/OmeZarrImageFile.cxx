@@ -97,7 +97,7 @@ using namespace caret;
  * Constructor.
  */
 OmeZarrImageFile::OmeZarrImageFile()
-: MediaFile(DataFileTypeEnum::OME_ZARR_IMAGE_FILE)
+: MediaFile(DataFileTypeEnum::OME_ZARR_IMAGE)
 {
     for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
         for (int32_t iOverlay = 0; iOverlay < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; iOverlay++) {

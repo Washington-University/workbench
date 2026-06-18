@@ -650,7 +650,7 @@ OperationSceneFileRestructure::copySpecialFileTypes(const AString& fromFileName,
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
         case DataFileTypeEnum::PALETTE:
             break;
@@ -811,7 +811,7 @@ OperationSceneFileRestructure::getChildDataFiles(const AString& dataFileName)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
             throw OperationException("Program not finished: OME-ZARR File needs to read its child volume files");
             break;
         case DataFileTypeEnum::PALETTE:
@@ -921,7 +921,7 @@ OperationSceneFileRestructure::getInstructionsPrivate(const MessageMode messageM
                                     + "; "
                                     + DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::META_VOLUME)
                                     + "; "
-                                    + DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::OME_ZARR_IMAGE_FILE));
+                                    + DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::OME_ZARR_IMAGE));
     
     std::string overwriteModesText =
 R"a(

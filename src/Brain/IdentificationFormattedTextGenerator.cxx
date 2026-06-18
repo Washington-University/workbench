@@ -1158,7 +1158,7 @@ IdentificationFormattedTextGenerator::isParcelAndScalarTypeFile(const DataFileTy
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
         case DataFileTypeEnum::PALETTE:
             break;

@@ -55,7 +55,7 @@ MediaFile::MediaFile(const DataFileTypeEnum::Enum dataFileType)
     switch (dataFileType) {
         case DataFileTypeEnum::CZI_IMAGE_FILE:
         case DataFileTypeEnum::IMAGE:
-        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
         default:
         {
