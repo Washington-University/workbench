@@ -1883,7 +1883,7 @@ MapSettingsPaletteColorMappingWidget::updatePaletteNameComboBox()
     if (newFlag) {
         this->paletteNameComboBox->clear();
         
-        std::vector<const PaletteBase*> allPalettes(EventPalettesGetOperations::getAllPaletteTypesSortedByName());
+        std::vector<const PaletteBase*> allPalettes(EventPalettesGetOperations::getAllPaletteTypesDefaultOrder());
 
         bool firstValidPixmapFlag(true);
         const int32_t numPalettes(allPalettes.size());
@@ -1891,6 +1891,7 @@ MapSettingsPaletteColorMappingWidget::updatePaletteNameComboBox()
             CaretAssertVectorIndex(allPalettes, i);
             const PaletteBase* palette = allPalettes[i];
             AString name = palette->getName();
+            
             /*
              * Second parameter is user data.  In the future, there may be user-editable
              * palettes and it is possible there may be palettes with the same name.

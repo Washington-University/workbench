@@ -72,8 +72,9 @@ EventPalettesGetOperations::getOperation() const
 std::vector<const PaletteNew*>
 EventPalettesGetOperations::getAllPaletteNewSortedByName()
 {
-    std::vector<const PaletteBase*> palettes(getAllPalettesSortedByName(false,
-                                                                        true));
+    std::vector<const PaletteBase*> palettes(getAllPalettes(SortingType::BY_NAME,
+                                                            false,
+                                                            true));
     std::vector<const PaletteNew*> paletteNews;
     for (const PaletteBase* pb : palettes) {
         const PaletteNew* pn(pb->castToPaletteNew());
@@ -91,20 +92,35 @@ EventPalettesGetOperations::getAllPaletteNewSortedByName()
 std::vector<const PaletteBase*>
 EventPalettesGetOperations::getAllPaletteTypesSortedByName()
 {
-    return getAllPalettesSortedByName(true,
-                                      true);
+    return getAllPalettes(SortingType::BY_NAME,
+                          true,
+                          true);
+}
+
+/**
+ * @return All palette types in  default orders
+ */
+std::vector<const PaletteBase*>
+EventPalettesGetOperations::getAllPaletteTypesDefaultOrder()
+{
+    return getAllPalettes(SortingType::DEFAULT_ORDER,
+                          true,
+                          true);
 }
 
 /**
  * @return All palettes of the enabled types sorted by name
+ * @param sortingType
+ *    Type of sorting for palettes
  * @param includePaletteFlag
  *    Include 'Palette" instances
  * @param includePaletteNewFlag
  *    Include 'PaletteNew" instances
  */
 std::vector<const PaletteBase*>
-EventPalettesGetOperations::getAllPalettesSortedByName(const bool includePaletteFlag,
-                                                       const bool includePaletteNewFlag)
+EventPalettesGetOperations::getAllPalettes(const SortingType sortingType,
+                                           const bool includePaletteFlag,
+                                           const bool includePaletteNewFlag)
 {
     std::vector<const PaletteBase*> palettes;
     std::vector<const PaletteBase*> paletteNews;
@@ -126,8 +142,14 @@ EventPalettesGetOperations::getAllPalettesSortedByName(const bool includePalette
         }
     }
     
-    PaletteBase::sortByName(palettes);
-    PaletteBase::sortByName(paletteNews);
+    switch (sortingType) {
+        case SortingType::DEFAULT_ORDER:
+            break;
+        case SortingType::BY_NAME:
+            PaletteBase::sortByName(palettes);
+            PaletteBase::sortByName(paletteNews);
+            break;
+    }
 
     std::vector<const PaletteBase*> palettesOut;
     palettesOut.insert(palettesOut.end(), paletteNews.begin(), paletteNews.end());

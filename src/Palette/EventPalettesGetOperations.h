@@ -49,6 +49,8 @@ namespace caret {
         
         static std::vector<const PaletteBase*> getAllPaletteTypesSortedByName();
         
+        static std::vector<const PaletteBase*> getAllPaletteTypesDefaultOrder();
+        
         static std::vector<const PaletteNew*> getAllPaletteNewSortedByName();
         
         
@@ -65,8 +67,16 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        static std::vector<const PaletteBase*> getAllPalettesSortedByName(const bool includePaletteFlag,
-                                                                          const bool includePaletteNewFlag);
+        enum SortingType {
+            /** default order is order from PaletteFile */
+            DEFAULT_ORDER,
+            /** sort by name */
+            BY_NAME
+        };
+        
+        static std::vector<const PaletteBase*> getAllPalettes(const SortingType sortingType,
+                                                              const bool includePaletteFlag,
+                                                              const bool includePaletteNewFlag);
         
         EventPalettesGetOperations(const Operation m_operation);
         
