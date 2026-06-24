@@ -10,9 +10,17 @@ Files: src/Files/SurfaceResamplingHelper.cxx src/Cifti/examples/* src/CommandLin
 Copyright: 2014-2018 Washington University School of Medicine
 License: Expat
 
+Files: src/OmeZarr/OmeFileReader.cxx src/OmeZarr/ZarrImageReader.cxx
+Copyright: 2024 NumFOCUS
+License: Apache-2.0
+
 Files: src/CZIlib/*
 Copyright: 2017 Zeiss Microscopy GmbH
 License: GPL-3+
+
+Files: src/QxtCore/*
+Copyright: 2007 Qxt Foundation
+License: IBMCPL-1.0 or LGPL-2.1
 
 Files: src/kloewe/*
 Copyright: 2012-2017 Kristian Loewe, Christian Borgelt
@@ -66,7 +74,7 @@ License: GPL-2+ with Font exception and OFL-1.1
 Files: src/Files/PaletteFile.cxx
 Copyright: 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University
            2012-2015 Matplotlib Development Team
-License: Apache-2 and MDT
+License: Apache-2.0 and MDT
 
 Files: src/GLMath/*
 Copyright: 2005 - 2014 G-Truc Creation
@@ -543,11 +551,7 @@ License: MDT
  Licensee agrees to be bound by the terms and conditions of this License
  Agreement.
 
-License: Apache-2
- Apache-Style Software License for ColorBrewer software and ColorBrewer Color Schemes
- .
- Copyright (c) 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University.
- .
+License: Apache-2.0
  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. 
  You may obtain a copy of the License at
  .
@@ -580,3 +584,21 @@ License: HappyBunny
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
+
+ License: IBMCPL-1.0
+  This library is free software; you can redistribute it and/or modify it
+  under the terms of the Common Public License, version 1.0, as published
+  by IBM, and/or under the terms of the GNU Lesser General Public License,
+  version 2.1, as published by the Free Software Foundation.
+
+  This file is provided "AS IS", without WARRANTIES OR CONDITIONS OF ANY
+  KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY
+  WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR
+  FITNESS FOR A PARTICULAR PURPOSE.
+ .
+  You should have received a copy of the CPL and the LGPL along with this
+  file. See the LICENSE file and the cpl1.0.txt/lgpl-2.1.txt files
+  included with the source distribution for more information.
+  If you did not receive a copy of the licenses, contact the Qxt Foundation.
+ .
+  <http://libqxt.org>  <foundation@libqxt.org>
