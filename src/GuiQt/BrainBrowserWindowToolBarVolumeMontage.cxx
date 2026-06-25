@@ -97,7 +97,7 @@ m_parentToolBar(parentToolBar)
                                                          "Set volume montage columns");
     
     QLabel* spacingLabel = new QLabel("Step:");
-    spacingLabel->setToolTip("Select the number of slices stepped (incremented) between displayed montage slices");
+    spacingLabel->setToolTip("Select the number of millimeters between displayed montage slices");
     m_montageSpacingSpinBox = WuQFactory::newDoubleSpinBox();
     m_montageSpacingSpinBox->setRange(0.0, 2500.0);
     m_montageSpacingSpinBox->setSingleStep(0.1);
