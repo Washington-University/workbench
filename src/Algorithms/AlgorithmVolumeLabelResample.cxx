@@ -86,7 +86,7 @@ OperationParameters* AlgorithmVolumeLabelResample::getParameters()
         "You may specify -affine, -warp, and -affine-series multiple times each, and they will be used in the order specified.  "
         "For instance, for rigid motion correction followed by nonlinear atlas registration, specify -affine-series first, then -warp.\n\n"
         
-        "This makes an ROI for each label, resamples them with TRILINEAR, and then takes the label from the ROI with the largest value at each voxel.  "
+        "Internally, this command makes an ROI for each label, resamples them with TRILINEAR, and then takes the label from the ROI with the largest value at each voxel.  "
         "By default, unlabeled voxels are treated as if they were a label, use -unlabeled-mask to instead treat them as a separate mask.  "
         "Using mask behavior can reduce an effect where a junction between labels that is next to unlabeled voxels will 'pinch inwards', particularly when using -smooth-edges."
     );
