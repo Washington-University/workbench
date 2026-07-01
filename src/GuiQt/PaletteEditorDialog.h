@@ -67,7 +67,7 @@ namespace caret {
 
         PaletteEditorDialog& operator=(const PaletteEditorDialog&) = delete;
         
-        virtual void updateDialog(const bool forceUpdate = false);
+        virtual void updateDialog() override;
 
         virtual void receiveEvent(Event* event) override;
 
@@ -112,6 +112,8 @@ namespace caret {
             ARROW_LEFT_DOWN,
             ARROW_UP_RIGHT
         };
+        
+        void updateDialogInternal(const bool updatePaletteListFlag);
         
         std::unique_ptr<PaletteNew> getPaletteFromEditor() const;
         

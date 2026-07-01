@@ -134,7 +134,9 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
-    updateDialog();
+    const bool updatePaletteListFlag(false);
+    updateDialogInternal(updatePaletteListFlag);
+
     const PaletteBase* paletteBase = m_paletteSelectionWidget->getSelectedPalette();
     paletteSelected(paletteBase);
     
@@ -163,7 +165,7 @@ PaletteEditorDialog::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         if ( ! m_ingoreUserInterfaceUpdateEventFlag) {
-            bool updateDialogFlag(false);
+            bool updatePaletteListFlag(false);
             
             EventUserInterfaceUpdate* updateEvent(dynamic_cast<EventUserInterfaceUpdate*>(event));
             CaretAssert(updateEvent);
@@ -173,15 +175,15 @@ PaletteEditorDialog::receiveEvent(Event* event)
             if (result.isOk()) {
                 std::vector<const PaletteNew*> palettes = result.getValue();
                 if (palettes != m_previouslyLoadedPalettes) {
-                    updateDialogFlag = true;
+                    updatePaletteListFlag = true;
                 }
             }
             else {
-                updateDialogFlag = true;
+                updatePaletteListFlag = true;
             }
             
-            if (updateDialogFlag) {
-                updateDialog();
+            if (updatePaletteListFlag) {
+                updateDialogInternal(updatePaletteListFlag);
             }
         }
     }
@@ -259,13 +261,23 @@ PaletteEditorDialog::updatePaletteListWidget(const bool forceUpdate)
 
 /**
  * Update the dialog.
- * @param forceUpdate
- *    Update even if palettes may not have changed
  */
 void
-PaletteEditorDialog::updateDialog(const bool forceUpdate)
+PaletteEditorDialog::updateDialog()
 {
-    updatePaletteListWidget(forceUpdate);
+    const bool updatePaletteListFlag(false);
+    updateDialogInternal(updatePaletteListFlag);
+}
+
+/**
+ * Update the dialog.
+ * @param updatePaletteListFlag
+ *    Update list of palettes
+ */
+void
+PaletteEditorDialog::updateDialogInternal(const bool updatePaletteListFlag)
+{
+    updatePaletteListWidget(updatePaletteListFlag);
     
     updatePaletteMovementButtons();
     
@@ -644,7 +656,10 @@ PaletteEditorDialog::newPaletteActionTriggered()
         else {
             WuQMessageBoxTwo::critical(this, "ERROR", dialog.getErrorMessage());
         }
-        updateDialog();
+
+        const bool updatePaletteListFlag(true);
+        updateDialogInternal(updatePaletteListFlag);
+        
         const PaletteBase* paletteBase = m_paletteSelectionWidget->getSelectedPalette();
         paletteSelected(paletteBase);
         updateAfterPalettesChanged();
@@ -673,8 +688,10 @@ PaletteEditorDialog::renamePaletteActionTriggered()
                 if (result.isError()) {
                     WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
                 }
-                const bool forceUpdate(true);
-                updateDialog(forceUpdate);
+
+                const bool updatePaletteListFlag(true);
+                updateDialogInternal(updatePaletteListFlag);
+
                 m_paletteSelectionWidget->selectPalette(paletteBase);
                 paletteSelected(paletteBase);
                 updateAfterPalettesChanged();
@@ -698,7 +715,9 @@ PaletteEditorDialog::deletePaletteActionTriggered()
             if (result.isError()) {
                 WuQMessageBoxTwo::critical(this, "ERROR", result.getErrorMessage());
             }
-            updateDialog();
+            const bool updatePaletteListFlag(true);
+            updateDialogInternal(updatePaletteListFlag);
+
             const PaletteBase* paletteBase = m_paletteSelectionWidget->getSelectedPalette();
             paletteSelected(paletteBase);
             updateAfterPalettesChanged();
@@ -1087,7 +1106,9 @@ PaletteEditorDialog::importPaletteActionTriggered()
             m_paletteSelectionWidget->updateContent();
             m_paletteSelectionWidget->selectPalette(palette);
 
-            updateDialog();
+            const bool updatePaletteListFlag(true);
+            updateDialogInternal(updatePaletteListFlag);
+
             const PaletteBase* paletteBase = m_paletteSelectionWidget->getSelectedPalette();
             paletteSelected(paletteBase);
             updateAfterPalettesChanged();
