@@ -87,8 +87,15 @@
 
 using namespace caret;
 
-/* The QSlider uses integer for min/max so use max-int / 4  (approximately) */
-static const int32_t BIG_NUMBER = (std::numeric_limits<int32_t>::max() - 1);
+/*
+ * This is the maximum value that a QSlider can
+ * handle without crashing on macOS.  This was
+ * found by trial and error: Increasing the value
+ * until it crashed; changing the range to 'UNLIMITED';
+ * and dragging low and high sliders to their
+ * minimums and maximums.
+ */
+static const int32_t SLIDER_UNLIMITED = 0x4DFFFFF;
 
     
 /**
@@ -364,7 +371,7 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                 const PaletteThresholdRangeModeEnum::Enum thresholdRangeMode = paletteColorMapping->getThresholdRangeMode();
                 this->thresholdRangeModeComboBox->setSelectedItem<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>(thresholdRangeMode);
                 
-                float maxValue = BIG_NUMBER;
+                float maxValue = SLIDER_UNLIMITED;
                 float minValue = -maxValue;
                 float stepMax = maxValue;
                 float stepMin = minValue;
@@ -432,8 +439,8 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                          */
                         stepMin = minValue;
                         stepMax = maxValue;
-                        minValue = std::min(minValue, (float)-BIG_NUMBER);
-                        maxValue = std::max(maxValue, (float)BIG_NUMBER);
+                        minValue = std::min(minValue, (float)-SLIDER_UNLIMITED);
+                        maxValue = std::max(maxValue, (float)SLIDER_UNLIMITED);
                     }
                         break;
                 }
@@ -745,7 +752,9 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     const AString rangeModeToolTip = ("Controls range of threshold controls\n"
                                       "   File: Range is from all values in file.\n"
                                       "   Map:  Range is from all values in selected map.\n"
-                                      "   Unlimited: Range is +/- infinity.");
+                                      "   Unlimited: Range is +/- "
+                                         + QLocale().toString(SLIDER_UNLIMITED) + "\n"
+                                      "     (maximum value of slider).");
     this->thresholdRangeModeComboBox->getWidget()->setToolTip(WuQtUtilities::createWordWrappedToolTipText(rangeModeToolTip));
     
     /*
@@ -823,8 +832,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
      */
     QLabel* thresholdLowLabel = new QLabel("Low");
     QLabel* thresholdHighLabel = new QLabel("High");
-    const float thresholdMinimum = -BIG_NUMBER;
-    const float thresholdMaximum =  BIG_NUMBER;
+    const float thresholdMinimum = -SLIDER_UNLIMITED;
+    const float thresholdMaximum =  SLIDER_UNLIMITED;
     
     this->thresholdLowSlider = new WuQDoubleSlider(Qt::Horizontal,
                                                    this);
@@ -1624,7 +1633,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
      * Fixed mapping
      */
     this->scaleFixedNegativeMaximumSpinBox =
-    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-BIG_NUMBER,
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-SLIDER_UNLIMITED,
                                                                    0.0,
                                                                    1.0,
                                                                    fixedDigitsRightOfDecimal,
@@ -1637,7 +1646,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     this->scaleFixedNegativeMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     
     this->scaleFixedNegativeMinimumSpinBox =
-    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-BIG_NUMBER,
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-SLIDER_UNLIMITED,
                                                                    0.0,
                                                                    1.0,
                                                                    fixedDigitsRightOfDecimal,
@@ -1651,7 +1660,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     
     this->scaleFixedPositiveMinimumSpinBox =
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
-                                                                   BIG_NUMBER,
+                                                                   SLIDER_UNLIMITED,
                                                                    1.0,
                                                                    fixedDigitsRightOfDecimal,
                                                                    this,
@@ -1664,7 +1673,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     
     this->scaleFixedPositiveMaximumSpinBox =
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
-                                                                   BIG_NUMBER,
+                                                                   SLIDER_UNLIMITED,
                                                                    1.0,
                                                                    fixedDigitsRightOfDecimal,
                                                                    this,
