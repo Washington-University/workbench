@@ -137,7 +137,9 @@ namespace caret {
         
         void setLayoutSpacingAndMargins(QLayout* layout);
         
-        const Histogram* getHistogram(const FastStatistics* statisticsForAll) const;
+        const Histogram* getHistogram(const FastStatistics* statisticsForAll,
+                                      CaretMappableDataFile* histMapFile,
+                                      int32_t histMapIndex) const;
         
         void updatePaletteNameComboBox();
         
@@ -211,6 +213,9 @@ namespace caret {
                                                 const float maxY,
                                                 const float z);
 
+        void getThresholdFileAndMap(CaretMappableDataFile* &thresholdMapFileOut,
+                                    int32_t& thresholdMapIndexOut) const;
+
         QLabel* statisticsMinimumValueLabel;
         QLabel* statisticsMaximumValueLabel;
         QLabel* statisticsMeanValueLabel;
@@ -232,7 +237,7 @@ namespace caret {
 
         QSpinBox* m_histogramBucketsSpinBox;
         
-        CaretMappableDataFile* caretMappableDataFile;
+        CaretMappableDataFile* caretMappableDataFile = NULL;
         
         int32_t mapFileIndex;
         

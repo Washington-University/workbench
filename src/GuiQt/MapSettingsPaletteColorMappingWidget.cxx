@@ -46,6 +46,7 @@
 #include "CaretColorEnumComboBox.h"
 #include "CaretMappableDataFile.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
+#include "ChartScaleAutoRanging.h"
 #include "CopyPaletteColorMappingToFilesDialog.h"
 #include "CursorDisplayScoped.h"
 #include "EnumComboBoxTemplate.h"
@@ -245,10 +246,18 @@ MapSettingsPaletteColorMappingWidget::thresholdTypeChanged(int indx)
     PaletteThresholdTypeEnum::Enum paletteThresholdType = static_cast<PaletteThresholdTypeEnum::Enum>(this->thresholdTypeComboBox->itemData(indx).toInt());
     this->paletteColorMapping->setThresholdType(paletteThresholdType);
     
-    this->updateEditorInternal(this->caretMappableDataFile,
-                       this->mapFileIndex);
+    QSignalBlocker blocker(this->thresholdTypeComboBox);
     
     this->applySelections();
+    this->updateEditorInternal(this->caretMappableDataFile,
+                               this->mapFileIndex);
+    updateHistogramPlot();
+    
+//    this->updateEditorInternal(this->caretMappableDataFile,
+//                       this->mapFileIndex);
+//    updateHistogramPlot();
+//    
+//    this->applySelections();
 }
 
 /**
@@ -306,6 +315,42 @@ MapSettingsPaletteColorMappingWidget::thresholdResetToolButtonClicked()
 }
 
 /**
+ * Get the file and map for thresholding.
+ * @param thresholdMapFileOut
+ *    Output with thresholding file
+ * @param thresholdMapIndexOut
+ *    Output with thresholding file map index
+ */
+void
+MapSettingsPaletteColorMappingWidget::getThresholdFileAndMap(CaretMappableDataFile* &thresholdMapFileOut,
+                                                             int32_t& thresholdMapIndexOut) const
+{
+    thresholdMapFileOut  = this->caretMappableDataFile;
+    thresholdMapIndexOut = this->mapFileIndex;
+    
+    if (this->paletteColorMapping != NULL) {
+        const PaletteThresholdTypeEnum::Enum threshType(this->paletteColorMapping->getThresholdType());
+        switch (threshType) {
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+                /* Self */
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+                thresholdMapFileOut = this->thresholdMapFileIndexSelector->getModel()->getSelectedFile();
+                thresholdMapIndexOut = this->thresholdMapFileIndexSelector->getModel()->getSelectedMapIndex();
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+                /* No longer used, from Caret 5 */
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+                /* No longer used, from Caret 5 */
+                break;
+        }
+    }
+}
+
+/**
  * Update the minimum and maximum values for the thresholding controls.
  */
 void
@@ -324,10 +369,21 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                 float stepMax = maxValue;
                 float stepMin = minValue;
                 
+                /*
+                 * Use threshold file for range of data
+                 */
+                CaretMappableDataFile* threshMapFile(NULL);
+                int32_t threshMapIndex(-1);
+                getThresholdFileAndMap(threshMapFile,
+                                       threshMapIndex);
+                CaretAssert(threshMapFile);
+                CaretAssert((threshMapIndex >= 0)
+                            && (threshMapIndex < threshMapFile->getNumberOfMaps()));
+                
                 switch (thresholdRangeMode) {
                     case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE:
-                        this->caretMappableDataFile->getDataRangeFromAllMaps(minValue,
-                                                                             maxValue);
+                        threshMapFile->getDataRangeFromAllMaps(minValue,
+                                                               maxValue);
                         stepMin = minValue;
                         stepMax = maxValue;
                         break;
@@ -337,10 +393,10 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                         FastStatistics* statistics = NULL;
                         switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
                             case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                                statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getFileFastStatistics());
+                                statistics = const_cast<FastStatistics*>(threshMapFile->getFileFastStatistics());
                                 break;
                             case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                                statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
+                                statistics = const_cast<FastStatistics*>(threshMapFile->getMapFastStatistics(threshMapIndex));
                                 break;
                         }
                         
@@ -361,8 +417,8 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                          */
                         float allMapMinValue = 0.0;
                         float allMapMaxValue = 0.0;
-                        this->caretMappableDataFile->getDataRangeFromAllMaps(allMapMinValue,
-                                                                             allMapMaxValue);
+                        threshMapFile->getDataRangeFromAllMaps(allMapMinValue,
+                                                               allMapMaxValue);
                         if (allMapMaxValue > allMapMinValue) {
                             const float absMax = std::max(std::fabs(allMapMaxValue),
                                                           std::fabs(allMapMinValue));
@@ -582,6 +638,7 @@ void
 MapSettingsPaletteColorMappingWidget::thresholdMapFileIndexSelectorChanged()
 {
     this->applySelections();
+    updateHistogramPlot();
 }
 
 /**
@@ -1740,6 +1797,7 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
 {
     this->thresholdWidgetGroup->blockAllSignals(true);
     
+    QSignalBlocker typeBlocker(this->thresholdTypeComboBox);
     const int32_t numTypes = this->thresholdTypeComboBox->count();
     for (int32_t i = 0; i < numTypes; i++) {
         const int value = this->thresholdTypeComboBox->itemData(i).toInt();
@@ -2152,12 +2210,19 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
  * Get histogram for displaying data
  * @param statisticsForAll
  *    Statistics for all data.
- * @param
- *    Histogram.
+ * @param histMapFile
+ *    Map file for histogram
+ * @param histMapIndex
+ *    Map index for histogram
  */
 const Histogram* 
-MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statisticsForAll) const
+MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statisticsForAll,
+                                                   CaretMappableDataFile* histMapFile,
+                                                   int32_t histMapIndex) const
 {
+    CaretAssert(histMapFile != NULL);
+    CaretAssert((histMapIndex >= 0)
+                && (histMapIndex < histMapFile->getNumberOfMaps()));
     float mostPos  = 0.0;
     float leastPos = 0.0;
     float leastNeg = 0.0;
@@ -2225,28 +2290,28 @@ MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statist
         
         switch (normMode) {
             case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                ret = this->caretMappableDataFile->getFileHistogram(mostPos,
-                                                                    leastPos,
-                                                                    leastNeg,
-                                                                    mostNeg,
-                                                                    isZeroIncluded);
+                ret = histMapFile->getFileHistogram(mostPos,
+                                                    leastPos,
+                                                    leastNeg,
+                                                    mostNeg,
+                                                    isZeroIncluded);
                 break;
             case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                ret = this->caretMappableDataFile->getMapHistogram(this->mapFileIndex,
-                                                                   mostPos,
-                                                                   leastPos,
-                                                                   leastNeg,
-                                                                   mostNeg,
-                                                                   isZeroIncluded);
+                ret = histMapFile->getMapHistogram(histMapIndex,
+                                                   mostPos,
+                                                   leastPos,
+                                                   leastNeg,
+                                                   mostNeg,
+                                                   isZeroIncluded);
                 break;
         }
     } else {
         switch (normMode) {
             case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                ret = caretMappableDataFile->getFileHistogram();
+                ret = histMapFile->getFileHistogram();
                 break;
             case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                ret = caretMappableDataFile->getMapHistogram(this->mapFileIndex);
+                ret = histMapFile->getMapHistogram(histMapIndex);
                 break;
         }
     }
@@ -2266,20 +2331,35 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
      * Remove all previously attached items from the histogram plot.
      * The items are automatically deleted by the plot.
      */
+//    this->thresholdPlot->detachItems(QwtPlotItem::Rtti_PlotItem, true);
+//    this->thresholdPlot->replot();
     this->thresholdPlot->detachItems();
+    this->thresholdPlot->replot();
     
     
     
     if (this->paletteColorMapping == NULL) {
         return;
     }
+    
+    /*
+     * Use threshold file for histogram plot but NOT other selections
+     */
+    CaretMappableDataFile* threshMapFile(NULL);
+    int32_t threshMapIndex(-1);
+    getThresholdFileAndMap(threshMapFile,
+                           threshMapIndex);
+    CaretAssert(threshMapFile);
+    CaretAssert((threshMapIndex >= 0)
+                && (threshMapIndex < threshMapFile->getNumberOfMaps()));
+
     FastStatistics* statistics = NULL;
     switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
         case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-            statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getFileFastStatistics());
+            statistics = const_cast<FastStatistics*>(threshMapFile->getFileFastStatistics());
             break;
         case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-            statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
+            statistics = const_cast<FastStatistics*>(threshMapFile->getMapFastStatistics(threshMapIndex));
             break;
     }
     if (statistics == NULL) {
@@ -2293,7 +2373,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
         /* nothing to display */
         return;
     }
-    
+        
     /*
      * Data values table
      */
@@ -2309,7 +2389,9 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
     /*
      * Get data for this histogram.
      */
-    const Histogram* myHist = getHistogram(statistics);
+    const Histogram* myHist = getHistogram(statistics,
+                                           threshMapFile,
+                                           threshMapIndex);
     float minValue, maxValue;
     myHist->getRange(minValue, maxValue);
     const std::vector<float>& displayDataReference = myHist->getHistogramDisplay();
@@ -2354,10 +2436,11 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
         /*
          * Color with palette so that alpha values are zero for regions not displayed
          */
+        PaletteColorMapping* histPCM(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
         NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
-                                                      paletteColorMapping,
+                                                      histPCM, //paletteColorMapping,
                                                       dataValues,
-                                                      paletteColorMapping,
+                                                      histPCM, //paletteColorMapping,
                                                       dataValues,
                                                       numDataValues,
                                                       dataRGBA,
@@ -2621,6 +2704,30 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
      * Causes updates of plots.
      */
     this->thresholdPlot->replot();
+    
+    /*
+     * Set's X-range of plot
+     */
+    if (maxValue > minValue) {
+        double scaleMinimum(0.0);
+        double scaleMaximum(0.0);
+        double scaleStep(0.0);
+        int32_t scaleDigitsRightOfDecimal(0.0);
+        ChartScaleAutoRanging::createAutoScale(minValue,
+                                               maxValue,
+                                               scaleMinimum,
+                                               scaleMaximum,
+                                               scaleStep,
+                                               scaleDigitsRightOfDecimal);
+        this->thresholdPlot->setAxisAutoScale(QwtPlot::xBottom, false);
+        if (scaleMaximum > scaleMinimum) {
+            this->thresholdPlot->setAxisScale(QwtPlot::xBottom, scaleMinimum, scaleMaximum);
+        }
+        else {
+            this->thresholdPlot->setAxisScale(QwtPlot::xBottom, minValue, maxValue);
+        }
+        this->thresholdPlot->replot();
+    }
 }
 
 /**
