@@ -213,8 +213,14 @@ namespace caret {
                                                 const float maxY,
                                                 const float z);
 
-        void getThresholdFileAndMap(CaretMappableDataFile* &thresholdMapFileOut,
-                                    int32_t& thresholdMapIndexOut) const;
+        enum class ThresholdGetMode {
+            DATA_CONTROLS,
+            HISTOGRAM_DRAWING
+        };
+        void getThresholdFileAndMap(const ThresholdGetMode thresholdGetModeIn,
+                                    CaretMappableDataFile* &thresholdMapFileOut,
+                                    int32_t& thresholdMapIndexOut,
+                                    bool& drawThresholdedRegionsFlagOut) const;
 
         QLabel* statisticsMinimumValueLabel;
         QLabel* statisticsMaximumValueLabel;

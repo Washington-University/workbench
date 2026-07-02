@@ -318,17 +318,24 @@ MapSettingsPaletteColorMappingWidget::thresholdResetToolButtonClicked()
 
 /**
  * Get the file and map for thresholding.
+ * @param thresholdGetModeIn
+ *    Mode for getting threshold files
  * @param thresholdMapFileOut
  *    Output with thresholding file
  * @param thresholdMapIndexOut
  *    Output with thresholding file map index
+ * @param drawThresholdedRegionsFlagOut
+ *    If true, thresholded regions should be drawn on histogram
  */
 void
-MapSettingsPaletteColorMappingWidget::getThresholdFileAndMap(CaretMappableDataFile* &thresholdMapFileOut,
-                                                             int32_t& thresholdMapIndexOut) const
+MapSettingsPaletteColorMappingWidget::getThresholdFileAndMap(const ThresholdGetMode thresholdGetModeIn,
+                                                             CaretMappableDataFile* &thresholdMapFileOut,
+                                                             int32_t& thresholdMapIndexOut,
+                                                             bool& drawThresholdedRegionsFlagOut) const
 {
     thresholdMapFileOut  = this->caretMappableDataFile;
     thresholdMapIndexOut = this->mapFileIndex;
+    drawThresholdedRegionsFlagOut = false;
     
     if (this->paletteColorMapping != NULL) {
         const PaletteThresholdTypeEnum::Enum threshType(this->paletteColorMapping->getThresholdType());
@@ -349,6 +356,22 @@ MapSettingsPaletteColorMappingWidget::getThresholdFileAndMap(CaretMappableDataFi
                 /* No longer used, from Caret 5 */
                 break;
         }
+    }
+    
+    switch (thresholdGetModeIn) {
+        case ThresholdGetMode::DATA_CONTROLS:
+            break;
+        case ThresholdGetMode::HISTOGRAM_DRAWING:
+            /*
+             * Draw histogram using displayed data not thresholded data.
+             * Draw thresholded regions ("X") on the histogram only if
+             * same data is both viewed and thresholded
+             */
+            drawThresholdedRegionsFlagOut = ((thresholdMapFileOut == this->caretMappableDataFile)
+                                             && (thresholdMapIndexOut == this->mapFileIndex));
+            thresholdMapFileOut  = this->caretMappableDataFile;
+            thresholdMapIndexOut = this->mapFileIndex;
+            break;
     }
 }
 
@@ -376,8 +399,11 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                  */
                 CaretMappableDataFile* threshMapFile(NULL);
                 int32_t threshMapIndex(-1);
-                getThresholdFileAndMap(threshMapFile,
-                                       threshMapIndex);
+                bool drawThresholdedRegionsFlag(false);
+                getThresholdFileAndMap(ThresholdGetMode::DATA_CONTROLS,
+                                       threshMapFile,
+                                       threshMapIndex,
+                                       drawThresholdedRegionsFlag);
                 CaretAssert(threshMapFile);
                 CaretAssert((threshMapIndex >= 0)
                             && (threshMapIndex < threshMapFile->getNumberOfMaps()));
@@ -2349,8 +2375,11 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
      */
     CaretMappableDataFile* threshMapFile(NULL);
     int32_t threshMapIndex(-1);
-    getThresholdFileAndMap(threshMapFile,
-                           threshMapIndex);
+    bool drawThresholdedRegionsFlag(false);
+    getThresholdFileAndMap(ThresholdGetMode::HISTOGRAM_DRAWING,
+                           threshMapFile,
+                           threshMapIndex,
+                           drawThresholdedRegionsFlag);
     CaretAssert(threshMapFile);
     CaretAssert((threshMapIndex >= 0)
                 && (threshMapIndex < threshMapFile->getNumberOfMaps()));
@@ -2677,7 +2706,8 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             showThresholdedRegionsFlag = true;
         }
         
-        if (showThresholdedRegionsFlag) {
+        if (showThresholdedRegionsFlag
+            && drawThresholdedRegionsFlag) {
             const float crossZ(100.0);  /* in front of histogram */
             switch (this->paletteColorMapping->getThresholdTest()) {
                 case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
