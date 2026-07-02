@@ -82,20 +82,21 @@
 #include "qwt_plot_histogram.h"
 #include "qwt_plot_intervalcurve.h"
 #include "qwt_plot_layout.h"
+#include "qwt_plot_legenditem.h"
 #include "PlotMagnifier.h"
 #include "PlotPanner.h"
 
 using namespace caret;
 
 /*
- * This is the maximum value that a QSlider can
- * handle without crashing on macOS.  This was
+ * This is the maximum value that qRound() when called
+ * from Qwt can handle without crashing.  This was
  * found by trial and error: Increasing the value
  * until it crashed; changing the range to 'UNLIMITED';
  * and dragging low and high sliders to their
  * minimums and maximums.
  */
-static const int32_t SLIDER_UNLIMITED = 0x4DFFFFF;
+static const int32_t UNLIMITED_MAXIMUM_VALUE = 0x4DFFFFF;
 
     
 /**
@@ -259,12 +260,6 @@ MapSettingsPaletteColorMappingWidget::thresholdTypeChanged(int indx)
     this->updateEditorInternal(this->caretMappableDataFile,
                                this->mapFileIndex);
     updateHistogramPlot();
-    
-//    this->updateEditorInternal(this->caretMappableDataFile,
-//                       this->mapFileIndex);
-//    updateHistogramPlot();
-//    
-//    this->applySelections();
 }
 
 /**
@@ -371,7 +366,7 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                 const PaletteThresholdRangeModeEnum::Enum thresholdRangeMode = paletteColorMapping->getThresholdRangeMode();
                 this->thresholdRangeModeComboBox->setSelectedItem<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>(thresholdRangeMode);
                 
-                float maxValue = SLIDER_UNLIMITED;
+                float maxValue = UNLIMITED_MAXIMUM_VALUE;
                 float minValue = -maxValue;
                 float stepMax = maxValue;
                 float stepMin = minValue;
@@ -439,8 +434,8 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                          */
                         stepMin = minValue;
                         stepMax = maxValue;
-                        minValue = std::min(minValue, (float)-SLIDER_UNLIMITED);
-                        maxValue = std::max(maxValue, (float)SLIDER_UNLIMITED);
+                        minValue = std::min(minValue, (float)-UNLIMITED_MAXIMUM_VALUE);
+                        maxValue = std::max(maxValue, (float)UNLIMITED_MAXIMUM_VALUE);
                     }
                         break;
                 }
@@ -753,7 +748,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                                       "   File: Range is from all values in file.\n"
                                       "   Map:  Range is from all values in selected map.\n"
                                       "   Unlimited: Range is +/- "
-                                         + QLocale().toString(SLIDER_UNLIMITED) + "\n"
+                                         + QLocale().toString(UNLIMITED_MAXIMUM_VALUE) + "\n"
                                       "     (maximum value of slider).");
     this->thresholdRangeModeComboBox->getWidget()->setToolTip(WuQtUtilities::createWordWrappedToolTipText(rangeModeToolTip));
     
@@ -832,8 +827,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
      */
     QLabel* thresholdLowLabel = new QLabel("Low");
     QLabel* thresholdHighLabel = new QLabel("High");
-    const float thresholdMinimum = -SLIDER_UNLIMITED;
-    const float thresholdMaximum =  SLIDER_UNLIMITED;
+    const float thresholdMinimum = -UNLIMITED_MAXIMUM_VALUE;
+    const float thresholdMaximum =  UNLIMITED_MAXIMUM_VALUE;
     
     this->thresholdLowSlider = new WuQDoubleSlider(Qt::Horizontal,
                                                    this);
@@ -1633,7 +1628,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
      * Fixed mapping
      */
     this->scaleFixedNegativeMaximumSpinBox =
-    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-SLIDER_UNLIMITED,
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-UNLIMITED_MAXIMUM_VALUE,
                                                                    0.0,
                                                                    1.0,
                                                                    fixedDigitsRightOfDecimal,
@@ -1646,7 +1641,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     this->scaleFixedNegativeMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     
     this->scaleFixedNegativeMinimumSpinBox =
-    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-SLIDER_UNLIMITED,
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-UNLIMITED_MAXIMUM_VALUE,
                                                                    0.0,
                                                                    1.0,
                                                                    fixedDigitsRightOfDecimal,
@@ -1660,7 +1655,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     
     this->scaleFixedPositiveMinimumSpinBox =
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
-                                                                   SLIDER_UNLIMITED,
+                                                                   UNLIMITED_MAXIMUM_VALUE,
                                                                    1.0,
                                                                    fixedDigitsRightOfDecimal,
                                                                    this,
@@ -1673,7 +1668,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     
     this->scaleFixedPositiveMaximumSpinBox =
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
-                                                                   SLIDER_UNLIMITED,
+                                                                   UNLIMITED_MAXIMUM_VALUE,
                                                                    1.0,
                                                                    fixedDigitsRightOfDecimal,
                                                                    this,
@@ -2340,8 +2335,6 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
      * Remove all previously attached items from the histogram plot.
      * The items are automatically deleted by the plot.
      */
-//    this->thresholdPlot->detachItems(QwtPlotItem::Rtti_PlotItem, true);
-//    this->thresholdPlot->replot();
     this->thresholdPlot->detachItems();
     this->thresholdPlot->replot();
     
@@ -2406,6 +2399,56 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
     const std::vector<float>& displayDataReference = myHist->getHistogramDisplay();
     std::vector<float> displayData = displayDataReference;
     const int64_t numHistogramValues = (int64_t)(displayData.size());
+    
+    bool tooBigFlag(false);
+    if (minValue > UNLIMITED_MAXIMUM_VALUE) {
+        minValue = UNLIMITED_MAXIMUM_VALUE;
+        tooBigFlag = true;
+    }
+    else if (minValue < -UNLIMITED_MAXIMUM_VALUE) {
+        minValue = -UNLIMITED_MAXIMUM_VALUE;
+        tooBigFlag = true;
+    }
+    if (maxValue > UNLIMITED_MAXIMUM_VALUE) {
+        maxValue = UNLIMITED_MAXIMUM_VALUE;
+        tooBigFlag = true;
+    }
+    else if (maxValue < -UNLIMITED_MAXIMUM_VALUE) {
+        maxValue = -UNLIMITED_MAXIMUM_VALUE;
+        tooBigFlag = true;
+    }
+    if (tooBigFlag) {
+        QwtPlotMarker* textMarker(new QwtPlotMarker());
+        textMarker->setValue(QPointF((minValue + maxValue) / 2, 1));
+        QwtText text("X-RANGE DATA TOO BIG FOR HISTOGRAM");
+        text.setColor(QColor(255, 0, 0));
+        textMarker->setLabel(text);
+        textMarker->setLabelAlignment(Qt::AlignHCenter | Qt::AlignTop);
+        textMarker->attach(this->thresholdPlot);
+    }
+
+    /*
+     * Set's X-range of plot
+     */
+    double xScaleMinimum(minValue);
+    double xScaleMaximum(maxValue);
+    if (maxValue > minValue) {
+         double scaleStep(0.0);
+        int32_t scaleDigitsRightOfDecimal(0.0);
+        ChartScaleAutoRanging::createAutoScale(minValue,
+                                               maxValue,
+                                               xScaleMinimum,
+                                               xScaleMaximum,
+                                               scaleStep,
+                                               scaleDigitsRightOfDecimal);
+        this->thresholdPlot->setAxisAutoScale(QwtPlot::xBottom, false);
+        if (xScaleMaximum > xScaleMinimum) {
+            this->thresholdPlot->setAxisScale(QwtPlot::xBottom, xScaleMinimum, xScaleMaximum);
+        }
+        else {
+            this->thresholdPlot->setAxisScale(QwtPlot::xBottom, minValue, maxValue);
+        }
+    }
     
     /*
      * Width of each 'bar' in the histogram
@@ -2618,6 +2661,15 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
         float threshMinValue = this->paletteColorMapping->getThresholdNormalMinimum();
         float threshMaxValue = this->paletteColorMapping->getThresholdNormalMaximum();
         
+        /*
+         * Limit the threshold values to displayed range of the X-values.
+         * If values become very large integers, it will crash Qt's qRound()
+         * when called from qwtRoundValue().
+         * See UNLIMITED_MAXIMUM_VALUE.
+         */
+        threshMinValue = MathFunctions::limitRange(threshMinValue, (float)xScaleMinimum, (float)xScaleMaximum);
+        threshMaxValue = MathFunctions::limitRange(threshMaxValue, (float)xScaleMinimum, (float)xScaleMaximum);
+
         maxDataFrequency *= 1.05;
         
         bool showThresholdedRegionsFlag(false);
@@ -2713,30 +2765,6 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
      * Causes updates of plots.
      */
     this->thresholdPlot->replot();
-    
-    /*
-     * Set's X-range of plot
-     */
-    if (maxValue > minValue) {
-        double scaleMinimum(0.0);
-        double scaleMaximum(0.0);
-        double scaleStep(0.0);
-        int32_t scaleDigitsRightOfDecimal(0.0);
-        ChartScaleAutoRanging::createAutoScale(minValue,
-                                               maxValue,
-                                               scaleMinimum,
-                                               scaleMaximum,
-                                               scaleStep,
-                                               scaleDigitsRightOfDecimal);
-        this->thresholdPlot->setAxisAutoScale(QwtPlot::xBottom, false);
-        if (scaleMaximum > scaleMinimum) {
-            this->thresholdPlot->setAxisScale(QwtPlot::xBottom, scaleMinimum, scaleMaximum);
-        }
-        else {
-            this->thresholdPlot->setAxisScale(QwtPlot::xBottom, minValue, maxValue);
-        }
-        this->thresholdPlot->replot();
-    }
 }
 
 /**
