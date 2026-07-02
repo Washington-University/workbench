@@ -96,14 +96,17 @@ m_parentToolBar(parentToolBar)
     WuQMacroManager::instance()->addMacroSupportToObject(m_montageColumnsSpinBox,
                                                          "Set volume montage columns");
     
+    const AString spacingToolTip(WuQtUtilities::createWordWrappedToolTipText("Spacing in number of slices.\n"
+                                                                             "Partial slices supported for MPR.\n"
+                                                                             "Ortho will not step until value changes by an integer value."));
     QLabel* spacingLabel = new QLabel("Step:");
-    spacingLabel->setToolTip("Select the number of millimeters between displayed montage slices");
+    spacingLabel->setToolTip(spacingToolTip);
     m_montageSpacingSpinBox = WuQFactory::newDoubleSpinBox();
     m_montageSpacingSpinBox->setRange(0.0, 2500.0);
     m_montageSpacingSpinBox->setSingleStep(0.1);
     m_montageSpacingSpinBox->setDecimals(2);
     m_montageSpacingSpinBox->setMaximumWidth(spinBoxWidth);
-    m_montageSpacingSpinBox->setToolTip(spacingLabel->toolTip());
+    m_montageSpacingSpinBox->setToolTip(spacingToolTip);
     QObject::connect(m_montageSpacingSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(montageSpacingSpinBoxValueChanged(double)));
     m_montageSpacingSpinBox->setObjectName(objectNamePrefix
