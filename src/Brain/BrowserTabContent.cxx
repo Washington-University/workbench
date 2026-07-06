@@ -8091,9 +8091,9 @@ BrowserTabContent::setVolumeMontageNumberOfRows(const int32_t montageNumberOfRow
  * @return the montage slice spacing as an integer.  Will always be 1 or greater
  */
 int32_t
-BrowserTabContent::getVolumeMontageSliceSpacingRoundedToInt() const
+BrowserTabContent::getVolumeMontageSliceSpacingAsInt() const
 {
-    const float spacingFloat(MathFunctions::round(getVolumeMontageSliceSpacing()));
+    const float spacingFloat(std::floor(getVolumeMontageSliceSpacing()));
     int32_t spacingInt(static_cast<int32_t>(spacingFloat));
     if (spacingInt < 1) {
         spacingInt = 1;

@@ -535,7 +535,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
     int32_t maximumSliceIndex = -1;
     int64_t dimI, dimJ, dimK, numMaps, numComponents;
     m_underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-    const int32_t sliceStep = m_browserTabContent->getVolumeMontageSliceSpacingRoundedToInt();
+    const int32_t sliceStep = m_browserTabContent->getVolumeMontageSliceSpacingAsInt();
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             sliceIndex = -1;
