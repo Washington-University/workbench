@@ -5063,40 +5063,10 @@ BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(BrainOpenGLFixedPipel
             break;
         case VolumeMontageCoordinateDisplayTypeEnum::OFFSET:
         {
-            switch (browserTabContent->getVolumeSliceProjectionType()) {
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-                {
-                    const AString plusSignText((sliceOffset > 0.0) ? "+" : "");
-                    coordText = (plusSignText
-                                 + AString::number(sliceOffset, 'f', precision)
-                                 + "mm");
-                }
-                    break;
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                {
-                    AString axisLetter;
-                    switch (sliceViewPlane) {
-                        case VolumeSliceViewPlaneEnum::ALL:
-                            CaretAssert(0);
-                            break;
-                        case VolumeSliceViewPlaneEnum::AXIAL:
-                            axisLetter = "Z";
-                            break;
-                        case VolumeSliceViewPlaneEnum::CORONAL:
-                            axisLetter = "Y";
-                            break;
-                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                            axisLetter = "X";
-                            break;
-                    }
-                    coordText = (axisLetter
-                                 + "="
-                                 + AString::number(sliceOffset, 'f', precision));
-                }
-                    break;
-            }
+            const AString plusSignText((sliceOffset >= 0.0) ? "+" : "");
+            coordText = (plusSignText
+                         + AString::number(sliceOffset, 'f', precision)
+                         + "mm");
         }
             break;
         case VolumeMontageCoordinateDisplayTypeEnum::XYZ:
