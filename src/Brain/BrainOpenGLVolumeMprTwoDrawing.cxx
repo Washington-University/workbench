@@ -3843,7 +3843,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
         return;
     }
     
-    const int32_t sliceIndexStep = m_browserTabContent->getVolumeMontageSliceSpacingAsInt();
+    const int32_t sliceIndexStep = static_cast<int32_t>(m_browserTabContent->getVolumeMontageSliceSpacing());
     
     /*
      * Determine a slice offset to selected slices is in

@@ -97,8 +97,7 @@ m_parentToolBar(parentToolBar)
                                                          "Set volume montage columns");
     
     const AString spacingToolTip(WuQtUtilities::createWordWrappedToolTipText("Spacing in number of slices.\n"
-                                                                             "Partial slices supported for MPR.\n"
-                                                                             "Ortho will not step until value changes by an integer value."));
+                                                                             "MPR supports non-integer slices."));
     QLabel* spacingLabel = new QLabel("Step:");
     spacingLabel->setToolTip(spacingToolTip);
     m_montageSpacingSpinBox = WuQFactory::newDoubleSpinBox();
@@ -271,6 +270,8 @@ BrainBrowserWindowToolBarVolumeMontage::updateContent(BrowserTabContent* browser
     }
     m_montageRowsSpinBox->setValue(browserTabContent->getVolumeMontageNumberOfRows());
     m_montageColumnsSpinBox->setValue(browserTabContent->getVolumeMontageNumberOfColumns());
+    m_montageSpacingSpinBox->setDecimals(browserTabContent->getVolumeMontageSliceSpacingDecimals());
+    m_montageSpacingSpinBox->setSingleStep(browserTabContent->getVolumeMontageSliceSpacingStepValue());
     m_montageSpacingSpinBox->setValue(browserTabContent->getVolumeMontageSliceSpacing());
     
     const auto sliceDirection(browserTabContent->getVolumeMontageSliceOrderMode());

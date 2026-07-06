@@ -516,6 +516,10 @@ VolumeSliceSettings::setMontageNumberOfRows(const int32_t montageNumberOfRows)
 float
 VolumeSliceSettings::getMontageSliceSpacing() const
 {
+    if (getMontageSliceSpacingDecimals() <= 0) {
+        m_montageSliceSpacing = std::floor(m_montageSliceSpacing);
+    }
+    
     return m_montageSliceSpacing;
 }
 
@@ -529,6 +533,45 @@ VolumeSliceSettings::setMontageSliceSpacing(const float montageSliceSpacing)
 {
     m_montageSliceSpacing = montageSliceSpacing;
 }
+
+/**
+ * @return Step value for montage slice spacing
+ */
+float
+VolumeSliceSettings::getMontageSliceSpacingStepValue() const
+{
+    float stepValue(1.0);
+    
+    if (getMontageSliceSpacingDecimals() > 0) {
+        stepValue = 0.1;
+    }
+    
+    return stepValue;
+}
+
+/**
+ * @return Digits right of decimal for montage slice spacing
+ */
+int32_t
+VolumeSliceSettings::getMontageSliceSpacingDecimals() const
+{
+    int32_t decimals(0);
+    
+    switch (m_sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+            decimals = 2;
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+    }
+    
+    return decimals;
+}
+
 
 /**
  * @return The montage slice order mode
