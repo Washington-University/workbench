@@ -3715,14 +3715,16 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        EventUserInterfaceUpdate* uiEvent =
-        dynamic_cast<EventUserInterfaceUpdate*>(event);
-        CaretAssert(uiEvent);
-        
-        if (uiEvent->isToolBarUpdate()
-            && uiEvent->isUpdateForWindow(this->browserWindowIndex)) {
-            this->updateToolBar();
-            uiEvent->setEventProcessed();
+        if ( ! m_blockUserInterfaceUpdateFlag) {
+            EventUserInterfaceUpdate* uiEvent =
+            dynamic_cast<EventUserInterfaceUpdate*>(event);
+            CaretAssert(uiEvent);
+            
+            if (uiEvent->isToolBarUpdate()
+                && uiEvent->isUpdateForWindow(this->browserWindowIndex)) {
+                this->updateToolBar();
+                uiEvent->setEventProcessed();
+            }
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS) {
@@ -4009,6 +4011,9 @@ BrainBrowserWindowToolBar::updateGraphicsWindowAndYokedWindows()
             EventManager::get()->sendEvent(EventUpdateYokedWindows(this->browserWindowIndex,
                                                                    browserTabContent->getBrainModelYokingGroup(),
                                                                    browserTabContent->getChartModelYokingGroup()).getPointer());
+            m_blockUserInterfaceUpdateFlag = true;
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+            m_blockUserInterfaceUpdateFlag = false;
         }
         else {
             updateGraphicsWindow();

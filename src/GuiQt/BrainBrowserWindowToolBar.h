@@ -436,6 +436,8 @@ namespace caret {
         bool isContructorFinished;
         bool isDestructionInProgress;
         
+        bool m_blockUserInterfaceUpdateFlag = false;
+
         /**
          * Tracks when update is performed to catch incorrectly emitted signals.
          */
