@@ -23,6 +23,8 @@
 #include "VolumeSliceSettings.h"
 #undef __VOLUME_SLICE_SETTINGS_DECLARE__
 
+#include <cmath>
+
 #include "CaretPreferences.h"
 #include "DeveloperFlagsEnum.h"
 #include "CaretLogger.h"
