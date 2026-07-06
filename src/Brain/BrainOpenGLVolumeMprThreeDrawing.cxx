@@ -4959,7 +4959,22 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
     float spacingX(0.0), spacingY(0.0), spacingZ(0.0);
     /* Returned spacing always positive */
     underlayVolume->getVoxelSpacing(spacingX, spacingY, spacingZ);
-    float sliceThickness = std::min(spacingX, std::min(spacingY, spacingZ));
+    float sliceThickness(1.0);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            sliceThickness = 1.0;
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            sliceThickness = spacingZ;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            sliceThickness = spacingY;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            sliceThickness = spacingX;
+            break;
+    }
     if (sliceThickness <= 0.0) {
         CaretLogSevere("Invalid spacing for underlay volume in MPR drawing");
         return;
