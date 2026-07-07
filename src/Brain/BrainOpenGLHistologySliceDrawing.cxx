@@ -1192,6 +1192,8 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
                 
             }
             for (GraphicsPrimitive* p : primitives) {
+                p->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
+                p->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::LINEAR);
                 GraphicsEngineDataOpenGL::draw(p);
             }
             glPopAttrib();

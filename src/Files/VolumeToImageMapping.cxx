@@ -33,6 +33,7 @@
 #include "ElapsedTimer.h"
 #include "GiftiLabel.h"
 #include "GroupAndNameHierarchyItem.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "HistologySlice.h"
 #include "HistologySliceImage.h"
 #include "ImageFile.h"
@@ -292,15 +293,8 @@ VolumeToImageMapping::performMapping(const MediaFile* mediaFile,
         }
     }
     
-    int32_t maximumImageDimension(2000);
-    const bool limitDimensionsFlag(true);
-    if (limitDimensionsFlag) {
-        const int dim(getImageBestDimension(mediaFile,
-                                            m_volumeInterface));
-        if(dim > 0) {
-            maximumImageDimension = dim;
-        }
-    }
+    const int32_t maximumImageDimension(std::min(2048,
+                                                 GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension()));
 
     /*
      * Create output image file by cloning as an image file
