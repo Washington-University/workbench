@@ -11,7 +11,7 @@ PROJECT(Workbench)
 #
 # Don't change this per app store upload, see MACOSX_BUNDLE_BUNDLE_VERSION in src/Desktop/CMakeLists.txt instead
 #
-SET(WB_VERSION "2.2.0")
+SET(WB_VERSION "2.2.1")
 
 #
 # Set to true for verbose output when debugging this file
