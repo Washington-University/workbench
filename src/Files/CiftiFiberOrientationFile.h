@@ -77,7 +77,7 @@ namespace caret {
         
         bool supportsWriting() const;
         
-        void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         float getMaximumVariance() const;
         

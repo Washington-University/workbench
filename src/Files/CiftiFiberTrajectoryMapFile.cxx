@@ -1947,7 +1947,7 @@ CiftiFiberTrajectoryMapFile::supportsWriting() const
  *    Consolidates information about a data file.
  */
 void
-CiftiFiberTrajectoryMapFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+CiftiFiberTrajectoryMapFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     

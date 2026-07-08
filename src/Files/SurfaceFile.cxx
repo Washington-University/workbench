@@ -2105,7 +2105,7 @@ bool SurfaceFile::hasNodeCorrespondence(const SurfaceFile& rhs) const
  *    Consolidates information about a data file.
  */
 void
-SurfaceFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+SurfaceFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     GiftiTypeFile::addToDataFileContentInformation(dataFileInformation);
     

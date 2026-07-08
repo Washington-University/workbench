@@ -131,7 +131,7 @@ namespace caret {
         void getAllAnnotationWithDrawnInWindowStatusSet(const int32_t windowIndex,
                                                         std::vector<Annotation*>& annotationsOut);
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         void setAllAnnotationsSelectedForEditing(const int32_t windowIndex,
                                        const bool selectedStatus);

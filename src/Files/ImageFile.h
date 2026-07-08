@@ -250,7 +250,7 @@ public:
                                                      std::vector<AString>& columnTwoTextOut,
                                                      std::vector<AString>& toolTipTextOut) const override;
     
-    virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
+    virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
     
     static void getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
                                                   std::vector<AString>& writableExtensionsOut);

@@ -269,7 +269,7 @@ CaretDataFile::isSingleStructure() const
  *    Consolidates information about a data file.
  */
 void
-CaretDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+CaretDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     DataFile::addToDataFileContentInformation(dataFileInformation);
     
@@ -292,7 +292,7 @@ CaretDataFile::addToDataFileContentInformation(DataFileContentInformation& dataF
     std::vector<StructureEnum::Enum> allStructures;
     StructureEnum::getAllEnums(allStructures);
     
-    CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(this);
+    const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(this);
     if (cmdf != NULL) {
         AString structureNames;
         

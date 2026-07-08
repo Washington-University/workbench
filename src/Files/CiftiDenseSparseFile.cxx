@@ -2023,7 +2023,7 @@ CiftiDenseSparseFile::supportsWriting() const
  *    Consolidates information about a data file.
  */
 void
-CiftiDenseSparseFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+CiftiDenseSparseFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     

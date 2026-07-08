@@ -108,7 +108,7 @@ namespace caret {
                                                          std::vector<AString>& columnTwoTextOut,
                                                          std::vector<AString>& toolTipTextOut) const override;
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         virtual void readFile(const AString& filename) override;
         

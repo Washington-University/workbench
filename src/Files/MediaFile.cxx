@@ -1058,7 +1058,7 @@ MediaFile::indexToPlaneTest(const Matrix4x4& scaledToPlane,
  * Add information about plane coordinates to the data file information
  */
 void
-MediaFile::addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+MediaFile::addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     if (m_planeXyzValidFlag) {
         dataFileInformation.addNameAndValue("Plane Top Left",     m_planeXyzTopLeft);

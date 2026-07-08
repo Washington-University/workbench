@@ -49,6 +49,8 @@ namespace caret {
         void setFileNameProtected(const AString& filename);
         
     public:
+        virtual AString toString() const;
+        
         virtual AString getFileName() const;
         
         virtual AString getFilePath() const;
@@ -57,7 +59,7 @@ namespace caret {
         
         virtual void setFileName(const AString& filename);
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const;
         
         virtual void setPreferOnDiskReading(const bool&) { }
         

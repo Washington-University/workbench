@@ -2219,7 +2219,7 @@ BorderFile::clearModified()
  *    Consolidates information about a data file.
  */
 void
-BorderFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+BorderFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     

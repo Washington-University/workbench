@@ -175,7 +175,7 @@ MediaFileChannelInfo::getChannelName(const int32_t channelIndex) const
  *    Item to which information is added.
  */
 void
-MediaFileChannelInfo::addToDataFileContentInformation(DataFileContentInformation& dfi)
+MediaFileChannelInfo::addToDataFileContentInformation(DataFileContentInformation& dfi) const
 {
     dfi.addNameAndValue("Channels Supported", m_channelsSupportedFlag);
     if (m_channelsSupportedFlag) {

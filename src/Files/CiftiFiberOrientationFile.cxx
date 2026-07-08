@@ -504,7 +504,7 @@ CiftiFiberOrientationFile::readFile(const AString& filename)
  *    Consolidates information about a data file.
  */
 void
-CiftiFiberOrientationFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+CiftiFiberOrientationFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     

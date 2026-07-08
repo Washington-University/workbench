@@ -75,7 +75,7 @@ namespace caret {
             mutable std::vector<int32_t> m_sceneIndices;
         };
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         void clear();
         

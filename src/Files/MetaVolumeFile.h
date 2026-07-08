@@ -228,7 +228,7 @@ namespace caret {
         
         virtual BrainordinateMappingMatch getBrainordinateMappingMatchImplementation(const CaretMappableDataFile* mapFile) const override;
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         virtual std::vector<AString> getChildDataFilePathNames() const override;
 

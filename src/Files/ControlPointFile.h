@@ -58,7 +58,7 @@ namespace caret {
         
         virtual void clearModified();
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         int32_t getNumberOfControlPoints() const;
         

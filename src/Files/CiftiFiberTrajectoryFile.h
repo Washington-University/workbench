@@ -169,7 +169,7 @@ namespace caret {
         CiftiFiberTrajectoryFile* newFiberTrajectoryFileFromLoadedRowData(const AString& destinationDirectory,
                                                                           AString& errorMessageOut) const;
         
-        void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         bool hasCiftiXML() const;
         

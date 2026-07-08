@@ -58,7 +58,7 @@ namespace caret {
         
         AString getChannelName(const int32_t channelIndex) const;
         
-        void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const;
         
         // ADD_NEW_METHODS_HERE
         

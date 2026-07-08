@@ -881,7 +881,7 @@ MetaVolumeFile::getVolumeFilesMatchingDimension() const
  *    Consolidates information about a data file.
  */
 void
-MetaVolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+MetaVolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     

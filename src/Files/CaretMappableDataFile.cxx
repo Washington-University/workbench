@@ -945,7 +945,7 @@ CaretMappableDataFile::preColorAllMaps()
  *    Consolidates information about a data file.
  */
 void
-CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     
@@ -998,7 +998,7 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
      * Do not show maps on CIFTI connectivity matrix data because
      * they do not have maps, they have a matrix.
      */
-    const bool ciftiMatrixFlag = (dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(this)
+    const bool ciftiMatrixFlag = (dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(this)
                                   != NULL);
     if (ciftiMatrixFlag) {
         showMapFlag = false;
@@ -1085,54 +1085,57 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                 if (isMappedWithPalette()
                     && (stats != NULL)) {
                     
-                    const Histogram* histogram = getMapHistogram(mapIndex);
-                    int64_t posCount = 0;
-                    int64_t zeroCount = 0;
-                    int64_t negCount = 0;
-                    int64_t infCount = 0;
-                    int64_t negInfCount = 0;
-                    int64_t nanCount = 0;
-                    histogram->getCounts(posCount,
-                                         zeroCount,
-                                         negCount,
-                                         infCount,
-                                         negInfCount,
-                                         nanCount);
-                    const int64_t numInfinityAndNotANumber = (infCount
-                                                + negInfCount
-                                                + nanCount);
-                    const double totalCount = (posCount
-                                                + zeroCount
-                                                + negCount
-                                                + numInfinityAndNotANumber);
-                    const double pctPositive = (posCount / totalCount) * 100.0;
-                    const double pctNegative = (negCount / totalCount) * 100.0;
-                    
-                    if (COL_MIN >= 0) {
-                        stringTable.setElement(tableRow, COL_MIN, stats->getMin());
-                    }
-                    
-                    if (COL_MAX >= 0) {
-                        stringTable.setElement(tableRow, COL_MAX, stats->getMax());
-                    }
-                    
-                    if (COL_MEAN >= 0) {
-                        stringTable.setElement(tableRow, COL_MEAN, stats->getMean());
-                    }
-                    
-                    if (COL_DEV >= 0) {
-                        stringTable.setElement(tableRow, COL_DEV, stats->getSampleStdDev());
-                    }
-                    if (COL_PCT_POS >= 0) {
-                        stringTable.setElement(tableRow, COL_PCT_POS, pctPositive);
-                    }
-                    
-                    if (COL_PCT_NEG >= 0) {
-                        stringTable.setElement(tableRow, COL_PCT_NEG, pctNegative);
-                    }
-                    
-                    if (COL_INF_NAN >= 0) {
-                        stringTable.setElement(tableRow, COL_INF_NAN, numInfinityAndNotANumber);
+                    CaretMappableDataFile* nonConstMapFile(const_cast<CaretMappableDataFile*>(this));
+                    if (nonConstMapFile != NULL) {
+                        const Histogram* histogram = nonConstMapFile->getMapHistogram(mapIndex);
+                        int64_t posCount = 0;
+                        int64_t zeroCount = 0;
+                        int64_t negCount = 0;
+                        int64_t infCount = 0;
+                        int64_t negInfCount = 0;
+                        int64_t nanCount = 0;
+                        histogram->getCounts(posCount,
+                                             zeroCount,
+                                             negCount,
+                                             infCount,
+                                             negInfCount,
+                                             nanCount);
+                        const int64_t numInfinityAndNotANumber = (infCount
+                                                                  + negInfCount
+                                                                  + nanCount);
+                        const double totalCount = (posCount
+                                                   + zeroCount
+                                                   + negCount
+                                                   + numInfinityAndNotANumber);
+                        const double pctPositive = (posCount / totalCount) * 100.0;
+                        const double pctNegative = (negCount / totalCount) * 100.0;
+                        
+                        if (COL_MIN >= 0) {
+                            stringTable.setElement(tableRow, COL_MIN, stats->getMin());
+                        }
+                        
+                        if (COL_MAX >= 0) {
+                            stringTable.setElement(tableRow, COL_MAX, stats->getMax());
+                        }
+                        
+                        if (COL_MEAN >= 0) {
+                            stringTable.setElement(tableRow, COL_MEAN, stats->getMean());
+                        }
+                        
+                        if (COL_DEV >= 0) {
+                            stringTable.setElement(tableRow, COL_DEV, stats->getSampleStdDev());
+                        }
+                        if (COL_PCT_POS >= 0) {
+                            stringTable.setElement(tableRow, COL_PCT_POS, pctPositive);
+                        }
+                        
+                        if (COL_PCT_NEG >= 0) {
+                            stringTable.setElement(tableRow, COL_PCT_NEG, pctNegative);
+                        }
+                        
+                        if (COL_INF_NAN >= 0) {
+                            stringTable.setElement(tableRow, COL_INF_NAN, numInfinityAndNotANumber);
+                        }
                     }
                 }
             }

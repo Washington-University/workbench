@@ -57,7 +57,7 @@ namespace caret {
 
         BorderFile& operator=(const BorderFile& obj);
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)const override;
         
         StructureEnum::Enum getStructure() const;
         

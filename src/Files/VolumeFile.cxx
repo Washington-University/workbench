@@ -2670,7 +2670,7 @@ VolumeFile::preColorAllMaps()
  *    Consolidates information about a data file.
  */
 void
-VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
 

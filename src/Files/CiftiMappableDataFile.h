@@ -162,7 +162,7 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         static void addCiftiXmlToDataFileContentInformation(DataFileContentInformation& dataFileInformation,
                                                             const CiftiXML& ciftiXML);

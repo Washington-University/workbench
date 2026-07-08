@@ -175,7 +175,7 @@ DataFile::setFileNameProtected(const AString& filename)
  *    Consolidates information about a data file.
  */
 void
-DataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+DataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     dataFileInformation.addNameAndValue("Name", getFileName());
 }
@@ -437,3 +437,17 @@ DataFile::getChildDataFilePathNames() const
     std::vector<AString> childDataFilePathNames;
     return childDataFilePathNames;
 }
+
+/**
+ * @return DataFileContentInformation in a string
+ */
+AString
+DataFile::toString() const
+{
+    
+    DataFileContentInformation dataFileInfo;
+    addToDataFileContentInformation(dataFileInfo);
+    
+    return dataFileInfo.getInformationInString();
+}
+

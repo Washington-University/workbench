@@ -873,7 +873,7 @@ AnnotationFile::getFileMetaData() const
  *     Will contain information about this file.
  */
 void
-AnnotationFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+AnnotationFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     

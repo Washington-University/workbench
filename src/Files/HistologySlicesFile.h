@@ -98,7 +98,7 @@ namespace caret {
 
         virtual AString toString() const override;
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
 
         // ADD_NEW_METHODS_HERE
 

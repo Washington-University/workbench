@@ -765,7 +765,7 @@ HistologySlicesFile::toString() const
  *    Consolidates information about a data file.
  */
 void
-HistologySlicesFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+HistologySlicesFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     
@@ -777,7 +777,7 @@ HistologySlicesFile::addToDataFileContentInformation(DataFileContentInformation&
     const int32_t numSlices(getNumberOfHistologySlices());
     for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
         dataFileInformation.addNameAndValue(separator, separator);
-        HistologySlice* slice(getHistologySliceByIndex(iSlice));
+        const HistologySlice* slice(getHistologySliceByIndex(iSlice));
         slice->addToDataFileContentInformation(dataFileInformation);
     }
 }

@@ -304,6 +304,7 @@ VolumeToImageMapping::performMapping(const MediaFile* mediaFile,
     if (outputImageFile == NULL) {
         return false;
     }
+
     outputImageFile->setFileName("VolumeMapping_"
                                  + AString::number(m_outputImageFiles.size())
                                  + ".png");

@@ -1143,7 +1143,7 @@ GiftiTypeFile::updateScalarColoringForMap(const int32_t mapIndex)
  *    Consolidates information about a data file.
  */
 void
-GiftiTypeFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+GiftiTypeFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     

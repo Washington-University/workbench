@@ -66,7 +66,7 @@ namespace caret {
         
         virtual ~SurfaceFile();
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         virtual void receiveEvent(Event* event);
         

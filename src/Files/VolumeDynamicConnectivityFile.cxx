@@ -243,7 +243,7 @@ VolumeDynamicConnectivityFile::isDataValid() const
  *    Consolidates information about a data file.
  */
 void
-VolumeDynamicConnectivityFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+VolumeDynamicConnectivityFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     VolumeFile::addToDataFileContentInformation(dataFileInformation);
 }

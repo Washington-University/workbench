@@ -226,7 +226,7 @@ MetricDynamicConnectivityFile::isDataValid() const
  *    Consolidates information about a data file.
  */
 void
-MetricDynamicConnectivityFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+MetricDynamicConnectivityFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     MetricFile::addToDataFileContentInformation(dataFileInformation);
 }

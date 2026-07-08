@@ -2289,7 +2289,7 @@ ImageFile::castToImageFile() const
  *    Item to which information is added.
  */
 void
-ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     MediaFile::addToDataFileContentInformation(dataFileInformation);
     

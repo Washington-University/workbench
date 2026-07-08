@@ -1147,7 +1147,7 @@ OmeZarrImageFile::getImagePlane() const
  *    Item to which information is added.
  */
 void
-OmeZarrImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+OmeZarrImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     MediaFile::addToDataFileContentInformation(dataFileInformation);
     

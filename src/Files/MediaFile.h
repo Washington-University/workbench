@@ -286,7 +286,7 @@ namespace caret {
         
         Matrix4x4 getPlaneToMillimetersMatrix(bool* validFlagOut = NULL) const;
         
-        void addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        void addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const;
         
         virtual void getPyramidLayerRangeForFrame(const int32_t frameIndex,
                                                   const bool allFramesFlag,

@@ -84,7 +84,7 @@ namespace caret {
         
         virtual ~CaretMappableDataFile();
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         /**
          * @return Is the data mappable to a surface?

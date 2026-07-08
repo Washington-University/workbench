@@ -825,7 +825,7 @@ HistologySlice::restoreFromScene(const SceneAttributes* sceneAttributes,
  *    Consolidates information about a data file.
  */
 void
-HistologySlice::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+HistologySlice::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const 
 {
     /*
      * Note: Slice indices range 0 to N-1 but we display as 1 to N

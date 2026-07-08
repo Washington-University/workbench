@@ -1844,7 +1844,7 @@ CiftiFiberTrajectoryFile::supportsWriting() const
  *    Consolidates information about a data file.
  */
 void
-CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     

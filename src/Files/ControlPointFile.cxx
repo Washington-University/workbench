@@ -151,7 +151,7 @@ ControlPointFile::clearPrivate()
  *     Will contain information about this file.
  */
 void
-ControlPointFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+ControlPointFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
 }

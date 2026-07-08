@@ -1874,7 +1874,7 @@ SpecFile::clearModified()
  *    Consolidates information about a data file.
  */
 void
-SpecFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+SpecFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     

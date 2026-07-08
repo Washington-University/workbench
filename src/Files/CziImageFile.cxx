@@ -1856,7 +1856,7 @@ CziImageFile::getImagePlane() const
  *    Item to which information is added.
  */
 void
-CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     MediaFile::addToDataFileContentInformation(dataFileInformation);
     

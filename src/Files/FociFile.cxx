@@ -824,7 +824,7 @@ FociFile::clearModified()
  *    Consolidates information about a data file.
  */
 void
-FociFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+FociFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     

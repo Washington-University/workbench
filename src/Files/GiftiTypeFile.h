@@ -44,7 +44,7 @@ namespace caret {
         
         GiftiTypeFile& operator=(const GiftiTypeFile&);
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         /**
          * Validate the contents of the file after it

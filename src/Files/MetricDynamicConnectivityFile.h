@@ -50,7 +50,7 @@ namespace caret {
         
         virtual void clear() override;
         
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         virtual void readFile(const AString& filename) override;
         

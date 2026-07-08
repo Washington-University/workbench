@@ -7571,7 +7571,7 @@ CiftiMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
  *    Consolidates information about a data file.
  */
 void
-CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretAssert(m_ciftiFile);
     

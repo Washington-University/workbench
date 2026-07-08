@@ -850,7 +850,7 @@ SceneFile::writeFileStreamWriter(const AString& filename)
  *    Consolidates information about a data file.
  */
 void
-SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     
