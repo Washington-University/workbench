@@ -202,7 +202,7 @@ DeveloperFlagsEnum::initialize()
                                                 "DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_HI_RES",
                                                 "Histology - Draw volume voxels in hi-res",
                                                 CheckableEnum::YES,
-                                                false));
+                                                true));
 
     std::vector<DeveloperFlagsEnum> notCheckableItems;
 
