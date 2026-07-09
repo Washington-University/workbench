@@ -151,12 +151,49 @@ PreferencesDevelopOptionsWidget::developerFlagSelected(const DeveloperFlagsEnum:
 {
     DeveloperFlagsEnum::setFlag(flag,
                                 status);
-    if (flag == DeveloperFlagsEnum::DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION) {
+    
+    bool volumeColorFlag(false);
+    switch (flag) {
+        case DeveloperFlagsEnum::DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH:
+            break;
+        case DeveloperFlagsEnum::DELELOPER_FLAG_TEXTURE_FUNCTIONAL_VOLUME_SMOOTH:
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_SURFACE_BUFFER:
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_BLENDING:
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_CHART_OPENGL_LINES:
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA:
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_TWO_ENABLED:
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION:
+            volumeColorFlag = true;
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_HISTOLOGY_CORRECT_IMAGE_OVERLAP:
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_VOXEL_EDIT:
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_UNUSED:
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_VOXEL_CUBES_TEST:
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA:
+            volumeColorFlag = true;
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_SMOOTH:
+            volumeColorFlag = true;
+            break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_HI_RES:
+            volumeColorFlag = true;
+            break;
+    }
+
+    if (volumeColorFlag) {
         EventManager::get()->sendEvent(EventVolumeColoringInvalidate().getPointer());
     }
-    else if (flag == DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA) {
-        EventManager::get()->sendEvent(EventVolumeColoringInvalidate().getPointer());
-    }
+
     updateGraphicsAndUserInterface();
 }
 

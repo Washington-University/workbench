@@ -91,6 +91,7 @@ m_histologySlice(NULL)
                 && (volumeFileMapIndex < m_volumeMappableDataFile->getNumberOfMaps()));
     m_volumeFile = dynamic_cast<const VolumeFile*>(m_volumeMappableDataFile);
     m_ciftiMappableDataFile = dynamic_cast<const CiftiMappableDataFile*>(m_volumeMappableDataFile);
+    m_caretMappableDataFile = dynamic_cast<const CaretMappableDataFile*>(m_volumeInterface);
 }
 
 /**
@@ -136,6 +137,7 @@ m_histologySlice(histologySlice)
                 && (volumeFileMapIndex < m_volumeMappableDataFile->getNumberOfMaps()));
     m_volumeFile = dynamic_cast<const VolumeFile*>(m_volumeMappableDataFile);
     m_ciftiMappableDataFile = dynamic_cast<const CiftiMappableDataFile*>(m_volumeMappableDataFile);
+    m_caretMappableDataFile = dynamic_cast<const CaretMappableDataFile*>(m_volumeInterface);
 }
 
 
@@ -323,6 +325,11 @@ VolumeToImageMapping::performMapping(const MediaFile* mediaFile,
 
     bool resultFlag(false);
     
+    if (s_debugFlag) {
+        if (m_caretMappableDataFile != NULL) {
+            std::cout << "Map Caret File to Histology: " << m_caretMappableDataFile->getFileNameNoPath() << std::endl;
+        }
+    }
     if (intensityMappingFlag) {
         resultFlag = performIntensityMapping(mediaFile,
                                              outputImageFile,

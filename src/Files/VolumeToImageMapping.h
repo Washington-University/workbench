@@ -108,6 +108,8 @@ namespace caret {
         
         const float m_volumeSliceThickness;
         
+        const CaretMappableDataFile* m_caretMappableDataFile;
+        
         const CaretMappableDataFile* m_volumeMappableDataFile;
         
         const DisplayGroupEnum::Enum m_displayGroup;
