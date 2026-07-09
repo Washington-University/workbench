@@ -192,7 +192,18 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_SMOOTH,
+                                                "DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_SMOOTH",
+                                                "Histology - Draw volume voxels with smoothing",
+                                                CheckableEnum::YES,
+                                                false));
     
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_HI_RES,
+                                                "DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_HI_RES",
+                                                "Histology - Draw volume voxels in hi-res",
+                                                CheckableEnum::YES,
+                                                false));
+
     std::vector<DeveloperFlagsEnum> notCheckableItems;
 
     enumData.insert(enumData.end(),
@@ -332,6 +343,12 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
         case DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA:
             toolTip = ("When coloring function volumes for MPR drawing, pre-multiply "
                        "the RGB components by the Alpha value");
+            break;
+        case DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_SMOOTH:
+            toolTip = ("When drawing voxels on histology slices, smooth the voxels");
+            break;
+        case DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_HI_RES:
+            toolTip = ("When drawing voxel on histology slices, use hi-res data");
             break;
     }
     

@@ -1192,8 +1192,14 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
                 
             }
             for (GraphicsPrimitive* p : primitives) {
-                p->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
-                p->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::LINEAR);
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_SMOOTH)) {
+                    p->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
+                    p->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::LINEAR);
+                }
+                else {
+                    p->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::NEAREST);
+                    p->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::NEAREST);
+                }
                 GraphicsEngineDataOpenGL::draw(p);
             }
             glPopAttrib();

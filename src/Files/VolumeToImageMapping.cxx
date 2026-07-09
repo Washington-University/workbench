@@ -30,6 +30,7 @@
 #include "CiftiMappableDataFile.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
+#include "DeveloperFlagsEnum.h"
 #include "ElapsedTimer.h"
 #include "GiftiLabel.h"
 #include "GroupAndNameHierarchyItem.h"
@@ -293,7 +294,11 @@ VolumeToImageMapping::performMapping(const MediaFile* mediaFile,
         }
     }
     
-    const int32_t maximumImageDimension(std::min(2048,
+    int32_t resolution(512);
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_HI_RES)) {
+        resolution = 2048;
+    }
+    const int32_t maximumImageDimension(std::min(resolution,
                                                  GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension()));
 
     /*
