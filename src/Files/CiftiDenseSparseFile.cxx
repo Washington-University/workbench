@@ -1710,8 +1710,8 @@ CiftiDenseSparseFile::loadDataForRowIndexPrivate(const int64_t rowIndex,
 {
     if ((rowIndex < 0)
         || (rowIndex >= m_fileNumberOfRows)) {
-        return FunctionResult::error("Invalid ZERO-based row index="
-                                     + AString::number(rowIndex)
+        return FunctionResult::error("Invalid row index="
+                                     + AString::number(rowIndex + 1)
                                      + "   numRows="
                                      + AString::number(m_fileNumberOfRows));
     }
