@@ -1192,7 +1192,8 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
                 
             }
             for (GraphicsPrimitive* p : primitives) {
-                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_SMOOTH)) {
+                const bool smoothFlag(false);
+                if (smoothFlag) {
                     p->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
                     p->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::LINEAR);
                 }

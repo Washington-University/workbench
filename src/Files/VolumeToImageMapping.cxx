@@ -297,7 +297,8 @@ VolumeToImageMapping::performMapping(const MediaFile* mediaFile,
     }
     
     int32_t resolution(512);
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_HI_RES)) {
+    const bool highResolutionFlag(true);
+    if (highResolutionFlag) {
         resolution = 2048;
     }
     const int32_t maximumImageDimension(std::min(resolution,

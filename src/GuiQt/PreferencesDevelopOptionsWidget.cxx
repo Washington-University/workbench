@@ -182,12 +182,6 @@ PreferencesDevelopOptionsWidget::developerFlagSelected(const DeveloperFlagsEnum:
         case DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_MPR_PRE_MULTIPLY_ALPHA:
             volumeColorFlag = true;
             break;
-        case DeveloperFlagsEnum::DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_SMOOTH:
-            volumeColorFlag = true;
-            break;
-        case DeveloperFlagsEnum::DEVELOPER_FLAG_VOXELS_ON_HISTOLOGY_HI_RES:
-            volumeColorFlag = true;
-            break;
     }
 
     if (volumeColorFlag) {
