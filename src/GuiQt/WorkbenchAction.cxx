@@ -117,7 +117,7 @@ WorkbenchAction::updateForDarkLightColorScheme(const GuiDarkLightColorSchemeMode
 {
     switch (darkLightColorSchemeMode) {
         case GuiDarkLightColorSchemeModeEnum::SYSTEM:
-            CaretAssert(0);
+            //TSC: is there a standard interface to check if the system theme claims to be dark?
             setIcon(m_lightPixmap);
             break;
         case GuiDarkLightColorSchemeModeEnum::DARK:

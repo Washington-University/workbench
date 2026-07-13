@@ -1133,7 +1133,7 @@ CiftiDenseSparseFile::getBrainordinateFromRowIndex(const int64_t rowIndex,
         || (rowIndex >= numRows)) {
         throw DataFileException(getFileName(),
                                 "Row index "
-                                + AString::number(rowIndex)
+                                + AString::number(rowIndex + 1) //TSC: UI error messages in 1-based also, since they show up in a dialog
                                 + " is invalid.  Number of rows is "
                                 + AString::number(numRows));
     }
@@ -1389,13 +1389,13 @@ CiftiDenseSparseFile::loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
     }
     
     const int64_t rowIndex = brainMap.getIndexForNode(nodeIndex,
-                                                      structure);
-    if (rowIndex > 0) {
+                                                      structure); //NOTE: 0-based
+    if (rowIndex >= 0) {
         const FunctionResult loadRowResult(loadDataForRowIndexPrivate(rowIndex,
                                                                       m_loadedRowData));
         if (loadRowResult.isOk()) {
             m_loadedDataDescriptionForMapName = ("Row: "
-                                                 + AString::number(rowIndex)
+                                                 + AString::number(rowIndex + 1)
                                                  + ", Node Index: "
                                                  + AString::number(nodeIndex)
                                                  + ", Structure: "
@@ -1469,7 +1469,7 @@ CiftiDenseSparseFile::loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex
     for (int32_t nodeIndex : nodeIndices) {
         const int64_t rowIndex = brainMap.getIndexForNode(nodeIndex,
                                                           structure);
-        if (rowIndex > 0) {
+        if (rowIndex >= 0) {
             rowIndices.push_back(rowIndex);
         }
     }
@@ -1509,7 +1509,7 @@ CiftiDenseSparseFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndice
     std::vector<float> rowData(rowLength, 0.0);
     
     for (int64_t rowIndex : rowIndices) {
-        if (rowIndex > 0) {
+        if (rowIndex >= 0) {
             const FunctionResult loadRowResult(loadDataForRowIndexPrivate(rowIndex,
                                                                           rowData));
             if (loadRowResult.isOk()) {
