@@ -1401,7 +1401,7 @@ CiftiDenseSparseFile::loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
                                                  + ", Structure: "
                                                  + StructureEnum::toName(structure));
             m_loadedDataDescriptionForFileCopy = ("Row_"
-                                                  + AString::number(rowIndex));
+                                                  + AString::number(rowIndex + 1));
             
             m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
                                                             surfaceNumberOfNodes,
@@ -1583,11 +1583,11 @@ CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/
                                                                       m_loadedRowData));
         if (loadRowResult.isOk()) {
             m_loadedDataDescriptionForMapName = ("Row: "
-                                                 + AString::number(rowIndex)
+                                                 + AString::number(rowIndex+1)
                                                  + ", Voxel XYZ: "
                                                  + AString::fromNumbers(xyz, 3, ","));
             m_loadedDataDescriptionForFileCopy = ("Row_"
-                                                  + AString::number(rowIndex));
+                                                  + AString::number(rowIndex+1));
             m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
                                                           rowIndex,
                                                           -1);
@@ -1668,9 +1668,9 @@ CiftiDenseSparseFile::loadDataForRowIndex(const int64_t rowIndex)
                                                                m_loadedRowData));
     if (loadResult.isOk()) {
         m_loadedDataDescriptionForMapName = ("Row: "
-                                             + AString::number(rowIndex));
+                                             + AString::number(rowIndex+1));
         m_loadedDataDescriptionForFileCopy = ("Row_"
-                                              + AString::number(rowIndex));
+                                              + AString::number(rowIndex+1));
         
         m_connectivityDataLoaded->setRowColumnLoading(rowIndex,
                                                       -1);
@@ -1710,7 +1710,7 @@ CiftiDenseSparseFile::loadDataForRowIndexPrivate(const int64_t rowIndex,
 {
     if ((rowIndex < 0)
         || (rowIndex >= m_fileNumberOfRows)) {
-        return FunctionResult::error("Invalid row index="
+        return FunctionResult::error("Invalid ZERO-based row index="
                                      + AString::number(rowIndex)
                                      + "   numRows="
                                      + AString::number(m_fileNumberOfRows));
