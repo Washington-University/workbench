@@ -140,7 +140,7 @@ namespace caret {
         
         virtual bool supportsFileMetaData() const override;
 
-        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         virtual bool supportsWriting() const override;
         

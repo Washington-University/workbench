@@ -153,7 +153,7 @@ NeuroglancerAnnotationsFile::supportsFileMetaData() const
  *   The data file info structure
  */
 void
-NeuroglancerAnnotationsFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+NeuroglancerAnnotationsFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     

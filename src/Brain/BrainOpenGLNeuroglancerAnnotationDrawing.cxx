@@ -451,7 +451,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                                                                      stereotaxicOnSliceXYZ,
                                                                      distanceToSlice,
                                                                      planeOnSliceXYZ)) {
-                        float distanceToHistologySliceTolerance = halfSliceThickness;
+                        const float distanceToHistologySliceTolerance = halfSliceThickness;
                         if (distanceToSlice < distanceToHistologySliceTolerance) {
                             xyz[0] = planeOnSliceXYZ[0];
                             xyz[1] = planeOnSliceXYZ[1];
