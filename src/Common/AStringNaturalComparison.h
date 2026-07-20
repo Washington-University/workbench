@@ -43,6 +43,8 @@ namespace caret {
         static int32_t compare(const AString& string1,
                                const AString& string2);
 
+        static void sortStringVector(std::vector<AString>& stringVector);
+        
         // ADD_NEW_METHODS_HERE
 
     private:

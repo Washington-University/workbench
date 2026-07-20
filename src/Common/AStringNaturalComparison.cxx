@@ -23,6 +23,8 @@
 #include "AStringNaturalComparison.h"
 #undef __A_STRING_NATURAL_COMPARISON_DECLARE__
 
+#include <algorithm>
+
 #include "CaretAssert.h"
 using namespace caret;
 
@@ -262,3 +264,18 @@ AStringNaturalComparison::StringParser::nextChar(bool& isNumberOut) const
     
     return -1;
 }
+
+/**
+ * Sort the vector of string using natural comparison which sorts numbers as numbers.
+ * 8, 9, 10, 11.  With string sorting get 10, 11, 8, 9.
+ * @param stringVector
+ *    The vector of strings.
+ */
+void
+AStringNaturalComparison::sortStringVector(std::vector<AString>& stringVector)
+{
+    std::sort(stringVector.begin(),
+              stringVector.end(),
+              AStringNaturalComparison());
+}
+
