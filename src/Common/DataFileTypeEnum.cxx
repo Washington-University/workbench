@@ -119,13 +119,13 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
         this->writeFileExtensions = this->readAndWriteFileExtensions;
     }
     
-    const bool extensionStartsWithDotFlag(fileExtensionStartsWithDot(enumValue));
+    const bool nameFilterIsExactFileNameFlag(fileExtensionMatchesExactFileName(enumValue));
     this->qReadFileDialogNameFilter  = createQFileDialogNameFilter(this->guiName,
                                                                    this->readFileExtensions,
-                                                                   extensionStartsWithDotFlag);
+                                                                   nameFilterIsExactFileNameFlag);
     this->qWriteFileDialogNameFilter = createQFileDialogNameFilter(this->guiName,
                                                                    this->writeFileExtensions,
-                                                                   extensionStartsWithDotFlag);
+                                                                   nameFilterIsExactFileNameFlag);
 }
 
 /**
@@ -1150,7 +1150,7 @@ DataFileTypeEnum::fromFileExtension(const AString& filename, bool* isValidOut)
              * Need to add "." to avoid ambiguous matching ("dconn.nii, pdconn.nii)
              */
             AString extensionWithDot("." + *extIter);
-            if ( ! fileExtensionStartsWithDot(d.enumValue)) {
+            if (fileExtensionMatchesExactFileName(d.enumValue)) {
                 /* No dot - special case like neuroglancer pins "info" file */
                 extensionWithDot = *extIter;
             }
@@ -1387,15 +1387,14 @@ DataFileTypeEnum::getAllConnectivityEnums(std::vector<Enum>& connectivityEnumsOu
  *    Description of file type name
  * @param fileExtensions
  *    Valid file extensions
- * @param extensionStartsWithDotFlag
- *    If true (almost always) extension starts with a ".".
- *    If false extension does not have a dot for a special case lilke a neuoglancer "info" file that is part of
- *    a special directory structure (not a file with an extension).
+ * @param nameFilterIsExactFileNameFlag
+ *    If true, the filter matches an exact filename without any wildcard (eg: neuroglancer "info" file)
+ *    If false. the filter matches to a filename extension (eg *.extention)
  */
 AString
 DataFileTypeEnum::createQFileDialogNameFilter(const AString& fileTypeName,
                                               const std::vector<AString>& fileExtensions,
-                                              const bool extensionStartsWithDotFlag)
+                                              const bool nameFilterIsExactFileNameFlag)
 {
     AString filterText(fileTypeName + " Files (");
     
@@ -1404,11 +1403,11 @@ DataFileTypeEnum::createQFileDialogNameFilter(const AString& fileTypeName,
         if ( ! firstTime) {
             filterText += " ";
         }
-        if (extensionStartsWithDotFlag) {
-            filterText += ("*." + ext);
+        if (nameFilterIsExactFileNameFlag) {
+            filterText += ext;
         }
         else {
-            filterText += ("*" + ext);
+            filterText += ("*." + ext);
         }
         
         firstTime = false;
@@ -1593,10 +1592,10 @@ DataFileTypeEnum::getSaveQFileDialogImageFilters(std::vector<AString>& imageFilt
                            + imageType->guiName);
         const std::vector<AString> extVector { extension };
         
-        const bool extensionStartsWithDotFlag(true);
+        const bool nameFilterIsExactFileNameFlag(false);
         const AString filter(createQFileDialogNameFilter(name,
                                                          extVector,
-                                                         extensionStartsWithDotFlag));
+                                                         nameFilterIsExactFileNameFlag));
         imageFiltersOut.push_back(filter);
 
         if (extension == defaultWritableExtension) {
@@ -1733,14 +1732,14 @@ DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
 }
 
 /**
- * @return Return true if the file extension starts with a dot
+ * @return Return true if the file extension is actually an exact file name (eg: Neuroglancer "info" file)
  * @param enumValue
  *    The enum
  */
 bool
-DataFileTypeEnum::fileExtensionStartsWithDot(const Enum enumValue)
+DataFileTypeEnum::fileExtensionMatchesExactFileName(const Enum enumValue)
 {
-    bool extensionStartsWithDotFlag = true;
+    bool extensionIsExactFileName(false);
     switch (enumValue) {
         case DataFileTypeEnum::ANNOTATION:
             break;
@@ -1799,7 +1798,7 @@ DataFileTypeEnum::fileExtensionStartsWithDot(const Enum enumValue)
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
         case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
-            extensionStartsWithDotFlag = false;
+            extensionIsExactFileName = true;
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
@@ -1822,6 +1821,6 @@ DataFileTypeEnum::fileExtensionStartsWithDot(const Enum enumValue)
         case DataFileTypeEnum::VOLUME_DYNAMIC:
             break;
     }
-    return extensionStartsWithDotFlag;
+    return extensionIsExactFileName;
 }
 

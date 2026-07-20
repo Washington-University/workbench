@@ -233,9 +233,9 @@ private:
 
     static AString createQFileDialogNameFilter(const AString& fileTypeName,
                                                const std::vector<AString>& fileExtensions,
-                                               const bool extensionStartsWithDotFlag);
+                                               const bool nameFilterIsExactFileNameFlag);
     
-    static bool fileExtensionStartsWithDot(const Enum enumValue);
+    static bool fileExtensionMatchesExactFileName(const Enum enumValue);
     
     /** Holds all instance of enum values and associated metadata */
     static std::vector<DataFileTypeEnum> enumData;
