@@ -2018,6 +2018,8 @@ SpecFile::isDataFileTypeAllowedInSpecFile(const DataFileTypeEnum::Enum dataFileT
         case DataFileTypeEnum::METRIC_DYNAMIC:
             allowedFlag = false;
             break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
         case DataFileTypeEnum::PALETTE:

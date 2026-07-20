@@ -62,6 +62,7 @@ namespace caret {
     class SelectionItemHistologyCoordinate;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
+    class SelectionItemNeuroglancerAnnotation;
     class SelectionItemSurfaceNode;
     class SelectionItemVoxel;
     class SelectionManager;
@@ -163,6 +164,11 @@ namespace caret {
                                             const int32_t focusIndex,
                                             const int32_t projectionIndex,
                                             const bool toolTipFlag) const;
+        
+        void generateNeuroglancerAnnotationIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
+                                                             IdentificationStringBuilder& idText,
+                                                             const SelectionItemNeuroglancerAnnotation* idNeuroAnn,
+                                                             const bool toolTipFlag) const;
         
         void generateSurfaceVertexIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                const Brain* brain,

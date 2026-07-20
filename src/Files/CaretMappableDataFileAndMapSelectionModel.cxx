@@ -215,6 +215,8 @@ CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 isMappableFile = true;;
                 break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
             case DataFileTypeEnum::PALETTE:

@@ -135,6 +135,8 @@ SceneableInterface()
         case DataFileTypeEnum::METRIC_DYNAMIC:
             supportsIdentificationAttributesFlag = true;
             break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             supportsIdentificationAttributesFlag = true;
             break;

@@ -91,6 +91,8 @@ public:
         METRIC,
         /** Metric Dynamic Connectivity */
         METRIC_DYNAMIC,
+        /* Neuroglancer Annotations */
+        NEUROGLANCER_ANNOTATION,
         /** OME-ZARR Image */
         OME_ZARR_IMAGE,
         /** Palette */
@@ -230,7 +232,10 @@ private:
     static const DataFileTypeEnum* findData(const Enum enumValue);
 
     static AString createQFileDialogNameFilter(const AString& fileTypeName,
-                                               const std::vector<AString>& fileExtensions);
+                                               const std::vector<AString>& fileExtensions,
+                                               const bool extensionStartsWithDotFlag);
+    
+    static bool fileExtensionStartsWithDot(const Enum enumValue);
     
     /** Holds all instance of enum values and associated metadata */
     static std::vector<DataFileTypeEnum> enumData;

@@ -119,10 +119,13 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
         this->writeFileExtensions = this->readAndWriteFileExtensions;
     }
     
+    const bool extensionStartsWithDotFlag(fileExtensionStartsWithDot(enumValue));
     this->qReadFileDialogNameFilter  = createQFileDialogNameFilter(this->guiName,
-                                                                   this->readFileExtensions);
+                                                                   this->readFileExtensions,
+                                                                   extensionStartsWithDotFlag);
     this->qWriteFileDialogNameFilter = createQFileDialogNameFilter(this->guiName,
-                                                                   this->writeFileExtensions);
+                                                                   this->writeFileExtensions,
+                                                                   extensionStartsWithDotFlag);
 }
 
 /**
@@ -359,6 +362,13 @@ DataFileTypeEnum::initialize()
                                         "METRIC_DYNAMIC",
                                         true,
                                         "func_dynconn")); // this file is never written
+    
+    enumData.push_back(DataFileTypeEnum(NEUROGLANCER_ANNOTATION,
+                                        "NEUROGLANCER_ANNOTATION",
+                                        "Neuroglancer Annotation",
+                                        "Neuroglancer Annotation",
+                                        false,
+                                        "info")); // this file is never written
     
     enumData.push_back(DataFileTypeEnum(OME_ZARR_IMAGE,
                                         "OME_ZARR_IMAGE",
@@ -894,7 +904,11 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 validFlag = includeNonWritableFileTypesFlag;
                 break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                validFlag = includeNonWritableFileTypesFlag;
+                break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
+                validFlag = includeNonWritableFileTypesFlag;
                 break;
             case DataFileTypeEnum::PALETTE:
                 break;
@@ -1135,7 +1149,11 @@ DataFileTypeEnum::fromFileExtension(const AString& filename, bool* isValidOut)
             /*
              * Need to add "." to avoid ambiguous matching ("dconn.nii, pdconn.nii)
              */
-            const AString extensionWithDot = ("." + *extIter);
+            AString extensionWithDot("." + *extIter);
+            if ( ! fileExtensionStartsWithDot(d.enumValue)) {
+                /* No dot - special case like neuroglancer pins "info" file */
+                extensionWithDot = *extIter;
+            }
             if (filename.endsWith(extensionWithDot)) {
                 enumValue = d.enumValue;
                 validFlag = true;
@@ -1288,6 +1306,8 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
                     addEnumFlag = false;
                 }
                 break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
             case DataFileTypeEnum::PALETTE:
@@ -1367,10 +1387,15 @@ DataFileTypeEnum::getAllConnectivityEnums(std::vector<Enum>& connectivityEnumsOu
  *    Description of file type name
  * @param fileExtensions
  *    Valid file extensions
+ * @param extensionStartsWithDotFlag
+ *    If true (almost always) extension starts with a ".".
+ *    If false extension does not have a dot for a special case lilke a neuoglancer "info" file that is part of
+ *    a special directory structure (not a file with an extension).
  */
 AString
 DataFileTypeEnum::createQFileDialogNameFilter(const AString& fileTypeName,
-                                              const std::vector<AString>& fileExtensions)
+                                              const std::vector<AString>& fileExtensions,
+                                              const bool extensionStartsWithDotFlag)
 {
     AString filterText(fileTypeName + " Files (");
     
@@ -1379,7 +1404,12 @@ DataFileTypeEnum::createQFileDialogNameFilter(const AString& fileTypeName,
         if ( ! firstTime) {
             filterText += " ";
         }
-        filterText += ("*." + ext);
+        if (extensionStartsWithDotFlag) {
+            filterText += ("*." + ext);
+        }
+        else {
+            filterText += ("*" + ext);
+        }
         
         firstTime = false;
     }
@@ -1563,8 +1593,10 @@ DataFileTypeEnum::getSaveQFileDialogImageFilters(std::vector<AString>& imageFilt
                            + imageType->guiName);
         const std::vector<AString> extVector { extension };
         
+        const bool extensionStartsWithDotFlag(true);
         const AString filter(createQFileDialogNameFilter(name,
-                                                         extVector));
+                                                         extVector,
+                                                         extensionStartsWithDotFlag));
         imageFiltersOut.push_back(filter);
 
         if (extension == defaultWritableExtension) {
@@ -1671,6 +1703,9 @@ DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            //dialogFilterShowType = DialogFilterShowType::SHOW_DIRECTORY;
+            break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             dialogFilterShowType = DialogFilterShowType::SHOW_DIRECTORY;
             break;
@@ -1695,5 +1730,98 @@ DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
     }
 
     return dialogFilterShowType;
+}
+
+/**
+ * @return Return true if the file extension starts with a dot
+ * @param enumValue
+ *    The enum
+ */
+bool
+DataFileTypeEnum::fileExtensionStartsWithDot(const Enum enumValue)
+{
+    bool extensionStartsWithDotFlag = true;
+    switch (enumValue) {
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+            break;
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            break;
+        case DataFileTypeEnum::CZI_IMAGE_FILE:
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::META_VOLUME:
+            break;
+        case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            extensionStartsWithDotFlag = false;
+            break;
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SAMPLES:
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            break;
+    }
+    return extensionStartsWithDotFlag;
 }
 

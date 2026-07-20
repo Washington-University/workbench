@@ -1686,6 +1686,8 @@ CaretMappableDataFile::resetMapThresholdingSelections(const int32_t mapIndex,
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
         case DataFileTypeEnum::PALETTE:
@@ -1877,6 +1879,8 @@ CaretMappableDataFile::getLabelSelectionHierarchyForMapAndTab(const int32_t mapI
         case DataFileTypeEnum::METRIC:
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;

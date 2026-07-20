@@ -50,6 +50,7 @@ namespace caret {
     class SelectionItemImageControlPoint;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
+    class SelectionItemNeuroglancerAnnotation;
     class SelectionItemSurfaceNode;
     class SelectionItemSurfaceTriangle;
     class SelectionItemUniversalIdentificationSymbol;
@@ -102,6 +103,10 @@ namespace caret {
         SelectionItemMediaPlaneCoordinate* getMediaPlaneCoordinateIdentification();
         
         const SelectionItemMediaPlaneCoordinate* getMediaPlaneCoordinateIdentification() const;
+        
+        SelectionItemNeuroglancerAnnotation* getNeuroglancerAnnotationIdentification();
+        
+        const SelectionItemNeuroglancerAnnotation* getNeuroglancerAnnotationIdentification() const;
         
         SelectionItemAnnotation* getSamplesIdentification();
         
@@ -253,6 +258,8 @@ namespace caret {
         
         std::unique_ptr<SelectionItemMediaPlaneCoordinate> m_mediaPlaneCoordinateIdentification;
         
+        std::unique_ptr<SelectionItemNeuroglancerAnnotation> m_neuroglancerAnnotationIdentification;
+
         std::unique_ptr<SelectionItemAnnotation> m_samplesIdentification;
         
         SelectionItemSurfaceNode* m_surfaceNodeIdentification;

@@ -51,6 +51,7 @@
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLMediaCoordinateDrawing.h"
 #include "BrainOpenGLMediaDrawing.h"
+#include "BrainOpenGLNeuroglancerAnnotationDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLVolumeMprThreeDrawing.h"
 #include "BrainOpenGLVolumeMprTwoDrawing.h"
@@ -8430,6 +8431,14 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
     if ( ! drawFiberTrajectoriesInFrontFlag) {
         drawSurfaceFiberTrajectories(StructureEnum::ALL);
     }
+
+    /*
+     * Draw neuroglancer annotations
+     */
+    BrainOpenGLNeuroglancerAnnotationDrawing neurAnnDrawing;
+    neurAnnDrawing.drawOnWholeBrain(m_brain,
+                                    this,
+                                    underlayVolumeFile);
 
     /*
      * Draw surfaces last so that opacity works.

@@ -67,6 +67,7 @@ BrainOpenGLHistologySliceDrawing.h
 BrainOpenGLIdentificationDrawing.h
 BrainOpenGLMediaCoordinateDrawing.h
 BrainOpenGLMediaDrawing.h
+BrainOpenGLNeuroglancerAnnotationDrawing.h
 BrainOpenGLPrimitiveDrawing.h
 BrainOpenGLShape.h
 BrainOpenGLShapeCone.h
@@ -107,6 +108,7 @@ DisplayPropertiesFiberOrientation.h
 DisplayPropertiesFoci.h
 DisplayPropertiesImages.h
 DisplayPropertiesLabels.h
+DisplayPropertiesNeuroglancerAnnotations.h
 DisplayPropertiesSamples.h
 DisplayPropertiesSurface.h
 DisplayPropertiesVolume.h
@@ -243,6 +245,7 @@ SelectionItemHistologyCoordinate.h
 SelectionItemImageControlPoint.h
 SelectionItemMediaLogicalCoordinate.h
 SelectionItemMediaPlaneCoordinate.h
+SelectionItemNeuroglancerAnnotation.h
 SelectionItemSurfaceNode.h
 SelectionItemSurfaceTriangle.h
 SelectionItemUniversalIdentificationSymbol.h
@@ -313,6 +316,7 @@ BrainOpenGLHistologySliceDrawing.cxx
 BrainOpenGLIdentificationDrawing.cxx
 BrainOpenGLMediaCoordinateDrawing.cxx
 BrainOpenGLMediaDrawing.cxx
+BrainOpenGLNeuroglancerAnnotationDrawing.cxx
 BrainOpenGLPrimitiveDrawing.cxx
 BrainOpenGLShape.cxx
 BrainOpenGLShapeCone.cxx
@@ -353,6 +357,7 @@ DisplayPropertiesFiberOrientation.cxx
 DisplayPropertiesFoci.cxx
 DisplayPropertiesImages.cxx
 DisplayPropertiesLabels.cxx
+DisplayPropertiesNeuroglancerAnnotations.cxx
 DisplayPropertiesSamples.cxx
 DisplayPropertiesSurface.cxx
 DisplayPropertiesVolume.cxx
@@ -487,6 +492,7 @@ SelectionItemHistologyCoordinate.cxx
 SelectionItemImageControlPoint.cxx
 SelectionItemMediaLogicalCoordinate.cxx
 SelectionItemMediaPlaneCoordinate.cxx
+SelectionItemNeuroglancerAnnotation.cxx
 SelectionItemSurfaceNode.cxx
 SelectionItemSurfaceTriangle.cxx
 SelectionItemUniversalIdentificationSymbol.cxx

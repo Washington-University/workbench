@@ -75,6 +75,7 @@
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesImages.h"
 #include "DisplayPropertiesLabels.h"
+#include "DisplayPropertiesNeuroglancerAnnotations.h"
 #include "DisplayPropertiesSamples.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
@@ -126,6 +127,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "LabelFile.h"
+#include "NeuroglancerAnnotationsFile.h"
 #include "OmeZarrImageFile.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -232,6 +234,9 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_displayPropertiesCziImages = new DisplayPropertiesCziImages();
     m_displayProperties.push_back(m_displayPropertiesCziImages);
     
+    m_displayPropertiesNeuroglancerAnnotations = new DisplayPropertiesNeuroglancerAnnotations();
+    m_displayProperties.push_back(m_displayPropertiesNeuroglancerAnnotations);
+    
     m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation(this);
     m_displayProperties.push_back(m_displayPropertiesFiberOrientation);
     
@@ -313,6 +318,10 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_sceneAssistant->add("displayPropertiesCziImages",
                           "DisplayPropertiesCziImages",
                           m_displayPropertiesCziImages);
+    
+    m_sceneAssistant->add("m_displayPropertiesNeuroglancerAnnotations",
+                          "DisplayPropertiesNeuroglancerAnnotations",
+                          m_displayPropertiesNeuroglancerAnnotations);
     
     m_sceneAssistant->add("displayPropertiesFiberOrientation",
                           "DisplayPropertiesFiberOrientation",
@@ -661,6 +670,11 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_cziImageFiles.clear();
     
+    for (auto np : m_neuroglancerAnnotationFiles) {
+        delete np;
+    }
+    m_neuroglancerAnnotationFiles.clear();
+    
     for (auto oz : m_omeZarrImageFiles) {
         delete oz;
     }
@@ -988,6 +1002,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::METRIC:
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                 break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
@@ -2366,6 +2382,85 @@ Brain::addReadOrReloadCziImageFile(const FileModeAddReadReload fileMode,
     
     return cziImageFile;
 }
+
+/**
+ * Read a neuroglancer annotations file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+NeuroglancerAnnotationsFile*
+Brain::addReadOrReloadNeuroglancerAnnotationsFile(const FileModeAddReadReload fileMode,
+                                           CaretDataFile* caretDataFile,
+                                           const AString& filename)
+{
+    NeuroglancerAnnotationsFile* neuroglancerAnnFile = NULL;
+    if (caretDataFile != NULL) {
+        neuroglancerAnnFile = dynamic_cast<NeuroglancerAnnotationsFile*>(caretDataFile);
+        CaretAssert(neuroglancerAnnFile);
+    }
+    else {
+        neuroglancerAnnFile = new NeuroglancerAnnotationsFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                neuroglancerAnnFile->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete neuroglancerAnnFile;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_neuroglancerAnnotationFiles,
+                                      neuroglancerAnnFile);
+        m_neuroglancerAnnotationFiles.push_back(neuroglancerAnnFile);
+    }
+    
+    return neuroglancerAnnFile;
+}
+
+
 
 /**
  * Read an OME-ZARR image file.
@@ -5473,6 +5568,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
         case DataFileTypeEnum::METRIC_DYNAMIC:
             CaretAssertMessage(0, "Metric dynamic files should never be added to brain");
             break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        {
+            NeuroglancerAnnotationsFile* file(dynamic_cast<NeuroglancerAnnotationsFile*>(caretDataFile));
+            CaretAssert(file);
+            m_neuroglancerAnnotationFiles.push_back(file);
+        }
+            break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
         {
             OmeZarrImageFile* file(dynamic_cast<OmeZarrImageFile*>(caretDataFile));
@@ -5723,6 +5825,47 @@ Brain::getCziImageFile(const int32_t indx) const
     return m_cziImageFiles[indx];
 }
 
+/**
+ * @return All neuoglancer pins files
+ */
+const std::vector<NeuroglancerAnnotationsFile*>
+Brain::getAllNeuroglancerAnnotationFiles() const
+{
+    return m_neuroglancerAnnotationFiles;
+}
+
+/**
+ * @return Number of neuroglancer pins files
+ */
+int32_t
+Brain::getNumberOfNeuroglancerAnnotationsFile() const
+{
+    return m_neuroglancerAnnotationFiles.size();
+}
+
+/**
+ * @return Neuroglancer pins file at the given index
+ * @param indx
+ *    Index of file
+ */
+NeuroglancerAnnotationsFile*
+Brain::getNeuroglancerAnnotationsFile(const int32_t indx)
+{
+    CaretAssertVectorIndex(m_neuroglancerAnnotationFiles, indx);
+    return m_neuroglancerAnnotationFiles[indx];
+}
+
+/**
+ * @return Neuroglancer pins file at the given index
+ * @param indx
+ *    Index of file
+ */
+const NeuroglancerAnnotationsFile*
+Brain::getNeuroglancerAnnotationsFile(const int32_t indx) const
+{
+    CaretAssertVectorIndex(m_neuroglancerAnnotationFiles, indx);
+    return m_neuroglancerAnnotationFiles[indx];
+}
 
 /**
  * @return All OME ZARR  image files.
@@ -6621,6 +6764,8 @@ Brain::getReloadableDataFiles() const
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 reloadFlag = false;
                 break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
             case DataFileTypeEnum::PALETTE:
@@ -6987,6 +7132,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 CaretAssertMessage(0, "Metric dynamic files are never read by Brain");
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                caretDataFileRead = addReadOrReloadNeuroglancerAnnotationsFile(fileMode,
+                                                                        caretDataFile,
+                                                                        dataFileName);
                 break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
                 caretDataFileRead = addReadOrReloadOmeZarrImageFile(fileMode,
@@ -7542,6 +7692,7 @@ Brain::sortDataFilesByFileNameNoPath()
 {
     sortDataFileTypeByFileNameNoPath(m_cziImageFiles);
     sortDataFileTypeByFileNameNoPath(m_imageFiles);
+    sortDataFileTypeByFileNameNoPath(m_neuroglancerAnnotationFiles);
     sortDataFileTypeByFileNameNoPath(m_omeZarrImageFiles);
 }
 
@@ -8834,6 +8985,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_ciftiDenseSparseFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_neuroglancerAnnotationFiles.begin(),
+                           m_neuroglancerAnnotationFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_omeZarrImageFiles.begin(),
                            m_omeZarrImageFiles.end());
     
@@ -9102,6 +9257,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
         case DataFileTypeEnum::PALETTE:
@@ -9214,6 +9371,8 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             canBeRemovedFlag = false;
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
@@ -9458,6 +9617,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
         return true;
     }
 
+    std::vector<NeuroglancerAnnotationsFile*>::iterator neuroAnnFileIterator(std::find(m_neuroglancerAnnotationFiles.begin(),
+                                                                                       m_neuroglancerAnnotationFiles.end(),
+                                                                                 caretDataFile));
+    if (neuroAnnFileIterator != m_neuroglancerAnnotationFiles.end()) {
+        m_neuroglancerAnnotationFiles.erase(neuroAnnFileIterator);
+        return true;
+    }
+    
     std::vector<OmeZarrImageFile*>::iterator omeZarrImageFileIterator(std::find(m_omeZarrImageFiles.begin(),
                                                                                 m_omeZarrImageFiles.end(),
                                                                                 caretDataFile));
@@ -9599,6 +9766,24 @@ const DisplayPropertiesCziImages*
 Brain::getDisplayPropertiesCziImages() const
 {
     return m_displayPropertiesCziImages;
+}
+
+/**
+ * @return The neuroglancer annotation display properties.
+ */
+DisplayPropertiesNeuroglancerAnnotations*
+Brain::getDisplayPropertiesNeuroglancerAnnotations()
+{
+    return m_displayPropertiesNeuroglancerAnnotations;
+}
+
+/**
+ * @return The neuroglancer annotation display properties.
+ */
+const DisplayPropertiesNeuroglancerAnnotations*
+Brain::getDisplayPropertiesNeuroglancerAnnotations() const
+{
+    return m_displayPropertiesNeuroglancerAnnotations;
 }
 
 /**

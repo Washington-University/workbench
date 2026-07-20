@@ -88,6 +88,7 @@ namespace caret {
     class DisplayPropertiesFoci;
     class DisplayPropertiesImages;
     class DisplayPropertiesLabels;
+    class DisplayPropertiesNeuroglancerAnnotations;
     class DisplayPropertiesSurface;
     class DisplayPropertiesSamples;
     class DisplayPropertiesVolume;
@@ -110,6 +111,7 @@ namespace caret {
     class ModelSurfaceMontage;
     class ModelVolume;
     class ModelWholeBrain;
+    class NeuroglancerAnnotationsFile;
     class OmeZarrImageFile;
     class PaletteFile;
     class PaletteNewGroup;
@@ -177,6 +179,14 @@ namespace caret {
         CziImageFile* getCziImageFile(const int32_t indx);
         
         const CziImageFile* getCziImageFile(const int32_t indx) const;
+
+        const std::vector<NeuroglancerAnnotationsFile*> getAllNeuroglancerAnnotationFiles() const;
+        
+        int32_t getNumberOfNeuroglancerAnnotationsFile() const;
+        
+        NeuroglancerAnnotationsFile* getNeuroglancerAnnotationsFile(const int32_t indx);
+        
+        const NeuroglancerAnnotationsFile* getNeuroglancerAnnotationsFile(const int32_t indx) const;
         
         const std::vector<OmeZarrImageFile*> getAllOmeZarrImageFiles() const;
         
@@ -493,6 +503,10 @@ namespace caret {
         DisplayPropertiesFoci* getDisplayPropertiesFoci();
         
         const DisplayPropertiesFoci* getDisplayPropertiesFoci() const;
+        
+        DisplayPropertiesNeuroglancerAnnotations* getDisplayPropertiesNeuroglancerAnnotations();
+        
+        const DisplayPropertiesNeuroglancerAnnotations* getDisplayPropertiesNeuroglancerAnnotations() const;
         
         DisplayPropertiesVolume* getDisplayPropertiesVolume();
         
@@ -889,6 +903,10 @@ namespace caret {
                                                   CaretDataFile* caretDataFile,
                                                   const AString& filename);
 
+        NeuroglancerAnnotationsFile* addReadOrReloadNeuroglancerAnnotationsFile(const FileModeAddReadReload fileMode,
+                                                                  CaretDataFile* caretDataFile,
+                                                                  const AString& filename);
+        
         OmeZarrImageFile* addReadOrReloadOmeZarrImageFile(const FileModeAddReadReload fileMode,
                                                           CaretDataFile* caretDataFile,
                                                           const AString& filename);
@@ -966,6 +984,8 @@ namespace caret {
         std::vector<BorderFile*> m_borderFiles;
         
         std::vector<CziImageFile*> m_cziImageFiles;
+        
+        std::vector<NeuroglancerAnnotationsFile*> m_neuroglancerAnnotationFiles;
         
         std::vector<OmeZarrImageFile*> m_omeZarrImageFiles;
         
@@ -1105,6 +1125,12 @@ namespace caret {
          */
         DisplayPropertiesFiberOrientation* m_displayPropertiesFiberOrientation;
 
+        /**
+         * Display properties for foci - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesNeuroglancerAnnotations* m_displayPropertiesNeuroglancerAnnotations;
+        
         /**
          * Display properties for foci - DO NOT delete since this
          * is also in the displayProperties std::vector.

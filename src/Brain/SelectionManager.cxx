@@ -52,6 +52,7 @@
 #include "SelectionItemImageControlPoint.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
+#include "SelectionItemNeuroglancerAnnotation.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemUniversalIdentificationSymbol.h"
@@ -96,6 +97,7 @@ SelectionManager::SelectionManager()
     m_imageControlPointIdentification = new SelectionItemImageControlPoint();
     m_mediaLogicalCoordinateIdentification.reset(new SelectionItemMediaLogicalCoordinate());
     m_mediaPlaneCoordinateIdentification.reset(new SelectionItemMediaPlaneCoordinate());
+    m_neuroglancerAnnotationIdentification.reset(new SelectionItemNeuroglancerAnnotation());
     
     m_samplesIdentification.reset(new SelectionItemAnnotation());
     m_surfaceNodeIdentification = new SelectionItemSurfaceNode();
@@ -126,6 +128,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_histologyPlaneCoordinateIdentification.get());
     m_allSelectionItems.push_back(m_imageControlPointIdentification);
     m_allSelectionItems.push_back(m_mediaLogicalCoordinateIdentification.get());
+    m_allSelectionItems.push_back(m_neuroglancerAnnotationIdentification.get());
     m_allSelectionItems.push_back(m_mediaPlaneCoordinateIdentification.get());
     m_allSelectionItems.push_back(m_universalIdentificationSymbol.get());
     m_allSelectionItems.push_back(m_volumeMprCrosshairIdentification.get());
@@ -599,6 +602,24 @@ const SelectionItemMediaPlaneCoordinate*
 SelectionManager::getMediaPlaneCoordinateIdentification() const
 {
     return m_mediaPlaneCoordinateIdentification.get();
+}
+
+/**
+ * @return Identification for neuroglancer annotation
+ */
+SelectionItemNeuroglancerAnnotation*
+SelectionManager::getNeuroglancerAnnotationIdentification()
+{
+    return m_neuroglancerAnnotationIdentification.get();
+}
+
+/**
+ * @return Identification for neuroglancer annotation
+ */
+const SelectionItemNeuroglancerAnnotation*
+SelectionManager::getNeuroglancerAnnotationIdentification() const
+{
+    return m_neuroglancerAnnotationIdentification.get();
 }
 
 /**

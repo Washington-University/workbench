@@ -1048,6 +1048,8 @@ OverlayViewController::menuConstructionAboutToShow()
                 case DataFileTypeEnum::METRIC_DYNAMIC:
                     dynConnFlag = true;
                     break;
+                case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                    break;
                 case DataFileTypeEnum::OME_ZARR_IMAGE:
                     break;
                 case DataFileTypeEnum::PALETTE:

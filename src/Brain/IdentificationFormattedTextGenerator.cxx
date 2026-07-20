@@ -70,6 +70,7 @@
 #include "MediaFile.h"
 #include "MetaVolumeFile.h"
 #include "MetricDynamicConnectivityFile.h"
+#include "NeuroglancerAnnotation.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
@@ -87,6 +88,7 @@
 #include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
+#include "SelectionItemNeuroglancerAnnotation.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
@@ -291,6 +293,10 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
                                                      false);
     }
     
+    this->generateNeuroglancerAnnotationIdentifcationText(*layersHtmlTableBuilder,
+                                                          idText,
+                                                          selectionManager->getNeuroglancerAnnotationIdentification(),
+                                                          false);
     
     this->generateChartDataSeriesIdentificationText(*chartHtmlTableBuilder,
                                                     selectionManager->getChartDataSeriesIdentification());
@@ -1157,6 +1163,8 @@ IdentificationFormattedTextGenerator::isParcelAndScalarTypeFile(const DataFileTy
         case DataFileTypeEnum::METRIC:
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
@@ -2465,6 +2473,55 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
                            "Comment : ",
                            focus->getComment());
 }
+
+/**
+ * Generate identification text for a neuroglancer annotation identification.
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param idText
+ *     Text for tooltip
+ * @param idNeuroAnn
+ *     Information for surface neuroglancer annotation ID.
+ * @param toolTipFlag
+ *     True when generating text for tooltip
+ */
+void
+IdentificationFormattedTextGenerator::generateNeuroglancerAnnotationIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                                      IdentificationStringBuilder& idText,
+                                                                                      const SelectionItemNeuroglancerAnnotation* idNeuroAnn,
+                                                                                      const bool toolTipFlag) const
+{
+    if ( ! idNeuroAnn->isValid()) {
+        return;
+    }
+    const NeuroglancerAnnotation* neuroAnn(idNeuroAnn->getNeuroglancerAnnotation());
+    CaretAssert(neuroAnn);
+    
+    if (toolTipFlag) {
+        bool indentFlag = false;
+        idText.addLine(indentFlag,
+                       "Neuro Ann",
+                       neuroAnn->getFileName());
+    }
+    else {
+        htmlTableBuilder.addRow("Neuro Ann Name: " + neuroAnn->getFileName());
+    }
+
+    const int32_t numXYZ(neuroAnn->getNumberOfXYZ());
+    for (int32_t i = 0; i < numXYZ; i++) {
+        const Vector3D& xyz(neuroAnn->getXYZ(i));
+        if (toolTipFlag) {
+            bool indentFlag = true;
+            idText.addLine(indentFlag,
+                           "XYZ " + AString::number(i+1) + ": ",
+                           AString::fromNumbers(xyz));
+        }
+        else {
+            htmlTableBuilder.addRow("XYZ " + AString::number(i+1) + ": ", AString::fromNumbers(xyz));
+        }
+    }
+}
+
 
 /**
  * Add if second column is not empty

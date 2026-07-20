@@ -32,6 +32,7 @@
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLFociDrawing.h"
 #include "BrainOpenGLIdentificationDrawing.h"
+#include "BrainOpenGLNeuroglancerAnnotationDrawing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeMprThreeDrawing.h"
 #include "BrainOpenGLVolumeSurfaceOutlineDrawing.h"
@@ -685,6 +686,16 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const GraphicsOrthographicProj
                                   underlayHistologySlice->getPlaneXyzPlane(),
                                   sliceSpacing);
 
+    /*
+     * Draw neuroglancer annotations
+     */
+    BrainOpenGLNeuroglancerAnnotationDrawing neurAnnDrawing;
+    neurAnnDrawing.drawOnHistology(m_fixedPipelineDrawing->m_brain,
+                                   m_fixedPipelineDrawing,
+                                   underlayHistologySlicesFile,
+                                   underlayHistologySlice,
+                                   underlayHistologySlice->getPlaneXyzPlane(),
+                                   sliceSpacing);
     /*
      * Draw the crosshairs
      */

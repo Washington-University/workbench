@@ -451,6 +451,8 @@ OperationZipSpecFile::addChildDataFiles(const AString& dataFileName,
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
             case DataFileTypeEnum::PALETTE:
