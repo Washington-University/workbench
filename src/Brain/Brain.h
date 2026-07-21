@@ -466,9 +466,20 @@ namespace caret {
         void getAllDataFilesWithDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
                                              std::vector<CaretDataFile*>& caretDataFilesOut) const;
         
+        std::vector<AString> getAllDataFileNamesWithDataFileType(const DataFileTypeEnum::Enum dataFileType) const;
+        
+        std::vector<CaretDataFile*> getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType) const;
+
         void getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
                                              std::vector<CaretDataFile*>& caretDataFilesOut) const;
         
+        FunctionResult setAllDataFilesWithDataFileTypeOrder(const DataFileTypeEnum::Enum dataFileType,
+                                                            const std::vector<AString>& dataFileNames);
+        
+        FunctionResult setAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
+                                                       const std::vector<CaretDataFile*>& caretDataFiles);
+
+
         void getAllMappableDataFiles(std::vector<CaretMappableDataFile*>& allCaretMappableDataFilesOut) const;
         
         void getAllMappableDataFileWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
@@ -982,6 +993,7 @@ namespace caret {
         std::vector<AnnotationTextSubstitutionFile*> m_annotationSubstitutionFiles;
         
         std::vector<BorderFile*> m_borderFiles;
+        bool m_borderFilesSortedFlag = false;
         
         std::vector<CziImageFile*> m_cziImageFiles;
         
@@ -992,6 +1004,7 @@ namespace caret {
         std::vector<HistologySlicesFile*> m_histologySlicesFiles;
         
         std::vector<FociFile*> m_fociFiles;
+        bool m_fociFilesSortedFlag = false;
         
         std::vector<ImageFile*> m_imageFiles;
         

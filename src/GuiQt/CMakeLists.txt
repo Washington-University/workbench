@@ -155,6 +155,7 @@ ELSE()
 	CziImageExportDialog.h
         DataFileContentCopyMoveDialog.h
 	DataFileEditorDialog.h
+	DataFileSortingDialog.h
 	DingOntologyTermsDialog.h
         DisplayGroupAndTabItemViewController.h
         DisplayGroupEnumComboBox.h
@@ -465,6 +466,7 @@ CustomViewDialog.h
 CziImageExportDialog.h
 DataFileContentCopyMoveDialog.h
 DataFileEditorDialog.h
+DataFileSortingDialog.h
 DingOntologyTermsDialog.h
 DisplayGroupAndTabItemTreeWidgetItem.h
 DisplayGroupAndTabItemViewController.h
@@ -836,6 +838,7 @@ CustomViewDialog.cxx
 CziImageExportDialog.cxx
 DataFileContentCopyMoveDialog.cxx
 DataFileEditorDialog.cxx
+DataFileSortingDialog.cxx
 DingOntologyTermsDialog.cxx
 DisplayGroupAndTabItemTreeWidgetItem.cxx
 DisplayGroupAndTabItemViewController.cxx

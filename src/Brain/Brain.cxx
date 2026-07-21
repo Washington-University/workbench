@@ -150,6 +150,7 @@
 #include "SpecFileDataFileTypeGroup.h"
 #include "ScenePathName.h"
 #include "ScenePathNameArray.h"
+#include "ScenePrimitiveArray.h"
 #include "Surface.h"
 #include "SurfaceProjectedItem.h"
 #include "SystemUtilities.h"
@@ -362,6 +363,11 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_sceneAssistant->add("m_annotationTextSubstitutionLayerSet",
                           "AnnotationTextSubstitutionLayerSet",
                           m_annotationTextSubstitutionLayerSet.get());
+    
+    m_sceneAssistant->add("m_borderFilesSortedFlag",
+                          &m_borderFilesSortedFlag);
+    m_sceneAssistant->add("m_fociFilesSortedFlag",
+                          &m_fociFilesSortedFlag);
     
     m_selectionManager = new SelectionManager();
 
@@ -664,6 +670,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         delete bf;
     }
     m_borderFiles.clear();
+    m_borderFilesSortedFlag = false;
     
     for (auto cif : m_cziImageFiles) {
         delete cif;
@@ -692,6 +699,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         delete ff;
     }
     m_fociFiles.clear();
+    m_fociFilesSortedFlag = false;
     
     for (std::vector<ImageFile*>::iterator ifi = m_imageFiles.begin();
          ifi != m_imageFiles.end();
@@ -8919,6 +8927,221 @@ Brain::getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType
                                      caretDataFilesOut);
 }
 
+/**
+ * Get all names of files with the given data file type.
+ *
+ * @param dataFileType
+ *     Type of data file.
+ * @return
+ *     Names of files with the given data file type
+ */
+std::vector<AString>
+Brain::getAllDataFileNamesWithDataFileType(const DataFileTypeEnum::Enum dataFileType) const
+{
+    std::vector<AString> filenames;
+    
+    const std::vector<CaretDataFile*> dataFiles(getAllDataFilesWithDataFileType(dataFileType));
+    for (const CaretDataFile* cdf : dataFiles) {
+        filenames.push_back(cdf->getFileName());
+    }
+    return filenames;
+}
+
+/**
+ * Get all files with the given data file type.
+ *
+ * @param dataFileType
+ *     Type of data file.
+ * @return
+ *     Files with the given data file type
+ */
+std::vector<CaretDataFile*>
+Brain::getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType) const
+{
+    std::vector<CaretDataFile*> dataFiles;
+    
+    getAllDataFilesWithDataFileType(dataFileType,
+                                    dataFiles);
+    
+    return dataFiles;
+}
+
+/**
+ * For the given data file type, set the order of the files using the given file names.
+ * Number of filenames must match the number of data files and all names must match.
+ * @param dataFileType
+ *     Type of data file.
+ * @param caretDataFiles
+ *     Data file of the given data file type
+ * @return The result with success or failure.
+ */
+FunctionResult
+Brain::setAllDataFilesWithDataFileTypeOrder(const DataFileTypeEnum::Enum dataFileType,
+                                            const std::vector<AString>& dataFileNames)
+{
+    std::vector<CaretDataFile*> dataFiles;
+    const_cast<Brain*>(this)->getAllDataFilesWithDataFileType(dataFileType,
+                                                              dataFiles);
+    
+    std::vector<CaretDataFile*> reorderedDataFiles;
+    for (const AString& filename : dataFileNames) {
+        for (CaretDataFile* cdf : dataFiles) {
+            if (cdf->getFileName() == filename) {
+                reorderedDataFiles.push_back(cdf);
+                break;
+            }
+        }
+    }
+    
+    if (dataFiles.size() == reorderedDataFiles.size()) {
+        return setAllDataFilesWithDataFileType(dataFileType,
+                                               reorderedDataFiles);
+    }
+    
+    return FunctionResult::error("Failed to reorder data files of type "
+                                 + DataFileTypeEnum::toName(dataFileType));
+}
+
+/**
+ * Set all CaretDataFiles of the given data file type.
+ * Any existing files are removed BUT NOT destroyed since the input files may be files
+ * that are already in the Brain.  This is primarily used for reordering existing files.
+ *
+ * @param dataFileType
+ *     Type of data file.
+ * @param caretDataFiles
+ *     Data file of the given data file type
+ */
+FunctionResult
+Brain::setAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
+                                       const std::vector<CaretDataFile*>& caretDataFiles)
+{
+    bool successFlag(false);
+    AString errorMessage(DataFileTypeEnum::toName(dataFileType)
+                         + " not supported by Brain::setAllDataFilesWithDataFileType");
+    
+    switch (dataFileType) {
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+            break;
+        case DataFileTypeEnum::BORDER:
+        {
+            m_borderFiles.clear();
+            
+            for (CaretDataFile* cdf : caretDataFiles) {
+                BorderFile* bf(dynamic_cast<BorderFile*>(cdf));
+                if (bf != NULL) {
+                    m_borderFiles.push_back(bf);
+                }
+                else {
+                    return FunctionResult::error(cdf->getFileName()
+                                                 + " is not a border file");
+                }
+            }
+            
+            m_borderFilesSortedFlag = true;
+            successFlag = true;
+        }
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            break;
+        case DataFileTypeEnum::CZI_IMAGE_FILE:
+            break;
+        case DataFileTypeEnum::FOCI:
+        {
+            m_fociFiles.clear();
+            
+            for (CaretDataFile* cdf : caretDataFiles) {
+                FociFile* ff(dynamic_cast<FociFile*>(cdf));
+                if (ff != NULL) {
+                    m_fociFiles.push_back(ff);
+                }
+                else {
+                    return FunctionResult::error(cdf->getFileName()
+                                                 + " is not a foci file");
+                }
+            }
+            
+            m_fociFilesSortedFlag = true;
+            successFlag = true;
+        }
+            break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::META_VOLUME:
+            break;
+        case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            break;
+        case DataFileTypeEnum::OME_ZARR_IMAGE:
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SAMPLES:
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            break;
+    }
+    
+    if (successFlag) {
+        errorMessage.clear();
+    }
+    
+    return FunctionResult(errorMessage,
+                          successFlag);
+}
 
 /**
  * Get all loaded data files.
@@ -10091,6 +10314,19 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addClass(m_brainordinateHighlightRegionOfInterest->saveToScene(sceneAttributes,
                                                                                "m_brainordinateHighlightRegionOfInterest"));
     
+    if (m_borderFilesSortedFlag) {
+        const std::vector<AString> filenames(getAllDataFileNamesWithDataFileType(DataFileTypeEnum::BORDER));
+        if ( ! filenames.empty()) {
+            sceneClass->addStringArray("borderFileNamesSorted", &filenames[0], filenames.size());
+        }
+    }
+    if (m_fociFilesSortedFlag) {
+        const std::vector<AString> filenames(getAllDataFileNamesWithDataFileType(DataFileTypeEnum::FOCI));
+        if ( ! filenames.empty()) {
+            sceneClass->addStringArray("fociFileNamesSorted", &filenames[0], filenames.size());
+        }
+    }
+    
     return sceneClass;
 }
 
@@ -10423,6 +10659,29 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         const SceneClass* childPathNamesClass(sceneClass->getClass("brainChildDataFilePathNames"));
         if (childPathNamesClass != NULL) {
             childPathNamesClass->setDescendantsRestored(true);
+        }
+    }
+    
+    if (m_borderFilesSortedFlag) {
+        const ScenePrimitiveArray* filenameArray(sceneClass->getPrimitiveArray("borderFileNamesSorted"));
+        if (filenameArray != NULL) {
+            std::vector<AString> filenames;
+            filenameArray->stringVectorValues(filenames);
+            if ( ! filenames.empty()) {
+                setAllDataFilesWithDataFileTypeOrder(DataFileTypeEnum::BORDER,
+                                                     filenames);
+            }
+        }
+    }
+    if (m_fociFilesSortedFlag) {
+        const ScenePrimitiveArray* filenameArray(sceneClass->getPrimitiveArray("fociFileNamesSorted"));
+        if (filenameArray != NULL) {
+            std::vector<AString> filenames;
+            filenameArray->stringVectorValues(filenames);
+            if ( ! filenames.empty()) {
+                setAllDataFilesWithDataFileTypeOrder(DataFileTypeEnum::FOCI,
+                                                     filenames);
+            }
         }
     }
 }

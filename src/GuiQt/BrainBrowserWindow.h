@@ -273,6 +273,7 @@ namespace caret {
         void processEditSamples();
         void processProjectFoci();
         void processSplitBorderFiles();
+        void processSortDataFiles();
         
         void processWindowMenuLockWindowAspectRatioTriggered(bool checked);
         void processWindowMenuLockAllTabAspectRatioTriggered(bool checked);
@@ -499,6 +500,7 @@ namespace caret {
         QAction* m_dataBorderFilesSplitAction;
         QAction* m_dataPaletteEditorDialogAction;
         QAction* m_dataSamplesEditAction;
+        QAction* m_dataFilesSortingAction;
         
         QMenu* m_moveSelectedTabToWindowMenu;
         
@@ -541,6 +543,8 @@ namespace caret {
         bool m_keyEventProcessingFlag = false;
         
         bool m_restoringSceneNoSaveWindowCompontentStatusFlag = false;
+        
+        DataFileTypeEnum::Enum m_lastSortingDialogDataFileType = DataFileTypeEnum::UNKNOWN;
         
         const float m_developerTimingDuration = 10.0;
         

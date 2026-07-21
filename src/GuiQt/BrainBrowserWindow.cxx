@@ -69,6 +69,7 @@
 #include "CziImageFile.h"
 #include "DataFileEditorDialog.h"
 #include "DataFileException.h"
+#include "DataFileSortingDialog.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesImages.h"
 #include "EventBrowserWindowNew.h"
@@ -1834,6 +1835,10 @@ BrainBrowserWindow::createActions()
     QObject::connect(m_dataSamplesEditAction, &QAction::triggered,
                      this, &BrainBrowserWindow::processEditSamples);
     
+    m_dataFilesSortingAction = new QAction("Sort Data Files...");
+    QObject::connect(m_dataFilesSortingAction, &QAction::triggered,
+                     this, &BrainBrowserWindow::processSortDataFiles);
+
     m_dataFociProjectAction =
     WuQtUtilities::createAction("Project Foci...",
                                 "Project Foci to Surfaces",
@@ -2931,6 +2936,8 @@ BrainBrowserWindow::createMenuData()
         menu->addSeparator();
     }
     menu->addAction(m_dataSamplesEditAction);
+    menu->addSeparator();
+    menu->addAction(m_dataFilesSortingAction);
     
     return menu;
 }
@@ -3538,6 +3545,36 @@ BrainBrowserWindow::processEditSamples()
                                                                 this);
         dialog->exec();
     }
+}
+
+/**
+ * Sort Data Files
+ */
+void
+BrainBrowserWindow::processSortDataFiles()
+{
+    Brain* brain(GuiManager::get()->getBrain());
+    CaretAssert(brain);
+    std::vector<DataFileTypeEnum::Enum> supportedDataFileTypes;
+    if (brain->getNumberOfBorderFiles() > 0) {
+        supportedDataFileTypes.push_back(DataFileTypeEnum::BORDER);
+    }
+    if (brain->getNumberOfFociFiles() > 0) {
+        supportedDataFileTypes.push_back(DataFileTypeEnum::FOCI);
+    }
+    
+    if (supportedDataFileTypes.empty()) {
+        WuQMessageBoxTwo::critical(this, "ERROR", "No data files are loaded that support sorting.");
+        return;
+    }
+    
+
+    DataFileSortingDialog dialog(supportedDataFileTypes,
+                                 m_lastSortingDialogDataFileType,
+                                 this);
+    dialog.exec();
+    
+    m_lastSortingDialogDataFileType = dialog.getDataFileTypeSelected();
 }
 
 /**
