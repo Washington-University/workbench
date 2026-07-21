@@ -36,7 +36,7 @@ namespace caret
         {
             K m_key;
             T m_data;
-            int64_t m_index;
+            int64_t m_index = -1; //initialize to silence warnings, possibly from vector realloc
             DataStruct(const K& key, const T& data) : m_key(key), m_data(data) { }
         };
         std::vector<DataStruct> m_datastore;
@@ -102,7 +102,7 @@ namespace caret
         void heapify_up(const int64_t& start);
         void heapify_down(const int64_t& start);
     protected:
-        CaretSimpleHeapBase() { }//this is not a usable class by itself - use CaretMinHeap or CaretMaxHeap
+        CaretSimpleHeapBase() { }//this is not a usable class by itself - use CaretSimpleMinHeap or CaretSimpleMaxHeap
     public:
         
         void push(const T& data, const K& key);

@@ -5524,13 +5524,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
         case DataFileTypeEnum::SURFACE:
         {
             Surface* file = dynamic_cast<Surface*>(caretDataFile);
+            if (file == NULL) {
+                throw DataFileException(caretDataFile->getFileName(),
+                                        "Cannot add file as a Surface."); //TSC: edited message because cast to Surface* is what has failed here
+            }
             if (structure == StructureEnum::INVALID) {
                 throw DataFileException(file->getFileName(),
                                         "Structure in surface file is INVALID.");
-            }
-            if (file == NULL) {
-                throw DataFileException(file->getFileName(),
-                                        "Cannot add SurfaceFile but can add a Surface.");
             }
             if (brainStructure == NULL) {
                 brainStructure = getBrainStructure(structure,
