@@ -111,6 +111,7 @@ AlgorithmSurfaceGeodesicDistanceToROI.h
 AlgorithmSurfaceInflation.h
 AlgorithmSurfaceMatch.h
 AlgorithmSurfaceModifySphere.h
+AlgorithmSurfacePairsInteriorDistance.h
 AlgorithmSurfaceResample.h
 AlgorithmSurfaceSmoothing.h
 AlgorithmSurfaceSphereProjectUnproject.h
@@ -235,6 +236,7 @@ AlgorithmSurfaceGeodesicDistanceToROI.cxx
 AlgorithmSurfaceInflation.cxx
 AlgorithmSurfaceMatch.cxx
 AlgorithmSurfaceModifySphere.cxx
+AlgorithmSurfacePairsInteriorDistance.cxx
 AlgorithmSurfaceResample.cxx
 AlgorithmSurfaceSmoothing.cxx
 AlgorithmSurfaceSphereProjectUnproject.cxx

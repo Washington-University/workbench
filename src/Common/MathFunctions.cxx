@@ -2297,10 +2297,6 @@ MathFunctions::distanceSquared2D(const double x1,
 
 uint32_t MathFunctions::gcd(uint32_t num1, uint32_t num2)
 {
-    if (num1 == 0 || num2 == 0)
-    {//catch zeros
-        return 0;//gcd(0,x)=gcd(x,0)=0, seems less confusing than returning x
-    }
     //modulus method for good worst-case asymptotic performance
     uint32_t temp;
     if (num2 > num1)//num1 kept as the larger number to simplify the code

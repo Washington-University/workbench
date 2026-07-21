@@ -122,6 +122,7 @@ void CaretSparseFile::readFileV1(FileInformation& fileInfo)
     QByteArray myXMLBytes(xml_length, '\0');
     m_file.read(myXMLBytes.data(), xml_length);
     m_xml.readXML(myXMLBytes);
+    if (m_xml.getNumberOfDimensions() != 2) throw DataFileException("cifti XML in wbsparse file is not 2D");
     if (m_xml.getDimensionLength(CiftiXML::ALONG_ROW) != m_header.dims[0] || m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN) != m_header.dims[1])
     {
         throw DataFileException("cifti XML doesn't match dimensions of sparse file");
@@ -165,6 +166,7 @@ void CaretSparseFile::readFileV2(FileInformation& fileInfo)
     QByteArray myXMLBytes(xml_length, '\0');
     m_file.read(myXMLBytes.data(), xml_length);
     m_xml.readXML(myXMLBytes);
+    if (m_xml.getNumberOfDimensions() != 2) throw DataFileException("cifti XML in wbsparse file is not 2D");
     if (m_xml.getDimensionLength(CiftiXML::ALONG_ROW) != m_header.dims[0] || m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN) != m_header.dims[1])
     {
         throw DataFileException("cifti XML doesn't match dimensions of sparse file: " + m_file.getFilename());
@@ -237,6 +239,7 @@ CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const Cift
     {//TODO: suggest endings based on cifti xml
         CaretLogWarning("sparse file '" + fileName + "' should be saved ending in .wbsparse");
     }
+    if (xml.getNumberOfDimensions() != 2) throw DataFileException("wbsparse only supports 2D files");
     m_finished = false;
     int64_t dimensions[2] = { xml.getDimensionLength(CiftiXML::ALONG_ROW), xml.getDimensionLength(CiftiXML::ALONG_COLUMN) };
     if (dimensions[0] < 1 || dimensions[1] < 1) throw DataFileException("both dimensions must be positive");

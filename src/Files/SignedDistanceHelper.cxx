@@ -45,8 +45,8 @@
  */
 
 /*
- * For the function pointInTri():
- * Original copyright for PNPOLY, though my version is entirely rewritten and modified
+ * For the functions pointInTri() and originInTri2D():
+ * Original copyright for PNPOLY, though my versions are entirely rewritten and modified
  * Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
  */
 /*
@@ -73,6 +73,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "BoundingBox.h"
 #include "CaretHeap.h"
+#include "FloatMatrix.h"
 #include "SignedDistanceHelper.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
@@ -330,10 +331,93 @@ void SignedDistanceHelper::barycentricWeights(const float coord[3], BarycentricI
     }
 }
 
-int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper::ClosestPointInfo myInfo, WindingLogic myWinding)
+bool SignedDistanceHelper::lineSegmentIntersectsSurface(const float start[3], const float end[3])
+{
+    if (!m_base->m_indexRoot->lineSegmentIntersects(start, end)) return false;//line segment doesn't even hit the bounding box of the surface
+    Vector3D origin = start;//build 2D coordinate system around start of segment, which projects the segment to a point
+    float segLength;
+    Vector3D normalVec = (Vector3D(end) - origin).normal(&segLength), endRotate;
+    endRotate[2] = segLength; //trivial reparameterization of endpoint
+    Vector3D nonparDir;//initializes to zeroes
+    if (abs(normalVec[0]) > abs(normalVec[1]))
+    {//if more aligned to x than to y
+        nonparDir[1] = 1;//cross with y hat is safe
+    } else {//equal or more aligned to y than x
+        nonparDir[0] = 1;//cross with x hat is safe
+    }
+    Vector3D ihat = normalVec.cross(nonparDir).normal();//create a pair of orthogonal unit vectors that are also orthogonal to the normal vector
+    Vector3D jhat = normalVec.cross(ihat).normal();//normal() here shouldn't really do much
+    vector<Oct<SignedDistanceHelperBase::TriVector>*> myHeap(1, m_base->m_indexRoot);
+    bool ret = false;
+    int numChanged = 0;
+    while (!myHeap.empty())
+    {
+        Oct<SignedDistanceHelperBase::TriVector>* curOct = myHeap.back();
+        myHeap.pop_back();
+        if (curOct->m_leaf)
+        {
+            vector<int32_t>& myVecRef = *(curOct->m_data.m_triList);
+            int numTris = (int)myVecRef.size();
+            for (int i = 0; i < numTris; ++i)
+            {
+                if (m_triMarked[myVecRef[i]] != 1)
+                {
+                    m_triMarked[myVecRef[i]] = 1;
+                    m_triMarkChanged[numChanged++] = myVecRef[i];
+                    const int32_t* triangleNodes = m_base->getTriangle(myVecRef[i]);
+                    float verts2D[3][2];
+                    Vector3D triRotate[3], triNormalRotate; //coords/vecs in new space
+                    for (int v = 0; v < 3; ++v)
+                    {
+                        Vector3D relCoord = Vector3D(m_base->getCoordinate(triangleNodes[v])) - origin;
+                        triRotate[v][0] = verts2D[v][0] = ihat.dot(relCoord);
+                        triRotate[v][1] = verts2D[v][1] = jhat.dot(relCoord);
+                        triRotate[v][2] = normalVec.dot(relCoord);
+                    }
+                    MathFunctions::normalVector(triRotate[0], triRotate[1], triRotate[2], triNormalRotate); //cross products in a conventional order
+                    //originInTri2D excludes more triangles, so testing whether the plane divides the segment first is generally slower
+                    if (originInTri2D(verts2D) &&
+                        ((Vector3D() - triRotate[0]).dot(triNormalRotate) > 0.0f) != ((endRotate - triRotate[0]).dot(triNormalRotate) > 0.0f))
+                    {
+                        ret = true;
+                        break;
+                    }
+                }
+            }
+            if (ret) break;
+        } else {
+            for (int ci = 0; ci < 2; ++ci)
+            {
+                for (int cj = 0; cj < 2; ++cj)
+                {
+                    for (int ck = 0; ck < 2; ++ck)
+                    {
+                        Oct<SignedDistanceHelperBase::TriVector>* childOct = curOct->m_children[ci][cj][ck];
+                        if (childOct->lineSegmentIntersects(start, end))
+                        {
+                            myHeap.push_back(childOct);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    while (numChanged)
+    {
+        m_triMarked[m_triMarkChanged[--numChanged]] = 0;//clean up
+    }
+    return ret;
+}
+
+bool SignedDistanceHelper::pointInsideSurface(const float coord[3])
+{
+    ClosestPointInfo dummyInfo; //unused except for NORMALS
+    return computeSign(coord, dummyInfo, EVEN_ODD) < 0;
+}
+
+int SignedDistanceHelper::computeSign(const float coord[3], const ClosestPointInfo myInfo, const WindingLogic myWinding)
 {
     Vector3D point = coord;
-    Vector3D result = point - myInfo.tempPoint;
     float tempf;
     switch (myWinding)
     {
@@ -418,7 +502,7 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                         return 1;
                         break;
                     default:
-                        return 1;//because compiler can't handle when a switch doesn't accound for an enum value...
+                        return 1;//because compiler can't handle when a switch doesn't account for an enum value...
                 }
             }
             break;
@@ -541,6 +625,7 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                     break;
                 case 1://edge
                     {
+                        Vector3D result = point - myInfo.tempPoint;
                         const vector<TopologyEdgeInfo>& edgeInfo = m_base->m_topoHelp->getEdgeInfo();
                         const vector<int>& edges = m_base->m_topoHelp->getNodeEdges(myInfo.node1);
                         int whichEdge = -1, numEdges = (int)edges.size();
@@ -578,6 +663,7 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                     break;
                 case 2://face
                     {
+                        Vector3D result = point - myInfo.tempPoint;
                         Vector3D triNormal;
                         const int32_t* triNodes = m_base->getTriangle(myInfo.triangle);
                         Vector3D vert1 = m_base->getCoordinate(triNodes[0]);
@@ -620,9 +706,33 @@ bool SignedDistanceHelper::pointInTri(Vector3D verts[3], Vector3D inPlane, int m
     return inside;
 }
 
+bool SignedDistanceHelper::originInTri2D(const float verts[3][2])
+{
+    bool inside = false;//use 0 as major axis, it is arbitrary here
+    for (int j = 2, i = 0; i < 3; ++i)//start with the wraparound case
+    {//test point is the origin
+        if ((verts[i][0] < 0.0f) != (verts[j][0] < 0.0f))
+        {//if the vertices are on opposite first coordinate sides of the test point (origin)
+            int ti, tj;
+            if (verts[i][0] < verts[j][0])//reorient the segment consistently to get a consistent answer
+            {
+                ti = i; tj = j;
+            } else {
+                ti = j; tj = i;
+            }
+            if ((verts[ti][1] - verts[tj][1]) / (verts[ti][0] - verts[tj][0]) * (0.0f - verts[tj][0]) + verts[tj][1] > 0.0f)
+            {//if the point on the line described by the two vertices with the same first coordinate is above (greater second coordinate) the test point (origin)
+                inside = !inside;//even/odd winding rule
+            }
+        }
+        j = i;//consecutive vertices, does 2,0 then 0,1 then 1,2
+    }
+    return inside;
+}
+
 ///"dumb" implementation, projects to plane, test if inside while finding closest point on each edge
 ///there are faster implementations out there, but this is easier to follow
-float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t triangle, ClosestPointInfo& myInfo)
+float SignedDistanceHelper::unsignedDistToTri(const float coord[3], const int32_t triangle, ClosestPointInfo& myInfo)
 {
     const int32_t* triNodes = m_base->getTriangle(triangle);
     Vector3D point = coord;

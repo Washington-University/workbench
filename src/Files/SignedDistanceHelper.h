@@ -129,9 +129,10 @@ namespace caret {
             int32_t node1, node2, triangle;
             Vector3D tempPoint;
         };
-        float unsignedDistToTri(const float coord[3], int32_t triangle, ClosestPointInfo& myInfo);
-        int computeSign(const float coord[3], ClosestPointInfo myInfo, WindingLogic myWinding);
+        float unsignedDistToTri(const float coord[3], const int32_t triangle, ClosestPointInfo& myInfo);
+        int computeSign(const float coord[3], const ClosestPointInfo myInfo, const WindingLogic myWinding);
         bool pointInTri(Vector3D verts[3], Vector3D inPlane, int majAxis, int midAxis);
+        bool originInTri2D(const float verts[3][2]);
     public:
         SignedDistanceHelper(CaretPointer<SignedDistanceHelperBase> myBase);
         
@@ -142,6 +143,11 @@ namespace caret {
         ///find the closest point ON the surface, and return information about it
         ///will never have negative barycentric weights, or a point outside the triangle
         void barycentricWeights(const float coordIn[3], BarycentricInfo& baryInfoOut);
+        
+        bool lineSegmentIntersectsSurface(const float start[3], const float end[3]);
+        
+        //for now, do only EVEN_ODD, because NORMALS requires valid ClosestPointInfo
+        bool pointInsideSurface(const float point[3]);
     };
 
 }

@@ -23,6 +23,7 @@
 
 #include <cmath>
 #include <limits>
+#include <map>
 #include <vector>
 #include <stdint.h>
 
@@ -274,6 +275,8 @@ namespace caret {
         CaretSparseFileWriter(const CaretSparseFileWriter& rhs);
         CiftiXML m_xml;
     public:
+        const CiftiXML& getCiftiXML() const { return m_xml; } //make it easier to pass just a writer into a function
+        
         CaretSparseFileWriter(const AString& fileName, const CiftiXML& xml, const CaretSparseFile::ValueType writingType = CaretSparseFile::Fibers, const int forceVersion = -1);
         
         ~CaretSparseFileWriter();
@@ -294,6 +297,20 @@ namespace caret {
             }
             writeRowSparse(index, indices, values);
         }
+        
+        ///you must write the rows in order, though you can skip empty rows
+        template<typename V>
+        void writeRowSparse(const int64_t& index, const std::map<int64_t, V>& sparseMap)
+        {
+            std::vector<int64_t> indices;
+            std::vector<V> values;
+            for (auto iter : sparseMap)
+            {
+                indices.push_back(iter.first);
+                values.push_back(iter.second);
+            }
+            writeRowSparse(index, indices, values);
+        }
 
         ///you must write the rows in order, though you can skip empty rows
         template <typename V>
@@ -305,6 +322,7 @@ namespace caret {
             CaretAssert(!m_finished);
             if (m_finished) throw DataFileException("row writing attempted on already-finished wbsparse file");
             if (index < m_nextRowIndex) throw DataFileException("row writing attempted out of order on wbsparse file");
+            if (indices.empty()) return; //nothing to do, pretend it wasn't called
             while (m_nextRowIndex < index)
             {
                 m_lengthArray[m_nextRowIndex] = 0;
@@ -316,9 +334,13 @@ namespace caret {
             const int indexSize = m_header.indexSize();
             const int entrySize = indexSize + m_header.valueSize();
             m_scratchBytes.resize(numNonZero * entrySize);
+            int64_t prevIndex = -1;
+            (void)prevIndex; //silence "unused" warning in release
             for (int64_t i = 0; i < int64_t(indices.size()); ++i)
             {
                 CaretAssert(indices[i] >= 0 && indices[i] < m_header.dims[0]);
+                CaretAssert(indices[i] > prevIndex);
+                prevIndex = indices[i];
                 if (m_header.longIndex > 0) //stick this in a convertIndexWrite function?
                 {
                     int64_t& temp = *(int64_t*)&m_scratchBytes[i * entrySize];

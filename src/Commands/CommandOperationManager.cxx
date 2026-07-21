@@ -111,6 +111,7 @@
 #include "AlgorithmSurfaceInflation.h"
 #include "AlgorithmSurfaceMatch.h"
 #include "AlgorithmSurfaceModifySphere.h"
+#include "AlgorithmSurfacePairsInteriorDistance.h"
 #include "AlgorithmSurfaceResample.h"
 #include "AlgorithmSurfaceSmoothing.h"
 #include "AlgorithmSurfaceSphereProjectUnproject.h"
@@ -387,6 +388,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceInflation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceModifySphere()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfacePairsInteriorDistance()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceSphereProjectUnproject()));
@@ -690,7 +692,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
                 operation = this->commandOperations[i];
                 break;
             }
-            for (const AString compatSwitch : this->commandOperations[i]->getCompatibilitySwitches())
+            for (const AString& compatSwitch : this->commandOperations[i]->getCompatibilitySwitches())
             {
                 if (compatSwitch == commandSwitch)
                 {
@@ -709,7 +711,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
                     operation = this->deprecatedOperations[i];
                     break;
                 }
-                for (const AString compatSwitch : this->deprecatedOperations[i]->getCompatibilitySwitches())
+                for (const AString& compatSwitch : this->deprecatedOperations[i]->getCompatibilitySwitches())
                 {
                     if (compatSwitch == commandSwitch)
                     {
