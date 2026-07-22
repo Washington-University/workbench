@@ -74,7 +74,10 @@ DataFileSortingDialog::DataFileSortingDialog(const std::vector<DataFileTypeEnum:
     const QString instructionsText("* Drag file names to reorder the files\n"
                                    "* Changes must be saved to a scene\n"
                                    "* File at top is drawn on top\n"
-                                   "* File at bottom is drawn on bottom");
+                                   "* File at bottom is drawn on bottom\n"
+                                   "* For 3D surface:\n"
+                                   "  - Draw borders as polylines or spheres\n"
+                                   "  - Draw foci as spheres");
     QLabel* instructionsLabel(new QLabel(instructionsText));
     
     QWidget* dialogWidget(new QWidget());

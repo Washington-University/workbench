@@ -126,6 +126,8 @@ namespace caret {
         
         void setSecondaryType(const SecondarySurfaceTypeEnum::Enum secondaryType);
         
+        bool isFlat() const;
+        
         float getSphericalRadius() const;
         
         float getSurfaceArea() const;

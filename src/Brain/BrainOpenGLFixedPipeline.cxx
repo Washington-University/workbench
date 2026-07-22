@@ -4482,13 +4482,15 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                                                                                         this->windowTabIndex);
 
     bool flatBumpUpFlag(false);
-    glPushAttrib(GL_DEPTH_BUFFER_BIT);
+    glPushAttrib(GL_DEPTH_BUFFER_BIT
+                 | GL_POLYGON_BIT);
     if (isPasteOntoSurface
         && (surface->getSurfaceType() == SurfaceTypeEnum::FLAT)) {
         /* Prevents part of sphere cut off by surface */
         glDisable(GL_DEPTH_TEST);
         flatBumpUpFlag = true;
     }
+
     const int32_t numFociFiles = m_brain->getNumberOfFociFiles();
     for (int32_t i = 0; i < numFociFiles; i++) {
         FociFile* fociFile = m_brain->getFociFile(i);
@@ -4504,6 +4506,15 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
         
         const int32_t numFoci = fociFile->getNumberOfFoci();
         
+        if ( ! surface->isFlat()) {
+            /*
+             * Each file is drawn "in front" of the previous file
+             * See Data Menu -> Sort Data Files
+             */
+            const float factor((i + 1) * -2.0);
+            glPolygonOffset(factor, factor);
+            glEnable(GL_POLYGON_OFFSET_FILL);
+        }
         for (int32_t j = 0; j < numFoci; j++) {
             Focus* focus = fociFile->getFocus(j);
             float rgbaFloat[4] = {
@@ -4745,10 +4756,22 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     borderDrawInfo.surface = surface;
     borderDrawInfo.topologyHelper = surface->getTopologyHelper().getPointer();
     
+    glPushAttrib(GL_POLYGON_BIT);
+    
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
 
+        if ( ! surface->isFlat()) {
+            /*
+             * Each file is drawn "in front" of the previous file
+             * See Data Menu -> Sort Data Files
+             */
+            const float factor((i + 1) * -2.0);
+            glPolygonOffset(factor, factor);
+            glEnable(GL_POLYGON_OFFSET_FILL);
+        }
+        
         const GroupAndNameHierarchyModel* classAndNameSelection = borderFile->getGroupAndNameHierarchyModel();
         if (classAndNameSelection->isSelected(displayGroup,
                                               this->windowTabIndex) == false) {
@@ -4827,6 +4850,8 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
             this->drawBorder(borderDrawInfo);
         }
     }
+    
+    glPopAttrib();
     
     if (isSelect) {
         int32_t borderFileIndex = -1;

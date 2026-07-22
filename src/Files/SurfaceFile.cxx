@@ -776,6 +776,42 @@ SurfaceFile::setSecondaryType(const SecondarySurfaceTypeEnum::Enum secondaryType
                                         secondaryTypeName);
 }
 
+/**
+ * @return True if this is a flat surface, else false.
+ */
+bool
+SurfaceFile::isFlat() const
+{
+    bool flatFlag(false);
+    
+    switch (getSurfaceType()) {
+        case SurfaceTypeEnum::ANATOMICAL:
+            break;
+        case SurfaceTypeEnum::ELLIPSOID:
+            break;
+        case SurfaceTypeEnum::FLAT:
+            flatFlag = true;
+            break;
+        case SurfaceTypeEnum::HULL:
+            break;
+        case SurfaceTypeEnum::INFLATED:
+            break;
+        case SurfaceTypeEnum::RECONSTRUCTION:
+            break;
+        case SurfaceTypeEnum::SEMI_SPHERICAL:
+            break;
+        case SurfaceTypeEnum::SPHERICAL:
+            break;
+        case SurfaceTypeEnum::UNKNOWN:
+            break;
+        case SurfaceTypeEnum::VERY_INFLATED:
+            break;
+    }
+    
+    return flatFlag;
+}
+
+
 void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
 {
     {//lock before modifying member (base)
