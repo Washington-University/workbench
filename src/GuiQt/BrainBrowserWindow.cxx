@@ -67,9 +67,9 @@
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
 #include "CziImageFile.h"
+#include "DataFileDrawingOrderDialog.h"
 #include "DataFileEditorDialog.h"
 #include "DataFileException.h"
-#include "DataFileSortingDialog.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesImages.h"
 #include "EventBrowserWindowNew.h"
@@ -1835,9 +1835,9 @@ BrainBrowserWindow::createActions()
     QObject::connect(m_dataSamplesEditAction, &QAction::triggered,
                      this, &BrainBrowserWindow::processEditSamples);
     
-    m_dataFilesSortingAction = new QAction("Sort Data Files...");
+    m_dataFilesSortingAction = new QAction("Data File Drawing Order...");
     QObject::connect(m_dataFilesSortingAction, &QAction::triggered,
-                     this, &BrainBrowserWindow::processSortDataFiles);
+                     this, &BrainBrowserWindow::processDataFileOrdering);
 
     m_dataFociProjectAction =
     WuQtUtilities::createAction("Project Foci...",
@@ -3548,10 +3548,10 @@ BrainBrowserWindow::processEditSamples()
 }
 
 /**
- * Sort Data Files
+ * Data File Drawing Order
  */
 void
-BrainBrowserWindow::processSortDataFiles()
+BrainBrowserWindow::processDataFileOrdering()
 {
     Brain* brain(GuiManager::get()->getBrain());
     CaretAssert(brain);
@@ -3568,13 +3568,12 @@ BrainBrowserWindow::processSortDataFiles()
         return;
     }
     
-
-    DataFileSortingDialog dialog(supportedDataFileTypes,
-                                 m_lastSortingDialogDataFileType,
-                                 this);
+    DataFileDrawingOrderDialog dialog(supportedDataFileTypes,
+                                      m_lastDrawingOrderDialogDataFileType,
+                                      this);
     dialog.exec();
     
-    m_lastSortingDialogDataFileType = dialog.getDataFileTypeSelected();
+    m_lastDrawingOrderDialogDataFileType = dialog.getDataFileTypeSelected();
 }
 
 /**

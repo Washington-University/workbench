@@ -273,7 +273,7 @@ namespace caret {
         void processEditSamples();
         void processProjectFoci();
         void processSplitBorderFiles();
-        void processSortDataFiles();
+        void processDataFileOrdering();
         
         void processWindowMenuLockWindowAspectRatioTriggered(bool checked);
         void processWindowMenuLockAllTabAspectRatioTriggered(bool checked);
@@ -544,7 +544,7 @@ namespace caret {
         
         bool m_restoringSceneNoSaveWindowCompontentStatusFlag = false;
         
-        DataFileTypeEnum::Enum m_lastSortingDialogDataFileType = DataFileTypeEnum::UNKNOWN;
+        DataFileTypeEnum::Enum m_lastDrawingOrderDialogDataFileType = DataFileTypeEnum::UNKNOWN;
         
         const float m_developerTimingDuration = 10.0;
         

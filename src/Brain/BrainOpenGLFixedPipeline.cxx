@@ -3934,9 +3934,12 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface,
  *
  * @param borderDrawInfo
  *   Info about border being drawn.
+ * @param borderFileSortingOffset
+ *   Offsets a border file to be "in front" of previously drawn files
  */
 void
-BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
+BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo,
+                                     const float borderFileSortingOffset)
 {
     CaretAssert(borderDrawInfo.surface);
     CaretAssert(borderDrawInfo.topologyHelper);
@@ -4122,7 +4125,8 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         bool projectionValidFlag = p->getProjectedPositionAboveSurface(*borderDrawInfo.surface,
                                                                        borderDrawInfo.topologyHelper,
                                                                        xyz,
-                                                                       drawAtDistanceAboveSurface);
+                                                                       (drawAtDistanceAboveSurface
+                                                                        + borderFileSortingOffset));
         if ( ! projectionValidFlag) {
             lastPointForLineValidFlag = false;
             continue;
@@ -4429,10 +4433,12 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
         {
             focusDiameter = fociDisplayProperties->getFociSizePercentage(displayGroup,
                                                                          this->windowTabIndex);
-            BoundingBox boundingBox;
-            surface->getBounds(boundingBox);
-            const float maxDiff(boundingBox.getMaximumDifferenceOfXYZ());
-            focusDiameter = maxDiff * (focusDiameter / 100.0);
+            if (surface != NULL) {
+                BoundingBox boundingBox;
+                surface->getBounds(boundingBox);
+                const float maxDiff(boundingBox.getMaximumDifferenceOfXYZ());
+                focusDiameter = maxDiff * (focusDiameter / 100.0);
+            }
         }
             break;
     }
@@ -4482,9 +4488,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                                                                                         this->windowTabIndex);
 
     bool flatBumpUpFlag(false);
-    glPushAttrib(GL_DEPTH_BUFFER_BIT
-                 | GL_POLYGON_BIT);
+    glPushAttrib(GL_DEPTH_BUFFER_BIT);
     if (isPasteOntoSurface
+        && (surface != NULL)
         && (surface->getSurfaceType() == SurfaceTypeEnum::FLAT)) {
         /* Prevents part of sphere cut off by surface */
         glDisable(GL_DEPTH_TEST);
@@ -4506,15 +4512,19 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
         
         const int32_t numFoci = fociFile->getNumberOfFoci();
         
-        if ( ! surface->isFlat()) {
-            /*
-             * Each file is drawn "in front" of the previous file
-             * See Data Menu -> Sort Data Files
-             */
-            const float factor((i + 1) * -2.0);
-            glPolygonOffset(factor, factor);
-            glEnable(GL_POLYGON_OFFSET_FILL);
+        /*
+         * Projected foci from a file are drawn slightly above
+         * foci from the previous file
+         */
+        float fileSortingOffset(0.0);
+        if ( ! isPasteOntoSurface) {
+            if (surface != NULL) {
+                if ( ! surface->isFlat()) {
+                    fileSortingOffset = (i * 0.05);
+                }
+            }
         }
+
         for (int32_t j = 0; j < numFoci; j++) {
             Focus* focus = fociFile->getFocus(j);
             float rgbaFloat[4] = {
@@ -4574,11 +4584,13 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
 
                 switch (drawingProjectionType) {
                     case FociDrawingProjectionTypeEnum::PROJECTED:
-                        if ((surfaceStructure    == StructureEnum::CORTEX_LEFT)
-                            || (surfaceStructure == StructureEnum::CORTEX_RIGHT)) {
-                            if (spi->getProjectedPosition(surface, /* NULL is okay for this method */
-                                                          xyz,
-                                                          isPasteOntoSurface)) {
+                        if ((surface != NULL)
+                            && ((surfaceStructure    == StructureEnum::CORTEX_LEFT)
+                                || (surfaceStructure == StructureEnum::CORTEX_RIGHT))) {
+                            if (spi->getProjectedPositionAboveSurface(*surface,
+                                                                      surface->getTopologyHelper(),
+                                                                      xyz,
+                                                                      fileSortingOffset)) {
                                 const StructureEnum::Enum focusStructure = spi->getStructure();
                                 if (focusStructure == surfaceStructure) {
                                     drawIt = true;
@@ -4756,20 +4768,17 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     borderDrawInfo.surface = surface;
     borderDrawInfo.topologyHelper = surface->getTopologyHelper().getPointer();
     
-    glPushAttrib(GL_POLYGON_BIT);
-    
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
 
+        /*
+         * Projected borders from a file are drawn slightly above
+         * borders from the previous file
+         */
+        float fileSortingOffset(0.0);
         if ( ! surface->isFlat()) {
-            /*
-             * Each file is drawn "in front" of the previous file
-             * See Data Menu -> Sort Data Files
-             */
-            const float factor((i + 1) * -2.0);
-            glPolygonOffset(factor, factor);
-            glEnable(GL_POLYGON_OFFSET_FILL);
+            fileSortingOffset = (i * 0.05);
         }
         
         const GroupAndNameHierarchyModel* classAndNameSelection = borderFile->getGroupAndNameHierarchyModel();
@@ -4847,11 +4856,10 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                 borderDrawInfo.anatomicalSurface = bs->getPrimaryAnatomicalSurface();
             }
             
-            this->drawBorder(borderDrawInfo);
+            this->drawBorder(borderDrawInfo,
+                             fileSortingOffset);
         }
     }
-    
-    glPopAttrib();
     
     if (isSelect) {
         int32_t borderFileIndex = -1;
@@ -4913,7 +4921,9 @@ BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
         borderDrawInfo.anatomicalSurface = NULL;
         borderDrawInfo.unstretchedLinesLength = -1.0;
         
-        this->drawBorder(borderDrawInfo);
+        const float fileSortingOffset(0.0);
+        this->drawBorder(borderDrawInfo,
+                         fileSortingOffset);
     }
 }
 

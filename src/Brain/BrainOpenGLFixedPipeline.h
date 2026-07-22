@@ -288,7 +288,8 @@ namespace caret {
             float unstretchedLinesLength;
         };
         
-        void drawBorder(const BorderDrawInfo& borderDrawInfo);
+        void drawBorder(const BorderDrawInfo& borderDrawInfo,
+                        const float borderFileSortingOffset);
         
         bool unstretchedBorderLineTest(const float p1[3],
                                        const float p2[3],

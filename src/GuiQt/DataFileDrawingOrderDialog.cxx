@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __DATA_FILE_SORTING_DIALOG_DECLARE__
-#include "DataFileSortingDialog.h"
-#undef __DATA_FILE_SORTING_DIALOG_DECLARE__
+#define __DATA_FILE_DRAWING_ORDER_DIALOG_DECLARE__
+#include "DataFileDrawingOrderDialog.h"
+#undef __DATA_FILE_DRAWING_ORDER_DIALOG_DECLARE__
 
 #include <QGridLayout>
 #include <QLabel>
@@ -42,8 +42,8 @@ using namespace caret;
 
     
 /**
- * \class caret::DataFileSortingDialog 
- * \brief Dialog for sorting data files.
+ * \class caret::DataFileDrawingOrderDialog 
+ * \brief Dialog for setting the drawing order of data files.
  * \ingroup GuiQt
  */
 
@@ -54,17 +54,17 @@ using namespace caret;
  * @param parent
  *    Parent widget
  */
-DataFileSortingDialog::DataFileSortingDialog(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+DataFileDrawingOrderDialog::DataFileDrawingOrderDialog(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
                                              const DataFileTypeEnum::Enum defaultDataFileType,
                                              QWidget* parent)
-: WuQDialogModal("Sort Data Files",
+: WuQDialogModal("Data File Drawing Order",
                  parent)
 {
     QLabel* fileTypeLabel(new QLabel("File Type "));
     m_dataFileTypeComboBox = new EnumComboBoxTemplate(this);
     m_dataFileTypeComboBox->setupWithItems<DataFileTypeEnum, DataFileTypeEnum::Enum>(dataFileTypes);
     QObject::connect(m_dataFileTypeComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &DataFileSortingDialog::dataFileTypeSelected);
+                     this, &DataFileDrawingOrderDialog::dataFileTypeSelected);
     
     m_dataFilesListWidget = new QListWidget();
     m_dataFilesListWidget->setDragDropMode(QListWidget::DragDropMode::InternalMove);
@@ -72,13 +72,11 @@ DataFileSortingDialog::DataFileSortingDialog(const std::vector<DataFileTypeEnum:
     QObject::connect(m_dataFilesListWidget->model(), &QAbstractItemModel::rowsMoved,
                      this, [=]() { orderOfFilesChanged(); } );
     
-    const QString instructionsText("* Drag file names to reorder the files\n"
-                                   "* Changes must be saved to a scene\n"
+    const QString instructionsText("* Drag file names to change the drawing order\n"
                                    "* File at top is drawn on top\n"
                                    "* File at bottom is drawn on bottom\n"
-                                   "* For 3D surface:\n"
-                                   "  - Draw borders as polylines or spheres\n"
-                                   "  - Draw foci as spheres");
+                                   "* Changes must be saved to a scene\n"
+                                   "* Borders/Foci must have been projected");
     QLabel* instructionsLabel(new QLabel(instructionsText));
     
     QWidget* dialogWidget(new QWidget());
@@ -106,7 +104,7 @@ DataFileSortingDialog::DataFileSortingDialog(const std::vector<DataFileTypeEnum:
 /**
  * Destructor.
  */
-DataFileSortingDialog::~DataFileSortingDialog()
+DataFileDrawingOrderDialog::~DataFileDrawingOrderDialog()
 {
 }
 
@@ -114,7 +112,7 @@ DataFileSortingDialog::~DataFileSortingDialog()
  * Called when the order of the files is changed
  */
 void
-DataFileSortingDialog::orderOfFilesChanged()
+DataFileDrawingOrderDialog::orderOfFilesChanged()
 {
     std::vector<AString> dataFileNames;
     
@@ -141,7 +139,7 @@ DataFileSortingDialog::orderOfFilesChanged()
  * Called when a data file type is selected
  */
 void
-DataFileSortingDialog::dataFileTypeSelected()
+DataFileDrawingOrderDialog::dataFileTypeSelected()
 {
     const DataFileTypeEnum::Enum dataFileType(getDataFileTypeSelected());
     
@@ -181,7 +179,7 @@ DataFileSortingDialog::dataFileTypeSelected()
  * @return Data file type selected
  */
 DataFileTypeEnum::Enum
-DataFileSortingDialog::getDataFileTypeSelected() const
+DataFileDrawingOrderDialog::getDataFileTypeSelected() const
 {
     DataFileTypeEnum::Enum dataFileType(DataFileTypeEnum::UNKNOWN);
     
@@ -196,7 +194,7 @@ DataFileSortingDialog::getDataFileTypeSelected() const
  * Called when the Ok button is clicked
  */
 void
-DataFileSortingDialog::okButtonClicked()
+DataFileDrawingOrderDialog::okButtonClicked()
 {
     
     WuQDialogModal::okButtonClicked();

@@ -1,5 +1,5 @@
-#ifndef __DATA_FILE_SORTING_DIALOG_H__
-#define __DATA_FILE_SORTING_DIALOG_H__
+#ifndef __DATA_FILE_DRAWING_ORDER_DIALOG_H__
+#define __DATA_FILE_DRAWING_ORDER_DIALOG_H__
 
 /*LICENSE_START*/
 /*
@@ -34,20 +34,20 @@ namespace caret {
 
     class EnumComboBoxTemplate;
     
-    class DataFileSortingDialog : public WuQDialogModal {
+    class DataFileDrawingOrderDialog : public WuQDialogModal {
         
         Q_OBJECT
 
     public:
-        DataFileSortingDialog(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+        DataFileDrawingOrderDialog(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
                               const DataFileTypeEnum::Enum defaultDataFileType,
                               QWidget* parent = 0);
         
-        virtual ~DataFileSortingDialog();
+        virtual ~DataFileDrawingOrderDialog();
         
-        DataFileSortingDialog(const DataFileSortingDialog&) = delete;
+        DataFileDrawingOrderDialog(const DataFileDrawingOrderDialog&) = delete;
 
-        DataFileSortingDialog& operator=(const DataFileSortingDialog&) = delete;
+        DataFileDrawingOrderDialog& operator=(const DataFileDrawingOrderDialog&) = delete;
 
         DataFileTypeEnum::Enum getDataFileTypeSelected() const;
 
@@ -70,9 +70,9 @@ namespace caret {
 
     };
     
-#ifdef __DATA_FILE_SORTING_DIALOG_DECLARE__
+#ifdef __DATA_FILE_DRAWING_ORDER_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __DATA_FILE_SORTING_DIALOG_DECLARE__
+#endif // __DATA_FILE_DRAWING_ORDER_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__DATA_FILE_SORTING_DIALOG_H__
+#endif  //__DATA_FILE_DRAWING_ORDER_DIALOG_H__
