@@ -33,6 +33,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
+#include "FilePathNamePrefixCompactor.h"
 #include "GuiManager.h"
 #include "WuQMessageBoxTwo.h"
 
@@ -159,12 +160,18 @@ DataFileSortingDialog::dataFileTypeSelected()
     CaretAssert(brain);
     std::vector<CaretDataFile*> dataFiles(brain->getAllDataFilesWithDataFileType(dataFileType));
     
+    std::vector<AString> displayNames;
+    FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(dataFiles,
+                                                                            displayNames);
+    CaretAssert(dataFiles.size() == displayNames.size());
+
     m_dataFilesListWidget->clear();
     const int32_t numDataFiles(dataFiles.size());
     for (int32_t iFile = (numDataFiles - 1); iFile >= 0; iFile--) {
         const CaretDataFile* cdf(dataFiles[iFile]);
         CaretAssert(cdf);
-        QListWidgetItem* item (new QListWidgetItem(cdf->getFileNameNoPath()));
+        CaretAssertVectorIndex(displayNames, iFile);
+        QListWidgetItem* item (new QListWidgetItem(displayNames[iFile]));
         item->setData(Qt::UserRole, cdf->getFileName());
         m_dataFilesListWidget->addItem(item);
     }
