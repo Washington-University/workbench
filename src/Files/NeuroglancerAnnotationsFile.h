@@ -163,10 +163,6 @@ namespace caret {
         void readNeuroglancerJson(const FileInformation& fileInfo,
                                       const QJsonObject& topObject);
   
-        QVector<double> readNumberArray(const QJsonArray &arr);
-        
-        QVector<int> readIntArrayOld(const QJsonArray &arr);
-        
         void readDimensions(const QJsonObject &dimsObj);
         
         void readProperties(const QJsonArray &propsArr);

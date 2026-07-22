@@ -93,6 +93,9 @@ NeuroglancerAnnotationsFile::receiveEvent(Event* event)
 //    }
 }
  
+/**
+ * @return True if this file is empty
+ */
 bool
 NeuroglancerAnnotationsFile::isEmpty() const
 {
@@ -394,6 +397,13 @@ NeuroglancerAnnotationsFile::readNeuroglancerJson(const FileInformation& fileInf
     readSpatial(root.value("spatial").toArray());
 }
 
+/**
+ * Read a float array into a float vector
+ * @param array
+ *   The json array
+ * @return
+ *    A float vector
+ */
 std::vector<float>
 NeuroglancerAnnotationsFile::readFloatArray(const QJsonArray &array)
 {
@@ -405,6 +415,13 @@ NeuroglancerAnnotationsFile::readFloatArray(const QJsonArray &array)
     return arrayOut;
 }
 
+/**
+ * Read a int array into a int vector
+ * @param array
+ *   The json array
+ * @return
+ *    A int vector
+ */
 std::vector<int32_t>
 NeuroglancerAnnotationsFile::readIntArray(const QJsonArray &array)
 {
@@ -416,26 +433,11 @@ NeuroglancerAnnotationsFile::readIntArray(const QJsonArray &array)
     return arrayOut;
 }
 
-QVector<double>
-NeuroglancerAnnotationsFile::readNumberArray(const QJsonArray &arr)
-{
-    QVector<double> out;
-    out.reserve(arr.size());
-    for (const QJsonValue &v : arr)
-        out.append(v.toDouble());
-    return out;
-}
-
-QVector<int>
-NeuroglancerAnnotationsFile::readIntArrayOld(const QJsonArray &arr)
-{
-    QVector<int> out;
-    out.reserve(arr.size());
-    for (const QJsonValue &v : arr)
-        out.append(v.toInt());
-    return out;
-}
-
+/**
+ * Read a dimension object
+ * @param dimsObj
+ *   The dimensions object
+ */
 void
 NeuroglancerAnnotationsFile::readDimensions(const QJsonObject &dimsObj)
 {
@@ -443,13 +445,13 @@ NeuroglancerAnnotationsFile::readDimensions(const QJsonObject &dimsObj)
         const QJsonArray pair = it.value().toArray();
         const AString dimName(it.key().toLower());
         Axis axis(Axis::X);
-        if (dimName == 'x') {
+        if (dimName == "x") {
             axis = Axis::X;
         }
-        else if (dimName == 'y') {
+        else if (dimName == "y") {
             axis = Axis::Y;
         }
-        else if (dimName == 'z') {
+        else if (dimName == "z") {
             axis = Axis::Z;
         }
         else {
@@ -530,6 +532,11 @@ NeuroglancerAnnotationsFile::readDimensions(const QJsonObject &dimsObj)
     }
 }
 
+/**
+ * Read a properties array
+ * @param propsArray
+ *    The properties array
+ */
 void
 NeuroglancerAnnotationsFile::readProperties(const QJsonArray &propsArr)
 {
@@ -653,6 +660,13 @@ NeuroglancerAnnotationsFile::readProperties(const QJsonArray &propsArr)
     }
 }
 
+/**
+ * Read a spatial array
+ * @param spatialArr
+ *   The spatial array
+ * @return
+ *   The spatial grid into
+ */
 std::vector<NeuroglancerAnnotationsFile::SpatialGrid>
 NeuroglancerAnnotationsFile::readSpatial(const QJsonArray &spatialArr)
 {
