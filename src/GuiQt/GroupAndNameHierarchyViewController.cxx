@@ -37,6 +37,7 @@
 
 #include "Brain.h"
 #include "BorderFile.h"
+#include "BorderHidingDialog.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CiftiBrainordinateLabelFile.h"
@@ -251,6 +252,15 @@ GroupAndNameHierarchyViewController::createButtonsWidget(const QString& objectNa
     m_infoToolButton = new QToolButton;
     m_infoToolButton->setDefaultAction(m_infoAction);
     
+    m_hideAction = new QAction("Hide");
+    m_hideAction->setObjectName(objectNameForMacros + ":HideMenu");
+    m_hideAction->setToolTip("Hide borders behind other borders");
+    m_hideAction->setEnabled(false);
+    QObject::connect(m_hideAction, &QAction::triggered,
+                     this, &GroupAndNameHierarchyViewController::hideActionTriggered);
+    m_hideToolButton = new QToolButton;
+    m_hideToolButton->setDefaultAction(m_hideAction);
+
     m_findAction = new QAction("Find");
     m_findAction->setObjectName(objectNameForMacros + ":Find");
     m_findAction->setToolTip("Find the first item containing the text");
@@ -298,9 +308,13 @@ GroupAndNameHierarchyViewController::createButtonsWidget(const QString& objectNa
     buttonsLayout->addSpacing(4);
     buttonsLayout->addWidget(m_infoToolButton);
     buttonsLayout->addSpacing(4);
-    buttonsLayout->addWidget(findToolButton);
-    buttonsLayout->addWidget(nextToolButton);
-    buttonsLayout->addWidget(m_findTextLineEdit,
+    buttonsLayout->addWidget(m_hideToolButton);
+    buttonsLayout->addStretch();
+    
+    QHBoxLayout* buttonsTwoLayout(new QHBoxLayout());
+    buttonsTwoLayout->addWidget(findToolButton);
+    buttonsTwoLayout->addWidget(nextToolButton);
+    buttonsTwoLayout->addWidget(m_findTextLineEdit,
                              100); /* stretch factor */
     
     QWidget* widget(new QWidget());
@@ -308,6 +322,7 @@ GroupAndNameHierarchyViewController::createButtonsWidget(const QString& objectNa
     layout->setSpacing(2);
     layout->setContentsMargins(0, 0, 0 , 0);
     layout->addLayout(buttonsLayout, 0);
+    layout->addLayout(buttonsTwoLayout, 0);
     layout->addWidget(namesOnOffWidget, 0);
     return widget;
 }
@@ -597,6 +612,8 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
         }
     }
     
+    m_hideAction->setEnabled(dataFileType == DataFileTypeEnum::BORDER);
+    
     updateSelectedAndExpandedCheckboxes();
     
     m_previousBrowserTabIndex = browserTabIndex;
@@ -839,6 +856,15 @@ GroupAndNameHierarchyViewController::setNamesOnOff(const std::vector<AString>& n
     updateGraphics();
 }
 
+/**
+ * Called when hide button is clicked
+ */
+void
+GroupAndNameHierarchyViewController::hideActionTriggered()
+{
+    BorderHidingDialog hideBordersDialog(this);
+    hideBordersDialog.exec();
+}
 
 /**
  * Called when Info button is clicked

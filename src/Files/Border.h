@@ -45,6 +45,8 @@ namespace caret {
         
         Border(const Border& obj);
 
+        bool operator==(const Border& rhs) const;
+
         Border& operator=(const Border& obj);
         
         static Border* newInstanceFromSurfaceNodes(const AString& borderName,
@@ -119,6 +121,10 @@ namespace caret {
         void reviseReplaceSegment(SurfaceFile* surfaceFile,
                                   const Border* segment);
         
+        bool matchBorder(const Border* border,
+                         const bool matchByNameFlag,
+                         const bool matchCoordinatesFlag) const;
+        
         void writeAsXML(XmlWriter& xmlWriter);
         
         void writeXML3(QXmlStreamWriter& xml) const;
@@ -130,6 +136,8 @@ namespace caret {
         void setGroupNameSelectionItem(GroupAndNameHierarchyItem* item);
         
         const GroupAndNameHierarchyItem* getGroupNameSelectionItem() const;
+        
+        GroupAndNameHierarchyItem* getGroupNameSelectionItem();
         
         bool isClassRgbaValid() const;
         

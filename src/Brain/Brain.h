@@ -152,6 +152,8 @@ namespace caret {
         BrainStructure* getBrainStructure(StructureEnum::Enum structure,
                                           bool createIfNotFound);
 
+        std::vector<BorderFile*> getAllBorderFiles() const;
+        
         int32_t getNumberOfBorderFiles() const;
         
         BorderFile* getBorderFile(const int32_t indx);

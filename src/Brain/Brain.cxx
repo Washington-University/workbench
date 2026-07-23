@@ -5747,6 +5747,16 @@ Brain::getAnnotationTextSubstitutionFiles(std::vector<AnnotationTextSubstitution
 }
 
 /**
+ * @return All border files
+ */
+std::vector<BorderFile*>
+Brain::getAllBorderFiles() const
+{
+    return m_borderFiles;
+}
+
+
+/**
  * @return Number of border files.
  */
 int32_t

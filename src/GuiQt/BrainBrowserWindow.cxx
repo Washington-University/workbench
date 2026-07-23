@@ -2936,8 +2936,8 @@ BrainBrowserWindow::createMenuData()
         menu->addSeparator();
     }
     menu->addAction(m_dataSamplesEditAction);
-    menu->addSeparator();
-    menu->addAction(m_dataFilesSortingAction);
+//    menu->addSeparator();
+//    menu->addAction(m_dataFilesSortingAction);
     
     return menu;
 }

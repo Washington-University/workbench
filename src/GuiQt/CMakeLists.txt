@@ -91,6 +91,7 @@ ELSE()
         BalsaStudySelectionDialog.h
         BorderEditingSelectionDialog.h
         BorderFileSplitDialog.h
+	BorderHidingDialog.h
         BorderOptimizeDialog.h
         BorderPropertiesEditorDialog.h
         BorderSelectionViewController.h
@@ -394,6 +395,7 @@ BalsaStudyInformation.h
 BalsaUserRoles.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
+BorderHidingDialog.h
 BorderOptimizeDialog.h
 BorderOptimizeExecutor.h
 BorderPropertiesEditorDialog.h
@@ -766,6 +768,7 @@ BalsaUserRoles.cxx
 BalsaStudySelectionDialog.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
+BorderHidingDialog.cxx
 BorderOptimizeDialog.cxx
 BorderOptimizeExecutor.cxx
 BorderPropertiesEditorDialog.cxx

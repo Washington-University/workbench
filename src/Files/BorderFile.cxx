@@ -2837,3 +2837,33 @@ BorderFile::importFromDataFileEditorModel(const DataFileEditorModel& dataFileEdi
     return FunctionResult::ok();
 }
 
+/**
+ * Turn off matching borders in the given border file.  If borders match
+ * they causes rendering problems on 3D surfaces.
+ *
+ * @param borderFile
+ *   Border File whose borders are turned off.
+ */
+int32_t
+BorderFile::turnOffMatchingBorders(BorderFile* borderFile,
+                                   const bool matchByNameFlag,
+                                   const bool matchCoordinatesFlag) const
+{
+    int32_t numTurnedOff(0);
+    
+    for (int32_t i = 0; i < getNumberOfBorders(); i++) {
+        const Border* border(getBorder(i));
+        for (int32_t j = 0; j < borderFile->getNumberOfBorders(); j++) {
+            Border* otherBorder(borderFile->getBorder(j));
+            if (*border == *otherBorder) {
+                GroupAndNameHierarchyItem* item(otherBorder->getGroupNameSelectionItem());
+                if (item != NULL) {
+                    item->setSelectedInAllDisplayGroupsAndTabs(false);
+                    ++numTurnedOff;
+                }
+            }
+        }
+    }
+    return numTurnedOff;
+}
+

@@ -140,6 +140,62 @@ Border::operator=(const Border& obj)
 }
 
 /**
+ * Are the borders equal??
+ * @param rhs
+ *    Border for comparison
+ * @return
+ *    True if borders are equal
+ */
+bool
+Border::operator==(const Border& rhs) const
+{
+    if (&rhs == this) {
+        return true;
+    }
+    
+    const int32_t numPoints(getNumberOfPoints());
+    if (numPoints != rhs.getNumberOfPoints()) {
+        return false;
+    }
+    for (int32_t i = 0; i < numPoints; i++) {
+        if (*getPoint(i) != *rhs.getPoint(i)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @return True if the border match using any of the
+ * border matching options.
+ */
+bool
+Border::matchBorder(const Border* border,
+                    const bool matchByNameFlag,
+                    const bool matchCoordinatesFlag) const
+{
+    if (matchByNameFlag) {
+        if (getName() == border->getName()) {
+            return true;
+        }
+    }
+    if (matchCoordinatesFlag) {
+        const int32_t numPoints(getNumberOfPoints());
+        if (numPoints != border->getNumberOfPoints()) {
+            return false;
+        }
+        for (int32_t i = 0; i < numPoints; i++) {
+            if (*getPoint(i) == *border->getPoint(i)) {
+            }
+            else {
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
+/**
  * Helps with copying an object of this type.
  * @param obj
  *    Object that is copied.
@@ -1562,6 +1618,16 @@ Border::setGroupNameSelectionItem(GroupAndNameHierarchyItem* item)
  */
 const GroupAndNameHierarchyItem*
 Border::getGroupNameSelectionItem() const
+{
+    return m_groupNameSelectionItem;
+}
+
+/**
+ * @return The selection item for the Group/Name selection hierarchy.
+ *      May be NULL in some circumstances.
+ */
+GroupAndNameHierarchyItem*
+Border::getGroupNameSelectionItem()
 {
     return m_groupNameSelectionItem;
 }

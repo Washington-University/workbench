@@ -103,6 +103,8 @@ namespace caret {
                          const int32_t tabIndex,
                          const bool status);
         
+        void setSelectedInAllDisplayGroupsAndTabs(const bool status);
+        
         void setDescendantsSelected(const TabDrawingInfo& tabDrawingInf,
                                          const bool status);
         

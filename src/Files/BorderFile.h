@@ -82,6 +82,10 @@ namespace caret {
         
         const GiftiMetaData* getFileMetaData() const;
         
+        int32_t turnOffMatchingBorders(BorderFile* borderFile,
+                                       const bool matchByNameFlag,
+                                       const bool matchCoordinatesFlag) const;
+        
         void readFile(const AString& filename);
         
         void writeFile(const AString& filename);

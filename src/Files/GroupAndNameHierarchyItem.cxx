@@ -592,6 +592,22 @@ GroupAndNameHierarchyItem::setSelected(const DisplayGroupEnum::Enum displayGroup
 }
 
 /**
+ * Set selection status in all display groups and tabs
+ * @param status
+ *    New selection status
+ */
+void
+GroupAndNameHierarchyItem::setSelectedInAllDisplayGroupsAndTabs(const bool status)
+{
+    for (int32_t iGroup = 0; iGroup < DisplayGroupEnum::NUMBER_OF_GROUPS; iGroup++) {
+        m_selectedInDisplayGroup[iGroup] = status;
+    }
+    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+        m_selectedInTab[iTab] = status;
+    }
+}
+
+/**
  * Set the selected status for all of this item's descendants.
  *
  * @param tabDrawingInfo
