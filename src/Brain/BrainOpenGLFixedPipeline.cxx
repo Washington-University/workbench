@@ -3934,12 +3934,9 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface,
  *
  * @param borderDrawInfo
  *   Info about border being drawn.
- * @param borderFileSortingOffset
- *   Offsets a border file to be "in front" of previously drawn files
  */
 void
-BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo,
-                                     const float borderFileSortingOffset)
+BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
 {
     CaretAssert(borderDrawInfo.surface);
     CaretAssert(borderDrawInfo.topologyHelper);
@@ -4125,8 +4122,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo,
         bool projectionValidFlag = p->getProjectedPositionAboveSurface(*borderDrawInfo.surface,
                                                                        borderDrawInfo.topologyHelper,
                                                                        xyz,
-                                                                       (drawAtDistanceAboveSurface
-                                                                        + borderFileSortingOffset));
+                                                                       drawAtDistanceAboveSurface);
         if ( ! projectionValidFlag) {
             lastPointForLineValidFlag = false;
             continue;
@@ -4772,15 +4768,6 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
 
-        /*
-         * Projected borders from a file are drawn slightly above
-         * borders from the previous file
-         */
-        float fileSortingOffset(0.0);
-        if ( ! surface->isFlat()) {
-            fileSortingOffset = (i * 0.05);
-        }
-        
         const GroupAndNameHierarchyModel* classAndNameSelection = borderFile->getGroupAndNameHierarchyModel();
         if (classAndNameSelection->isSelected(displayGroup,
                                               this->windowTabIndex) == false) {
@@ -4856,8 +4843,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                 borderDrawInfo.anatomicalSurface = bs->getPrimaryAnatomicalSurface();
             }
             
-            this->drawBorder(borderDrawInfo,
-                             fileSortingOffset);
+            this->drawBorder(borderDrawInfo);
         }
     }
     
@@ -4921,9 +4907,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
         borderDrawInfo.anatomicalSurface = NULL;
         borderDrawInfo.unstretchedLinesLength = -1.0;
         
-        const float fileSortingOffset(0.0);
-        this->drawBorder(borderDrawInfo,
-                         fileSortingOffset);
+        this->drawBorder(borderDrawInfo);
     }
 }
 
