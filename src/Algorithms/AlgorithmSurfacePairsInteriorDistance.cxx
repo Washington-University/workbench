@@ -39,7 +39,7 @@
 #include <sstream>
 
 #include <array>
-#include <vector>
+#include <map>
 
 using namespace caret;
 using namespace std;
@@ -60,24 +60,27 @@ OperationParameters* AlgorithmSurfacePairsInteriorDistance::getParameters()
     
     ret->addSurfaceParameter(1, "surface", "the surface that constrains the paths");
 
-    ret->addStringParameter(2, "pairs-file", "a text file of vertex pairs to connect, must not have multiple pairs with the same first vertex - zero-indexed, one pair per line, only whitespace between vertex indices");
+    ret->addStringParameter(2, "pairs-file", "a text file of vertex pairs to connect - zero-indexed, one pair per line, only whitespace between vertex indices");
 
     ret->addStringParameter(3, "reference-volume", "a volume file enclosing the neccesary tissue extent, smaller voxels allow more accurate paths");
     
-    ret->addMetricOutputParameter(4, "distances-out", "the distances of the connections, represented per starting vertex");
+    ret->addStringParameter(4, "distances-out-text", "output - a text file with one distance per line"); //HACK: fake the output formatting
     
-    OptionalParameter* failvalOpt = ret->createOptionalParameter(5, "-fail-value", "what value to use in <distances-out> when a path can't be found");
+    OptionalParameter* metricOutOpt = ret->createOptionalParameter(5, "-distance-metric-out", "output a metric file containing each pair as a separate map");
+    metricOutOpt->addMetricOutputParameter(1, "distance-pairs-out", "the distances of the connections, one map per pair");
+    
+    OptionalParameter* failvalOpt = ret->createOptionalParameter(6, "-fail-value", "what value to use in <distances-out> when a path can't be found");
     failvalOpt->addDoubleParameter(1, "value", "value to use, default +infinity");
 
-    OptionalParameter* neighOpt = ret->createOptionalParameter(6, "-neighborhood", "voxel neighborhood for candidate steps");
+    OptionalParameter* neighOpt = ret->createOptionalParameter(7, "-neighborhood", "voxel neighborhood for candidate steps");
     neighOpt->addIntegerParameter(1, "num", "size of neighborhood cube measured from center to face, in voxels (default 2 = 5x5x5)");
 
-    OptionalParameter* offsetOpt = ret->createOptionalParameter(7, "-offset", "set inwards step before path");
+    OptionalParameter* offsetOpt = ret->createOptionalParameter(8, "-offset", "set inwards step before path");
     offsetOpt->addDoubleParameter(1, "dist", "to avoid rejecting the first and last step as intersecting the surface, move the start and end points this distance along the negative normal of the vertices, in mm (default 0.001)");
     
-    OptionalParameter* pathsOutOpt = ret->createOptionalParameter(8, "-paths-out", "output a wbsparse file tracing the optimal paths");
+    OptionalParameter* pathsOutOpt = ret->createOptionalParameter(9, "-paths-out", "output a wbsparse file tracing the optimal paths");
     pathsOutOpt->addVolumeParameter(1, "structure-label", "volume label file containing labels with structure names for path 'counting' (see -cifti-create-dense-timeseries), such as OTHER, CEREBRAL_WHITE_MATTER_LEFT or CEREBRAL_WHITE_MATTER_RIGHT");
-    pathsOutOpt->addStringParameter(2, "wbsparse-out", "the path output file");
+    pathsOutOpt->addStringParameter(2, "wbsparse-out", "the path output file, only the first pair that uses a particular starting vertex will be used");
     
     ret->setHelpText(
         AString("Find the shortest path through the interior of the surface between each specified pair of vertices.  ")
@@ -94,7 +97,7 @@ void AlgorithmSurfacePairsInteriorDistance::useParameters(OperationParameters* m
     string pairline;
     bool emptyline = false;
     int32_t numNodes = mySurf->getNumberOfNodes();
-    map<int32_t, int32_t> pairs; //we shouldn't need to preserve order, and we do want to reject duplicate first vertices
+    vector<pair<int32_t, int32_t> > pairs;
     while (getline(pairfile, pairline))
     {
         istringstream linestream(pairline);
@@ -102,98 +105,74 @@ void AlgorithmSurfacePairsInteriorDistance::useParameters(OperationParameters* m
         if (linestream >> pair1 >> pair2)
         {
             if (emptyline) throw AlgorithmException("found empty or misformatted line in pairs text file '" + pairfileName + "'");
-            if (pairs.find(pair1) != pairs.end()) throw AlgorithmException("found more than one pair starting with vertex " + AString::number(pair1));
             if (pair1 < 0 || pair2 < 0 || pair1 >= numNodes || pair2 >= numNodes) throw AlgorithmException("found impossible vertex index in pair file: " + AString::number(pair1) + ", " + AString::number(pair2));
-            pairs[pair1] = pair2;
+            pairs.push_back(make_pair(pair1, pair2));
         } else {
             emptyline = true; //allow empty lines at end of file
         }
     }
     NiftiIO myIO;
     myIO.openRead(myParams->getString(3));
-    MetricFile* myMetricOut = myParams->getOutputMetric(4);
-    OptionalParameter* failvalOpt = myParams->getOptionalParameter(5);
+    AString outTextName = myParams->getString(4);
+    ofstream outText(outTextName.toStdString());
+    if (!outText.good()) throw AlgorithmException("error opening output text file '" + outTextName + "' for writing");
+    MetricFile* myMetricOut = NULL;
+    OptionalParameter* metricOutOpt = myParams->getOptionalParameter(5);
+    if (metricOutOpt->m_present)
+    {
+        myMetricOut = metricOutOpt->getOutputMetric(1);
+    }
+    OptionalParameter* failvalOpt = myParams->getOptionalParameter(6);
     float failVal = INFINITY;
     if (failvalOpt->m_present)
     {
         failVal = float(failvalOpt->getDouble(1));
     }
-    OptionalParameter* neighOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* neighOpt = myParams->getOptionalParameter(7);
     int numNeigh = 2;
     if (neighOpt->m_present)
     {
         numNeigh = neighOpt->getInteger(1);
     }
-    OptionalParameter* offsetOpt = myParams->getOptionalParameter(7);
+    OptionalParameter* offsetOpt = myParams->getOptionalParameter(8);
     float offset = 0.001f;
     if (offsetOpt->m_present)
     {
         offset = float(offsetOpt->getDouble(1));
     }
-    OptionalParameter* pathsOutOpt = myParams->getOptionalParameter(8);
+    OptionalParameter* pathsOutOpt = myParams->getOptionalParameter(9);
     CaretPointer<CaretSparseFileWriter> sparseWriter;
     if (pathsOutOpt->m_present)
     {
         CiftiXML outXML;
         outXML.setNumberOfDimensions(2);
         VolumeFile* structLabelVol = pathsOutOpt->getVolume(1);
-        CiftiBrainModelsMap surfMap, volMap = AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(structLabelVol, structLabelVol);
-        vector<int64_t> nodeList; //slightly simpler than making a metric file for makeDenseMapping()
+        CiftiBrainModelsMap volMap = AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(structLabelVol, structLabelVol);
+        MetricFile pairStarts;
+        pairStarts.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
+        vector<float> scratchCol(mySurf->getNumberOfNodes(), 0.0f);
         for (auto iter : pairs)
         {
-            nodeList.push_back(iter.first);
+            scratchCol[iter.first] = 1.0f;
         }
-        surfMap.addSurfaceModel(numNodes, mySurf->getStructure(), nodeList);
+        pairStarts.setValuesForColumn(0, scratchCol.data());
+        map<StructureEnum::Enum, AlgorithmCiftiCreateDenseTimeseries::SurfParam> surfParams;
+        surfParams[mySurf->getStructure()] = AlgorithmCiftiCreateDenseTimeseries::SurfParam(&pairStarts, &pairStarts);
+        CiftiBrainModelsMap surfMap = AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(NULL, NULL, surfParams);
         outXML.setMap(CiftiXML::ALONG_COLUMN, surfMap);
         outXML.setMap(CiftiXML::ALONG_ROW, volMap);
         sparseWriter.grabNew(new CaretSparseFileWriter(pathsOutOpt->getString(2), outXML, CaretSparseFile::Int32));
     }
-    AlgorithmSurfacePairsInteriorDistance(myProgObj, mySurf, pairs, myIO.getHeader().getVolumeSpace(), myMetricOut, failVal, numNeigh, offset, sparseWriter);//executes the algorithm
+    vector<float> distsOut;
+    AlgorithmSurfacePairsInteriorDistance(myProgObj, mySurf, pairs, myIO.getHeader().getVolumeSpace(), distsOut, myMetricOut, failVal, numNeigh, offset, sparseWriter);//executes the algorithm
+    for (auto dist : distsOut)
+    {
+        outText << dist << endl;
+    }
 }
 
 namespace
 {
-    //find subsequence with the shortest total path length that doesn't intersect the surface
-    //NOTE: end convention is "inclusive"
-    //slow (massively redundant endgaming), uses more points than memoize despite same total distance (just different search order?)
-    /*float optimizePathRecursive(const vector<Vector3D>& path, const int start, const int end, const float upperLimit, SignedDistanceHelper* myHelp, vector<Vector3D>* pathOut = NULL)
-    {
-        vector<Vector3D> retPath, tempPath;
-        if (end - start < 2 || !myHelp->lineSegmentIntersectsSurface(path[start], path[end]))
-        {
-            if (end - start >= 0) retPath.push_back(path[start]);
-            if (end - start >= 1) retPath.push_back(path[end]);
-            if (pathOut != NULL) *pathOut = retPath;
-            if (end - start >= 1)
-            {
-                return (path[end] - path[start]).length();
-            } else {
-                return 0.0f;
-            }
-        }
-        //now, we know that at least one midpoint is required
-        if ((path[end] - path[start]).length() > upperLimit) return INFINITY; //clearly signal impossible to improve
-        float bestTotal = upperLimit;
-        for (int i = end - 1; i > start; --i) //start with last point that can be reached directly from the start, work backward
-        {
-            if (i == start + 1 || !myHelp->lineSegmentIntersectsSurface(path[start], path[i]))
-            {
-                float startDist = (path[i] - path[start]).length();
-                float remainder = optimizePathRecursive(path, i, end, bestTotal - startDist, myHelp, &tempPath);
-                if (startDist + remainder < bestTotal) //inf < inf is false
-                {
-                    retPath.push_back(path[start]);
-                    retPath.push_back(path[i]);
-                    retPath.insert(retPath.end(), tempPath.begin() + 1, tempPath.end());
-                    bestTotal = startDist + remainder;
-                }
-            }
-        }
-        if (pathOut != NULL) *pathOut = retPath;
-        if (retPath.empty()) return INFINITY; //clearly signal failure to improve
-        return bestTotal;
-    }//*/
-    
     //NOTE: end convention is "inclusive"
     void memoizeRecurse(const vector<Vector3D>& path, const int start, const int end, SignedDistanceHelper* myHelp,
                         vector<vector<float> >& bestLength, vector<vector<bool> >& complete, vector<vector<int> >& nextPoint)
@@ -269,8 +248,10 @@ namespace
     }
 }
 
-AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(ProgressObject* myProgObj, const SurfaceFile* mySurf, const map<int32_t, int32_t> pairs,
-                                                                             const VolumeSpace refSpace, MetricFile* myMetricOut,
+AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(ProgressObject* myProgObj, const SurfaceFile* mySurf,
+                                                                             const vector<pair<int32_t, int32_t> > pairs,
+                                                                             const VolumeSpace refSpace,
+                                                                             vector<float>& distsOut, MetricFile* myMetricOut,
                                                                              const float failVal, const int32_t numNeigh, const float offset,
                                                                              CaretSparseFileWriter* pathsOut) : AbstractAlgorithm(myProgObj)
 {
@@ -292,9 +273,13 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
             throw AlgorithmException("sparse path output writer needs a mapping along rows that contains voxels");
     }
     int32_t numNodes = mySurf->getNumberOfNodes();
-    myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
-    myMetricOut->setStructure(mySurf->getStructure());
-    vector<float> outDists(mySurf->getNumberOfNodes(), 0.0f);
+    const int64_t numPairs = int64_t(pairs.size());
+    distsOut.resize(numPairs);
+    if (myMetricOut != NULL)
+    {
+        myMetricOut->setNumberOfNodesAndColumns(numNodes, numPairs);
+        myMetricOut->setStructure(mySurf->getStructure());
+    }
     vector<int32_t> neighmoves;
     vector<float> neighdists;
     Vector3D ivec, jvec, kvec, origin;
@@ -320,14 +305,6 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
     const int64_t* volDims = refSpace.getDims();
     const int64_t framesize = volDims[0] * volDims[1] * volDims[2];
     map<int32_t, vector<Vector3D> > allPaths;
-    //omp needs to loop over an integer range, so change map to vectors
-    vector<int32_t> pairsFirst, pairsSecond;
-    for (auto iter : pairs)
-    {
-        pairsFirst.push_back(iter.first);
-        pairsSecond.push_back(iter.second);
-    }
-    const int64_t numPairs = int64_t(pairsFirst.size());
     CaretMutex outputLock;
     bool fail = false;
     exception_ptr exPtr;
@@ -339,14 +316,14 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
         vector<array<int64_t, 3> > parents(framesize);
         vector<char> marked(framesize, 0);
         vector<int64_t> resetList;
-        //for (auto iter = pairs.begin(); (!fail) && iter != pairs.end(); ++iter)
+        vector<float> outDistsScratch(mySurf->getNumberOfNodes(), 0.0f);
 #pragma omp CARET_FOR schedule(dynamic)
         for (int whichPair = 0; whichPair < numPairs; ++whichPair)
         {
             if (fail) continue; //break isn't allowed
             try
             {
-                int32_t startNode = pairsFirst[whichPair], endNode = pairsSecond[whichPair];
+                int32_t startNode = pairs[whichPair].first, endNode = pairs[whichPair].second;
                 if (startNode < 0 || endNode < 0 || startNode >= numNodes || endNode >= numNodes) throw AlgorithmException("invalid node pair: " + AString::number(startNode) + ", " + AString::number(endNode));
                 Vector3D startCoord(&(coords[startNode * 3])), endCoord(&(coords[endNode * 3]));
                 int64_t startVox[3], endVox[3];
@@ -483,17 +460,26 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
                 } else {
                     //optimize for subpaths that can be replaced with straight lines
                     vector<Vector3D> newPath;
-                    //cout << bestTotal << " " << path.size() << endl; //DEBUG
                     bestTotal = optimizePathMemoize(path, myHelp, &newPath);
-                    //bestTotal = optimizePathRecursive(path, 0, path.size() - 1, bestTotal, myHelp, &newPath);
                     path = newPath;
-                    //cout << bestTotal << " " << path.size() << endl;
                 }
-                outDists[startNode] = bestTotal;
+                distsOut[whichPair] = bestTotal;
+                if (myMetricOut != NULL)
+                {
+                    CaretMutexLocker locked(&outputLock); //may be unneccesary, but for peace of mind
+                    outDistsScratch[endNode] = outDistsScratch[startNode] = bestTotal;
+                    myMetricOut->setValuesForColumn(whichPair, outDistsScratch.data());
+                    myMetricOut->setMapName(whichPair, AString::number(startNode) + ", " + AString::number(endNode));
+                    outDistsScratch[endNode] = outDistsScratch[startNode] = 0.0f;
+                }
                 if (pathsOut != NULL)
                 {
                     CaretMutexLocker locked(&outputLock); //because it is a map
-                    allPaths[startNode] = path;
+                    if (allPaths.find(startNode) == allPaths.end())
+                    { //only record the path for the first pair to start at a vertex
+                        //though, wbsparse can do continuous values...dscalar.wbsparse?
+                        allPaths[startNode] = path;
+                    }
                 }
             } catch (...) {
 #pragma omp critical
@@ -505,7 +491,6 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
         }
     }
     if (fail) rethrow_exception(exPtr);
-    myMetricOut->setValuesForColumn(0, outDists.data());
     //NOTE: actually supports different volume space for output than for A*
     //QByteArray apparently limits CiftiXML to about 1GB, so this is important
     if (pathsOut != NULL)
@@ -517,13 +502,14 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
         Vector3D iout, jout, kout, originout;
         outSpace.getSpacingVectors(iout, jout, kout, originout);
         float maxstep = min(min(iout.length(), jout.length()), kout.length()); //assume orthogonal, this is just for visual purposes
-        for (auto iter : allPaths)
+        auto surfInfo = surfMap.getSurfaceMap(mySurf->getStructure()); //we already checked number of nodes, so this should exist
+        for (auto surfInfoIter : surfInfo) //visit the vertices in cifti index order, because sparse needs in-order writing
         {
-            const auto& thisPath = iter.second;
+            auto pathSearch = allPaths.find(surfInfoIter.m_surfaceNode);
+            if (pathSearch == allPaths.end()) continue; //skip vertices that aren't in the input list
+            const auto& thisPath = pathSearch->second;
             if (thisPath.empty()) continue; //failed
             map<int64_t, int32_t> sparseValues;
-            int64_t surfIndex = surfMap.getIndexForNode(iter.first, mySurf->getStructure());
-            if (surfIndex < 0) continue; //vertex not in xml
             int64_t tempVox[3];
             for (size_t i = 0; i < thisPath.size() - 1; ++i)
             { //mark start and points along line, but not end (aka next start)
@@ -549,7 +535,7 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
             }
             if (!sparseValues.empty())
             {
-                pathsOut->writeRowSparse(surfIndex, sparseValues);
+                pathsOut->writeRowSparse(surfInfoIter.m_ciftiIndex, sparseValues);
             }
         }
     }

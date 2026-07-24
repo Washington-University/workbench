@@ -99,11 +99,11 @@ namespace caret {
         void decodeFibers(const uint64_t& coded, FiberFractions& decoded); //takes a uint because right shift on signed is implementation dependent
         void readFileV1(FileInformation& fileInfo);
         void readFileV2(FileInformation& fileInfo);
-        CaretMutex m_sparseLock, m_denseLock; //protect against seek/read race condition and use of internal buffers - no overlap between buffers used, so this can be simple (note, dense calls sparse)
+        CaretMutex m_sparseLock; //protect against seek/read race condition
         CaretBinaryFile m_file;
         HeaderV2 m_header;
         int64_t m_valuesOffset;
-        std::vector<int64_t> m_indexArray, m_scratchIndices;
+        std::vector<int64_t> m_indexArray;
         std::vector<char> m_scratchByteArray;
         CaretSparseFile(const CaretSparseFile& rhs);
         CiftiXML m_xml;
@@ -124,7 +124,7 @@ namespace caret {
         ValueType getDatatype() const { return ValueType(m_header.valueType); }
         
         template <typename V>
-        void getRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<V>& valuesOut)
+        std::map<int64_t, V> getRowSparse(const int64_t index)
         {
             CaretAssert(index >= 0 && index < m_header.dims[1]);
             if (index < 0 || index >= m_header.dims[1]) throw DataFileException("invalid row index requested in wbsparse");
@@ -137,32 +137,44 @@ namespace caret {
             m_scratchByteArray.resize(bytesToRead);
             m_file.seek(m_valuesOffset + start * entrySize);
             m_file.read(m_scratchByteArray.data(), bytesToRead);
-            indicesOut.resize(entriesToRead);
-            valuesOut.resize(entriesToRead);
+            std::map<int64_t, V> ret;
             int64_t lastIndex = -1;
             for (int64_t i = 0; i < entriesToRead; ++i)
             {
-                indicesOut[i] = convertIndexRead(m_scratchByteArray.data() + i * entrySize);
-                valuesOut[i] = convertValueRead<V>(m_scratchByteArray.data() + i * entrySize + indexSize);
-                if (indicesOut[i] <= lastIndex || indicesOut[i] >= m_header.dims[0]) throw DataFileException("impossible index value found in file " + m_file.getFilename());
-                lastIndex = indicesOut[i];
+                int64_t thisIndex = convertIndexRead(m_scratchByteArray.data() + i * entrySize);
+                V thisValue = convertValueRead<V>(m_scratchByteArray.data() + i * entrySize + indexSize);
+                if (thisIndex <= lastIndex || thisIndex >= m_header.dims[0]) throw DataFileException("impossible index value found in file " + m_file.getFilename());
+                lastIndex = thisIndex;
+                ret[thisIndex] = thisValue;
+            }
+            return ret;
+        }
+        
+        template <typename V>
+        void getRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<V>& valuesOut)
+        {
+            auto sparseRow = getRowSparse<V>(index);
+            indicesOut.clear(); //these are probably reused across calls, so reserve() may be misguided - also, this is file IO
+            valuesOut.clear();
+            for (auto& iter : sparseRow)
+            {
+                indicesOut.push_back(iter.first);
+                valuesOut.push_back(iter.second);
             }
         }
         
         template <typename V>
         void getRow(const int64_t& index, V* valuesOut)
         {
-            std::vector<V> sparseValues; //no good way to keep this allocated between calls...static and omp critical would work, but...
-            CaretMutexLocker locked(&m_denseLock); //protect m_scratchIndices, let the sparse function protect m_file, etc
-            getRowSparse(index, m_scratchIndices, sparseValues);
+            auto sparseRow = getRowSparse<V>(index);
             int64_t nextindex = 0;
-            for (int64_t indexindex = 0; indexindex < (int64_t)m_scratchIndices.size(); ++indexindex)
+            for (auto& iter : sparseRow)
             {
-                for (; nextindex < m_scratchIndices[indexindex]; ++nextindex)
+                for (; nextindex < iter.first; ++nextindex)
                 {
                     valuesOut[nextindex] = V(0);
                 }
-                valuesOut[nextindex] = sparseValues[indexindex];
+                valuesOut[nextindex] = iter.second;
                 ++nextindex;
             }
             for (; nextindex < m_header.dims[0]; ++nextindex)
@@ -285,34 +297,60 @@ namespace caret {
         template <typename V>
         void writeRow(const int64_t& index, const V* row)
         {//use the sparse function for simplicity
-            std::vector<int64_t> indices;
-            std::vector<V> values;
+            std::map<int64_t, V> sparseRow;
             for (int64_t i = 0; i < m_header.dims[0]; ++i)
             {
                 if (row[i] != 0)
                 {
-                    indices.push_back(i);
-                    values.push_back(row[i]);
+                    sparseRow[i] = row[i];
                 }
             }
-            writeRowSparse(index, indices, values);
+            writeRowSparse(index, sparseRow);
         }
         
         ///you must write the rows in order, though you can skip empty rows
         template<typename V>
-        void writeRowSparse(const int64_t& index, const std::map<int64_t, V>& sparseMap)
+        void writeRowSparse(const int64_t& index, const std::map<int64_t, V>& sparseRow)
         {
-            std::vector<int64_t> indices;
-            std::vector<V> values;
-            for (auto iter : sparseMap)
+            CaretAssert(index < m_header.dims[1]);
+            CaretAssert(index >= m_nextRowIndex);
+            CaretAssert(!m_finished);
+            if (m_finished) throw DataFileException("row writing attempted on already-finished wbsparse file");
+            if (index < m_nextRowIndex) throw DataFileException("row writing attempted out of order on wbsparse file");
+            if (sparseRow.empty()) return; //nothing to do, pretend it wasn't called (not even update written row tracking?)
+            while (m_nextRowIndex < index)
             {
-                indices.push_back(iter.first);
-                values.push_back(iter.second);
+                m_lengthArray[m_nextRowIndex] = 0;
+                ++m_nextRowIndex;
             }
-            writeRowSparse(index, indices, values);
+            int64_t numNonZero = int64_t(sparseRow.size()); //assume no zeros
+            m_lengthArray[index] = numNonZero;
+            m_nextRowIndex = index + 1;
+            const int indexSize = m_header.indexSize();
+            const int entrySize = indexSize + m_header.valueSize();
+            m_scratchBytes.resize(numNonZero * entrySize);
+            int64_t i = 0; //need to track packing into output
+            for (auto iter : sparseRow)
+            {
+                CaretAssert(iter.first >= 0 && iter.first < m_header.dims[0]);
+                if (m_header.longIndex > 0) //stick this in a convertIndexWrite function?
+                {
+                    int64_t& temp = *(int64_t*)&m_scratchBytes[i * entrySize];
+                    temp = iter.first;
+                    if (ByteSwapping::isSystemBigEndian()) ByteSwapping::swap(temp);
+                } else {
+                    uint32_t& temp = *(uint32_t*)&m_scratchBytes[i * entrySize];
+                    temp = iter.first;
+                    if (ByteSwapping::isSystemBigEndian()) ByteSwapping::swap(temp);
+                }
+                convertValueWrite(iter.second, m_scratchBytes.data() + i * entrySize + indexSize);//so that it can specialize for FiberFraction type instead of this whole function
+                ++i;
+            }
+            m_file.write(m_scratchBytes.data(), m_scratchBytes.size());
         }
 
         ///you must write the rows in order, though you can skip empty rows
+        //FIXME: remove this
         template <typename V>
         void writeRowSparse(const int64_t& index, const std::vector<int64_t>& indices, const std::vector<V>& values)
         {
@@ -354,12 +392,13 @@ namespace caret {
                 convertValueWrite(values[i], m_scratchBytes.data() + i * entrySize + indexSize);//so that it can specialize for FiberFraction type instead of this whole function
             }
             m_file.write(m_scratchBytes.data(), m_scratchBytes.size());
-        }
+        }//*/
         
         ///you must write the rows in order, though you can skip empty rows
         void writeFibersRow(const int64_t& index, const FiberFractions* row) { writeRow(index, row); }
         
         ///you must write the rows in order, though you can skip empty rows
+        //FIXME: remove this
         void writeFibersRowSparse(const int64_t& index, const std::vector<int64_t>& indices, const std::vector<FiberFractions>& values) { writeRowSparse(index, indices, values); }
         
         ///call this if no rows remain to be written
@@ -387,7 +426,7 @@ namespace caret {
                 case CaretSparseFile::Int32:
                 {
                     int32_t& temp = *(int32_t*)buffer;
-                    temp = CaretSparseFile::clamp<int32_t, V>(value);
+                    temp = CaretSparseFile::clamp<int32_t, V>(floor(0.5 + value));
                     if (ByteSwapping::isSystemBigEndian()) ByteSwapping::swap(temp);
                     break;
                 }
@@ -397,7 +436,7 @@ namespace caret {
                 case CaretSparseFile::Int64:
                 {
                     int64_t& temp = *(int64_t*)buffer;
-                    temp = CaretSparseFile::clamp<int64_t, V>(value);
+                    temp = CaretSparseFile::clamp<int64_t, V>(floor(0.5 + value));
                     if (ByteSwapping::isSystemBigEndian()) ByteSwapping::swap(temp);
                     break;
                 }

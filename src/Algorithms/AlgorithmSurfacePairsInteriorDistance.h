@@ -26,7 +26,8 @@
 #include "VolumeSpace.h"
 
 #include <cmath>
-#include <map>
+#include <utility>
+#include <vector>
 
 namespace caret {
     
@@ -39,8 +40,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmSurfacePairsInteriorDistance(ProgressObject* myProgObj, const SurfaceFile* mySurf, const std::map<int32_t, int32_t> pairs,
-                                              const VolumeSpace refVol, MetricFile* myMetricOut,
+        AlgorithmSurfacePairsInteriorDistance(ProgressObject* myProgObj, const SurfaceFile* mySurf, const std::vector<std::pair<int32_t, int32_t> > pairs,
+                                              const VolumeSpace refVol, std::vector<float>& distsOut, MetricFile* myMetricOut = NULL,
                                               const float failVal = INFINITY, const int32_t numNeigh = 2, const float offset = 0.001f,
                                               CaretSparseFileWriter* pathsOut = NULL);
         static OperationParameters* getParameters();
