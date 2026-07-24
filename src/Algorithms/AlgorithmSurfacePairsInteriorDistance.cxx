@@ -26,7 +26,7 @@
 #include "CaretLogger.h"
 #include "CaretMutex.h"
 #include "CaretOMP.h"
-#include "CaretSparseFile.h"
+//#include "CaretSparseFile.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
 #include "NiftiIO.h"
@@ -78,9 +78,9 @@ OperationParameters* AlgorithmSurfacePairsInteriorDistance::getParameters()
     OptionalParameter* offsetOpt = ret->createOptionalParameter(8, "-offset", "set inwards step before path");
     offsetOpt->addDoubleParameter(1, "dist", "to avoid rejecting the first and last step as intersecting the surface, move the start and end points this distance along the negative normal of the vertices, in mm (default 0.001)");
     
-    OptionalParameter* pathsOutOpt = ret->createOptionalParameter(9, "-paths-out", "output a wbsparse file tracing the optimal paths");
-    pathsOutOpt->addVolumeParameter(1, "structure-label", "volume label file containing labels with structure names for path 'counting' (see -cifti-create-dense-timeseries), such as OTHER, CEREBRAL_WHITE_MATTER_LEFT or CEREBRAL_WHITE_MATTER_RIGHT");
-    pathsOutOpt->addStringParameter(2, "wbsparse-out", "the path output file, only the first pair that uses a particular starting vertex will be used");
+    OptionalParameter* pathsOutOpt = ret->createOptionalParameter(9, "-paths-out", "output a 4D volume file tracing the optimal paths");
+    pathsOutOpt->addStringParameter(1, "counting-space", "volume file with the desired voxel grid for counting");
+    pathsOutOpt->addVolumeOutputParameter(2, "volume-out", "the path output file");
     
     ret->setHelpText(
         AString("Find the shortest path through the interior of the surface between each specified pair of vertices.  ")
@@ -141,30 +141,42 @@ void AlgorithmSurfacePairsInteriorDistance::useParameters(OperationParameters* m
         offset = float(offsetOpt->getDouble(1));
     }
     OptionalParameter* pathsOutOpt = myParams->getOptionalParameter(9);
-    CaretPointer<CaretSparseFileWriter> sparseWriter;
+    //CaretPointer<CaretSparseFileWriter> sparseWriter;
+    VolumeSpace countingSpace;
+    VolumeFile* pathsOut = NULL;
     if (pathsOutOpt->m_present)
     {
-        CiftiXML outXML;
+        NiftiIO countingIO;
+        countingIO.openRead(pathsOutOpt->getString(1));
+        countingSpace = countingIO.getHeader().getVolumeSpace();
+        pathsOut = pathsOutOpt->getOutputVolume(2);
+        /*CiftiXML outXML;
         outXML.setNumberOfDimensions(2);
         VolumeFile* structLabelVol = pathsOutOpt->getVolume(1);
         CiftiBrainModelsMap volMap = AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(structLabelVol, structLabelVol);
-        MetricFile pairStarts;
-        pairStarts.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
-        vector<float> scratchCol(mySurf->getNumberOfNodes(), 0.0f);
-        for (auto iter : pairs)
+//         MetricFile pairStarts;
+//         pairStarts.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
+//         vector<float> scratchCol(mySurf->getNumberOfNodes(), 0.0f);
+//         for (auto iter : pairs)
+//         {
+//             scratchCol[iter.first] = 1.0f;
+//         }
+//         pairStarts.setValuesForColumn(0, scratchCol.data());
+//         map<StructureEnum::Enum, AlgorithmCiftiCreateDenseTimeseries::SurfParam> surfParams;
+//         surfParams[mySurf->getStructure()] = AlgorithmCiftiCreateDenseTimeseries::SurfParam(&pairStarts, &pairStarts);
+//         CiftiBrainModelsMap surfMap = AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(NULL, NULL, surfParams);
+        CiftiScalarsMap colMap(pairs.size());
+        for (int64_t i = 0; i < int64_t(pairs.size()); ++i)
         {
-            scratchCol[iter.first] = 1.0f;
+            colMap.setMapName(i, AString::number(pairs[i].first) + ", " + AString::number(pairs[i].second));
         }
-        pairStarts.setValuesForColumn(0, scratchCol.data());
-        map<StructureEnum::Enum, AlgorithmCiftiCreateDenseTimeseries::SurfParam> surfParams;
-        surfParams[mySurf->getStructure()] = AlgorithmCiftiCreateDenseTimeseries::SurfParam(&pairStarts, &pairStarts);
-        CiftiBrainModelsMap surfMap = AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(NULL, NULL, surfParams);
-        outXML.setMap(CiftiXML::ALONG_COLUMN, surfMap);
+        //outXML.setMap(CiftiXML::ALONG_COLUMN, surfMap);
+        outXML.setMap(CiftiXML::ALONG_COLUMN, colMap);
         outXML.setMap(CiftiXML::ALONG_ROW, volMap);
-        sparseWriter.grabNew(new CaretSparseFileWriter(pathsOutOpt->getString(2), outXML, CaretSparseFile::Int32));
+        sparseWriter.grabNew(new CaretSparseFileWriter(pathsOutOpt->getString(2), outXML, CaretSparseFile::Int32));//*/
     }
     vector<float> distsOut;
-    AlgorithmSurfacePairsInteriorDistance(myProgObj, mySurf, pairs, myIO.getHeader().getVolumeSpace(), distsOut, myMetricOut, failVal, numNeigh, offset, sparseWriter);//executes the algorithm
+    AlgorithmSurfacePairsInteriorDistance(myProgObj, mySurf, pairs, myIO.getHeader().getVolumeSpace(), distsOut, myMetricOut, failVal, numNeigh, offset, countingSpace, pathsOut);//executes the algorithm
     for (auto dist : distsOut)
     {
         outText << dist << endl;
@@ -253,25 +265,24 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
                                                                              const VolumeSpace refSpace,
                                                                              vector<float>& distsOut, MetricFile* myMetricOut,
                                                                              const float failVal, const int32_t numNeigh, const float offset,
-                                                                             CaretSparseFileWriter* pathsOut) : AbstractAlgorithm(myProgObj)
+                                                                             VolumeSpace countingSpace, VolumeFile* pathsOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (numNeigh < 1) throw AlgorithmException("-neighborhood value must be positive");
     if (!(offset > 0.0f)) throw AlgorithmException("-offset value must be positive");
-    if (pathsOut != NULL)
+    /*if (pathsOut != NULL)
     {
         const CiftiXML& outXML = pathsOut->getCiftiXML();
         if (outXML.getNumberOfDimensions() != 2) throw AlgorithmException("sparse path output writer must be initialized with 2 dimensions with appropriate BRAIN_MODELS mappings");
         if (outXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::BRAIN_MODELS ||
-            outXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS)
-            throw AlgorithmException("sparse path output writer must be initialized with BRAIN_MODELS mappings");
+            outXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::SCALARS)
+            throw AlgorithmException("sparse path output writer must be initialized with dscalar-like mappings");
         const CiftiBrainModelsMap& rowMapping = outXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
-        const CiftiBrainModelsMap& colMapping = outXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
-        if (colMapping.getSurfaceNumberOfNodes(mySurf->getStructure()) != mySurf->getNumberOfNodes())
+        if (size_t(outXML.getDimensionLength(CiftiXML::ALONG_COLUMN)) != pairs.size())
             throw AlgorithmException("sparse path output writer needs a matching surface mapping along columns");
         if (!rowMapping.hasVolumeData())
             throw AlgorithmException("sparse path output writer needs a mapping along rows that contains voxels");
-    }
+    }//*/
     int32_t numNodes = mySurf->getNumberOfNodes();
     const int64_t numPairs = int64_t(pairs.size());
     distsOut.resize(numPairs);
@@ -304,7 +315,7 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
     const float* coords = mySurf->getCoordinateData();
     const int64_t* volDims = refSpace.getDims();
     const int64_t framesize = volDims[0] * volDims[1] * volDims[2];
-    map<int32_t, vector<Vector3D> > allPaths;
+    vector<vector<Vector3D> > allPaths(numPairs);
     CaretMutex outputLock;
     bool fail = false;
     exception_ptr exPtr;
@@ -474,12 +485,7 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
                 }
                 if (pathsOut != NULL)
                 {
-                    CaretMutexLocker locked(&outputLock); //because it is a map
-                    if (allPaths.find(startNode) == allPaths.end())
-                    { //only record the path for the first pair to start at a vertex
-                        //though, wbsparse can do continuous values...dscalar.wbsparse?
-                        allPaths[startNode] = path;
-                    }
+                    allPaths[whichPair] = path;
                 }
             } catch (...) {
 #pragma omp critical
@@ -495,19 +501,51 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
     //QByteArray apparently limits CiftiXML to about 1GB, so this is important
     if (pathsOut != NULL)
     {
-        const CiftiXML& outXML = pathsOut->getCiftiXML();
-        const CiftiBrainModelsMap& surfMap = outXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+        pathsOut->reinitialize(countingSpace, numPairs);
+        Vector3D iout, jout, kout, originout;
+        countingSpace.getSpacingVectors(iout, jout, kout, originout);
+        float maxstep = min(min(iout.length(), jout.length()), kout.length()); //assume orthogonal, this is just for visual purposes
+        auto countDims = countingSpace.getDims();
+        const int64_t frameSize = countDims[0] * countDims[1] * countDims[2];
+        for (int64_t i = 0; i < int64_t(allPaths.size()); ++i)
+        {
+            vector<float> scratchFrame(frameSize, 0.0f); //because lazy - they asked for a big file, so...
+            const auto& thisPath = allPaths[i];
+            if (thisPath.empty()) continue; //failed
+            int64_t tempVox[3];
+            for (size_t i = 0; i < thisPath.size() - 1; ++i)
+            { //mark start and points along line, but not end (aka next start)
+                const Vector3D& start = thisPath[i];
+                const Vector3D& end = thisPath[i + 1];
+                Vector3D segmentVec = end - start;
+                int numSteps = ceil(segmentVec.length() / maxstep);
+                for (int i = 0; i < numSteps; ++i)
+                {
+                    countingSpace.enclosingVoxel(start + segmentVec * (float(i) / numSteps), tempVox);
+                    if (countingSpace.indexValid(tempVox))
+                    {
+                        int64_t tempIndex = countingSpace.getIndex(tempVox);
+                        scratchFrame[tempIndex] = 1;
+                    }
+                }
+            }
+            countingSpace.enclosingVoxel(thisPath.back(), tempVox); //mark last end
+            if (countingSpace.indexValid(tempVox))
+            {
+                int64_t tempIndex = countingSpace.getIndex(tempVox);
+                scratchFrame[tempIndex] = 1;
+            }
+            pathsOut->setFrame(scratchFrame.data(), i);
+        }
+        /*const CiftiXML& outXML = pathsOut->getCiftiXML();
         const CiftiBrainModelsMap& volMap = outXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
         VolumeSpace outSpace = volMap.getVolumeSpace();
         Vector3D iout, jout, kout, originout;
         outSpace.getSpacingVectors(iout, jout, kout, originout);
         float maxstep = min(min(iout.length(), jout.length()), kout.length()); //assume orthogonal, this is just for visual purposes
-        auto surfInfo = surfMap.getSurfaceMap(mySurf->getStructure()); //we already checked number of nodes, so this should exist
-        for (auto surfInfoIter : surfInfo) //visit the vertices in cifti index order, because sparse needs in-order writing
+        for (int64_t i = 0; i < int64_t(allPaths.size()); ++i)
         {
-            auto pathSearch = allPaths.find(surfInfoIter.m_surfaceNode);
-            if (pathSearch == allPaths.end()) continue; //skip vertices that aren't in the input list
-            const auto& thisPath = pathSearch->second;
+            const auto& thisPath = allPaths[i];
             if (thisPath.empty()) continue; //failed
             map<int64_t, int32_t> sparseValues;
             int64_t tempVox[3];
@@ -535,9 +573,9 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
             }
             if (!sparseValues.empty())
             {
-                pathsOut->writeRowSparse(surfInfoIter.m_ciftiIndex, sparseValues);
+                pathsOut->writeRowSparse(i, sparseValues);
             }
-        }
+        }//*/
     }
 }
 
