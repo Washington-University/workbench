@@ -536,6 +536,7 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
                 scratchFrame[tempIndex] = 1;
             }
             pathsOut->setFrame(scratchFrame.data(), i);
+            pathsOut->setMapName(i, AString::number(pairs[i].first) + ", " + AString::number(pairs[i].second));
         }
         /*const CiftiXML& outXML = pathsOut->getCiftiXML();
         const CiftiBrainModelsMap& volMap = outXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
