@@ -29,7 +29,6 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
@@ -49,23 +48,17 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param dataFileTypes
+ * @param dataFileType
  *    Data file types for sorting
  * @param parent
  *    Parent widget
  */
-DataFileDrawingOrderDialog::DataFileDrawingOrderDialog(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
-                                             const DataFileTypeEnum::Enum defaultDataFileType,
-                                             QWidget* parent)
-: WuQDialogModal("Data File Drawing Order",
-                 parent)
+DataFileDrawingOrderDialog::DataFileDrawingOrderDialog(const DataFileTypeEnum::Enum dataFileType,
+                                                       QWidget* parent)
+: WuQDialogModal("Data Drawing Order",
+                 parent),
+m_dataFileType(dataFileType)
 {
-    QLabel* fileTypeLabel(new QLabel("File Type "));
-    m_dataFileTypeComboBox = new EnumComboBoxTemplate(this);
-    m_dataFileTypeComboBox->setupWithItems<DataFileTypeEnum, DataFileTypeEnum::Enum>(dataFileTypes);
-    QObject::connect(m_dataFileTypeComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &DataFileDrawingOrderDialog::dataFileTypeSelected);
-    
     m_dataFilesListWidget = new QListWidget();
     m_dataFilesListWidget->setDragDropMode(QListWidget::DragDropMode::InternalMove);
     
@@ -75,28 +68,18 @@ DataFileDrawingOrderDialog::DataFileDrawingOrderDialog(const std::vector<DataFil
     const QString instructionsText("* Drag file names to change the drawing order\n"
                                    "* File at top is drawn on top\n"
                                    "* File at bottom is drawn on bottom\n"
-                                   "* Changes must be saved to a scene\n"
-                                   "* Borders/Foci must have been projected");
+                                   "* Changes must be saved to a scene");
     QLabel* instructionsLabel(new QLabel(instructionsText));
     
     QWidget* dialogWidget(new QWidget());
     QGridLayout* gridLayout(new QGridLayout(dialogWidget));
     gridLayout->setRowStretch(1000, 100);
     gridLayout->setColumnStretch(1, 100);
-    gridLayout->addWidget(fileTypeLabel, 0, 0);
-    gridLayout->addWidget(m_dataFileTypeComboBox->getWidget(), 0, 1, Qt::AlignLeft);
     gridLayout->addWidget(m_dataFilesListWidget, 1, 0, 1, 2);
     gridLayout->addWidget(instructionsLabel, 2, 0, 1, 2);
     
     setCentralWidget(dialogWidget, ScrollAreaStatus::SCROLL_AREA_AS_NEEDED);
     setCancelButtonText("");
-    setOkButtonText("Close");
-    
-    if (std::find(dataFileTypes.begin(),
-                  dataFileTypes.end(),
-                  defaultDataFileType) != dataFileTypes.end()) {
-        m_dataFileTypeComboBox->setSelectedItem<DataFileTypeEnum, DataFileTypeEnum::Enum>(defaultDataFileType);
-    }
     
     dataFileTypeSelected();
 }
@@ -122,7 +105,7 @@ DataFileDrawingOrderDialog::orderOfFilesChanged()
     }
     Brain* brain(GuiManager::get()->getBrain());
     CaretAssert(brain);
-    const FunctionResult result(brain->setAllDataFilesWithDataFileTypeOrder(getDataFileTypeSelected(),
+    const FunctionResult result(brain->setAllDataFilesWithDataFileTypeOrder(m_dataFileType,
                                                                             dataFileNames));
     if (result.isError()) {
         WuQMessageBoxTwo::critical(this,
@@ -141,22 +124,20 @@ DataFileDrawingOrderDialog::orderOfFilesChanged()
 void
 DataFileDrawingOrderDialog::dataFileTypeSelected()
 {
-    const DataFileTypeEnum::Enum dataFileType(getDataFileTypeSelected());
-    
-    switch (dataFileType) {
+    switch (m_dataFileType) {
         case DataFileTypeEnum::BORDER:
             break;
         case DataFileTypeEnum::FOCI:
             break;
         default:
             CaretAssertMessage(0, ("Unsupported data file type: "
-                                   + DataFileTypeEnum::toName(dataFileType)));
+                                   + DataFileTypeEnum::toName(m_dataFileType)));
             break;
     }
     
     Brain* brain(GuiManager::get()->getBrain());
     CaretAssert(brain);
-    std::vector<CaretDataFile*> dataFiles(brain->getAllDataFilesWithDataFileType(dataFileType));
+    std::vector<CaretDataFile*> dataFiles(brain->getAllDataFilesWithDataFileType(m_dataFileType));
     
     std::vector<AString> displayNames;
     FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(dataFiles,
@@ -174,21 +155,6 @@ DataFileDrawingOrderDialog::dataFileTypeSelected()
         m_dataFilesListWidget->addItem(item);
     }
 }
-
-/**
- * @return Data file type selected
- */
-DataFileTypeEnum::Enum
-DataFileDrawingOrderDialog::getDataFileTypeSelected() const
-{
-    DataFileTypeEnum::Enum dataFileType(DataFileTypeEnum::UNKNOWN);
-    
-    if (m_dataFileTypeComboBox->getComboBox()->count() > 0) {
-        dataFileType = m_dataFileTypeComboBox->getSelectedItem<DataFileTypeEnum, DataFileTypeEnum::Enum>();
-    }
-    return dataFileType;
-}
-
 
 /**
  * Called when the Ok button is clicked

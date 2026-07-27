@@ -97,7 +97,7 @@ namespace caret {
         
         void infoActionTriggered();
         
-        void hideActionTriggered();
+        void orderActionTriggered();
         
         void findActionTriggered();
         
@@ -164,9 +164,9 @@ namespace caret {
         
         QAction* m_infoAction;
         
-        QToolButton* m_hideToolButton;
+        QToolButton* m_orderToolButton;
         
-        QAction* m_hideAction;
+        QAction* m_orderAction;
         
         QAction* m_findAction;
         

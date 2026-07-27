@@ -37,10 +37,10 @@
 
 #include "Brain.h"
 #include "BorderFile.h"
-#include "BorderHidingDialog.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CiftiBrainordinateLabelFile.h"
+#include "DataFileDrawingOrderDialog.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -252,14 +252,14 @@ GroupAndNameHierarchyViewController::createButtonsWidget(const QString& objectNa
     m_infoToolButton = new QToolButton;
     m_infoToolButton->setDefaultAction(m_infoAction);
     
-    m_hideAction = new QAction("Hide");
-    m_hideAction->setObjectName(objectNameForMacros + ":HideMenu");
-    m_hideAction->setToolTip("Hide borders behind other borders");
-    m_hideAction->setEnabled(false);
-    QObject::connect(m_hideAction, &QAction::triggered,
-                     this, &GroupAndNameHierarchyViewController::hideActionTriggered);
-    m_hideToolButton = new QToolButton;
-    m_hideToolButton->setDefaultAction(m_hideAction);
+    m_orderAction = new QAction("Order");
+    m_orderAction->setObjectName(objectNameForMacros + ":OrderMenu");
+    m_orderAction->setToolTip("Set order of border file drawing");
+    m_orderAction->setEnabled(false);
+    QObject::connect(m_orderAction, &QAction::triggered,
+                     this, &GroupAndNameHierarchyViewController::orderActionTriggered);
+    m_orderToolButton = new QToolButton;
+    m_orderToolButton->setDefaultAction(m_orderAction);
 
     m_findAction = new QAction("Find");
     m_findAction->setObjectName(objectNameForMacros + ":Find");
@@ -308,7 +308,7 @@ GroupAndNameHierarchyViewController::createButtonsWidget(const QString& objectNa
     buttonsLayout->addSpacing(4);
     buttonsLayout->addWidget(m_infoToolButton);
     buttonsLayout->addSpacing(4);
-    buttonsLayout->addWidget(m_hideToolButton);
+    buttonsLayout->addWidget(m_orderToolButton);
     buttonsLayout->addStretch();
     
     QHBoxLayout* buttonsTwoLayout(new QHBoxLayout());
@@ -612,7 +612,7 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
         }
     }
     
-    m_hideAction->setEnabled(dataFileType == DataFileTypeEnum::BORDER);
+    m_orderAction->setEnabled(dataFileType == DataFileTypeEnum::BORDER);
     
     updateSelectedAndExpandedCheckboxes();
     
@@ -857,13 +857,29 @@ GroupAndNameHierarchyViewController::setNamesOnOff(const std::vector<AString>& n
 }
 
 /**
- * Called when hide button is clicked
+ * Called when order button is clicked
  */
 void
-GroupAndNameHierarchyViewController::hideActionTriggered()
+GroupAndNameHierarchyViewController::orderActionTriggered()
 {
-    BorderHidingDialog hideBordersDialog(this);
-    hideBordersDialog.exec();
+    Brain* brain(GuiManager::get()->getBrain());
+    CaretAssert(brain);
+    std::vector<DataFileTypeEnum::Enum> supportedDataFileTypes;
+    if (brain->getNumberOfBorderFiles() > 0) {
+        supportedDataFileTypes.push_back(DataFileTypeEnum::BORDER);
+    }
+    if (brain->getNumberOfFociFiles() > 0) {
+        supportedDataFileTypes.push_back(DataFileTypeEnum::FOCI);
+    }
+    
+    if (supportedDataFileTypes.empty()) {
+        WuQMessageBoxTwo::critical(this, "ERROR", "No data files are loaded that support sorting.");
+        return;
+    }
+    
+    DataFileDrawingOrderDialog dialog(DataFileTypeEnum::BORDER,
+                                      this);
+    dialog.exec();
 }
 
 /**

@@ -67,7 +67,6 @@
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
 #include "CziImageFile.h"
-#include "DataFileDrawingOrderDialog.h"
 #include "DataFileEditorDialog.h"
 #include "DataFileException.h"
 #include "DeveloperFlagsEnum.h"
@@ -1835,10 +1834,6 @@ BrainBrowserWindow::createActions()
     QObject::connect(m_dataSamplesEditAction, &QAction::triggered,
                      this, &BrainBrowserWindow::processEditSamples);
     
-    m_dataFilesSortingAction = new QAction("Data File Drawing Order...");
-    QObject::connect(m_dataFilesSortingAction, &QAction::triggered,
-                     this, &BrainBrowserWindow::processDataFileOrdering);
-
     m_dataFociProjectAction =
     WuQtUtilities::createAction("Project Foci...",
                                 "Project Foci to Surfaces",
@@ -2936,8 +2931,6 @@ BrainBrowserWindow::createMenuData()
         menu->addSeparator();
     }
     menu->addAction(m_dataSamplesEditAction);
-//    menu->addSeparator();
-//    menu->addAction(m_dataFilesSortingAction);
     
     return menu;
 }
@@ -3545,35 +3538,6 @@ BrainBrowserWindow::processEditSamples()
                                                                 this);
         dialog->exec();
     }
-}
-
-/**
- * Data File Drawing Order
- */
-void
-BrainBrowserWindow::processDataFileOrdering()
-{
-    Brain* brain(GuiManager::get()->getBrain());
-    CaretAssert(brain);
-    std::vector<DataFileTypeEnum::Enum> supportedDataFileTypes;
-    if (brain->getNumberOfBorderFiles() > 0) {
-        supportedDataFileTypes.push_back(DataFileTypeEnum::BORDER);
-    }
-    if (brain->getNumberOfFociFiles() > 0) {
-        supportedDataFileTypes.push_back(DataFileTypeEnum::FOCI);
-    }
-    
-    if (supportedDataFileTypes.empty()) {
-        WuQMessageBoxTwo::critical(this, "ERROR", "No data files are loaded that support sorting.");
-        return;
-    }
-    
-    DataFileDrawingOrderDialog dialog(supportedDataFileTypes,
-                                      m_lastDrawingOrderDialogDataFileType,
-                                      this);
-    dialog.exec();
-    
-    m_lastDrawingOrderDialogDataFileType = dialog.getDataFileTypeSelected();
 }
 
 /**

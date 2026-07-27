@@ -273,7 +273,6 @@ namespace caret {
         void processEditSamples();
         void processProjectFoci();
         void processSplitBorderFiles();
-        void processDataFileOrdering();
         
         void processWindowMenuLockWindowAspectRatioTriggered(bool checked);
         void processWindowMenuLockAllTabAspectRatioTriggered(bool checked);
@@ -500,7 +499,6 @@ namespace caret {
         QAction* m_dataBorderFilesSplitAction;
         QAction* m_dataPaletteEditorDialogAction;
         QAction* m_dataSamplesEditAction;
-        QAction* m_dataFilesSortingAction;
         
         QMenu* m_moveSelectedTabToWindowMenu;
         

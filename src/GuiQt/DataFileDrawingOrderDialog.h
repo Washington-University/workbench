@@ -31,17 +31,14 @@
 class QListWidget;
 
 namespace caret {
-
-    class EnumComboBoxTemplate;
     
     class DataFileDrawingOrderDialog : public WuQDialogModal {
         
         Q_OBJECT
 
     public:
-        DataFileDrawingOrderDialog(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
-                              const DataFileTypeEnum::Enum defaultDataFileType,
-                              QWidget* parent = 0);
+        DataFileDrawingOrderDialog(const DataFileTypeEnum::Enum dataFileType,
+                                   QWidget* parent = 0);
         
         virtual ~DataFileDrawingOrderDialog();
         
@@ -49,20 +46,17 @@ namespace caret {
 
         DataFileDrawingOrderDialog& operator=(const DataFileDrawingOrderDialog&) = delete;
 
-        DataFileTypeEnum::Enum getDataFileTypeSelected() const;
-
         // ADD_NEW_METHODS_HERE
 
-    protected slots:
-        void dataFileTypeSelected();
-        
     protected:
         virtual void okButtonClicked();
         
     private:
-        void orderOfFilesChanged();
+        const DataFileTypeEnum::Enum m_dataFileType;
         
-        EnumComboBoxTemplate* m_dataFileTypeComboBox;
+        void dataFileTypeSelected();
+        
+        void orderOfFilesChanged();
         
         QListWidget* m_dataFilesListWidget;
 
