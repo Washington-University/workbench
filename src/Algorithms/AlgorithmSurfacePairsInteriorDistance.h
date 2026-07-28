@@ -43,7 +43,7 @@ namespace caret {
         AlgorithmSurfacePairsInteriorDistance(ProgressObject* myProgObj, const SurfaceFile* mySurf, const std::vector<std::pair<int32_t, int32_t> > pairs,
                                               const VolumeSpace refVol, std::vector<float>& distsOut, MetricFile* myMetricOut = NULL,
                                               const float failVal = INFINITY, const int32_t numNeigh = 2, const float offset = 0.001f,
-                                              VolumeSpace countingSpace = VolumeSpace(), VolumeFile* pathsOut = NULL);
+                                              VolumeSpace countingSpace = VolumeSpace(), VolumeFile* pathsOut = NULL, const std::vector<float>* pathValues = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
