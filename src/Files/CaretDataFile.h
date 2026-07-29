@@ -38,6 +38,7 @@ namespace caret {
     class ImageFile;
     class MediaFile;
     class OmeZarrImageFile;
+    class VolumeFile;
     
     class CaretDataFile : public DataFile, public SceneableInterface {
         
@@ -113,6 +114,9 @@ namespace caret {
         virtual CaretMappableDataFile* castToCaretMappableDataFile();
         virtual const CaretMappableDataFile* castToCaretMappableDataFile() const;
 
+        virtual VolumeFile* castToVolumeFile();
+        virtual const VolumeFile* castToVolumeFile() const;
+        
         FileIdentificationAttributes* getFileIdentificationAttributes();
         
         const FileIdentificationAttributes* getFileIdentificationAttributes() const;

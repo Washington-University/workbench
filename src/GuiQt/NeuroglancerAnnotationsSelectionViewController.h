@@ -31,12 +31,14 @@
 #include "SceneableInterface.h"
 
 class QCheckBox;
-class QComboBox;
 class QDoubleSpinBox;
+class QTableView;
+class QVBoxLayout;
 
 namespace caret {
 
     class CaretColorEnumComboBox;
+    class CaretDataFileSelectionComboBox;
     class DisplayGroupEnumComboBox;
     class EnumComboBoxTemplate;
     class WuQTabWidget;
@@ -47,9 +49,9 @@ namespace caret {
 
     public:
         NeuroglancerAnnotationsSelectionViewController(const int32_t browserWindowIndex,
-                                    const QString& parentObjectName,
-                                    QWidget* parent = 0);
-        
+                                                       const QString& parentObjectName,
+                                                       QWidget* parent = 0);
+
         virtual ~NeuroglancerAnnotationsSelectionViewController();
         
         void receiveEvent(Event* event);
@@ -69,6 +71,8 @@ namespace caret {
         
         void processAttributesChanges();
         
+        void itemClicked(const QModelIndex& index);
+        
     private:
         NeuroglancerAnnotationsSelectionViewController(const NeuroglancerAnnotationsSelectionViewController&);
 
@@ -78,6 +82,8 @@ namespace caret {
         
         void updateOtherNeuroAnnViewControllers();
         
+        void updateSelectionWidget();
+        
         QWidget* createSelectionWidget();
         
         QWidget* createAttributesWidget();
@@ -85,6 +91,8 @@ namespace caret {
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex;
+        
+        CaretDataFileSelectionComboBox* m_neuroAnnFileSelectionComboBox;
         
         QCheckBox* m_displayCheckBox;
         
@@ -95,6 +103,9 @@ namespace caret {
         WuQTabWidget* m_tabWidget;
         
         static std::set<NeuroglancerAnnotationsSelectionViewController*> allNeuroglancerAnnotationsSelectionViewControllers;
+        
+        QTableView* m_tableView;
+        
     };
     
 #ifdef __NEUROGLANCER_ANNOTATIONS_SELECTION_VIEW_CONTROLLER_DECLARE__

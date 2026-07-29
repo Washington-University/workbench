@@ -25,45 +25,56 @@
 
 #include <memory>
 
-#include "CaretColor.h"
-#include "CaretObject.h"
+#include <QColor>
+
+#include "NeuroglancerAnnotationBase.h"
 #include "NeuroglancerAnnotationTypeEnum.h"
 #include "Vector3D.h"
 
 
 namespace caret {
+    class CaretDataFileSelectionModel;
+    class NeuroglancerAnnotationPropertyValue;
+    class NeuroglancerAnnotationsFile;
     
-    class NeuroglancerAnnotation : public CaretObject {
-        
+    class NeuroglancerAnnotation : public NeuroglancerAnnotationBase {
+
     public:
         NeuroglancerAnnotation(const NeuroglancerAnnotationTypeEnum::Enum annotationType,
                                const AString& fileName,
-                               const std::vector<Vector3D>& xyz,
-                               const CaretColor& color);
+                               const std::vector<Vector3D>& ijk,
+                               const QColor& color,
+                               const float symbolSize,
+                               const std::vector<const NeuroglancerAnnotationPropertyValue*>& propertyValues);
         
         virtual ~NeuroglancerAnnotation();
         
-        NeuroglancerAnnotation(const NeuroglancerAnnotation& obj);
+        NeuroglancerAnnotation(const NeuroglancerAnnotation& obj) = delete;
         
-        NeuroglancerAnnotation& operator=(const NeuroglancerAnnotation& obj);
+        NeuroglancerAnnotation& operator=(const NeuroglancerAnnotation& obj) = delete;
         
         NeuroglancerAnnotationTypeEnum::Enum getType() const;
         
         AString getFileName() const;
         
-        int32_t getNumberOfXYZ() const;
+        int32_t getNumberOfIJK() const;
         
-        const Vector3D& getXYZ(const int32_t index) const;
+        const Vector3D& getIJK(const int32_t index) const;
         
-        const CaretColor& getColor() const;
+        const QColor& getColor() const;
         
-        float getSize() const;
+        float getSymbolSize() const;
 
         AString getTypeName() const;
         
         // ADD_NEW_METHODS_HERE
         
-        virtual AString toString() const;
+        virtual AString toString() const override;
+        
+        void getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
+                                   const NeuroglancerAnnotationsFile* neuroglancerAnnotationFile,
+                                   const int32_t annotationIndex,
+                                   const bool toolTipFlag) const;
         
     private:
         void copyHelperNeuroglancerAnnotation(const NeuroglancerAnnotation& obj);
@@ -72,9 +83,13 @@ namespace caret {
         
         AString m_fileName;
         
-        std::vector<Vector3D> m_xyz;
+        std::vector<Vector3D> m_ijk;
         
-        CaretColor m_color;
+        QColor m_color;
+        
+        float m_symbolSize;
+        
+        std::vector<const NeuroglancerAnnotationPropertyValue*> m_propertyValues;
         
         // ADD_NEW_MEMBERS_HERE
         

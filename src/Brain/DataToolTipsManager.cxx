@@ -345,6 +345,27 @@ DataToolTipsManager::setShowHistology(const bool status)
 }
 
 /**
+ * @return Is show neuroglancer annotation enabled?
+ */
+bool
+DataToolTipsManager::isShowNeuroglancerAnnotation() const
+{
+    return m_showNeuroglancerAnnotationFlag;
+}
+
+/**
+ * Set status for show neuroglancer annotation
+ *
+ * @param status
+ *     New status.
+ */
+void
+DataToolTipsManager::setShowNeuroglancerAnnotation(const bool status)
+{
+    m_showNeuroglancerAnnotationFlag = status;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

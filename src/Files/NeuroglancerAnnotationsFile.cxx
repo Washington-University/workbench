@@ -30,17 +30,21 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QStandardItemModel>
 
 #include "AStringNaturalComparison.h"
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionModel.h"
 #include "DataFileException.h"
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "NeuroglancerAnnotation.h"
+#include "NeuroglancerAnnotationPropertyValue.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -65,6 +69,15 @@ NeuroglancerAnnotationsFile::NeuroglancerAnnotationsFile()
     m_fileMetaData.reset(new GiftiMetaData());
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
+    m_model.reset(new QStandardItemModel());
+    
+    m_volumeFileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes( { DataFileTypeEnum::VOLUME },
+                                                                                                   { SubvolumeAttributes::VolumeType::ANATOMY } ));
+    
+    m_sceneAssistant->add("m_volumeFileSelectionModel",
+                          "CaretDataFileSelectionModel",
+                          m_volumeFileSelectionModel.get());
+    
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
@@ -83,7 +96,7 @@ NeuroglancerAnnotationsFile::~NeuroglancerAnnotationsFile()
  *    An event for which this instance is listening.
  */
 void
-NeuroglancerAnnotationsFile::receiveEvent(Event* event)
+NeuroglancerAnnotationsFile::receiveEvent(Event* /*event*/)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -99,7 +112,7 @@ NeuroglancerAnnotationsFile::receiveEvent(Event* event)
 bool
 NeuroglancerAnnotationsFile::isEmpty() const
 {
-    return true;
+    return (m_model->rowCount() == 0);
 }
 
 /**
@@ -151,6 +164,24 @@ NeuroglancerAnnotationsFile::supportsFileMetaData() const
 }
 
 /**
+ * @return Selection model for volume that maps voxel indices to stereotaxic coordinates
+ */
+CaretDataFileSelectionModel*
+NeuroglancerAnnotationsFile::getVolumeFileSelectionModel()
+{
+    return m_volumeFileSelectionModel.get();
+}
+
+/**
+ * @return Selection model for volume that maps voxel indices to stereotaxic coordinates (const method)
+ */
+const CaretDataFileSelectionModel*
+NeuroglancerAnnotationsFile::getVolumeFileSelectionModel() const
+{
+    return m_volumeFileSelectionModel.get();
+}
+
+/**
  * Add file info to data file content information
  * @param dataFileInformation
  *   The data file info structure
@@ -193,10 +224,21 @@ NeuroglancerAnnotationsFile::addToDataFileContentInformation(DataFileContentInfo
          */
     }
     
-    const int32_t numAnn(getNumberOfAnnotations());
-    dataFileInformation.addNameAndValue("Number of annotations", AString::number(numAnn));
-    for (int32_t i = 0; i < numAnn; i++) {
-        dataFileInformation.addNameAndValue(AString::number(i), getAnnotation(i)->toString());
+    const int32_t numRows(m_model->rowCount());
+    dataFileInformation.addNameAndValue("Number of annotations", AString::number(numRows));
+    const int32_t numCols(m_model->columnCount());
+    for (int32_t iRow = 0; iRow < numRows; iRow++) {
+        for (int32_t jCol = 0; jCol < numCols; jCol++) {
+            const QStandardItem* item(m_model->item(iRow, jCol));
+            const NeuroglancerAnnotationBase* nab(dynamic_cast<const NeuroglancerAnnotationBase*>(item));
+            if (nab != NULL) {
+                const AString indent((jCol == 0)
+                                     ? AString::number(iRow)
+                                     : "   ");
+                dataFileInformation.addNameAndValue(indent,
+                                                    nab->toString());
+            }
+        }
     }
 }
 
@@ -231,8 +273,6 @@ NeuroglancerAnnotationsFile::readFile(const AString& filename)
     readNeuroglancerAnnotationFiles();
 
     addToDataFileContentInformation(dfci);
-    std::cout << "------ Read --------" << std::endl;
-    std::cout << dfci.getInformationInString() << std::endl;
     
     clearModified();
 }
@@ -337,8 +377,8 @@ NeuroglancerAnnotationsFile::readNeuroglancerFile(const AString& filenameIn)
  * @throw DataFileException
  */
 void
-NeuroglancerAnnotationsFile::readNeuroglancerJson(const FileInformation& fileInfo,
-                                       const QJsonObject& root)
+NeuroglancerAnnotationsFile::readNeuroglancerJson(const FileInformation& /*fileInfo*/,
+                                                  const QJsonObject& root)
 {
     AString errorMessage;
     
@@ -884,23 +924,6 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationFiles()
                                       filenamesList.end());
     AStringNaturalComparison::sortStringVector(annFileNames);
     
-    int64_t rgbOffset(-1);
-    int64_t rgbaOffset(-1);
-    for (const Property& p : m_properties) {
-        if (p.m_id == "point_color") {
-            if (p.m_propertyType == DataType::RGB) {
-                rgbOffset = p.m_fileOffset;
-            }
-            else if (p.m_propertyType == DataType::RGBA) {
-                rgbaOffset = p.m_fileOffset;
-            }
-            else {
-                throw DataFileException("point_color is neither RGB nor RGBA but is "
-                                        + dataTypeToString(p.m_propertyType));
-            }
-        }
-    }
-    
     float xScale(1.0);
     float yScale(1.0);
     float zScale(1.0);
@@ -934,29 +957,152 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationFiles()
         dataStream.setByteOrder(QDataStream::LittleEndian);
         dataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
         
-        float x,y,z;
-        dataStream >> x >> y >> z;
+        QList<QStandardItem*> annotationProperties;
+        std::vector<const NeuroglancerAnnotationPropertyValue*> neuroAnnProperties;
         
-//        x *= xScale;
-//        y *= yScale;
-//        z *= zScale;
-//        
-        uint8_t r(255), g(255), b(255), a(0);
-        if (rgbOffset >= 0) {
-            if (file.seek(rgbOffset)) {
-                dataStream >> r >> g >> b;
+        float annotationSize(2.0);
+        QColor annotationColor(255, 255, 255, 255);
+        
+        float i, j, k;
+        dataStream >> i >> j >> k;
+        
+        const int32_t numProperties(m_properties.size());
+        for (int32_t iProp = 0; iProp < numProperties; iProp++) {
+            CaretAssertVectorIndex(m_properties, iProp);
+            const Property& property(m_properties[iProp]);
+            
+            const int64_t offset(property.m_fileOffset);
+            CaretAssert(offset > 0);
+            
+            NeuroglancerAnnotationPropertyDataTypeEnum::Enum propertyType(NeuroglancerAnnotationPropertyDataTypeEnum::INVALID);
+            QVariant propertyValue = "InvalidSeekFailed";
+            AString propertyLabelText;
+            if (file.seek(offset)) {
+                switch (property.m_propertyType) {
+                    case DataType::INVALID:
+                        propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::INVALID;
+                        propertyValue = "InvalidDataType";
+                        break;
+                    case DataType::RGB:
+                    {
+                        uint8_t r, g, b;
+                        dataStream >> r >> g >> b;
+                        QColor color(r, g, b);
+                        propertyValue = QVariant::fromValue(color);
+                        propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::RGBA;
+                        
+                        annotationColor.setRgb(r, g, b);
+                    }
+                        break;
+                    case DataType::RGBA:
+                    {
+                        uint8_t r, g, b, a;
+                        dataStream >> r >> g >> b >> a;
+                        QColor color(r, g, b, a);
+                        propertyValue = QVariant::fromValue(color);
+                        propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::RGBA;
+
+                        annotationColor.setRgb(r, g, b, a);
+                    }
+                        break;
+                    case DataType::UINT8:
+                    {
+                        uint8_t v;
+                        dataStream >> v;
+                        propertyValue = static_cast<uint32_t>(v);
+                        propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER;
+                    }
+                        break;
+                    case DataType::INT8:
+                    {
+                        int8_t v;
+                        dataStream >> v;
+                        propertyValue = static_cast<int32_t>(v);
+                        propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER;
+                    }
+                        break;
+                    case DataType::UINT16:
+                    {
+                        uint16_t v;
+                        dataStream >> v;
+                        propertyValue = static_cast<uint32_t>(v);
+                        propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER;
+                    }
+                        break;
+                    case DataType::INT16:
+                    {
+                        int16_t v;
+                        dataStream >> v;
+                        propertyValue = static_cast<int32_t>(v);
+                        propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER;
+                    }
+                        break;
+                    case DataType::UINT32:
+                    {
+                        int32_t v;
+                        dataStream >> v;
+                        propertyValue = v;
+                        propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER;
+                    }
+                        break;
+                    case DataType::INT32:
+                    {
+                        uint32_t v;
+                        dataStream >> v;
+                        propertyValue = v;
+                        propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER;
+                    }
+                        break;
+                    case DataType::FLOAT32:
+                    {
+                        float v;
+                        dataStream >> v;
+                        propertyValue = v;
+                        propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::FLOAT;
+                    }
+                        break;
+                }
+                
+                if (property.m_enumValueLabel.empty()) {
+                    if (property.m_description == "size") {
+                        annotationSize = propertyValue.toFloat();
+                    }
+                }
+                else {
+                    int32_t labelIndex(-1);
+                    switch (propertyType) {
+                        case NeuroglancerAnnotationPropertyDataTypeEnum::INVALID:
+                            break;
+                        case NeuroglancerAnnotationPropertyDataTypeEnum::RGBA:
+                            break;
+                        case NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER:
+                            labelIndex = static_cast<int32_t>(propertyValue.toUInt());
+                            break;
+                        case NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER:
+                            labelIndex = propertyValue.toInt();
+                            break;
+                        case NeuroglancerAnnotationPropertyDataTypeEnum::FLOAT:
+                            break;
+                        case NeuroglancerAnnotationPropertyDataTypeEnum::LABEL:
+                            break;
+                    }
+
+                    if (labelIndex >= 0) {
+                        auto labelIter(property.m_enumValueLabel.find(labelIndex));
+                        if (labelIter != property.m_enumValueLabel.end()) {
+                            propertyLabelText = labelIter->second;
+                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::LABEL;
+                        }
+                    }
+                }
             }
-            else {
-                throw DataFileException("Failed to seek to RGB offset");
-            }
-        }
-        if (rgbaOffset >= 0) {
-            if (file.seek(rgbaOffset)) {
-                dataStream >> r >> g >> b >> a;
-            }
-            else {
-                throw DataFileException("Failed to seek to RGBA offset");
-            }
+            
+            NeuroglancerAnnotationPropertyValue* neuroAnnProp(new NeuroglancerAnnotationPropertyValue(property.m_description,
+                                                                                            propertyType,
+                                                                                            propertyValue,
+                                                                                            propertyLabelText));
+            annotationProperties.push_back(neuroAnnProp);
+            neuroAnnProperties.push_back(neuroAnnProp);
         }
         
         bool supportedFlag(false);
@@ -980,18 +1126,29 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationFiles()
                                     + NeuroglancerAnnotationTypeEnum::toGuiName(m_annotationType));
         }
         
-        std::array<uint8_t, 4> rgba { r, g, b, a };
-        CaretColor color;
-        color.setCustomColorRGBA(rgba);
-        color.setCaretColorEnum(CaretColorEnum::CUSTOM);
-        
-        std::vector<Vector3D> xyzs { Vector3D(x, y, z) };
+        std::vector<Vector3D> ijks { Vector3D(i, j, k) };
         
         NeuroglancerAnnotation* na = new NeuroglancerAnnotation(m_annotationType,
                                                                 filenameOnly,
-                                                                xyzs,
-                                                                color);
-        m_annotations.emplace_back(na);
+                                                                ijks,
+                                                                annotationColor,
+                                                                annotationSize,
+                                                                neuroAnnProperties);
+        
+        QList<QStandardItem*> newRow;
+        newRow.push_back(na);
+        newRow.append(annotationProperties);
+        
+        m_model->appendRow(newRow);
+    }
+    
+    if (m_model->columnCount() > 0) {
+        QStringList headerLabels;
+        headerLabels << "Annotation";
+        for (const auto& p : m_properties) {
+            headerLabels << p.m_description;
+        }
+        m_model->setHorizontalHeaderLabels(headerLabels);
     }
 }
 
@@ -1001,7 +1158,7 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationFiles()
 int32_t
 NeuroglancerAnnotationsFile::getNumberOfAnnotations() const
 {
-    return m_annotations.size();
+    return m_model->rowCount();
 }
 
 /**
@@ -1012,8 +1169,13 @@ NeuroglancerAnnotationsFile::getNumberOfAnnotations() const
 NeuroglancerAnnotation*
 NeuroglancerAnnotationsFile::getAnnotation(const int32_t index)
 {
-    CaretAssertVectorIndex(m_annotations, index);
-    return m_annotations[index].get();
+    CaretAssert((index >= 0)
+                && (index < m_model->rowCount()));
+    QStandardItem* item(m_model->item(index));
+    CaretAssert(item);
+    NeuroglancerAnnotation* neuroAnn(dynamic_cast<NeuroglancerAnnotation*>(item));
+    CaretAssert(neuroAnn);
+    return neuroAnn;
 }
 
 /**
@@ -1024,8 +1186,59 @@ NeuroglancerAnnotationsFile::getAnnotation(const int32_t index)
 const NeuroglancerAnnotation*
 NeuroglancerAnnotationsFile::getAnnotation(const int32_t index) const
 {
-    CaretAssertVectorIndex(m_annotations, index);
-    return m_annotations[index].get();
+    CaretAssert((index >= 0)
+                && (index < m_model->rowCount()));
+    QStandardItem* item(m_model->item(index));
+    CaretAssert(item);
+    NeuroglancerAnnotation* neuroAnn(dynamic_cast<NeuroglancerAnnotation*>(item));
+    CaretAssert(neuroAnn);
+    return neuroAnn;
 }
+
+/**
+ * @return XYZ of an annotation coordinate
+ * @param annotationIndex
+ *    Index of the annotation
+ * @param coordinateIndex
+ *    Index of the annotation's coordinate
+ */
+Vector3D
+NeuroglancerAnnotationsFile::getAnnotationCoordinateXYZ(const int32_t annotationIndex,
+                                                        const int32_t coordinateIndex) const
+{
+    const NeuroglancerAnnotation* ann(getAnnotation(annotationIndex));
+    CaretAssert(ann);
+    
+    Vector3D ijk(ann->getIJK(coordinateIndex));
+    Vector3D xyz(ijk);
+    const CaretDataFile* cdf(m_volumeFileSelectionModel->getSelectedFile());
+    if (cdf != NULL) {
+        const VolumeFile* volumeFile(cdf->castToVolumeFile());
+        if (volumeFile != NULL) {
+            volumeFile->indexToSpace(ijk, xyz);
+        }
+    }
+    
+    return xyz;
+}
+
+/**
+ * @return The model containing the annotations
+ */
+QStandardItemModel*
+NeuroglancerAnnotationsFile::getModel()
+{
+    return m_model.get();
+}
+
+/**
+ * @return The model containing the annotations
+ */
+const QStandardItemModel*
+NeuroglancerAnnotationsFile::getModel() const
+{
+    return m_model.get();
+}
+
 
 

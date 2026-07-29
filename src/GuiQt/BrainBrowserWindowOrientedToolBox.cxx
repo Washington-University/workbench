@@ -328,7 +328,8 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_neuroAnnSelectionViewController = new NeuroglancerAnnotationsSelectionViewController(browserWindowIndex,
                                                                                                objectNamePrefix,
                                                                                                this);
-        m_neuroglancerTabIndex = addToScrolledAreaInTabWidget(m_neuroAnnSelectionViewController, "NeuroAnn");
+        m_neuroglancerTabIndex = addToTabWidget(m_neuroAnnSelectionViewController,
+                                                "NeuroAnn");
     }
     
     if (isFeaturesToolBox) {

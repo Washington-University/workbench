@@ -71,6 +71,7 @@
 #include "MetaVolumeFile.h"
 #include "MetricDynamicConnectivityFile.h"
 #include "NeuroglancerAnnotation.h"
+#include "NeuroglancerAnnotationsFile.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
@@ -2496,28 +2497,42 @@ IdentificationFormattedTextGenerator::generateNeuroglancerAnnotationIdentifcatio
     }
     const NeuroglancerAnnotation* neuroAnn(idNeuroAnn->getNeuroglancerAnnotation());
     CaretAssert(neuroAnn);
+    const NeuroglancerAnnotationsFile* neuroAnnFile(idNeuroAnn->getNeuroglancerAnnotationsFile());
+    const int32_t annotationIndex(idNeuroAnn->getNeuroglancerAnnotationIndex());
+
+    std::vector<std::vector<AString>> idTextRows;
+    neuroAnn->getIdentificationText(idTextRows, neuroAnnFile, annotationIndex, toolTipFlag);
     
     if (toolTipFlag) {
-        bool indentFlag = false;
-        idText.addLine(indentFlag,
-                       "Neuro Ann",
-                       neuroAnn->getFileName());
+        AString toolTipText;
+        for (const auto& textRow : idTextRows) {
+            if ( ! toolTipText.isEmpty()) {
+                toolTipText.append("\n");
+            }
+            toolTipText.append(AString::join(textRow, " "));
+        }
+        idText.add(toolTipText);
     }
     else {
-        htmlTableBuilder.addRow("Neuro Ann Name: " + neuroAnn->getFileName());
-    }
-
-    const int32_t numXYZ(neuroAnn->getNumberOfXYZ());
-    for (int32_t i = 0; i < numXYZ; i++) {
-        const Vector3D& xyz(neuroAnn->getXYZ(i));
-        if (toolTipFlag) {
-            bool indentFlag = true;
-            idText.addLine(indentFlag,
-                           "XYZ " + AString::number(i+1) + ": ",
-                           AString::fromNumbers(xyz));
-        }
-        else {
-            htmlTableBuilder.addRow("XYZ " + AString::number(i+1) + ": ", AString::fromNumbers(xyz));
+        for (const auto& textRow : idTextRows) {
+            if (textRow.size() == 1) {
+                CaretAssertVectorIndex(textRow, 0);
+                htmlTableBuilder.addRowAllColumns(textRow[0]);
+            }
+            else if (textRow.size() == 2) {
+                CaretAssertVectorIndex(textRow, 1);
+                htmlTableBuilder.addRow(textRow[0],
+                                        textRow[1]);
+            }
+            else if (textRow.size() == 3) {
+                CaretAssertVectorIndex(textRow, 2);
+                htmlTableBuilder.addRow(textRow[0],
+                                        textRow[1],
+                                        textRow[2]);
+            }
+            else {
+                CaretLogSevere("More than three columns for neuroglancer ID not supported");
+            }
         }
     }
 }
@@ -2884,6 +2899,11 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                                        true);
     }
     
+    generateNeuroglancerAnnotationToolTip(dataToolTipsManager,
+                                          selectionManager->getNeuroglancerAnnotationIdentification(),
+                                          *htmlTableBuilder,
+                                          idText);
+
     if (vertexXYZValidFlag) {
         std::vector<AString> textLines;
         getTextDistanceToMostRecentIdentificationSymbol(idManager,
@@ -3013,6 +3033,42 @@ IdentificationFormattedTextGenerator::generateVolumeToolTip(const Identification
             idText.append(tl);
         }
     }
+    
+    const int32_t unusedNumberOfColumns(4);
+    HtmlTableBuilder unusedHtmlTableBuilder(HtmlTableBuilder::HtmlVersion::V4_01,
+                                            unusedNumberOfColumns);
+    generateNeuroglancerAnnotationToolTip(dataToolTipsManager,
+                                          selectionManager->getNeuroglancerAnnotationIdentification(),
+                                          unusedHtmlTableBuilder,
+                                          idText);
+}
+
+/**
+ * Generate tooltip for a neuroglancer annotation identification.
+ * @param dataToolTipsManager
+ *     The data tooltips manager
+ * @param neuroAnnSelection
+ *     Selection for neuroglancer annotation
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param idText
+ *     Text for tooltip
+ */
+void
+IdentificationFormattedTextGenerator::generateNeuroglancerAnnotationToolTip(const DataToolTipsManager* dataToolTipsManager,
+                                                                            const SelectionItemNeuroglancerAnnotation* neuroAnnSelection,
+                                                                            HtmlTableBuilder& htmlTableBuilder,
+                                                                            IdentificationStringBuilder& idText) const
+{
+    if (dataToolTipsManager->isShowNeuroglancerAnnotation()) {
+        if (neuroAnnSelection->isEnabledForSelection()) {
+            const bool toolTipFlag(true);
+            this->generateNeuroglancerAnnotationIdentifcationText(htmlTableBuilder,
+                                                                  idText,
+                                                                  neuroAnnSelection,
+                                                                  toolTipFlag);
+        }
+    }
 }
 
 /**
@@ -3097,8 +3153,8 @@ IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateToolTip(co
                                                                               const DataToolTipsManager* dataToolTipsManager,
                                                                               IdentificationStringBuilder& idText) const
 {
+    std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder(3);
     if (dataToolTipsManager->isShowHistology()) {
-        std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder(3);
         
         const SelectionItemHistologyCoordinate* histologySelection(selectionManager->getHistologyPlaneCoordinateIdentification());
         if (histologySelection->isValid()) {
@@ -3108,6 +3164,11 @@ IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateToolTip(co
                                                                histologySelection);
         }
     }
+    
+    generateNeuroglancerAnnotationToolTip(dataToolTipsManager,
+                                          selectionManager->getNeuroglancerAnnotationIdentification(),
+                                          *htmlTableBuilder,
+                                          idText);
 }
 
 /**

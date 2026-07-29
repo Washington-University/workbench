@@ -404,6 +404,9 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
         
         for (int32_t jAnn = 0; jAnn < numAnn; jAnn++) {
             const NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(jAnn));
+            if (neuroAnn->checkState() != Qt::Checked) {
+                continue;
+            }
             
             bool supportedTypeFlag(false);
             switch (neuroAnn->getType()) {
@@ -429,12 +432,19 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                 continue;
             }
             
-            const CaretColor& color(neuroAnn->getColor());
-            std::array<uint8_t, 4> rgba(color.getRGBA());
+            const QColor& color(neuroAnn->getColor());
+            std::array<uint8_t, 4> rgba {
+                static_cast<uint8_t>(color.red()),
+                static_cast<uint8_t>(color.green()),
+                static_cast<uint8_t>(color.blue()),
+                static_cast<uint8_t>(color.alpha())
+            };
             
-            CaretAssert(neuroAnn->getNumberOfXYZ() > 0);
-            Vector3D xyz(neuroAnn->getXYZ(0));
-            
+            CaretAssert(neuroAnn->getNumberOfIJK() > 0);
+            const int32_t coordIndex(0);
+            Vector3D xyz = neuroAnnFile->getAnnotationCoordinateXYZ(jAnn,
+                                                                    coordIndex);
+
             bool drawNeuroAnnFlag = false;
             switch (drawType) {
                 case DrawType::HISTOLOGY:
@@ -471,16 +481,12 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                     const bool testFlag(false);
                     if (testFlag) {
                         CaretAssert(underlayVolume);
-                        const Vector3D spaceXYZ(underlayVolume->indexToSpace(VoxelIJK(xyz[0], xyz[1], xyz[2])));
-                        const Vector3D xyzOnPlane(plane.projectPointToPlane(spaceXYZ));
-                        xyz = xyzOnPlane;
+                        xyz = plane.projectPointToPlane(xyz);
                         drawNeuroAnnFlag = true;
                     }
                     else {
-                        const Vector3D spaceXYZ(underlayVolume->indexToSpace(VoxelIJK(xyz[0], xyz[1], xyz[2])));
-                        if (plane.absoluteDistanceToPlane(spaceXYZ) < halfSliceThickness) {
-                            const Vector3D xyzOnPlane(plane.projectPointToPlane(spaceXYZ));
-                            xyz = xyzOnPlane;
+                        if (plane.absoluteDistanceToPlane(xyz) < halfSliceThickness) {
+                            xyz = plane.projectPointToPlane(xyz);
                             drawNeuroAnnFlag = true;
                         }
                     }
@@ -488,8 +494,6 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                     break;
                 case DrawType::WHOLE_BRAIN:
                 if (underlayVolume != NULL) {
-                    const Vector3D spaceXYZ(underlayVolume->indexToSpace(VoxelIJK(xyz[0], xyz[1], xyz[2])));
-                    xyz = spaceXYZ;
                     drawNeuroAnnFlag = true;
                 }
                     break;
@@ -512,7 +516,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                 std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive;
                 idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
                 idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
-                                               (neuroAnn->getSize() * symbolScale));
+                                               (neuroAnn->getSymbolSize() * symbolScale));
                 idPrimitive->addVertex(xyz,
                                        rgba.data());
                 GraphicsEngineDataOpenGL::draw(idPrimitive.get());
@@ -534,33 +538,39 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                                                          neuroAnnProjectionIndex,
                                                          depth);
         if (neuroAnnFileIndex >= 0) {
+            NeuroglancerAnnotationsFile* neuroAnnFile(brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex));
+            CaretAssert(neuroAnnFile);
             switch (drawType) {
                 case DrawType::HISTOLOGY:
                     if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex)->getAnnotation(neuroAnnIndex));
+                        NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(neuroAnnIndex));
                         CaretAssert(neuroAnn);
                         selectNeuroAnn->setBrain(brain);
                         selectNeuroAnn->setHistologySelection(histologySlicesFile,
-                                                              brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex),
+                                                              neuroAnnFile,
                                                               neuroAnn,
                                                               neuroAnnIndex);
                         selectNeuroAnn->setScreenDepth(depth);
-                        const Vector3D& xyz(neuroAnn->getXYZ(0));
+                        const int32_t coordIndex(0);
+                        const Vector3D xyz(neuroAnnFile->getAnnotationCoordinateXYZ(neuroAnnIndex,
+                                                                                    coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
                         CaretLogFine("Selected Histology Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
                     }
                     break;
                 case DrawType::SURFACE:
                     if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex)->getAnnotation(neuroAnnIndex));
+                        NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(neuroAnnIndex));
                         CaretAssert(neuroAnn);
                         selectNeuroAnn->setBrain(brain);
                         selectNeuroAnn->setSurfaceSelection(surface,
-                                                            brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex),
+                                                            neuroAnnFile,
                                                             neuroAnn,
                                                             neuroAnnIndex);
                         selectNeuroAnn->setScreenDepth(depth);
-                        const Vector3D& xyz(neuroAnn->getXYZ(0));
+                        const int32_t coordIndex(0);
+                        const Vector3D xyz(neuroAnnFile->getAnnotationCoordinateXYZ(neuroAnnIndex,
+                                                                                    coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
                         CaretLogFine("Selected Surface Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
                     }
@@ -570,29 +580,33 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                 case DrawType::VOLUME_ORTHOGONAL:
                     CaretAssert(selectNeuroAnn);
                     if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex)->getAnnotation(neuroAnnIndex));
+                        NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(neuroAnnIndex));
                         CaretAssert(neuroAnn);
                         selectNeuroAnn->setBrain(brain);
                         selectNeuroAnn->setVolumeSelection(underlayVolume,
-                                                           brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex),
+                                                           neuroAnnFile,
                                                            neuroAnn,
                                                            neuroAnnIndex);
                         selectNeuroAnn->setScreenDepth(depth);
-                        const Vector3D& xyz(neuroAnn->getXYZ(0));
+                        const int32_t coordIndex(0);
+                        const Vector3D xyz(neuroAnnFile->getAnnotationCoordinateXYZ(neuroAnnIndex,
+                                                                                    coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
                         CaretLogFine("Selected Volume Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
                     }
                     break;
                 case DrawType::WHOLE_BRAIN:
                     if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex)->getAnnotation(neuroAnnIndex));
+                        NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(neuroAnnIndex));
                         CaretAssert(neuroAnn);
                         selectNeuroAnn->setBrain(brain);
-                        selectNeuroAnn->setWholeBrainSelection(brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex),
+                        selectNeuroAnn->setWholeBrainSelection(neuroAnnFile,
                                                                neuroAnn,
                                                                neuroAnnIndex);
                         selectNeuroAnn->setScreenDepth(depth);
-                        const Vector3D& xyz(neuroAnn->getXYZ(0));
+                        const int32_t coordIndex(0);
+                        const Vector3D xyz(neuroAnnFile->getAnnotationCoordinateXYZ(neuroAnnIndex,
+                                                                                    coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
                         CaretLogFine("Selected Surface Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
                     }

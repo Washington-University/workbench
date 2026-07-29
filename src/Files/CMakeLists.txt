@@ -187,8 +187,11 @@ MetricDynamicConnectivityFile.h
 MetricFile.h
 MetricSmoothingObject.h
 NeuroglancerAnnotation.h
-NeuroglancerAnnotationsFile.h
+NeuroglancerAnnotationBase.h
+NeuroglancerAnnotationPropertyValue.h
+NeuroglancerAnnotationPropertyDataTypeEnum.h
 NeuroglancerAnnotationTypeEnum.h
+NeuroglancerAnnotationsFile.h
 NodeAndVoxelColoring.h
 OmeZarrImageFile.h
 OxfordSparseThreeFile.h
@@ -389,8 +392,11 @@ MetricDynamicConnectivityFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
 NeuroglancerAnnotation.cxx
-NeuroglancerAnnotationsFile.cxx
+NeuroglancerAnnotationBase.cxx
+NeuroglancerAnnotationPropertyValue.cxx
+NeuroglancerAnnotationPropertyDataTypeEnum.cxx
 NeuroglancerAnnotationTypeEnum.cxx
+NeuroglancerAnnotationsFile.cxx
 NodeAndVoxelColoring.cxx
 OmeZarrImageFile.cxx
 OxfordSparseThreeFile.cxx

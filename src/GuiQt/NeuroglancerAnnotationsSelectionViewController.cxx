@@ -21,12 +21,14 @@
 
 #include <QAction>
 #include <QCheckBox>
-#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QHeaderView>
 #include <QLabel>
 #include <QLayout>
+#include <QTableView>
 #include <QToolButton>
+#include <QVBoxLayout>
 
 #define __NEUROGLANCER_ANNOTATIONS_SELECTION_VIEW_CONTROLLER_DECLARE__
 #include "NeuroglancerAnnotationsSelectionViewController.h"
@@ -36,6 +38,7 @@
 #include "BrainOpenGL.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionComboBox.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesNeuroglancerAnnotations.h"
 #include "EnumComboBoxTemplate.h"
@@ -43,6 +46,7 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "NeuroglancerAnnotationsFile.h"
 #include "SceneClass.h"
 #include "WuQMacroManager.h"
 #include "WuQTabWidget.h"
@@ -86,6 +90,7 @@ m_objectNamePrefix(parentObjectName
                      this, SLOT(displayGroupSelected(const DisplayGroupEnum::Enum)));
     
     QHBoxLayout* groupLayout = new QHBoxLayout();
+    groupLayout->setContentsMargins(0, 0, 0, 0);
     groupLayout->addWidget(groupLabel);
     groupLayout->addWidget(m_displayGroupComboBox->getWidget());
     groupLayout->addStretch();
@@ -116,11 +121,11 @@ m_objectNamePrefix(parentObjectName
                                                          "Select features toolbox neuroglancer annotations tab");
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_displayCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupLayout);
     layout->addWidget(m_tabWidget->getWidget(), 100);
-    layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
@@ -143,7 +148,28 @@ NeuroglancerAnnotationsSelectionViewController::~NeuroglancerAnnotationsSelectio
 QWidget* 
 NeuroglancerAnnotationsSelectionViewController::createSelectionWidget()
 {
+    QLabel* fileLabel(new QLabel("File"));
+    
+    m_neuroAnnFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
+    QObject::connect(m_neuroAnnFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
+                     [=]() { this->updateSelectionWidget(); });
+
+    QHBoxLayout* fileLayout(new QHBoxLayout());
+    fileLayout->addWidget(fileLabel);
+    const int BIG_STRETCH(100);
+    fileLayout->addWidget(m_neuroAnnFileSelectionComboBox->getWidget(), BIG_STRETCH);
+
+    m_tableView = new QTableView();
+    m_tableView->verticalHeader()->setVisible(false);
+    QObject::connect(m_tableView, &QTableView::clicked,
+                     this, &NeuroglancerAnnotationsSelectionViewController::itemClicked);
+    
     QWidget* widget(new QWidget());
+    QVBoxLayout* layout(new QVBoxLayout(widget));
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addLayout(fileLayout);
+    layout->addWidget(m_tableView, BIG_STRETCH);
+    
     return widget;
 }
 
@@ -164,6 +190,7 @@ NeuroglancerAnnotationsSelectionViewController::createAttributesWidget()
     QWidget* widget = new QWidget();
     
     QGridLayout* layout = new QGridLayout(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setRowStretch(1000, 100);
     layout->addWidget(symbolScaleLabel, 0, 0);
     layout->addWidget(m_symbolScaleSpinBox, 0, 1);
@@ -255,6 +282,34 @@ NeuroglancerAnnotationsSelectionViewController::updateNeuroAnnViewController()
     
     QSignalBlocker symbolSizeBlocker(m_symbolScaleSpinBox);
     m_symbolScaleSpinBox->setValue(dpna->getSymbolScale());
+    
+    updateSelectionWidget();
+}
+
+/**
+ * Update the selection tab
+ */
+void
+NeuroglancerAnnotationsSelectionViewController::updateSelectionWidget()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesNeuroglancerAnnotations* dpna = brain->getDisplayPropertiesNeuroglancerAnnotations();
+    m_neuroAnnFileSelectionComboBox->updateComboBox(dpna->getNeuroglancerAnnotationFileSelectionModel());
+    
+    CaretDataFile* cdf(m_neuroAnnFileSelectionComboBox->getSelectedFile());
+    if (cdf != NULL) {
+        NeuroglancerAnnotationsFile* neuroAnnFile(dynamic_cast<NeuroglancerAnnotationsFile*>(cdf));
+        CaretAssert(neuroAnnFile);
+        
+        m_tableView->setModel(neuroAnnFile->getModel());
+        const int32_t numCols(neuroAnnFile->getModel()->columnCount());
+        for (int32_t i = 0; i < numCols; i++) {
+            m_tableView->resizeColumnToContents(i);
+        }
+    }
+    else {
+        m_tableView->setModel(NULL);
+    }
 }
 
 /**
@@ -318,6 +373,15 @@ NeuroglancerAnnotationsSelectionViewController::receiveEvent(Event* event)
     if (doUpdate) {
         updateNeuroAnnViewController();
     }
+}
+
+/**
+ * Called when user clicks on an item
+ */
+void
+NeuroglancerAnnotationsSelectionViewController::itemClicked(const QModelIndex& /*index*/)
+{
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

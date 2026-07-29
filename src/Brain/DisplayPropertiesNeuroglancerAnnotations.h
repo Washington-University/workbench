@@ -28,6 +28,7 @@
 #include "DisplayProperties.h"
 
 namespace caret {
+    class CaretDataFileSelectionModel;
     class DisplayPropertyDataFloat;
     
     class DisplayPropertiesNeuroglancerAnnotations : public DisplayProperties {
@@ -60,6 +61,10 @@ namespace caret {
         
         void setSymbolScale(const float symbolScale);
         
+        CaretDataFileSelectionModel* getNeuroglancerAnnotationFileSelectionModel();
+        
+        const CaretDataFileSelectionModel* getNeuroglancerAnnotationFileSelectionModel() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -80,6 +85,8 @@ namespace caret {
         bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         float m_symbolScale = 1.0;
+        
+        std::unique_ptr<CaretDataFileSelectionModel> m_neurogAnnFileSelectionModel;
         
     };
     

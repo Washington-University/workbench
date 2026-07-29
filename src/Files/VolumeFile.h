@@ -189,6 +189,9 @@ namespace caret {
                    SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY, const AbstractHeader* templateHeader = NULL);
         ~VolumeFile();
         
+        virtual VolumeFile* castToVolumeFile() override;
+        virtual const VolumeFile* castToVolumeFile() const override;
+        
         virtual void clear();
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;

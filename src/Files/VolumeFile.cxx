@@ -217,6 +217,26 @@ void VolumeFile::addSubvolumes(const int64_t& numToAdd)
     validateMembers();
 }
 
+/**
+ * @return File casted to volume file (avoids use of dynamic_cast that can be slow)
+ * Overidden in VolumeFile
+ */
+VolumeFile*
+VolumeFile::castToVolumeFile()
+{
+    return this;
+}
+
+/**
+ * @return File casted to volume file (avoids use of dynamic_cast that can be slow)
+ * Overidden in VolumeFile
+ */
+const VolumeFile*
+VolumeFile::castToVolumeFile() const
+{
+    return this;
+}
+
 SubvolumeAttributes::VolumeType VolumeFile::getType() const
 {
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, 0);

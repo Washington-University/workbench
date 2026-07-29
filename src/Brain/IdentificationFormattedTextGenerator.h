@@ -286,6 +286,11 @@ namespace caret {
                                                              const int32_t vertexIndex,
                                                              std::vector<AString>& textLinesOut) const;
 
+        void generateNeuroglancerAnnotationToolTip(const DataToolTipsManager* dataToolTipsManager,
+                                                   const SelectionItemNeuroglancerAnnotation* neuroAnnSelection,
+                                                   HtmlTableBuilder& htmlTableBuilder,
+                                                   IdentificationStringBuilder& idText) const;
+        
         AString xyToText(const float xy[2],
                          const int32_t precisionDigits = -1) const;
         

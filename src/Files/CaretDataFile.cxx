@@ -652,7 +652,7 @@ CaretDataFile::castToMediaFile()
 
 /**
  * @return File casted to an media file (avoids use of dynamic_cast that can be slow)
- * Overidden in ImageFile
+ * Overidden in MediaFile
  */
 const MediaFile*
 CaretDataFile::castToMediaFile() const
@@ -662,7 +662,7 @@ CaretDataFile::castToMediaFile() const
 
 /**
  * @return File casted to caret mappable data  file (avoids use of dynamic_cast that can be slow)
- * Overidden in MediaFile
+ * Overidden in CaretMappableDataFile
  */
 CaretMappableDataFile*
 CaretDataFile::castToCaretMappableDataFile()
@@ -672,10 +672,30 @@ CaretDataFile::castToCaretMappableDataFile()
 
 /**
  * @return File casted to an caret mappable data file (avoids use of dynamic_cast that can be slow)
- * Overidden in ImageFile
+ * Overidden in CaretMappableDataFile
  */
 const CaretMappableDataFile*
 CaretDataFile::castToCaretMappableDataFile() const
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to volume file (avoids use of dynamic_cast that can be slow)
+ * Overidden in VolumeFile
+ */
+VolumeFile*
+CaretDataFile::castToVolumeFile()
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to volume file (avoids use of dynamic_cast that can be slow)
+ * Overidden in VolumeFile
+ */
+const VolumeFile*
+CaretDataFile::castToVolumeFile() const
 {
     return NULL;
 }

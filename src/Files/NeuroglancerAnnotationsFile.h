@@ -26,9 +26,11 @@
 #include <memory>
 
 #include <QJsonArray>
+#include <QStandardItemModel>
 
 #include "CaretDataFile.h"
 
+#include "CaretDataFileSelectionModel.h"
 #include "EventListenerInterface.h"
 #include "NeuroglancerAnnotationTypeEnum.h"
 
@@ -126,6 +128,9 @@ namespace caret {
         
         const NeuroglancerAnnotation* getAnnotation(const int32_t index) const;
         
+        Vector3D getAnnotationCoordinateXYZ(const int32_t annotationIndex,
+                                            const int32_t coordinateIndex) const;
+        
         virtual void receiveEvent(Event* event) override;
 
         virtual bool isEmpty() const override;
@@ -147,6 +152,15 @@ namespace caret {
         virtual void readFile(const AString& filename) override;
         
         virtual void writeFile(const AString& filename) override;
+
+        QStandardItemModel* getModel();
+        
+        const QStandardItemModel* getModel() const;
+        
+        CaretDataFileSelectionModel* getVolumeFileSelectionModel();
+        
+        const CaretDataFileSelectionModel* getVolumeFileSelectionModel() const;
+        
 
         // ADD_NEW_METHODS_HERE
         
@@ -197,7 +211,9 @@ namespace caret {
         
         Dimension m_zDimension;
         
-        std::vector<std::unique_ptr<NeuroglancerAnnotation>> m_annotations;
+        std::unique_ptr<QStandardItemModel> m_model;
+                
+        std::unique_ptr<CaretDataFileSelectionModel> m_volumeFileSelectionModel;
         
         /**
          * Origin (lower bound) of the grid

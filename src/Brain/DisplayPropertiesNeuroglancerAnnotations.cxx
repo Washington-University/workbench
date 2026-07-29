@@ -24,6 +24,7 @@
 #undef __DISPLAY_PROPERTIES_NEUROGLANCER_ANNOTATIONS_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionModel.h"
 #include "DisplayPropertyDataFloat.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -46,6 +47,8 @@ DisplayPropertiesNeuroglancerAnnotations::DisplayPropertiesNeuroglancerAnnotatio
 {
     resetPrivate();
     
+    m_neurogAnnFileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileType(DataFileTypeEnum::NEUROGLANCER_ANNOTATION));
+    
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
@@ -57,6 +60,9 @@ DisplayPropertiesNeuroglancerAnnotations::DisplayPropertiesNeuroglancerAnnotatio
                                m_displayStatusInDisplayGroup[0]);
     m_sceneAssistant->add("m_symbolScale",
                           &m_symbolScale);
+    m_sceneAssistant->add("m_neurogAnnFileSelectionModel",
+                          "CaretDataFileSelectionModel",
+                          m_neurogAnnFileSelectionModel.get());
 }
 
 /**
@@ -106,7 +112,7 @@ DisplayPropertiesNeuroglancerAnnotations::resetPrivate()
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         m_displayStatusInDisplayGroup[i] = defaultDisplayStatusFlag;
     }
-    m_symbolScale = 5.0;
+    m_symbolScale = 1.0;
 }
 
 /**
@@ -216,6 +222,23 @@ DisplayPropertiesNeuroglancerAnnotations::setDisplayGroupForTab(const int32_t br
     m_displayGroup[browserTabIndex] = displayGroup;
 }
 
+/**
+ * @return The neuroglancer annotation file selection model
+ */
+CaretDataFileSelectionModel*
+DisplayPropertiesNeuroglancerAnnotations::getNeuroglancerAnnotationFileSelectionModel()
+{
+    return m_neurogAnnFileSelectionModel.get();
+}
+
+/**
+ * @return The neuroglancer annotation file selection model (const method)
+ */
+const CaretDataFileSelectionModel*
+DisplayPropertiesNeuroglancerAnnotations::getNeuroglancerAnnotationFileSelectionModel() const
+{
+    return m_neurogAnnFileSelectionModel.get();
+}
 
 /**
  * Create a scene for an instance of a class.
