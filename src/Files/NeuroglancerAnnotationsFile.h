@@ -39,6 +39,7 @@ class QJsonValue;
 
 namespace caret {
     class NeuroglancerAnnotation;
+    class NeuroglancerAnnotationLabelModel;
     class FileInformation;
     class SceneClassAssistant;
 
@@ -104,6 +105,7 @@ namespace caret {
             AString m_id;
             std::map<int32_t, AString> m_enumValueLabel;
             int64_t m_fileOffset = -1;
+            NeuroglancerAnnotationLabelModel* m_labelModel = NULL;
         };
         
         struct SpatialGrid
@@ -122,6 +124,9 @@ namespace caret {
 
         NeuroglancerAnnotationsFile& operator=(const NeuroglancerAnnotationsFile&) = delete;
         
+        virtual NeuroglancerAnnotationsFile* castToNeuroglancerAnnotationsFile() override;
+        virtual const NeuroglancerAnnotationsFile* castToNeuroglancerAnnotationsFile() const override;
+
         int32_t getNumberOfAnnotations() const;
         
         NeuroglancerAnnotation* getAnnotation(const int32_t index);
@@ -130,6 +135,8 @@ namespace caret {
         
         Vector3D getAnnotationCoordinateXYZ(const int32_t annotationIndex,
                                             const int32_t coordinateIndex) const;
+        
+        void setAllAnnotationsDisplayed(const bool displayStatus);
         
         virtual void receiveEvent(Event* event) override;
 
@@ -161,7 +168,12 @@ namespace caret {
         
         const CaretDataFileSelectionModel* getVolumeFileSelectionModel() const;
         
+        int32_t getNumberOfLabelModels() const;
+        
+        NeuroglancerAnnotationLabelModel* getLabelModel(const int32_t index);
 
+        const NeuroglancerAnnotationLabelModel* getLabelModel(const int32_t index) const;
+        
         // ADD_NEW_METHODS_HERE
         
     protected:
@@ -226,6 +238,8 @@ namespace caret {
         std::vector<float> m_lowerBound;
         
         std::vector<Property> m_properties;
+        
+        std::vector<std::unique_ptr<NeuroglancerAnnotationLabelModel>> m_labelModels;
         
         // ADD_NEW_MEMBERS_HERE
 

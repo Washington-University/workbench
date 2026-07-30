@@ -41,6 +41,8 @@
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "NeuroglancerAnnotation.h"
+#include "NeuroglancerAnnotationLabel.h"
+#include "NeuroglancerAnnotationLabelModel.h"
 #include "NeuroglancerAnnotationPropertyValue.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -87,6 +89,26 @@ NeuroglancerAnnotationsFile::NeuroglancerAnnotationsFile()
 NeuroglancerAnnotationsFile::~NeuroglancerAnnotationsFile()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * @return File casted to neuroglancer annotations file (avoids use of dynamic_cast that can be slow)
+ * Overidden in NeuroglancerAnnotationsFile
+ */
+NeuroglancerAnnotationsFile*
+NeuroglancerAnnotationsFile::castToNeuroglancerAnnotationsFile()
+{
+    return this;
+}
+
+/**
+ * @return File casted to neuroglancer annotations file (avoids use of dynamic_cast that can be slow)
+ * Overidden in NeuroglancerAnnotationsFile
+ */
+const NeuroglancerAnnotationsFile*
+NeuroglancerAnnotationsFile::castToNeuroglancerAnnotationsFile() const
+{
+    return this;
 }
 
 /**
@@ -268,12 +290,8 @@ NeuroglancerAnnotationsFile::readFile(const AString& filename)
     
     readNeuroglancerFile(filename);
     
-    DataFileContentInformation dfci;
-    
     readNeuroglancerAnnotationFiles();
 
-    addToDataFileContentInformation(dfci);
-    
     clearModified();
 }
 
@@ -675,14 +693,21 @@ NeuroglancerAnnotationsFile::readProperties(const QJsonArray &propsArr)
         property.m_description = description;
         property.m_id = id;
         property.m_fileOffset = offset;
+        property.m_labelModel = NULL;
 
         if ( ! enumLabels.empty()) {
             if (enumLabels.size() == enumValues.size()) {
+                NeuroglancerAnnotationLabelModel* labelModel(new NeuroglancerAnnotationLabelModel(description));
                 const int32_t numItems(enumLabels.size());
                 for (int32_t i = 0; i < numItems; i++) {
                     property.m_enumValueLabel.insert(std::make_pair(enumValues[i],
                                                                     enumLabels[i]));
+                    NeuroglancerAnnotationLabel* label(new NeuroglancerAnnotationLabel(enumValues[i],
+                                                                                       enumLabels[i]));
+                    labelModel->addLabel(label);
                 }
+                m_labelModels.emplace_back(labelModel);
+                property.m_labelModel = labelModel;
             }
             else {
                 throw DataFileException("Number of enum values="
@@ -957,8 +982,11 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationFiles()
         dataStream.setByteOrder(QDataStream::LittleEndian);
         dataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
         
-        QList<QStandardItem*> annotationProperties;
-        std::vector<const NeuroglancerAnnotationPropertyValue*> neuroAnnProperties;
+        /* Added into the model in same row as NeuroglancerAnnotation */
+        QList<QStandardItem*> modelRowPropertyValues;
+        
+        /* Added to NeuroglancerAnnotation*/
+        std::vector<const NeuroglancerAnnotationPropertyValue*> neuroglancerAnnotationPropertyValues;
         
         float annotationSize(2.0);
         QColor annotationColor(255, 255, 255, 255);
@@ -1098,11 +1126,12 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationFiles()
             }
             
             NeuroglancerAnnotationPropertyValue* neuroAnnProp(new NeuroglancerAnnotationPropertyValue(property.m_description,
-                                                                                            propertyType,
-                                                                                            propertyValue,
-                                                                                            propertyLabelText));
-            annotationProperties.push_back(neuroAnnProp);
-            neuroAnnProperties.push_back(neuroAnnProp);
+                                                                                                      propertyType,
+                                                                                                      propertyValue,
+                                                                                                      propertyLabelText,
+                                                                                                      property.m_labelModel));
+            modelRowPropertyValues.push_back(neuroAnnProp);
+            neuroglancerAnnotationPropertyValues.push_back(neuroAnnProp);
         }
         
         bool supportedFlag(false);
@@ -1133,11 +1162,11 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationFiles()
                                                                 ijks,
                                                                 annotationColor,
                                                                 annotationSize,
-                                                                neuroAnnProperties);
+                                                                neuroglancerAnnotationPropertyValues);
         
         QList<QStandardItem*> newRow;
         newRow.push_back(na);
-        newRow.append(annotationProperties);
+        newRow.append(modelRowPropertyValues);
         
         m_model->appendRow(newRow);
     }
@@ -1223,6 +1252,23 @@ NeuroglancerAnnotationsFile::getAnnotationCoordinateXYZ(const int32_t annotation
 }
 
 /**
+ * Set display status of all annotations in this file
+ * @param displayStatus
+ *    If true, display all.
+ */
+void
+NeuroglancerAnnotationsFile::setAllAnnotationsDisplayed(const bool displayStatus)
+{
+    const Qt::CheckState checkState(displayStatus
+                                    ? Qt::Checked
+                                    : Qt::Unchecked);
+    const int32_t numAnn(getNumberOfAnnotations());
+    for (int32_t i = 0; i < numAnn; i++) {
+        getAnnotation(i)->setCheckState(checkState);
+    }
+}
+
+/**
  * @return The model containing the annotations
  */
 QStandardItemModel*
@@ -1240,5 +1286,37 @@ NeuroglancerAnnotationsFile::getModel() const
     return m_model.get();
 }
 
+/**
+ * @return Number of label models
+ */
+int32_t
+NeuroglancerAnnotationsFile::getNumberOfLabelModels() const
+{
+    return m_labelModels.size();
+}
+
+/**
+ * @return Label model at the given index
+ * @param index
+ *   Index of the label model
+ */
+NeuroglancerAnnotationLabelModel*
+NeuroglancerAnnotationsFile::getLabelModel(const int32_t index)
+{
+    CaretAssertVectorIndex(m_labelModels, index);
+    return m_labelModels[index].get();
+}
+
+/**
+ * @return Label model at the given index (const method)
+ * @param index
+ *   Index of the label model
+ */
+const NeuroglancerAnnotationLabelModel*
+NeuroglancerAnnotationsFile::getLabelModel(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_labelModels, index);
+    return m_labelModels[index].get();
+}
 
 

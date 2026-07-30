@@ -30,6 +30,7 @@
 namespace caret {
     class CaretDataFileSelectionModel;
     class DisplayPropertyDataFloat;
+    class NeuroglancerAnnotationsFile;
     
     class DisplayPropertiesNeuroglancerAnnotations : public DisplayProperties {
         
@@ -64,6 +65,10 @@ namespace caret {
         CaretDataFileSelectionModel* getNeuroglancerAnnotationFileSelectionModel();
         
         const CaretDataFileSelectionModel* getNeuroglancerAnnotationFileSelectionModel() const;
+        
+        NeuroglancerAnnotationsFile* getSelectedNeuroglancerAnnotationFile();
+        
+        const NeuroglancerAnnotationsFile* getSelectedNeuroglancerAnnotationFile() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);

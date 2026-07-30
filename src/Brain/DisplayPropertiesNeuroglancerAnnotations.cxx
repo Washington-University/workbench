@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionModel.h"
 #include "DisplayPropertyDataFloat.h"
+#include "NeuroglancerAnnotationsFile.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -238,6 +239,18 @@ const CaretDataFileSelectionModel*
 DisplayPropertiesNeuroglancerAnnotations::getNeuroglancerAnnotationFileSelectionModel() const
 {
     return m_neurogAnnFileSelectionModel.get();
+}
+
+NeuroglancerAnnotationsFile*
+DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationFile()
+{
+    NeuroglancerAnnotationsFile* neuroAnnFile(NULL);
+    
+    CaretDataFile* cdf(getNeuroglancerAnnotationFileSelectionModel()->getSelectedFile());
+    if (cdf != NULL) {
+        neuroAnnFile = cdf->castToNeuroglancerAnnotationsFile();
+    }
+    return neuroAnnFile;
 }
 
 /**

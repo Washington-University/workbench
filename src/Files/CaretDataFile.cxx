@@ -393,18 +393,6 @@ CaretDataFile::saveToScene(const SceneAttributes* sceneAttributes,
         delete sceneClass;
         sceneClass = NULL;
     }
-    //    const int32_t numMaps = getNumberOfMaps();
-    //    if (numMaps > 0) {
-    //        bool* mapEnabledArray = new bool[numMaps];
-    //        for (int32_t i = 0; i < numMaps; i++) {
-    //            mapEnabledArray[i] = m_mapContent[i]->m_dataLoadingEnabled;
-    //        }
-    //
-    //        sceneClass->addBooleanArray("mapEnabled",
-    //                                    mapEnabledArray,
-    //                                    numMaps);
-    //        delete[] mapEnabledArray;
-    //    }
     
     return sceneClass;
 }
@@ -696,6 +684,26 @@ CaretDataFile::castToVolumeFile()
  */
 const VolumeFile*
 CaretDataFile::castToVolumeFile() const
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to neuroglancer annotations file (avoids use of dynamic_cast that can be slow)
+ * Overidden in NeuroglancerAnnotationsFile
+ */
+NeuroglancerAnnotationsFile*
+CaretDataFile::castToNeuroglancerAnnotationsFile()
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to neuroglancer annotations file (avoids use of dynamic_cast that can be slow)
+ * Overidden in NeuroglancerAnnotationsFile
+ */
+const NeuroglancerAnnotationsFile*
+CaretDataFile::castToNeuroglancerAnnotationsFile() const
 {
     return NULL;
 }

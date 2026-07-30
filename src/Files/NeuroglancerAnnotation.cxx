@@ -25,6 +25,8 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "NeuroglancerAnnotationLabel.h"
+#include "NeuroglancerAnnotationLabelModel.h"
 #include "NeuroglancerAnnotationsFile.h"
 #include "NeuroglancerAnnotationPropertyValue.h"
 
@@ -109,7 +111,6 @@ m_propertyValues(propertyValues)
  */
 NeuroglancerAnnotation::~NeuroglancerAnnotation()
 {
-    std::cout << "Annotation destroyed" << std::endl;
 }
 
 /**
@@ -135,6 +136,37 @@ NeuroglancerAnnotationTypeEnum::Enum
 NeuroglancerAnnotation::getType() const
 {
     return m_annotationType;
+}
+
+/**
+ * @return True if the annotation is displayed
+ */
+bool
+NeuroglancerAnnotation::isDisplayed() const
+{
+    /*
+     * Is annotation checkbox off
+     */
+    if (checkState() != Qt::Checked) {
+        return false;
+    }
+    
+    /*
+     * Are there any labels with their checkbox off?
+     */
+    for (const NeuroglancerAnnotationPropertyValue* propertyValue  : m_propertyValues) {
+        const NeuroglancerAnnotationLabelModel* labelModel(propertyValue->getLabelModel());
+        if (labelModel != NULL) {
+            const NeuroglancerAnnotationLabel* label(labelModel->getLabelWithValue(propertyValue->getValue().toInt()));
+            if (label != NULL) {
+                if (label->checkState() != Qt::Checked) {
+                    return false;
+                }
+            }
+        }
+    }
+    
+    return true;
 }
 
 /**

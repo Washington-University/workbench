@@ -404,7 +404,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
         
         for (int32_t jAnn = 0; jAnn < numAnn; jAnn++) {
             const NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(jAnn));
-            if (neuroAnn->checkState() != Qt::Checked) {
+            if ( ! neuroAnn->isDisplayed()) {
                 continue;
             }
             

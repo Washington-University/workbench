@@ -21,6 +21,7 @@
 
 #include <QAction>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QHeaderView>
@@ -47,6 +48,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "NeuroglancerAnnotationsFile.h"
+#include "NeuroglancerAnnotationLabelModel.h"
 #include "SceneClass.h"
 #include "WuQMacroManager.h"
 #include "WuQTabWidget.h"
@@ -95,6 +97,16 @@ m_objectNamePrefix(parentObjectName
     groupLayout->addWidget(m_displayGroupComboBox->getWidget());
     groupLayout->addStretch();
     
+    QLabel* fileLabel(new QLabel("File"));
+    m_neuroAnnFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
+    QObject::connect(m_neuroAnnFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
+                     [=]() { this->updateAnnotationWidget(); });
+    QHBoxLayout* fileLayout(new QHBoxLayout());
+    fileLayout->setContentsMargins(0, 0, 0, 0);
+    fileLayout->addWidget(fileLabel);
+    const int BIG_STRETCH(100);
+    fileLayout->addWidget(m_neuroAnnFileSelectionComboBox->getWidget(), BIG_STRETCH);
+
     m_displayCheckBox = new QCheckBox("Display Neuroglancer Annotations");
     m_displayCheckBox->setToolTip("Enable the display of neuroglancer annotations");
     QObject::connect(m_displayCheckBox, SIGNAL(clicked(bool)),
@@ -105,14 +117,18 @@ m_objectNamePrefix(parentObjectName
                                                          "Enable neuroglancer annotation display");
     
     QWidget* attributesWidget = this->createAttributesWidget();
-    QWidget* selectionWidget = this->createSelectionWidget();
+    QWidget* annotationWidget = this->createAnnotationWidget();
+    QWidget* labelsWidget     = this->createLabelsWidget();
     
     m_tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
                                                this);
-    m_tabWidget->addTab(attributesWidget, 
-                      "Attributes");
-    m_tabWidget->addTab(selectionWidget, 
-                      "Selection");
+    m_tabWidget->getWidget()->layout()->setContentsMargins(0, 0, 0, 0);
+    m_tabWidget->addTab(annotationWidget,
+                      "Annotation");
+    m_tabWidget->addTab(attributesWidget,
+                        "Attributes");
+    m_tabWidget->addTab(labelsWidget,
+                        "Labels");
     m_tabWidget->setCurrentWidget(attributesWidget);
     m_tabWidget->getTabBar()->setToolTip("Select neuroglancer annotations tab");
     m_tabWidget->getTabBar()->setObjectName(m_objectNamePrefix
@@ -120,11 +136,12 @@ m_objectNamePrefix(parentObjectName
     WuQMacroManager::instance()->addMacroSupportToObject(m_tabWidget->getTabBar(),
                                                          "Select features toolbox neuroglancer annotations tab");
     
+    this->setContentsMargins(0, 0, 0, 0);
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_displayCheckBox);
-    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupLayout);
+    layout->addLayout(fileLayout);
     layout->addWidget(m_tabWidget->getWidget(), 100);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -143,32 +160,85 @@ NeuroglancerAnnotationsSelectionViewController::~NeuroglancerAnnotationsSelectio
 }
 
 /**
- * @return New instance of neuro ann selection widget
+ * @return New instance of annotation selection widget
  */
 QWidget* 
-NeuroglancerAnnotationsSelectionViewController::createSelectionWidget()
+NeuroglancerAnnotationsSelectionViewController::createAnnotationWidget()
 {
-    QLabel* fileLabel(new QLabel("File"));
+    QToolButton* allOnToolButton(new QToolButton());
+    allOnToolButton->setText("All On");
+    QObject::connect(allOnToolButton, &QToolButton::clicked,
+                     [=]() { annotationsAllOnOffButtonClicked(true); });
     
-    m_neuroAnnFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
-    QObject::connect(m_neuroAnnFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
-                     [=]() { this->updateSelectionWidget(); });
+    QToolButton* allOffToolButton(new QToolButton());
+    allOffToolButton->setText("All Off");
+    QObject::connect(allOffToolButton, &QToolButton::clicked,
+                     [=]() { annotationsAllOnOffButtonClicked(false); });
+    
+    QHBoxLayout* allOnOffLayout(new QHBoxLayout());
+    allOnOffLayout->setContentsMargins(0, 0, 0, 0);
+    allOnOffLayout->addWidget(allOnToolButton);
+    allOnOffLayout->addWidget(allOffToolButton);
+    allOnOffLayout->addStretch();
 
+    m_annotationTableView = new QTableView();
+    m_annotationTableView->verticalHeader()->setVisible(false);
+    QObject::connect(m_annotationTableView, &QTableView::clicked,
+                     this, &NeuroglancerAnnotationsSelectionViewController::annotationTableViewItemClicked);
+    
+    const int BIG_STRETCH(100);
+    QWidget* widget(new QWidget());
+    QVBoxLayout* layout(new QVBoxLayout(widget));
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addLayout(allOnOffLayout);
+    layout->addWidget(m_annotationTableView, BIG_STRETCH);
+    
+    return widget;
+}
+
+/**
+ * @return New instance of labels selection widget
+ */
+QWidget*
+NeuroglancerAnnotationsSelectionViewController::createLabelsWidget()
+{
+    const int BIG_STRETCH(100);
+
+    QLabel* fileLabel(new QLabel("Labels"));
+    m_labelModelSelectionComboBox = new QComboBox();
+    QObject::connect(m_labelModelSelectionComboBox, QOverload<int>::of(&QComboBox::activated),
+                     this,&NeuroglancerAnnotationsSelectionViewController::labelModelComboBoxActivated);
     QHBoxLayout* fileLayout(new QHBoxLayout());
     fileLayout->addWidget(fileLabel);
-    const int BIG_STRETCH(100);
-    fileLayout->addWidget(m_neuroAnnFileSelectionComboBox->getWidget(), BIG_STRETCH);
+    fileLayout->addWidget(m_labelModelSelectionComboBox, BIG_STRETCH);
 
-    m_tableView = new QTableView();
-    m_tableView->verticalHeader()->setVisible(false);
-    QObject::connect(m_tableView, &QTableView::clicked,
-                     this, &NeuroglancerAnnotationsSelectionViewController::itemClicked);
+    QToolButton* allOnToolButton(new QToolButton());
+    allOnToolButton->setText("All On");
+    QObject::connect(allOnToolButton, &QToolButton::clicked,
+                     [=]() { labelsAllOnOffButtonClicked(true); });
     
+    QToolButton* allOffToolButton(new QToolButton());
+    allOffToolButton->setText("All Off");
+    QObject::connect(allOffToolButton, &QToolButton::clicked,
+                     [=]() { labelsAllOnOffButtonClicked(false); });
+    
+    QHBoxLayout* allOnOffLayout(new QHBoxLayout());
+    allOnOffLayout->setContentsMargins(0, 0, 0, 0);
+    allOnOffLayout->addWidget(allOnToolButton);
+    allOnOffLayout->addWidget(allOffToolButton);
+    allOnOffLayout->addStretch();
+    m_labelsTableView = new QTableView();
+    m_labelsTableView->horizontalHeader()->setVisible(false);
+    m_labelsTableView->verticalHeader()->setVisible(false);
+    QObject::connect(m_labelsTableView, &QTableView::clicked,
+                     this, &NeuroglancerAnnotationsSelectionViewController::labelTableViewItemClicked);
+
     QWidget* widget(new QWidget());
     QVBoxLayout* layout(new QVBoxLayout(widget));
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addLayout(fileLayout);
-    layout->addWidget(m_tableView, BIG_STRETCH);
+    layout->addLayout(allOnOffLayout);
+    layout->addWidget(m_labelsTableView, BIG_STRETCH);
     
     return widget;
 }
@@ -255,7 +325,7 @@ NeuroglancerAnnotationsSelectionViewController::displayGroupSelected(const Displ
     /*
      * Apply the changes.
      */
-    processNeuroAnnSelectionChanges();
+    processSelectionChanges();
 }
 
 /**
@@ -283,14 +353,16 @@ NeuroglancerAnnotationsSelectionViewController::updateNeuroAnnViewController()
     QSignalBlocker symbolSizeBlocker(m_symbolScaleSpinBox);
     m_symbolScaleSpinBox->setValue(dpna->getSymbolScale());
     
-    updateSelectionWidget();
+    updateAnnotationWidget();
+    
+    updateLabelWidget();
 }
 
 /**
- * Update the selection tab
+ * Update the annotationt tab
  */
 void
-NeuroglancerAnnotationsSelectionViewController::updateSelectionWidget()
+NeuroglancerAnnotationsSelectionViewController::updateAnnotationWidget()
 {
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesNeuroglancerAnnotations* dpna = brain->getDisplayPropertiesNeuroglancerAnnotations();
@@ -301,15 +373,32 @@ NeuroglancerAnnotationsSelectionViewController::updateSelectionWidget()
         NeuroglancerAnnotationsFile* neuroAnnFile(dynamic_cast<NeuroglancerAnnotationsFile*>(cdf));
         CaretAssert(neuroAnnFile);
         
-        m_tableView->setModel(neuroAnnFile->getModel());
+        m_annotationTableView->setModel(neuroAnnFile->getModel());
         const int32_t numCols(neuroAnnFile->getModel()->columnCount());
         for (int32_t i = 0; i < numCols; i++) {
-            m_tableView->resizeColumnToContents(i);
+            m_annotationTableView->resizeColumnToContents(i);
         }
     }
     else {
-        m_tableView->setModel(NULL);
+        m_annotationTableView->setModel(NULL);
     }
+}
+
+/**
+ * Called when annotations all on/off button clicked
+ * @param onFlag
+ *   True if on clicked, false if off clicked
+ */
+void
+NeuroglancerAnnotationsSelectionViewController::annotationsAllOnOffButtonClicked(const bool onFlag)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesNeuroglancerAnnotations* dpna = brain->getDisplayPropertiesNeuroglancerAnnotations();
+    NeuroglancerAnnotationsFile* neuroAnnFile(dpna->getSelectedNeuroglancerAnnotationFile());
+    if (neuroAnnFile != NULL) {
+        neuroAnnFile->setAllAnnotationsDisplayed(onFlag);
+    }
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -326,15 +415,6 @@ NeuroglancerAnnotationsSelectionViewController::updateOtherNeuroAnnViewControlle
             bsw->updateNeuroAnnViewController();
         }
     }
-}
-
-/**
- * Gets called when neuroglancer annotations selections are changed.
- */
-void 
-NeuroglancerAnnotationsSelectionViewController::processNeuroAnnSelectionChanges()
-{
-    processSelectionChanges();
 }
 
 /**
@@ -376,13 +456,107 @@ NeuroglancerAnnotationsSelectionViewController::receiveEvent(Event* event)
 }
 
 /**
- * Called when user clicks on an item
+ * Called when user clicks on an item in the annotation table view
  */
 void
-NeuroglancerAnnotationsSelectionViewController::itemClicked(const QModelIndex& /*index*/)
+NeuroglancerAnnotationsSelectionViewController::annotationTableViewItemClicked(const QModelIndex& /*index*/)
 {
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
+
+/**
+ * Called when a label model is selected
+ * @parain index
+ *    Index of item selected
+ */
+void
+NeuroglancerAnnotationsSelectionViewController::labelModelComboBoxActivated(int /*index*/)
+{
+    NeuroglancerAnnotationLabelModel* labelModel(getSelectedLabelModel());
+    m_labelsTableView->setModel(labelModel);
+    if (labelModel != NULL) {
+        const int32_t numCols(labelModel->columnCount());
+        for (int32_t i = 0; i < numCols; i++) {
+            m_labelsTableView->resizeColumnToContents(i);
+        }
+    }
+}
+
+/**
+ * Update the label widget.
+ */
+void
+NeuroglancerAnnotationsSelectionViewController::updateLabelWidget()
+{
+    NeuroglancerAnnotationLabelModel* previousSelectedLabelModel(getSelectedLabelModel());
+    m_labelModelSelectionComboBox->clear();
+    
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesNeuroglancerAnnotations* dpna = brain->getDisplayPropertiesNeuroglancerAnnotations();
+    NeuroglancerAnnotationsFile* neuroAnnFile(dpna->getSelectedNeuroglancerAnnotationFile());
+    if (neuroAnnFile != NULL) {
+        int32_t selectedIndex(-1);
+        const int32_t numLabelModels(neuroAnnFile->getNumberOfLabelModels());
+        for (int32_t i = 0; i < numLabelModels; i++) {
+            NeuroglancerAnnotationLabelModel* labelModel(neuroAnnFile->getLabelModel(i));
+            if (labelModel == previousSelectedLabelModel) {
+                selectedIndex = m_labelModelSelectionComboBox->count();
+            }
+            m_labelModelSelectionComboBox->addItem(labelModel->getDescription(),
+                                                   QVariant::fromValue(labelModel));
+        }
+        
+        if (selectedIndex >= 0) {
+            m_labelModelSelectionComboBox->setCurrentIndex(selectedIndex);
+        }
+    }
+    
+    if (previousSelectedLabelModel != getSelectedLabelModel()) {
+        labelModelComboBoxActivated(m_labelModelSelectionComboBox->currentIndex());
+    }
+}
+
+/**
+ * @return The selected label model
+ */
+NeuroglancerAnnotationLabelModel*
+NeuroglancerAnnotationsSelectionViewController::getSelectedLabelModel()
+{
+    NeuroglancerAnnotationLabelModel* labelModel(NULL);
+    
+    if (m_labelModelSelectionComboBox->count() > 0) {
+        const QVariant data(m_labelModelSelectionComboBox->currentData());
+        labelModel = data.value<NeuroglancerAnnotationLabelModel*>();
+    }
+    
+    return labelModel;
+}
+
+
+/**
+ * Called when user clicks on an item in the label table view
+ */
+void
+NeuroglancerAnnotationsSelectionViewController::labelTableViewItemClicked(const QModelIndex& /*index*/)
+{
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+}
+
+/**
+ * Called when labels all on/off button clicked
+ * @param onFlag
+ *   True if on clicked, false if off clicked
+ */
+void
+NeuroglancerAnnotationsSelectionViewController::labelsAllOnOffButtonClicked(const bool onFlag)
+{
+    NeuroglancerAnnotationLabelModel* labelModel(getSelectedLabelModel());
+    if (labelModel != NULL) {
+        labelModel->setAllLabelsDisplayed(onFlag);
+    }
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+}
+
 
 /**
  * Create a scene for an instance of a class.

@@ -34,7 +34,7 @@ using namespace caret;
     
 /**
  * \class caret::NeuroglancerAnnotationPropertyValue 
- * \brief Class for an annotation property
+ * \brief Class for value that is stored in NeuroglancerAnnotation of an annotation property
  * \ingroup Files
  */
 
@@ -50,14 +50,16 @@ using namespace caret;
  *    Text for when data type is label
  */
 NeuroglancerAnnotationPropertyValue::NeuroglancerAnnotationPropertyValue(const AString& description,
-                                                               const NeuroglancerAnnotationPropertyDataTypeEnum::Enum dataType,
-                                                               const QVariant& value,
-                                                               const AString& labelText)
+                                                                         const NeuroglancerAnnotationPropertyDataTypeEnum::Enum dataType,
+                                                                         const QVariant& value,
+                                                                         const AString& labelText,
+                                                                         const NeuroglancerAnnotationLabelModel* labelModel)
 : NeuroglancerAnnotationBase(NeuroglancerAnnotationBase::BaseType::PROPERTY),
 m_description(description),
 m_dataType(dataType),
 m_value(value),
-m_labelText(labelText)
+m_labelText(labelText),
+m_labelModel(labelModel)
 {
     setFlags(Qt::ItemIsSelectable
              | Qt::ItemIsEnabled);
@@ -95,7 +97,6 @@ m_labelText(labelText)
  */
 NeuroglancerAnnotationPropertyValue::~NeuroglancerAnnotationPropertyValue()
 {
-    std::cout << "Annotation Property Value destroyed" << std::endl;
 }
 
 /**
@@ -183,6 +184,15 @@ const AString&
 NeuroglancerAnnotationPropertyValue::getLabelText() const
 {
     return m_labelText;
+}
+
+/**
+ * @return The label model
+ */
+const NeuroglancerAnnotationLabelModel*
+NeuroglancerAnnotationPropertyValue::getLabelModel() const
+{
+    return m_labelModel;
 }
 
 

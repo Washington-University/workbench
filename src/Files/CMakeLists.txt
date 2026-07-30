@@ -28,6 +28,7 @@ ELSE()
     SET(MOC_INPUT_HEADER_FILES
         DataFileEditorModel.h
         LabelSelectionItemModel.h
+	NeuroglancerAnnotationLabelModel.h
     )
 
     IF(Qt6_FOUND)
@@ -188,6 +189,8 @@ MetricFile.h
 MetricSmoothingObject.h
 NeuroglancerAnnotation.h
 NeuroglancerAnnotationBase.h
+NeuroglancerAnnotationLabel.h
+NeuroglancerAnnotationLabelModel.h
 NeuroglancerAnnotationPropertyValue.h
 NeuroglancerAnnotationPropertyDataTypeEnum.h
 NeuroglancerAnnotationTypeEnum.h
@@ -393,6 +396,8 @@ MetricFile.cxx
 MetricSmoothingObject.cxx
 NeuroglancerAnnotation.cxx
 NeuroglancerAnnotationBase.cxx
+NeuroglancerAnnotationLabel.cxx
+NeuroglancerAnnotationLabelModel.cxx
 NeuroglancerAnnotationPropertyValue.cxx
 NeuroglancerAnnotationPropertyDataTypeEnum.cxx
 NeuroglancerAnnotationTypeEnum.cxx

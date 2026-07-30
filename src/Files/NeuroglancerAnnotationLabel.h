@@ -1,5 +1,5 @@
-#ifndef __NEUROGLANCER_ANNOTATION_BASE_H__
-#define __NEUROGLANCER_ANNOTATION_BASE_H__
+#ifndef __NEUROGLANCER_ANNOTATION_LABEL_H__
+#define __NEUROGLANCER_ANNOTATION_LABEL_H__
 
 /*LICENSE_START*/
 /*
@@ -25,44 +25,40 @@
 
 #include <memory>
 
-#include <QStandardItem>
+#include "NeuroglancerAnnotationBase.h"
 
-#include "AString.h"
+
 
 namespace caret {
 
-    class NeuroglancerAnnotationBase : public QStandardItem {
+    class NeuroglancerAnnotationLabel : public NeuroglancerAnnotationBase {
         
     public:
-        enum class BaseType {
-            ANNOTATION,
-            LABEL,
-            PROPERTY
-        };
+        NeuroglancerAnnotationLabel(const int32_t value,
+                                    const AString& text);
         
-        NeuroglancerAnnotationBase(const BaseType baseType);
+        virtual ~NeuroglancerAnnotationLabel();
         
-        virtual ~NeuroglancerAnnotationBase();
-        
-        NeuroglancerAnnotationBase(const NeuroglancerAnnotationBase&) = delete;
+        NeuroglancerAnnotationLabel(const NeuroglancerAnnotationLabel&) = delete;
 
-        NeuroglancerAnnotationBase& operator=(const NeuroglancerAnnotationBase&) = delete;
+        NeuroglancerAnnotationLabel& operator=(const NeuroglancerAnnotationLabel&) = delete;
         
-        BaseType getBaseType() const;
-
-        virtual AString toString() const = 0;
+        int32_t getValue() const;
+        
+        virtual AString toString() const override;
         
         // ADD_NEW_METHODS_HERE
 
     private:
-        const BaseType m_baseType;
+        int32_t m_value;
+
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __NEUROGLANCER_ANNOTATION_BASE_DECLARE__
+#ifdef __NEUROGLANCER_ANNOTATION_LABEL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __NEUROGLANCER_ANNOTATION_BASE_DECLARE__
+#endif // __NEUROGLANCER_ANNOTATION_LABEL_DECLARE__
 
 } // namespace
-#endif  //__NEUROGLANCER_ANNOTATION_BASE_H__
+#endif  //__NEUROGLANCER_ANNOTATION_LABEL_H__

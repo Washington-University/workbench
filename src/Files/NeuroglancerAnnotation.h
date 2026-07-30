@@ -55,6 +55,8 @@ namespace caret {
         
         NeuroglancerAnnotationTypeEnum::Enum getType() const;
         
+        bool isDisplayed() const;
+        
         AString getFileName() const;
         
         int32_t getNumberOfIJK() const;

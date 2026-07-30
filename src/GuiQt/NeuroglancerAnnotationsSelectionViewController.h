@@ -31,6 +31,7 @@
 #include "SceneableInterface.h"
 
 class QCheckBox;
+class QComboBox;
 class QDoubleSpinBox;
 class QTableView;
 class QVBoxLayout;
@@ -41,6 +42,7 @@ namespace caret {
     class CaretDataFileSelectionComboBox;
     class DisplayGroupEnumComboBox;
     class EnumComboBoxTemplate;
+    class NeuroglancerAnnotationLabelModel;
     class WuQTabWidget;
     
     class NeuroglancerAnnotationsSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
@@ -63,15 +65,17 @@ namespace caret {
                                       const SceneClass* sceneClass);
         
     private slots:
-        void processNeuroAnnSelectionChanges();
-        
         void processSelectionChanges();
         
         void displayGroupSelected(const DisplayGroupEnum::Enum);
         
         void processAttributesChanges();
         
-        void itemClicked(const QModelIndex& index);
+        void annotationTableViewItemClicked(const QModelIndex& index);
+        
+        void labelModelComboBoxActivated(int index);
+        
+        void labelTableViewItemClicked(const QModelIndex& index);
         
     private:
         NeuroglancerAnnotationsSelectionViewController(const NeuroglancerAnnotationsSelectionViewController&);
@@ -82,11 +86,21 @@ namespace caret {
         
         void updateOtherNeuroAnnViewControllers();
         
-        void updateSelectionWidget();
+        void updateAnnotationWidget();
         
-        QWidget* createSelectionWidget();
+        void updateLabelWidget();
+        
+        QWidget* createAnnotationWidget();
+        
+        void annotationsAllOnOffButtonClicked(const bool onFlag);
+        
+        void labelsAllOnOffButtonClicked(const bool onFlag);
         
         QWidget* createAttributesWidget();
+        
+        QWidget* createLabelsWidget();
+        
+        NeuroglancerAnnotationLabelModel* getSelectedLabelModel();
         
         const QString m_objectNamePrefix;
         
@@ -104,7 +118,11 @@ namespace caret {
         
         static std::set<NeuroglancerAnnotationsSelectionViewController*> allNeuroglancerAnnotationsSelectionViewControllers;
         
-        QTableView* m_tableView;
+        QTableView* m_annotationTableView;
+        
+        QComboBox* m_labelModelSelectionComboBox;
+        
+        QTableView* m_labelsTableView;
         
     };
     

@@ -32,14 +32,16 @@
 class QColor;
 
 namespace caret {
+    class NeuroglancerAnnotationLabelModel;
 
     class NeuroglancerAnnotationPropertyValue : public NeuroglancerAnnotationBase {
         
     public:
         NeuroglancerAnnotationPropertyValue(const AString& propertyName,
-                                       const NeuroglancerAnnotationPropertyDataTypeEnum::Enum dataType,
-                                       const QVariant& value,
-                                       const AString& labelText);
+                                            const NeuroglancerAnnotationPropertyDataTypeEnum::Enum dataType,
+                                            const QVariant& value,
+                                            const AString& labelText,
+                                            const NeuroglancerAnnotationLabelModel* labelModel);
         
         virtual ~NeuroglancerAnnotationPropertyValue();
         
@@ -55,6 +57,8 @@ namespace caret {
         
         const AString& getLabelText() const;
 
+        const NeuroglancerAnnotationLabelModel* getLabelModel() const;
+        
         static AString QColorToString(const QColor& color);
         
         virtual AString toString() const override;
@@ -69,6 +73,8 @@ namespace caret {
         const QVariant m_value;
         
         const AString m_labelText;
+        
+        const NeuroglancerAnnotationLabelModel* m_labelModel;
         
         // ADD_NEW_MEMBERS_HERE
 
