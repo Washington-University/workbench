@@ -90,6 +90,7 @@ m_objectNamePrefix(parentObjectName
     m_displayGroupComboBox = new DisplayGroupEnumComboBox(this);
     QObject::connect(m_displayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
                      this, SLOT(displayGroupSelected(const DisplayGroupEnum::Enum)));
+    m_displayGroupComboBox->getWidget()->setEnabled(false);
     
     QHBoxLayout* groupLayout = new QHBoxLayout();
     groupLayout->setContentsMargins(0, 0, 0, 0);
@@ -101,11 +102,20 @@ m_objectNamePrefix(parentObjectName
     m_neuroAnnFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
     QObject::connect(m_neuroAnnFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
                      [=]() { this->updateAnnotationWidget(); });
-    QHBoxLayout* fileLayout(new QHBoxLayout());
+    
+    QLabel* volumeLabel(new QLabel("Volume"));
+    m_volumeFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
+    QObject::connect(m_volumeFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
+                     [=]() { this->updateAnnotationWidget(); });
+
+    QGridLayout* fileLayout(new QGridLayout());
+    fileLayout->setColumnStretch(1, 100);
     fileLayout->setContentsMargins(0, 0, 0, 0);
-    fileLayout->addWidget(fileLabel);
-    const int BIG_STRETCH(100);
-    fileLayout->addWidget(m_neuroAnnFileSelectionComboBox->getWidget(), BIG_STRETCH);
+    fileLayout->addWidget(fileLabel, 0, 0);
+    fileLayout->addWidget(m_neuroAnnFileSelectionComboBox->getWidget(), 0, 1);
+    fileLayout->addWidget(volumeLabel, 1, 0);
+    fileLayout->addWidget(m_volumeFileSelectionComboBox->getWidget(), 1, 1);
+//    const int BIG_STRETCH(100);
 
     m_displayCheckBox = new QCheckBox("Display Neuroglancer Annotations");
     m_displayCheckBox->setToolTip("Enable the display of neuroglancer annotations");
@@ -373,6 +383,8 @@ NeuroglancerAnnotationsSelectionViewController::updateAnnotationWidget()
         NeuroglancerAnnotationsFile* neuroAnnFile(dynamic_cast<NeuroglancerAnnotationsFile*>(cdf));
         CaretAssert(neuroAnnFile);
         
+        m_volumeFileSelectionComboBox->updateComboBox(neuroAnnFile->getVolumeFileSelectionModel());
+        
         m_annotationTableView->setModel(neuroAnnFile->getModel());
         const int32_t numCols(neuroAnnFile->getModel()->columnCount());
         for (int32_t i = 0; i < numCols; i++) {
@@ -381,6 +393,7 @@ NeuroglancerAnnotationsSelectionViewController::updateAnnotationWidget()
     }
     else {
         m_annotationTableView->setModel(NULL);
+        m_volumeFileSelectionComboBox->updateComboBox(NULL);
     }
 }
 

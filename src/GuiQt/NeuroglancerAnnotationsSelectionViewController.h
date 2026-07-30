@@ -108,6 +108,8 @@ namespace caret {
         
         CaretDataFileSelectionComboBox* m_neuroAnnFileSelectionComboBox;
         
+        CaretDataFileSelectionComboBox* m_volumeFileSelectionComboBox;
+        
         QCheckBox* m_displayCheckBox;
         
         DisplayGroupEnumComboBox* m_displayGroupComboBox;
