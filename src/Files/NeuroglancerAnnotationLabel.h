@@ -26,12 +26,12 @@
 #include <memory>
 
 #include "NeuroglancerAnnotationBase.h"
-
+#include "SceneableInterface.h"
 
 
 namespace caret {
 
-    class NeuroglancerAnnotationLabel : public NeuroglancerAnnotationBase {
+    class NeuroglancerAnnotationLabel : public NeuroglancerAnnotationBase, public SceneableInterface {
         
     public:
         NeuroglancerAnnotationLabel(const int32_t value,
@@ -46,6 +46,12 @@ namespace caret {
         int32_t getValue() const;
         
         virtual AString toString() const override;
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName) override;
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass) override;
         
         // ADD_NEW_METHODS_HERE
 

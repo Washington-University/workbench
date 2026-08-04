@@ -29,6 +29,7 @@
 
 #include "NeuroglancerAnnotationBase.h"
 #include "NeuroglancerAnnotationTypeEnum.h"
+#include "SceneableInterface.h"
 #include "Vector3D.h"
 
 
@@ -37,7 +38,7 @@ namespace caret {
     class NeuroglancerAnnotationPropertyValue;
     class NeuroglancerAnnotationsFile;
     
-    class NeuroglancerAnnotation : public NeuroglancerAnnotationBase {
+    class NeuroglancerAnnotation : public NeuroglancerAnnotationBase, public SceneableInterface {
 
     public:
         NeuroglancerAnnotation(const NeuroglancerAnnotationTypeEnum::Enum annotationType,
@@ -77,6 +78,13 @@ namespace caret {
                                    const NeuroglancerAnnotationsFile* neuroglancerAnnotationFile,
                                    const int32_t annotationIndex,
                                    const bool toolTipFlag) const;
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName) override;
+
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass) override;
+        
         
     private:
         void copyHelperNeuroglancerAnnotation(const NeuroglancerAnnotation& obj);

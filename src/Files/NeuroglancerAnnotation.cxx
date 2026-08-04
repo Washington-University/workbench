@@ -25,10 +25,13 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "NeuroglancerAnnotation.h"
 #include "NeuroglancerAnnotationLabel.h"
 #include "NeuroglancerAnnotationLabelModel.h"
+#include "NeuroglancerAnnotationModel.h"
 #include "NeuroglancerAnnotationsFile.h"
 #include "NeuroglancerAnnotationPropertyValue.h"
+#include "SceneClass.h"
 
 using namespace caret;
 
@@ -280,12 +283,18 @@ NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>&
         idTextOut.push_back(rowTwo);
         
         if (neuroglancerAnnotationFile != NULL) {
-            const Vector3D xyz(neuroglancerAnnotationFile->getAnnotationCoordinateXYZ(annotationIndex,
+            const NeuroglancerAnnotationModel* annModel(neuroglancerAnnotationFile->getAnnotationModel());
+            if (annModel != NULL) {
+                const NeuroglancerAnnotation* neuroAnn(annModel->getAnnotationAtIndex(annotationIndex));
+                if (neuroAnn != NULL) {
+                    const Vector3D xyz(neuroglancerAnnotationFile->annotationIJKtoXYZ(neuroAnn,
                                                                                       iCoord));
-            std::vector<AString> rowThree;
-            rowThree.push_back("XYZ: "
-                               + AString::fromNumbers(xyz, ",", 'f', 3));
-            idTextOut.push_back(rowThree);
+                    std::vector<AString> rowThree;
+                    rowThree.push_back("XYZ: "
+                                       + AString::fromNumbers(xyz, ",", 'f', 3));
+                    idTextOut.push_back(rowThree);
+                }
+            }
         }
     }
     else {
@@ -306,8 +315,8 @@ NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>&
                                 + AString::fromNumbers(ijk));
             
             if (neuroglancerAnnotationFile != NULL) {
-                const Vector3D xyz(neuroglancerAnnotationFile->getAnnotationCoordinateXYZ(annotationIndex,
-                                                                                          iCoord));
+                const Vector3D xyz(neuroglancerAnnotationFile->annotationIJKtoXYZ(this,
+                                                                                  iCoord));
                 rowIJKXYZ.push_back("XYZ"
                                     + indexString
                                     + ": "
@@ -328,5 +337,60 @@ NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>&
     }
 }
 
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+NeuroglancerAnnotation::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                    const AString& instanceName)
+{
+    SceneClass* sceneClass(new SceneClass(instanceName,
+                                          "NeuroglancerAnnotation",
+                                          1));
+    const bool checkedFlag(checkState() == Qt::Checked);
+    sceneClass->addBoolean("checkedFlag",
+                           checkedFlag);
+    return sceneClass;
+}
 
+
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+NeuroglancerAnnotation::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                         const SceneClass* sceneClass)
+{
+    const bool defaultValue(true);
+    const bool checkedFlag(sceneClass->getBooleanValue("checkedFlag",
+                                                       defaultValue));
+    if (checkedFlag) {
+        setCheckState(Qt::Checked);
+    }
+    else {
+        setCheckState(Qt::Unchecked);
+    }
+}
 

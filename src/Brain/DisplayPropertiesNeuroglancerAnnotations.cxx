@@ -27,6 +27,7 @@
 #include "CaretDataFileSelectionModel.h"
 #include "DisplayPropertyDataFloat.h"
 #include "NeuroglancerAnnotationsFile.h"
+#include "NeuroglancerAnnotationModel.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -224,7 +225,7 @@ DisplayPropertiesNeuroglancerAnnotations::setDisplayGroupForTab(const int32_t br
 }
 
 /**
- * @return The neuroglancer annotation file selection model
+ * @return The neuroglancer annotation file selection model (selects the file)
  */
 CaretDataFileSelectionModel*
 DisplayPropertiesNeuroglancerAnnotations::getNeuroglancerAnnotationFileSelectionModel()
@@ -233,7 +234,7 @@ DisplayPropertiesNeuroglancerAnnotations::getNeuroglancerAnnotationFileSelection
 }
 
 /**
- * @return The neuroglancer annotation file selection model (const method)
+ * @return The neuroglancer annotation file selection model (const method) (selects the file)
  */
 const CaretDataFileSelectionModel*
 DisplayPropertiesNeuroglancerAnnotations::getNeuroglancerAnnotationFileSelectionModel() const
@@ -241,6 +242,9 @@ DisplayPropertiesNeuroglancerAnnotations::getNeuroglancerAnnotationFileSelection
     return m_neurogAnnFileSelectionModel.get();
 }
 
+/**
+ * @return The selected neuroglancer annotation file
+ */
 NeuroglancerAnnotationsFile*
 DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationFile()
 {
@@ -251,6 +255,51 @@ DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationFile(
         neuroAnnFile = cdf->castToNeuroglancerAnnotationsFile();
     }
     return neuroAnnFile;
+}
+
+/**
+ * @return The selected neuroglancer annotation file
+ */
+const NeuroglancerAnnotationsFile*
+DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationFile() const
+{
+    const NeuroglancerAnnotationsFile* neuroAnnFile(NULL);
+    
+    const CaretDataFile* cdf(getNeuroglancerAnnotationFileSelectionModel()->getSelectedFile());
+    if (cdf != NULL) {
+        neuroAnnFile = cdf->castToNeuroglancerAnnotationsFile();
+    }
+    return neuroAnnFile;
+}
+
+/**
+ * @return The selected neuroglancer annotation model (could be NULL)
+ */
+NeuroglancerAnnotationModel*
+DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationModel()
+{
+    NeuroglancerAnnotationModel* annModel(NULL);
+    
+    NeuroglancerAnnotationsFile* annFile(getSelectedNeuroglancerAnnotationFile());
+    if (annFile != NULL) {
+        annModel = annFile->getAnnotationModel();
+    }
+    return annModel;
+}
+
+/**
+ * @return The selected neuroglancer annotation model (could be NULL) (const method)
+ */
+const NeuroglancerAnnotationModel*
+DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationModel() const
+{
+    const NeuroglancerAnnotationModel* annModel(NULL);
+    
+    const NeuroglancerAnnotationsFile* annFile(getSelectedNeuroglancerAnnotationFile());
+    if (annFile != NULL) {
+        annModel = annFile->getAnnotationModel();
+    }
+    return annModel;
 }
 
 /**

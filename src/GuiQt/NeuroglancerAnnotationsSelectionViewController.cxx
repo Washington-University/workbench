@@ -49,6 +49,7 @@
 #include "GuiManager.h"
 #include "NeuroglancerAnnotationsFile.h"
 #include "NeuroglancerAnnotationLabelModel.h"
+#include "NeuroglancerAnnotationModel.h"
 #include "SceneClass.h"
 #include "WuQMacroManager.h"
 #include "WuQTabWidget.h"
@@ -115,7 +116,6 @@ m_objectNamePrefix(parentObjectName
     fileLayout->addWidget(m_neuroAnnFileSelectionComboBox->getWidget(), 0, 1);
     fileLayout->addWidget(volumeLabel, 1, 0);
     fileLayout->addWidget(m_volumeFileSelectionComboBox->getWidget(), 1, 1);
-//    const int BIG_STRETCH(100);
 
     m_displayCheckBox = new QCheckBox("Display Neuroglancer Annotations");
     m_displayCheckBox->setToolTip("Enable the display of neuroglancer annotations");
@@ -259,7 +259,7 @@ NeuroglancerAnnotationsSelectionViewController::createLabelsWidget()
 QWidget*
 NeuroglancerAnnotationsSelectionViewController::createAttributesWidget()
 {
-    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    //WuQMacroManager* macroManager = WuQMacroManager::instance();
 
     QLabel* symbolScaleLabel(new QLabel("Symbol Scale"));
     m_symbolScaleSpinBox = new QDoubleSpinBox();
@@ -385,8 +385,8 @@ NeuroglancerAnnotationsSelectionViewController::updateAnnotationWidget()
         
         m_volumeFileSelectionComboBox->updateComboBox(neuroAnnFile->getVolumeFileSelectionModel());
         
-        m_annotationTableView->setModel(neuroAnnFile->getModel());
-        const int32_t numCols(neuroAnnFile->getModel()->columnCount());
+        m_annotationTableView->setModel(neuroAnnFile->getAnnotationModel());
+        const int32_t numCols(neuroAnnFile->getAnnotationModel()->columnCount());
         for (int32_t i = 0; i < numCols; i++) {
             m_annotationTableView->resizeColumnToContents(i);
         }
@@ -407,9 +407,9 @@ NeuroglancerAnnotationsSelectionViewController::annotationsAllOnOffButtonClicked
 {
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesNeuroglancerAnnotations* dpna = brain->getDisplayPropertiesNeuroglancerAnnotations();
-    NeuroglancerAnnotationsFile* neuroAnnFile(dpna->getSelectedNeuroglancerAnnotationFile());
-    if (neuroAnnFile != NULL) {
-        neuroAnnFile->setAllAnnotationsDisplayed(onFlag);
+    NeuroglancerAnnotationModel* annModel(dpna->getSelectedNeuroglancerAnnotationModel());
+    if (annModel != NULL) {
+        annModel->setAllAnnotationsDisplayed(onFlag);
     }
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }

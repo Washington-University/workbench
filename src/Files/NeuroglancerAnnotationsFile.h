@@ -26,7 +26,6 @@
 #include <memory>
 
 #include <QJsonArray>
-#include <QStandardItemModel>
 
 #include "CaretDataFile.h"
 
@@ -39,6 +38,7 @@ class QJsonValue;
 
 namespace caret {
     class NeuroglancerAnnotation;
+    class NeuroglancerAnnotationModel;
     class NeuroglancerAnnotationLabelModel;
     class FileInformation;
     class SceneClassAssistant;
@@ -127,16 +127,8 @@ namespace caret {
         virtual NeuroglancerAnnotationsFile* castToNeuroglancerAnnotationsFile() override;
         virtual const NeuroglancerAnnotationsFile* castToNeuroglancerAnnotationsFile() const override;
 
-        int32_t getNumberOfAnnotations() const;
-        
-        NeuroglancerAnnotation* getAnnotation(const int32_t index);
-        
-        const NeuroglancerAnnotation* getAnnotation(const int32_t index) const;
-        
-        Vector3D getAnnotationCoordinateXYZ(const int32_t annotationIndex,
-                                            const int32_t coordinateIndex) const;
-        
-        void setAllAnnotationsDisplayed(const bool displayStatus);
+        Vector3D annotationIJKtoXYZ(const NeuroglancerAnnotation* annotation,
+                                    const int32_t coordinateIndex) const;
         
         virtual void receiveEvent(Event* event) override;
 
@@ -160,9 +152,9 @@ namespace caret {
         
         virtual void writeFile(const AString& filename) override;
 
-        QStandardItemModel* getModel();
+        NeuroglancerAnnotationModel* getAnnotationModel();
         
-        const QStandardItemModel* getModel() const;
+        const NeuroglancerAnnotationModel* getAnnotationModel() const;
         
         CaretDataFileSelectionModel* getVolumeFileSelectionModel();
         
@@ -223,7 +215,7 @@ namespace caret {
         
         Dimension m_zDimension;
         
-        std::unique_ptr<QStandardItemModel> m_model;
+        std::unique_ptr<NeuroglancerAnnotationModel> m_annotationModel;
                 
         std::unique_ptr<CaretDataFileSelectionModel> m_volumeFileSelectionModel;
         

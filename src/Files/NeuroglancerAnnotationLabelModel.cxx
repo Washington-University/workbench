@@ -27,6 +27,7 @@
 #include "NeuroglancerAnnotationLabel.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "SceneObjectMapIntegerKey.h"
 
 using namespace caret;
 
@@ -151,6 +152,18 @@ NeuroglancerAnnotationLabelModel::saveToScene(const SceneAttributes* sceneAttrib
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
+    SceneObjectMapIntegerKey* labelsMap(new SceneObjectMapIntegerKey("labelsMap",
+                                                                    SceneObjectDataTypeEnum::SCENE_CLASS));
+    
+    for (const auto& iter : m_valueToLabelMap) {
+        const int32_t value(iter.first);
+        const AString className("Label_"
+                                + AString::number(value));
+        labelsMap->addClass(value,
+                            iter.second->saveToScene(sceneAttributes, className));
+    }
+    
+    sceneClass->addChild(labelsMap);
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
     //                        sceneClass);
@@ -180,6 +193,20 @@ NeuroglancerAnnotationLabelModel::restoreFromScene(const SceneAttributes* sceneA
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
+    const SceneObjectMapIntegerKey* labelsMap(sceneClass->getMapIntegerKey("labelsMap"));
+    if (labelsMap != NULL) {
+        const std::vector<int32_t> allKeys(labelsMap->getKeys());
+        for (const int32_t key : allKeys) {
+            const SceneClass* annClass(labelsMap->classValue(key));
+            if (annClass != NULL) {
+                NeuroglancerAnnotationLabel* label(getLabelWithValue(key));
+                if (label != NULL) {
+                    label->restoreFromScene(sceneAttributes,
+                                            annClass);
+                }
+            }
+        }
+    }
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);

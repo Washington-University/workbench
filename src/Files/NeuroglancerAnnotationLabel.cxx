@@ -24,6 +24,8 @@
 #undef __NEUROGLANCER_ANNOTATION_LABEL_DECLARE__
 
 #include "CaretAssert.h"
+#include "SceneClass.h"
+
 using namespace caret;
 
 
@@ -78,5 +80,62 @@ NeuroglancerAnnotationLabel::toString() const
 {
     return ("Value=" + AString::number(m_value)
             + ", Text=" + text());
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+NeuroglancerAnnotationLabel::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                         const AString& instanceName)
+{
+    SceneClass* sceneClass(new SceneClass(instanceName,
+                                          "NeuroglancerAnnotationLabel",
+                                          1));
+    const bool checkedFlag(checkState() == Qt::Checked);
+    sceneClass->addBoolean("checkedFlag",
+                           checkedFlag);
+    return sceneClass;
+}
+
+
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+NeuroglancerAnnotationLabel::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                              const SceneClass* sceneClass)
+{
+    const bool defaultValue(true);
+    const bool checkedFlag(sceneClass->getBooleanValue("checkedFlag",
+                                                       defaultValue));
+    if (checkedFlag) {
+        setCheckState(Qt::Checked);
+    }
+    else {
+        setCheckState(Qt::Unchecked);
+    }
 }
 

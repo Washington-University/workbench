@@ -36,6 +36,7 @@
 #include "HistologySlice.h"
 #include "IdentificationWithColor.h"
 #include "NeuroglancerAnnotation.h"
+#include "NeuroglancerAnnotationModel.h"
 #include "NeuroglancerAnnotationsFile.h"
 #include "Plane.h"
 #include "SelectionItemNeuroglancerAnnotation.h"
@@ -400,10 +401,14 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
     for (int32_t iFile = 0; iFile < numberOfNeuroAnnFiles; iFile++) {
         CaretAssertVectorIndex(allNeuroAnnFiles, iFile);
         const NeuroglancerAnnotationsFile* neuroAnnFile(allNeuroAnnFiles[iFile]);
-        const int32_t numAnn = neuroAnnFile->getNumberOfAnnotations();
+        const NeuroglancerAnnotationModel* neuroAnnModel(neuroAnnFile->getAnnotationModel());
+        if (neuroAnnModel == NULL) {
+            continue;
+        }
+        const int32_t numAnn = neuroAnnModel->getNumberOfAnnotations();
         
         for (int32_t jAnn = 0; jAnn < numAnn; jAnn++) {
-            const NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(jAnn));
+            const NeuroglancerAnnotation* neuroAnn(neuroAnnModel->getAnnotationAtIndex(jAnn));
             if ( ! neuroAnn->isDisplayed()) {
                 continue;
             }
@@ -442,8 +447,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
             
             CaretAssert(neuroAnn->getNumberOfIJK() > 0);
             const int32_t coordIndex(0);
-            Vector3D xyz = neuroAnnFile->getAnnotationCoordinateXYZ(jAnn,
-                                                                    coordIndex);
+            Vector3D xyz(neuroAnnFile->annotationIJKtoXYZ(neuroAnn, coordIndex));
 
             bool drawNeuroAnnFlag = false;
             switch (drawType) {
@@ -540,10 +544,12 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
         if (neuroAnnFileIndex >= 0) {
             NeuroglancerAnnotationsFile* neuroAnnFile(brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex));
             CaretAssert(neuroAnnFile);
+            NeuroglancerAnnotationModel* neuroAnnModel(neuroAnnFile->getAnnotationModel());
+            CaretAssert(neuroAnnModel);
             switch (drawType) {
                 case DrawType::HISTOLOGY:
                     if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(neuroAnnIndex));
+                        NeuroglancerAnnotation* neuroAnn(neuroAnnModel->getAnnotationAtIndex(neuroAnnIndex));
                         CaretAssert(neuroAnn);
                         selectNeuroAnn->setBrain(brain);
                         selectNeuroAnn->setHistologySelection(histologySlicesFile,
@@ -552,15 +558,15 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                                                               neuroAnnIndex);
                         selectNeuroAnn->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(neuroAnnFile->getAnnotationCoordinateXYZ(neuroAnnIndex,
-                                                                                    coordIndex));
+                        const Vector3D xyz(neuroAnnFile->annotationIJKtoXYZ(neuroAnn,
+                                                                            coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
                         CaretLogFine("Selected Histology Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
                     }
                     break;
                 case DrawType::SURFACE:
                     if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(neuroAnnIndex));
+                        NeuroglancerAnnotation* neuroAnn(neuroAnnModel->getAnnotationAtIndex(neuroAnnIndex));
                         CaretAssert(neuroAnn);
                         selectNeuroAnn->setBrain(brain);
                         selectNeuroAnn->setSurfaceSelection(surface,
@@ -569,8 +575,8 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                                                             neuroAnnIndex);
                         selectNeuroAnn->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(neuroAnnFile->getAnnotationCoordinateXYZ(neuroAnnIndex,
-                                                                                    coordIndex));
+                        const Vector3D xyz(neuroAnnFile->annotationIJKtoXYZ(neuroAnn,
+                                                                            coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
                         CaretLogFine("Selected Surface Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
                     }
@@ -580,7 +586,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                 case DrawType::VOLUME_ORTHOGONAL:
                     CaretAssert(selectNeuroAnn);
                     if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(neuroAnnIndex));
+                        NeuroglancerAnnotation* neuroAnn(neuroAnnModel->getAnnotationAtIndex(neuroAnnIndex));
                         CaretAssert(neuroAnn);
                         selectNeuroAnn->setBrain(brain);
                         selectNeuroAnn->setVolumeSelection(underlayVolume,
@@ -589,15 +595,15 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                                                            neuroAnnIndex);
                         selectNeuroAnn->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(neuroAnnFile->getAnnotationCoordinateXYZ(neuroAnnIndex,
-                                                                                    coordIndex));
+                        const Vector3D xyz(neuroAnnFile->annotationIJKtoXYZ(neuroAnn,
+                                                                            coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
                         CaretLogFine("Selected Volume Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
                     }
                     break;
                 case DrawType::WHOLE_BRAIN:
                     if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotation(neuroAnnIndex));
+                        NeuroglancerAnnotation* neuroAnn(neuroAnnModel->getAnnotationAtIndex(neuroAnnIndex));
                         CaretAssert(neuroAnn);
                         selectNeuroAnn->setBrain(brain);
                         selectNeuroAnn->setWholeBrainSelection(neuroAnnFile,
@@ -605,8 +611,8 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                                                                neuroAnnIndex);
                         selectNeuroAnn->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(neuroAnnFile->getAnnotationCoordinateXYZ(neuroAnnIndex,
-                                                                                    coordIndex));
+                        const Vector3D xyz(neuroAnnFile->annotationIJKtoXYZ(neuroAnn,
+                                                                            coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
                         CaretLogFine("Selected Surface Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
                     }

@@ -43,6 +43,7 @@
 #include "NeuroglancerAnnotation.h"
 #include "NeuroglancerAnnotationLabel.h"
 #include "NeuroglancerAnnotationLabelModel.h"
+#include "NeuroglancerAnnotationModel.h"
 #include "NeuroglancerAnnotationPropertyValue.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -71,7 +72,7 @@ NeuroglancerAnnotationsFile::NeuroglancerAnnotationsFile()
     m_fileMetaData.reset(new GiftiMetaData());
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-    m_model.reset(new QStandardItemModel());
+    m_annotationModel.reset(new NeuroglancerAnnotationModel());
     
     m_volumeFileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes( { DataFileTypeEnum::VOLUME },
                                                                                                    { SubvolumeAttributes::VolumeType::ANATOMY } ));
@@ -134,7 +135,7 @@ NeuroglancerAnnotationsFile::receiveEvent(Event* /*event*/)
 bool
 NeuroglancerAnnotationsFile::isEmpty() const
 {
-    return (m_model->rowCount() == 0);
+    return (m_annotationModel->rowCount() == 0);
 }
 
 /**
@@ -246,12 +247,12 @@ NeuroglancerAnnotationsFile::addToDataFileContentInformation(DataFileContentInfo
          */
     }
     
-    const int32_t numRows(m_model->rowCount());
+    const int32_t numRows(m_annotationModel->rowCount());
     dataFileInformation.addNameAndValue("Number of annotations", AString::number(numRows));
-    const int32_t numCols(m_model->columnCount());
+    const int32_t numCols(m_annotationModel->columnCount());
     for (int32_t iRow = 0; iRow < numRows; iRow++) {
         for (int32_t jCol = 0; jCol < numCols; jCol++) {
-            const QStandardItem* item(m_model->item(iRow, jCol));
+            const QStandardItem* item(m_annotationModel->item(iRow, jCol));
             const NeuroglancerAnnotationBase* nab(dynamic_cast<const NeuroglancerAnnotationBase*>(item));
             if (nab != NULL) {
                 const AString indent((jCol == 0)
@@ -786,6 +787,15 @@ NeuroglancerAnnotationsFile::saveFileDataToScene(const SceneAttributes* sceneAtt
                                        sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
+    SceneClass* annModelScene(m_annotationModel->saveToScene(sceneAttributes,
+                                                             "m_annotationModel"));
+    sceneClass->addClass(annModelScene);
+    
+    for (int32_t i = 0; i < getNumberOfLabelModels(); i++) {
+        NeuroglancerAnnotationLabelModel* labelModel(getLabelModel(i));
+        sceneClass->addClass(labelModel->saveToScene(sceneAttributes,
+                                                     labelModel->getDescription()));
+    }
 }
 
 /**
@@ -808,6 +818,20 @@ NeuroglancerAnnotationsFile::restoreFileDataFromScene(const SceneAttributes* sce
                                             sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    const SceneClass* annModelScene(sceneClass->getClass("m_annotationModel"));
+    if (annModelScene != NULL) {
+        m_annotationModel->restoreFromScene(sceneAttributes,
+                                            annModelScene);
+    }
+    
+    for (int32_t i = 0; i < getNumberOfLabelModels(); i++) {
+        NeuroglancerAnnotationLabelModel* labelModel(getLabelModel(i));
+        const SceneClass* labelClass(sceneClass->getClass(labelModel->getDescription()));
+        if (labelClass != NULL) {
+            labelModel->restoreFromScene(sceneAttributes, labelClass);
+        }
+    }
 }
 
 /**
@@ -1164,87 +1188,53 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationFiles()
                                                                 annotationSize,
                                                                 neuroglancerAnnotationPropertyValues);
         
+        /*
+         * The annotation and properties must be inserted
+         * as a row.  There does not appear to be a way
+         * to add columns to a stadard item and keep them
+         * in the same row.
+         */
         QList<QStandardItem*> newRow;
         newRow.push_back(na);
         newRow.append(modelRowPropertyValues);
         
-        m_model->appendRow(newRow);
+        m_annotationModel->addAnnotation(filenameOnly,
+                                         newRow);
     }
     
-    if (m_model->columnCount() > 0) {
+    if (m_annotationModel->columnCount() > 0) {
         QStringList headerLabels;
         headerLabels << "Annotation";
         for (const auto& p : m_properties) {
             headerLabels << p.m_description;
         }
-        m_model->setHorizontalHeaderLabels(headerLabels);
+        m_annotationModel->setHorizontalHeaderLabels(headerLabels);
     }
 }
 
 /**
- * @return Number of annotations
- */
-int32_t
-NeuroglancerAnnotationsFile::getNumberOfAnnotations() const
-{
-    return m_model->rowCount();
-}
-
-/**
- * @return Annotation at the given index
- * @param index
- *    Index of annotation
- */
-NeuroglancerAnnotation*
-NeuroglancerAnnotationsFile::getAnnotation(const int32_t index)
-{
-    CaretAssert((index >= 0)
-                && (index < m_model->rowCount()));
-    QStandardItem* item(m_model->item(index));
-    CaretAssert(item);
-    NeuroglancerAnnotation* neuroAnn(dynamic_cast<NeuroglancerAnnotation*>(item));
-    CaretAssert(neuroAnn);
-    return neuroAnn;
-}
-
-/**
- * @return Annotation at the given index (const method)
- * @param index
- *    Index of annotation
- */
-const NeuroglancerAnnotation*
-NeuroglancerAnnotationsFile::getAnnotation(const int32_t index) const
-{
-    CaretAssert((index >= 0)
-                && (index < m_model->rowCount()));
-    QStandardItem* item(m_model->item(index));
-    CaretAssert(item);
-    NeuroglancerAnnotation* neuroAnn(dynamic_cast<NeuroglancerAnnotation*>(item));
-    CaretAssert(neuroAnn);
-    return neuroAnn;
-}
-
-/**
- * @return XYZ of an annotation coordinate
- * @param annotationIndex
- *    Index of the annotation
+ * @return XYZ of an annotation's coordinate
+ * @param annotation
+ *    The annotations
  * @param coordinateIndex
  *    Index of the annotation's coordinate
  */
 Vector3D
-NeuroglancerAnnotationsFile::getAnnotationCoordinateXYZ(const int32_t annotationIndex,
-                                                        const int32_t coordinateIndex) const
+NeuroglancerAnnotationsFile::annotationIJKtoXYZ(const NeuroglancerAnnotation* annotation,
+                                                const int32_t coordinateIndex) const
 {
-    const NeuroglancerAnnotation* ann(getAnnotation(annotationIndex));
-    CaretAssert(ann);
+    Vector3D xyz(0.0, 0.0, 0.0);
     
-    Vector3D ijk(ann->getIJK(coordinateIndex));
-    Vector3D xyz(ijk);
-    const CaretDataFile* cdf(m_volumeFileSelectionModel->getSelectedFile());
-    if (cdf != NULL) {
-        const VolumeFile* volumeFile(cdf->castToVolumeFile());
-        if (volumeFile != NULL) {
-            volumeFile->indexToSpace(ijk, xyz);
+    CaretAssert(annotation);
+    if (annotation != NULL) {
+        Vector3D ijk(annotation->getIJK(coordinateIndex));
+        xyz = ijk;
+        const CaretDataFile* cdf(m_volumeFileSelectionModel->getSelectedFile());
+        if (cdf != NULL) {
+            const VolumeFile* volumeFile(cdf->castToVolumeFile());
+            if (volumeFile != NULL) {
+                volumeFile->indexToSpace(ijk, xyz);
+            }
         }
     }
     
@@ -1252,38 +1242,21 @@ NeuroglancerAnnotationsFile::getAnnotationCoordinateXYZ(const int32_t annotation
 }
 
 /**
- * Set display status of all annotations in this file
- * @param displayStatus
- *    If true, display all.
+ * @return The model containing the annotations
  */
-void
-NeuroglancerAnnotationsFile::setAllAnnotationsDisplayed(const bool displayStatus)
+NeuroglancerAnnotationModel*
+NeuroglancerAnnotationsFile::getAnnotationModel()
 {
-    const Qt::CheckState checkState(displayStatus
-                                    ? Qt::Checked
-                                    : Qt::Unchecked);
-    const int32_t numAnn(getNumberOfAnnotations());
-    for (int32_t i = 0; i < numAnn; i++) {
-        getAnnotation(i)->setCheckState(checkState);
-    }
+    return m_annotationModel.get();
 }
 
 /**
  * @return The model containing the annotations
  */
-QStandardItemModel*
-NeuroglancerAnnotationsFile::getModel()
+const NeuroglancerAnnotationModel*
+NeuroglancerAnnotationsFile::getAnnotationModel() const
 {
-    return m_model.get();
-}
-
-/**
- * @return The model containing the annotations
- */
-const QStandardItemModel*
-NeuroglancerAnnotationsFile::getModel() const
-{
-    return m_model.get();
+    return m_annotationModel.get();
 }
 
 /**

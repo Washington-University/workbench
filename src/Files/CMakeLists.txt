@@ -29,6 +29,7 @@ ELSE()
         DataFileEditorModel.h
         LabelSelectionItemModel.h
 	NeuroglancerAnnotationLabelModel.h
+	NeuroglancerAnnotationModel.h
     )
 
     IF(Qt6_FOUND)
@@ -191,6 +192,7 @@ NeuroglancerAnnotation.h
 NeuroglancerAnnotationBase.h
 NeuroglancerAnnotationLabel.h
 NeuroglancerAnnotationLabelModel.h
+NeuroglancerAnnotationModel.h
 NeuroglancerAnnotationPropertyValue.h
 NeuroglancerAnnotationPropertyDataTypeEnum.h
 NeuroglancerAnnotationTypeEnum.h
@@ -398,6 +400,7 @@ NeuroglancerAnnotation.cxx
 NeuroglancerAnnotationBase.cxx
 NeuroglancerAnnotationLabel.cxx
 NeuroglancerAnnotationLabelModel.cxx
+NeuroglancerAnnotationModel.cxx
 NeuroglancerAnnotationPropertyValue.cxx
 NeuroglancerAnnotationPropertyDataTypeEnum.cxx
 NeuroglancerAnnotationTypeEnum.cxx
