@@ -36,6 +36,7 @@ namespace caret {
     class SceneObject;
     class SceneObjectArray;
     class SceneObjectMapIntegerKey;
+    class SceneObjectMapStringKey;
     
     class SceneXmlStreamReader : public SceneXmlStreamBase {
         
@@ -62,6 +63,8 @@ namespace caret {
         SceneObjectArray* readSceneObjectArray(QXmlStreamReader& xmlReader);
         
         SceneObjectMapIntegerKey* readSceneObjectMap(QXmlStreamReader& xmlReader);
+        
+        SceneObjectMapStringKey* readSceneObjectMapStringKey(QXmlStreamReader& xmlReader);
         
         std::set<AString> m_unrecognizedElements;
         

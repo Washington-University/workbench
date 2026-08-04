@@ -30,6 +30,7 @@ namespace caret {
     class SceneClassArray;
     class SceneEnumeratedType;
     class SceneObjectMapIntegerKey;
+    class SceneObjectMapStringKey;
     class ScenePathName;
     class ScenePathNameArray;
     class ScenePrimitive;
@@ -319,6 +320,8 @@ namespace caret {
         
         const SceneObjectMapIntegerKey* getMapIntegerKey(const AString& name) const;
         
+        const SceneObjectMapStringKey* getMapStringKey(const AString& name) const;
+        
         int32_t getNumberOfObjects() const;
         
         const SceneObject* getObjectAtIndex(const int32_t indx) const;
@@ -331,19 +334,6 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
-//    private: // and are not used
-//        void addBooleanVector(const AString& name,
-//                              const std::vector<bool>& values);
-//        
-//        void addClassArray(const AString& name,
-//                           SceneClass* values[],
-//                           const int32_t arrayNumberOfElements);
-//        
-//        void addEnumeratedTypeArray(const AString& name,
-//                                    const AString value[],
-//                                    const int32_t arrayNumberOfElements);
-        
-        
     private:
         SceneClass& operator=(const SceneClass&);
 

@@ -69,6 +69,8 @@ namespace caret {
         
         static const AString ELEMENT_OBJECT_MAP;
         
+        static const AString ELEMENT_OBJECT_MAP_STRING_KEY;
+        
         static const AString ATTRIBUTE_OBJECT_MAP_NAME;
         static const AString ATTRIBUTE_OBJECT_MAP_TYPE;
         
@@ -112,7 +114,8 @@ namespace caret {
     const AString SceneXmlStreamBase::ATTRIBUTE_OBJECT_ARRAY_ELEMENT_INDEX = "Index";
     
     const AString SceneXmlStreamBase::ELEMENT_OBJECT_MAP = "ObjectMap";
-    
+    const AString SceneXmlStreamBase::ELEMENT_OBJECT_MAP_STRING_KEY = "ObjectMapStringKey";
+
     const AString SceneXmlStreamBase::ATTRIBUTE_OBJECT_MAP_NAME = "Name";
     const AString SceneXmlStreamBase::ATTRIBUTE_OBJECT_MAP_TYPE = "Type";
     

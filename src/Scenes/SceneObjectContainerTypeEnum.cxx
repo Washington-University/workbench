@@ -114,6 +114,10 @@ SceneObjectContainerTypeEnum::initialize()
                                     "MAP", 
                                     "Map"));
     
+    enumData.push_back(SceneObjectContainerTypeEnum(MAP_STRING_KEY,
+                                                    "MAP_STRING_KEY",
+                                                    "Map String Key"));
+    
     enumData.push_back(SceneObjectContainerTypeEnum(SINGLE,
                                     "SINGLE",
                                     "Single"));

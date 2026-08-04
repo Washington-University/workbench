@@ -39,6 +39,7 @@ namespace caret {
     class SceneObject;
     class SceneObjectArray;
     class SceneObjectMapIntegerKey;
+    class SceneObjectMapStringKey;
     class ScenePathName;
     class ScenePathNameArray;
     class ScenePrimitive;
@@ -69,7 +70,9 @@ namespace caret {
         
         void writeArrayObject(const SceneObjectArray* objectArray);
         
-        void writeMapObject(const SceneObjectMapIntegerKey* objectMap);
+        void writeMapIntegerKeyObject(const SceneObjectMapIntegerKey* objectMap);
+        
+        void writeMapStringKeyObject(const SceneObjectMapStringKey* objectMap);
         
         void writeSingleObject(const SceneObject* sceneObject);
         

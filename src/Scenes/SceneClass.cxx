@@ -37,6 +37,7 @@
 #include "SceneLongInteger.h"
 #include "SceneLongIntegerArray.h"
 #include "SceneObjectMapIntegerKey.h"
+#include "SceneObjectMapStringKey.h"
 #include "ScenePathName.h"
 #include "ScenePathNameArray.h"
 #include "SceneString.h"
@@ -248,15 +249,6 @@ SceneClass::addBooleanArray(const AString& name,
                                                       arrayNumberOfElements));
 }
 
-//void 
-//SceneClass::addBooleanVector(const AString& name,
-//                             const std::vector<bool>& values)
-//{
-//    addChild(new SceneBooleanArray(name,
-//                                                   values));
-//}
-
-
 /**
  * Add a child class to the class.  NOTE: The given
  * scene class is not copied and this instance will
@@ -273,25 +265,6 @@ void SceneClass::addClass(SceneClass* sceneClass)
     }
 }
 
-/**
- * Add a child class array values to the class.
- * 
- * @param name
- *    Name associated with value.
- * @param values
- *    The array containing the values.
- * @param arrayNumberOfElements
- *    Number of elements in the array.
- */
-//void 
-//SceneClass::addClassArray(const AString& name,
-//                   SceneClass* values[],
-//                   const int32_t arrayNumberOfElements)
-//{
-//   addChild(new SceneClassArray(name,
-//                                values,
-//                                arrayNumberOfElements));
-//}
 
 
 /**
@@ -308,26 +281,6 @@ SceneClass::addEnumeratedType(const AString& name,
     addChild(new SceneEnumeratedType(name,
                                                              value));
 }
-
-/**
- * Add a child enumerated type array values to the class.
- * 
- * @param name
- *    Name associated with value.
- * @param values
- *    The array containing the values.
- * @param arrayNumberOfElements
- *    Number of elements in the array.
- */
-//void 
-//SceneClass::addEnumeratedTypeArray(const AString& name,
-//                            const AString values[],
-//                            const int32_t arrayNumberOfElements)
-//{
-//    addChild(new SceneEnumeratedTypeArray(name,
-//                                   values,
-//                                   arrayNumberOfElements));
-//}
 
 /**
  * Add a child enumerated type array values to the class.
@@ -597,18 +550,6 @@ AString
 SceneClass::getEnumeratedTypeValueAsString(const AString& name,
                                            const AString& defaultValue) const
 {
-//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-//         iter != m_childObjects.end();
-//         iter++) {
-//        const SceneObject* so = *iter;
-//        const SceneEnumeratedType* st = dynamic_cast<const SceneEnumeratedType*>(so);
-//        if (st != NULL) {
-//            if (st->getName() == name) {
-//                return st->stringValue();
-//            }
-//        }
-//    }
-    
     const SceneObject* so = getObjectWithName(name);
     if (so != NULL) {
         const SceneEnumeratedType* st = dynamic_cast<const SceneEnumeratedType*>(so);
@@ -643,21 +584,6 @@ SceneClass::getEnumeratedTypeArrayValue(const AString& name,
                                         const int32_t arrayNumberOfElements,
                                         const AString& defaultValue) const
 {
-//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-//         iter != m_childObjects.end();
-//         iter++) {
-//        const SceneObject* so = *iter;
-//        const SceneEnumeratedTypeArray* enumArray = dynamic_cast<const SceneEnumeratedTypeArray*>(so);
-//        if (enumArray != NULL) {
-//            if (enumArray->getName() == name) {
-//                enumArray->stringValues(values,
-//                                        arrayNumberOfElements,
-//                                        defaultValue);
-//                return enumArray->getNumberOfArrayElements();
-//            }
-//        }
-//    }
-    
     const SceneObject* so = getObjectWithName(name);
     if (so != NULL) {
         const SceneEnumeratedTypeArray* enumArray = dynamic_cast<const SceneEnumeratedTypeArray*>(so);
@@ -979,18 +905,6 @@ SceneClass::getStringArrayValue(const AString& name,
 const ScenePrimitive* 
 SceneClass::getPrimitive(const AString& name) const
 {
-//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-//         iter != m_childObjects.end();
-//         iter++) {
-//        const SceneObject* so = *iter;
-//        const ScenePrimitive* sp = dynamic_cast<const ScenePrimitive*>(so);
-//        if (sp != NULL) {
-//            if (sp->getName() == name) {
-//                return sp;
-//            }
-//        }
-//    }
-
     const SceneObject* so = getObjectWithName(name);
     if (so != NULL) {
         const ScenePrimitive* sp = dynamic_cast<const ScenePrimitive*>(so);
@@ -1041,18 +955,6 @@ SceneClass::getPathName(const AString& name) const
 const ScenePrimitiveArray* 
 SceneClass::getPrimitiveArray(const AString& name) const
 {
-//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-//         iter != m_childObjects.end();
-//         iter++) {
-//        const SceneObject* so = *iter;
-//        const ScenePrimitiveArray* spa = dynamic_cast<const ScenePrimitiveArray*>(so);
-//        if (spa != NULL) {
-//            if (spa->getName() == name) {
-//                return spa;
-//            }
-//        }
-//    }
-    
     const SceneObject* so = getObjectWithName(name);
     if (so != NULL) {
         const ScenePrimitiveArray* spa = dynamic_cast<const ScenePrimitiveArray*>(so);
@@ -1077,18 +979,6 @@ SceneClass::getPrimitiveArray(const AString& name) const
 const ScenePathNameArray*
 SceneClass::getPathNameArray(const AString& name) const
 {
-//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-//         iter != m_childObjects.end();
-//         iter++) {
-//        const SceneObject* so = *iter;
-//        if (so->getName() == name) {
-//            const ScenePathNameArray* spa = dynamic_cast<const ScenePathNameArray*>(so);
-//            if (spa != NULL) {
-//                return spa;
-//            }
-//        }
-//    }
-    
     const SceneObject* so = getObjectWithName(name);
     if (so != NULL) {
         const ScenePathNameArray* spa = dynamic_cast<const ScenePathNameArray*>(so);
@@ -1114,18 +1004,6 @@ SceneClass::getPathNameArray(const AString& name) const
 const SceneClass* 
 SceneClass::getClass(const AString& name) const
 {
-//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-//         iter != m_childObjects.end();
-//         iter++) {
-//        const SceneObject* so = *iter;
-//        const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
-//        if (sc != NULL) {
-//            if (sc->getName() == name) {
-//                return sc;
-//            }
-//        }
-//    }
-    
     const SceneObject* so = getObjectWithName(name);
     if (so != NULL) {
         const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
@@ -1150,19 +1028,7 @@ SceneClass::getClass(const AString& name) const
  */
 SceneClass* 
 SceneClass::getClass(const AString& name)
-{
-//    for (std::vector<SceneObject*>::iterator iter = m_childObjects.begin();
-//         iter != m_childObjects.end();
-//         iter++) {
-//        SceneObject* so = *iter;
-//        SceneClass* sc = dynamic_cast<SceneClass*>(so);
-//        if (sc != NULL) {
-//            if (sc->getName() == name) {
-//                return sc;
-//            }
-//        }
-//    }
-    
+{    
     const SceneObject* soConst = getObjectWithName(name);
     if (soConst != NULL) {
         SceneObject* so = const_cast<SceneObject*>(soConst);
@@ -1203,6 +1069,31 @@ SceneClass::getMapIntegerKey(const AString& name) const
     return NULL;
 }
 
+/**
+ * Find and return the scene's child map with string key with the given name.
+ *
+ * @param name
+ *     Name of the child class.
+ * @return
+ *     Pointer to the map with string key with the given name or NULL if
+ *     no child map with string key exists with the given name.
+ */
+const SceneObjectMapStringKey*
+SceneClass::getMapStringKey(const AString& name) const
+{
+    
+    const SceneObject* sceneObject = getObjectWithName(name);
+    if (sceneObject != NULL) {
+        const SceneObjectMapStringKey* smik = dynamic_cast<const SceneObjectMapStringKey*>(sceneObject);
+        if (smik == NULL) {
+            logMissing("SceneObjectMapStringKey not found: " + name);
+        }
+        return smik;
+    }
+    
+    logMissing("SceneObjectMapStringKey not found: " + name);
+    return NULL;
+}
 
 /**
  * Find and return the scene's child class array with the given name.
@@ -1216,18 +1107,6 @@ SceneClass::getMapIntegerKey(const AString& name) const
 SceneClassArray* 
 SceneClass::getClassArray(const AString& name)
 {
-//    for (std::vector<SceneObject*>::iterator iter = m_childObjects.begin();
-//         iter != m_childObjects.end();
-//         iter++) {
-//        SceneObject* so = *iter;
-//        SceneClassArray* sca = dynamic_cast<SceneClassArray*>(so);
-//        if (sca != NULL) {
-//            if (sca->getName() == name) {
-//                return sca;
-//            }
-//        }
-//    }
-
     const SceneObject* soConst = getObjectWithName(name);
     if (soConst != NULL) {
         SceneObject* so = const_cast<SceneObject*>(soConst);
@@ -1254,18 +1133,6 @@ SceneClass::getClassArray(const AString& name)
 const SceneClassArray* 
 SceneClass::getClassArray(const AString& name) const
 {
-//    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
-//         iter != m_childObjects.end();
-//         iter++) {
-//        const SceneObject* so = *iter;
-//        const SceneClassArray* sca = dynamic_cast<const SceneClassArray*>(so);
-//        if (sca != NULL) {
-//            if (sca->getName() == name) {
-//                return sca;
-//            }
-//        }
-//    }
-    
     const SceneObject* soConst = getObjectWithName(name);
     if (soConst != NULL) {
         SceneObject* so = const_cast<SceneObject*>(soConst);

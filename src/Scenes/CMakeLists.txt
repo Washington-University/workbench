@@ -64,6 +64,7 @@ SceneObjectArray.h
 SceneObjectContainerTypeEnum.h
 SceneObjectDataTypeEnum.h
 SceneObjectMapIntegerKey.h
+SceneObjectMapStringKey.h
 ScenePathName.h
 ScenePathNameArray.h
 ScenePrimitive.h
@@ -108,6 +109,7 @@ SceneObjectArray.cxx
 SceneObjectContainerTypeEnum.cxx
 SceneObjectDataTypeEnum.cxx
 SceneObjectMapIntegerKey.cxx
+SceneObjectMapStringKey.cxx
 ScenePathName.cxx
 ScenePathNameArray.cxx
 ScenePrimitive.cxx

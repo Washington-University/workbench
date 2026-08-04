@@ -313,6 +313,30 @@ SceneObject::castToSceneObjectMapIntegerKey() const
 }
 
 /**
+ * Cast an instance of SceneObject to a SceneObjectMapStringKey.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneObjectMapStringKey
+ */
+SceneObjectMapStringKey*
+SceneObject::castToSceneObjectMapStringKey()
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneObjectMapStringKey.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneObjectMapStringKey
+ */
+const SceneObjectMapStringKey*
+SceneObject::castToSceneObjectMapStringKey() const
+{
+    return NULL;
+}
+
+/**
  * Cast an instance of SceneObject to a ScenePathName.
  * Is used to avoid dynamic casting and overridden by the class.
  *

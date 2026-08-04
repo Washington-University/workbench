@@ -32,6 +32,7 @@ namespace caret {
     class SceneEnumeratedType;
     class SceneObjectArray;
     class SceneObjectMapIntegerKey;
+    class SceneObjectMapStringKey;
     class ScenePathName;
     class ScenePrimitive;
     
@@ -81,6 +82,10 @@ namespace caret {
         
         virtual const SceneObjectMapIntegerKey* castToSceneObjectMapIntegerKey() const;
         
+        virtual SceneObjectMapStringKey* castToSceneObjectMapStringKey();
+        
+        virtual const SceneObjectMapStringKey* castToSceneObjectMapStringKey() const;
+        
         virtual ScenePathName* castToScenePathName();
         
         virtual const ScenePathName* castToScenePathName() const;
@@ -126,6 +131,7 @@ namespace caret {
         friend class SceneClass;
         friend class SceneClassArray;
         friend class SceneObjectMapIntegerKey;
+        friend class SceneObjectMapStringKey;
         friend class ScenePathName;
         friend class ScenePathNameArray;
         

@@ -45,6 +45,7 @@
 #include "SceneLongInteger.h"
 #include "SceneLongIntegerArray.h"
 #include "SceneObjectMapIntegerKey.h"
+#include "SceneObjectMapStringKey.h"
 #include "ScenePathName.h"
 #include "ScenePathNameArray.h"
 #include "SceneString.h"
@@ -197,6 +198,9 @@ SceneXmlStreamReader::readSceneObject(QXmlStreamReader& xmlReader)
     }
     else if (xmlReader.name() == ELEMENT_OBJECT_MAP) {
         sceneObject = readSceneObjectMap(xmlReader);
+    }
+    else if (xmlReader.name() == ELEMENT_OBJECT_MAP_STRING_KEY) {
+        sceneObject = readSceneObjectMapStringKey(xmlReader);
     }
     else {
         xmlReader.raiseError("Unexpected element \""
@@ -640,7 +644,12 @@ SceneXmlStreamReader::readSceneObjectArray(QXmlStreamReader& xmlReader)
                     SceneObject* elementObject = readSceneObject(xmlReader);
                     if (elementObject != NULL) {
                         SceneClass* elementClass = elementObject->castToSceneClass();
-                        CaretAssert(elementClass);
+                        //CaretAssert(elementClass);
+                        if (elementClass == NULL) {
+                            xmlReader.raiseError("Failed to cast "
+                                                 + elementObject->getName()
+                                                 + " to a class.");
+                        }
                         classArray->setClassAtIndex(sceneArrayElementIndex, elementClass);
                     }
                 }
@@ -841,6 +850,183 @@ SceneXmlStreamReader::readSceneObjectMap(QXmlStreamReader& xmlReader)
                 }
                 else if (xmlReader.name() == ELEMENT_OBJECT_MAP_VALUE) {
                     sceneKeyIndex = -1;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    
+    return sceneMap;
+}
+
+/**
+ * Read a map with a string key
+ *
+ * @param xmlReader
+ *    The XML stream reader
+ * @return
+ *    Pointer to map read or NULL if not valid
+ */
+SceneObjectMapStringKey*
+SceneXmlStreamReader::readSceneObjectMapStringKey(QXmlStreamReader& xmlReader)
+{
+    if (xmlReader.name() != ELEMENT_OBJECT_MAP_STRING_KEY) {
+        xmlReader.raiseError("Current element should be "
+                             + ELEMENT_OBJECT_MAP
+                             + " at beginning of readSceneObjectMapStringKey"
+                             + " but is \""
+                             + xmlReader.name().toString());
+        return NULL;
+    }
+    
+    const QXmlStreamAttributes mapAttributes = xmlReader.attributes();
+    const QString typeString    = mapAttributes.value(ATTRIBUTE_OBJECT_MAP_TYPE).toString();
+    const QString name          = mapAttributes.value(ATTRIBUTE_OBJECT_MAP_NAME).toString();
+    
+    SceneObjectDataTypeEnum::Enum dataType = SceneObjectDataTypeEnum::SCENE_INVALID;
+    
+    AString errorString;
+    if (typeString.isEmpty()) {
+        errorString.appendWithNewLine(ATTRIBUTE_OBJECT_MAP_TYPE
+                                      + " is missing on "
+                                      + ELEMENT_OBJECT_MAP);
+    }
+    else {
+        bool typeStringValid(false);
+        dataType = SceneObjectDataTypeEnum::fromXmlName(typeString,
+                                                        &typeStringValid);
+        if ( ! typeStringValid) {
+            errorString.appendWithNewLine(ATTRIBUTE_OBJECT_MAP_TYPE
+                                          + " \""
+                                          + typeString
+                                          + "\" is invalid on "
+                                          + ELEMENT_OBJECT_MAP);
+        }
+    }
+    if (name.isEmpty()) {
+        errorString.appendWithNewLine(ATTRIBUTE_OBJECT_MAP_NAME
+                                      + " is missing on "
+                                      + ELEMENT_OBJECT_MAP);
+    }
+    
+    if ( ! errorString.isEmpty()) {
+        xmlReader.raiseError(errorString);
+        return NULL;
+    }
+    
+    SceneObjectMapStringKey* sceneMap = new SceneObjectMapStringKey(name,
+                                                                    dataType);
+    
+    /*
+     * Set when ending scene element is found
+     */
+    bool endElementFound(false);
+    
+    AString sceneKeyString;
+    while ( ( ! xmlReader.atEnd())
+           && ( ! endElementFound)) {
+        xmlReader.readNext();
+        
+        switch (xmlReader.tokenType()) {
+            case QXmlStreamReader::StartElement:
+                if (xmlReader.name() == ELEMENT_OBJECT_MAP_VALUE) {
+                    const QXmlStreamAttributes valueAttributes = xmlReader.attributes();
+                    const QString keyString = valueAttributes.value(ATTRIBUTE_OBJECT_MAP_VALUE_KEY).toString();
+                    std::cout << "keyString: " << keyString << std::endl;
+                    if (keyString.isEmpty()) {
+                        errorString.appendWithNewLine(ATTRIBUTE_OBJECT_MAP_VALUE_KEY
+                                                      + " is missing on "
+                                                      + ELEMENT_OBJECT_MAP_VALUE);
+                    }
+                    if ( ! errorString.isEmpty()) {
+                        xmlReader.raiseError();
+                        if (sceneMap != NULL) {
+                            delete sceneMap;
+                        }
+                        return NULL;
+                    }
+                    
+                    switch (dataType) {
+                        case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
+                            sceneMap->addBoolean(keyString,
+                                                 AString(xmlReader.readElementText()).toBool());
+                            break;
+                        case SceneObjectDataTypeEnum::SCENE_CLASS:
+                            /*
+                             * Child class is handled when start element is found
+                             */
+                            sceneKeyString = keyString;
+                            std::cout << "   class key string: " << sceneKeyString << std::endl;
+                            break;
+                        case SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE:
+                            sceneMap->addEnumeratedType(keyString,
+                                                        xmlReader.readElementText());
+                            break;
+                        case SceneObjectDataTypeEnum::SCENE_FLOAT:
+                            sceneMap->addFloat(keyString,
+                                               xmlReader.readElementText().toFloat());
+                            break;
+                        case SceneObjectDataTypeEnum::SCENE_INTEGER:
+                            sceneMap->addInteger(keyString,
+                                                 xmlReader.readElementText().toInt());
+                            break;
+                        case SceneObjectDataTypeEnum::SCENE_LONG_INTEGER:
+                            sceneMap->addLongInteger(keyString,
+                                                     xmlReader.readElementText().toInt());
+                            break;
+                        case SceneObjectDataTypeEnum::SCENE_INVALID:
+                            CaretAssert(0);
+                            break;
+                        case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
+                        {
+                            ScenePathName spn("spn", "");
+                            spn.setValueToAbsolutePath(m_filename,
+                                                       xmlReader.readElementText());
+                            sceneMap->addPathName(keyString,
+                                                  spn.toString());
+                        }
+                            break;
+                        case SceneObjectDataTypeEnum::SCENE_STRING:
+                            sceneMap->addString(keyString,
+                                                xmlReader.readElementText());
+                            break;
+                        case SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE:
+                        {
+                            uint32_t value = xmlReader.readElementText().toUInt();
+                            if (value > std::numeric_limits<uint8_t>::max()) {
+                                value = std::numeric_limits<uint8_t>::max();
+                            }
+                            const uint8_t byteValue = static_cast<uint8_t>(value);
+                            sceneMap->addUnsignedByte(keyString,
+                                                      byteValue);
+                        }
+                            break;
+                    }
+                }
+                else if ( ! sceneKeyString.isEmpty()) {
+                    /*
+                     * Must be child of a scene class
+                     */
+                    SceneObject* elementObject = readSceneObject(xmlReader);
+                    if (elementObject != NULL) {
+                        SceneClass* elementClass = elementObject->castToSceneClass();
+                        CaretAssert(elementClass);
+                        sceneMap->addClass(sceneKeyString,
+                                           elementClass);
+                    }
+                }
+                else {
+                    
+                }
+                
+                break;
+            case QXmlStreamReader::EndElement:
+                if (xmlReader.name() == ELEMENT_OBJECT_MAP_STRING_KEY) {
+                    endElementFound = true;
+                }
+                else if (xmlReader.name() == ELEMENT_OBJECT_MAP_VALUE) {
+                    sceneKeyString = "";
                 }
                 break;
             default:

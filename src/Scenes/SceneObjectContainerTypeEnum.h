@@ -37,8 +37,10 @@ public:
     enum Enum {
         /** Array */
         ARRAY,
-        /** Map */
+        /** Map with Integer Key*/
         MAP,
+        /** Map with String Key*/
+        MAP_STRING_KEY,
         /** Single (one value) */
         SINGLE
     };

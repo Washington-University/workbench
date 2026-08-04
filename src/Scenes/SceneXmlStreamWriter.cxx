@@ -35,6 +35,7 @@
 #include "SceneEnumeratedTypeArray.h"
 #include "SceneInfo.h"
 #include "SceneObjectMapIntegerKey.h"
+#include "SceneObjectMapStringKey.h"
 #include "ScenePathName.h"
 #include "ScenePathNameArray.h"
 #include "ScenePrimitive.h"
@@ -173,7 +174,10 @@ SceneXmlStreamWriter::writeSceneObject(const SceneObject* sceneObject)
             writeArrayObject(sceneObject->castToSceneObjectArray());
             break;
         case SceneObjectContainerTypeEnum::MAP:
-            writeMapObject(sceneObject->castToSceneObjectMapIntegerKey());
+            writeMapIntegerKeyObject(sceneObject->castToSceneObjectMapIntegerKey());
+            break;
+        case SceneObjectContainerTypeEnum::MAP_STRING_KEY:
+            writeMapStringKeyObject(sceneObject->castToSceneObjectMapStringKey());
             break;
         case SceneObjectContainerTypeEnum::SINGLE:
             writeSingleObject(sceneObject);
@@ -253,13 +257,13 @@ SceneXmlStreamWriter::writeArrayObject(const SceneObjectArray* objectArray)
 }
 
 /**
- * Write an object map
+ * Write an object map with integer key
  *
  * @param objectMap
  *     The object map
  */
 void
-SceneXmlStreamWriter::writeMapObject(const SceneObjectMapIntegerKey* objectMap)
+SceneXmlStreamWriter::writeMapIntegerKeyObject(const SceneObjectMapIntegerKey* objectMap)
 {
     CaretAssert(objectMap);
     if (objectMap == NULL) {
@@ -358,6 +362,114 @@ SceneXmlStreamWriter::writeMapObject(const SceneObjectMapIntegerKey* objectMap)
     }
 
 
+    m_xmlWriter->writeEndElement();
+}
+
+/**
+ * Write an object map with string key
+ *
+ * @param objectMap
+ *     The object map
+ */
+void
+SceneXmlStreamWriter::writeMapStringKeyObject(const SceneObjectMapStringKey* objectMap)
+{
+    CaretAssert(objectMap);
+    if (objectMap == NULL) {
+        return;
+    }
+    
+    const SceneObjectDataTypeEnum::Enum dataType = objectMap->getDataType();
+    
+    m_xmlWriter->writeStartElement(ELEMENT_OBJECT_MAP_STRING_KEY);
+    m_xmlWriter->writeAttribute(ATTRIBUTE_OBJECT_MAP_TYPE,
+                                SceneObjectDataTypeEnum::toXmlName(dataType));
+    m_xmlWriter->writeAttribute(ATTRIBUTE_OBJECT_MAP_NAME,
+                                objectMap->getName());
+    
+    const std::map<AString, SceneObject*>& sceneMap = objectMap->getMap();
+    for (const auto& iter : sceneMap) {
+        const QString keyString(iter.first);
+        
+        m_xmlWriter->writeStartElement(ELEMENT_OBJECT_MAP_VALUE);
+        m_xmlWriter->writeAttribute(ATTRIBUTE_OBJECT_MAP_VALUE_KEY,
+                                    keyString);
+        
+        const SceneObject* valueObject = iter.second;
+        switch (dataType) {
+            case SceneObjectDataTypeEnum::SCENE_INVALID:
+                CaretAssert(0);
+                break;
+            case SceneObjectDataTypeEnum::SCENE_CLASS:
+            {
+                const SceneClass* value = valueObject->castToSceneClass();
+                CaretAssert(value);
+                writeSceneClass(value);
+            }
+                break;
+            case SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE:
+            {
+                const SceneEnumeratedType* value = valueObject->castToSceneEnumeratedType();
+                CaretAssert(value);
+                m_xmlWriter->writeCharacters(value->stringValue());
+            }
+                break;
+            case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
+            {
+                const ScenePrimitive* value = valueObject->castToScenePrimitive();
+                CaretAssert(value);
+                m_xmlWriter->writeCharacters(value->stringValue());
+            }
+                break;
+            case SceneObjectDataTypeEnum::SCENE_FLOAT:
+            {
+                const ScenePrimitive* value = valueObject->castToScenePrimitive();
+                CaretAssert(value);
+                m_xmlWriter->writeCharacters(value->stringValue());
+            }
+                break;
+            case SceneObjectDataTypeEnum::SCENE_INTEGER:
+            {
+                const ScenePrimitive* value = valueObject->castToScenePrimitive();
+                CaretAssert(value);
+                m_xmlWriter->writeCharacters(value->stringValue());
+            }
+                break;
+            case SceneObjectDataTypeEnum::SCENE_LONG_INTEGER:
+            {
+                const ScenePrimitive* value = valueObject->castToScenePrimitive();
+                CaretAssert(value);
+                m_xmlWriter->writeCharacters(value->stringValue());
+            }
+                break;
+            case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
+            {
+                const ScenePathName* pathName = valueObject->castToScenePathName();
+                CaretAssert(pathName);
+                const AString path = pathName->getRelativePathToSceneFile(m_sceneFileName);
+                m_xmlWriter->writeCharacters(path);
+            }
+                break;
+            case SceneObjectDataTypeEnum::SCENE_STRING:
+            {
+                const ScenePrimitive* value = valueObject->castToScenePrimitive();
+                CaretAssert(value);
+                m_xmlWriter->writeCharacters(value->stringValue());
+            }
+                break;
+            case SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE:
+            {
+                const ScenePrimitive* value = valueObject->castToScenePrimitive();
+                CaretAssert(value);
+                m_xmlWriter->writeCharacters(value->stringValue());
+            }
+                break;
+        }
+        
+        m_xmlWriter->writeEndElement();
+    }
+    
+    
     m_xmlWriter->writeEndElement();
 }
 
