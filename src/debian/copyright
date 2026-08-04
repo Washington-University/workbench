@@ -1,6 +1,6 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Connectome Workbench
-Source: http://www.humanconnectome.org/software/get-connectome-workbench.html
+Source: https://www.humanconnectome.org/software/get-connectome-workbench.html
 
 Files: *
 Copyright: 2014-2026 Washington University School of Medicine
@@ -585,20 +585,20 @@ License: HappyBunny
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
 
- License: IBMCPL-1.0
-  This library is free software; you can redistribute it and/or modify it
-  under the terms of the Common Public License, version 1.0, as published
-  by IBM, and/or under the terms of the GNU Lesser General Public License,
-  version 2.1, as published by the Free Software Foundation.
-
-  This file is provided "AS IS", without WARRANTIES OR CONDITIONS OF ANY
-  KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY
-  WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR
-  FITNESS FOR A PARTICULAR PURPOSE.
+License: IBMCPL-1.0
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the Common Public License, version 1.0, as published
+ by IBM, and/or under the terms of the GNU Lesser General Public License,
+ version 2.1, as published by the Free Software Foundation.
  .
-  You should have received a copy of the CPL and the LGPL along with this
-  file. See the LICENSE file and the cpl1.0.txt/lgpl-2.1.txt files
-  included with the source distribution for more information.
-  If you did not receive a copy of the licenses, contact the Qxt Foundation.
+ This file is provided "AS IS", without WARRANTIES OR CONDITIONS OF ANY
+ KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY
+ WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR
+ FITNESS FOR A PARTICULAR PURPOSE.
  .
-  <http://libqxt.org>  <foundation@libqxt.org>
+ You should have received a copy of the CPL and the LGPL along with this
+ file. See the LICENSE file and the cpl1.0.txt/lgpl-2.1.txt files
+ included with the source distribution for more information.
+ If you did not receive a copy of the licenses, contact the Qxt Foundation.
+ .
+ <http://libqxt.org>  <foundation@libqxt.org>
