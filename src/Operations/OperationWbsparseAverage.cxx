@@ -165,7 +165,7 @@ namespace
         CaretAssert(!inFiles.empty());
         CaretAssert(inFiles[0].getDatatype() != CaretSparseFile::Fibers);
         const int64_t numRows = inFiles[0].getDimensions()[1], rowLength = inFiles[0].getDimensions()[0];
-        const int64_t memLimitBytes = size_t(memLimitGB * 1000000000);
+        const int64_t memLimitBytes = int64_t(memLimitGB * 1000000000);
         const float bytesPerElem = (sizeof(T) + sizeof(int64_t)) * 1.5f; //fudge factor for...runtime keeping old allocs around?
         float sparsityMax = -1.0f;
         int64_t chunkSize = 1; //this value will never get used
@@ -236,7 +236,7 @@ namespace
         CaretAssert(!inFiles.empty());
         CaretAssert(inFiles[0].getDatatype() == CaretSparseFile::Fibers);
         const int64_t numRows = inFiles[0].getDimensions()[1], rowLength = inFiles[0].getDimensions()[0];
-        const int64_t memLimitBytes = size_t(memLimitGB * 1000000000);
+        const int64_t memLimitBytes = int64_t(memLimitGB * 1000000000);
         const float bytesPerElem = (sizeof(FiberVals) + sizeof(int64_t)) * 1.5f; //runtime keeping old allocs?
         float sparsityMax = -1.0f;
         int64_t chunkSize = 1; //this value will never get used
@@ -339,13 +339,10 @@ void OperationWbsparseAverage::useParameters(OperationParameters* myParams, Prog
     vector<CaretSparseFile> inFiles(wbsparseInOpts.size());
     CiftiXML outXML;
     CaretSparseFile::ValueType outType = CaretSparseFile::Int32; //quiet the compiler, though it is a false positive
-    float fileSparsityMax = -1.0f; //actually means "most non-sparse"...
     //TODO: parallel read (XML parse)?
     for (int64_t i = 0; i < int64_t(wbsparseInOpts.size()); ++i)
     {
         inFiles[i].readFile(wbsparseInOpts[i]->getString(1));
-        float thisSparsity = inFiles[i].getFileSparsity();
-        if (thisSparsity > fileSparsityMax) fileSparsityMax = thisSparsity;
         if (i == 0)
         {
             outXML = inFiles[i].getCiftiXML();
