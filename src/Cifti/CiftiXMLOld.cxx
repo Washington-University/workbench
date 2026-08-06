@@ -345,8 +345,8 @@ CiftiXMLOld::getVoxelInfoInDataFileContentInformation(const int& direction,
                                              + AString::number(i)),
                                             AString::fromNumbers(sform[i], ","));
     }
-    
-    int64_t myIndex = 0;
+    //TSC: old debug code
+    /*int64_t myIndex = 0;
     for (int64_t i = 0; i < (int64_t)myMap->m_brainModels.size(); ++i)
     {
         if (myMap->m_brainModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
@@ -381,7 +381,7 @@ CiftiXMLOld::getVoxelInfoInDataFileContentInformation(const int& direction,
                 ++myIndex;
             }
         }
-    }
+    }//*/
 }
 
 bool CiftiXMLOld::getVolumeStructureMap(const int& direction, vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const

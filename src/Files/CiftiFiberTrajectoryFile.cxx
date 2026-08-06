@@ -1872,7 +1872,8 @@ CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInforma
                                                      + AString::number(i)),
                                                     AString::fromNumbers(sform[i], ","));
             }
-            std::vector<StructureEnum::Enum> volStructs = colMap.getVolumeStructureList();
+            //TSC: old debug code, too spammy
+            /*std::vector<StructureEnum::Enum> volStructs = colMap.getVolumeStructureList();
             for (int i = 0; i < (int)volStructs.size(); ++i)
             {
                 std::vector<CiftiBrainModelsMap::VolumeMap> voxels = colMap.getVolumeStructureMap(volStructs[i]);
@@ -1889,7 +1890,7 @@ CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInforma
                                          + "  ");//TSC: huh?
                     dataFileInformation.addNameAndValue(StructureEnum::toGuiName(volStructs[i]), msg);//TSC: huh?
                 }
-            }
+            }//*/
         }
 
         CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,
