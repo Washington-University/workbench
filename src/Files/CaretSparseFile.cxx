@@ -40,6 +40,7 @@ CaretSparseFile::CaretSparseFile(const AString& fileName)
 void CaretSparseFile::readFile(const AString& filename)
 {
     m_file.close();
+    m_xmlBroken = false;
     if (filename.endsWith(".gz"))
     {
         throw DataFileException("wbsparse files cannot be read while compressed: " + filename);
@@ -224,6 +225,18 @@ void CaretSparseFile::decodeFibers(const uint64_t& coded, FiberFractions& decode
         throw DataFileException("error decoding value '" + AString::number(coded) + "' from workbench sparse trajectory file " + m_file.getFilename());
     }
     if (decoded.fiberFractions[2] < 0.0f) decoded.fiberFractions[2] = 0.0f;
+}
+
+void CaretSparseFile::forgetMapping(const int& direction)
+{
+    if (direction >= m_xml.getNumberOfDimensions() || direction < 0)
+    {
+        CaretLogWarning("forgetMapping called on nonexistant dimension");
+        return;
+    }
+    int64_t mapLength = m_xml.getDimensionLength(direction);
+    m_xml.setMap(direction, CiftiSeriesMap(mapLength));//keep the xml dimension length the same
+    m_xmlBroken = true;
 }
 
 void FiberFractions::clear()

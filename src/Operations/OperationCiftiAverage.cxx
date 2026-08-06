@@ -59,8 +59,8 @@ OperationParameters* OperationCiftiAverage::getParameters()
     OptionalParameter* weightOpt = ciftiOpt->createOptionalParameter(1, "-weight", "give a weight for this file");
     weightOpt->addDoubleParameter(1, "weight", "the weight to use");
     
-    OptionalParameter* memLimitOpt = ret->createOptionalParameter(4, "-mem-limit", "restrict memory used for file reading efficiency");
-    memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
+    OptionalParameter* memLimitOpt = ret->createOptionalParameter(4, "-mem-limit", "limit how much memory is used (file reading is somewhat more efficient when using more memory)");
+    memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes (default is ~10MB read before moving to a different file)");
     
     ret->setHelpText(
         AString("Averages cifti files together.  ") +
@@ -117,7 +117,7 @@ void OperationCiftiAverage::useParameters(OperationParameters* myParams, Progres
     } else {
         if (memLimitGB > 0.0f)
         {
-            int64_t chunkMaxBytes = int64_t(memLimitGB * (1<<30));
+            int64_t chunkMaxBytes = int64_t(memLimitGB * 1000000000);
             int64_t computeBytes = sizeof(double) * 2;//accum and weight accum (because exclude non-numeric)
             if (exclude)
             {//exclude needs to load some rows from all files, but can then compute one output row at a time

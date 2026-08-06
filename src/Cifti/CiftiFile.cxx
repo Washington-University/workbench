@@ -322,7 +322,7 @@ void CiftiFile::setCiftiXML(const CiftiXMLOld& xml, const bool useOldMetadata)
 
 void CiftiFile::forgetMapping(const int& direction)
 {
-    if (direction >= m_xml.getNumberOfDimensions())
+    if (direction >= m_xml.getNumberOfDimensions() || direction < 0)
     {
         CaretLogWarning("forgetMapping called on nonexistant dimension");
         return;

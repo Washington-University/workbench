@@ -61,8 +61,8 @@ OperationParameters* OperationCiftiMerge::getParameters()
     OptionalParameter* directionOpt = ret->createOptionalParameter(4, "-direction", "merge in a direction other than along rows");
     directionOpt->addStringParameter(1, "direction", "the dimension to split/concatenate along, default ROW");
     
-    OptionalParameter* memLimitOpt = ret->createOptionalParameter(3, "-mem-limit", "restrict memory used for file reading efficiency");
-    memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
+    OptionalParameter* memLimitOpt = ret->createOptionalParameter(3, "-mem-limit", "limit how much memory is used (file reading is somewhat more efficient when using more memory)");
+    memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes (default is 10MB read before moving to next file)");
     
     ret->setHelpText(
         AString("Given input CIFTI files for which mappings along the selected direction are the same type, all either series, scalars, or labels, ") +
@@ -416,7 +416,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
         } else {
             if (memLimitGB > 0.0f)
             {
-                int64_t chunkMaxBytes = int64_t(memLimitGB * (1<<30));
+                int64_t chunkMaxBytes = int64_t(memLimitGB * 1000000000);
                 int64_t computeBytes = sizeof(float) * numRows * numOutIndices;
                 int64_t numPasses = (computeBytes - 1) / chunkMaxBytes + 1;
                 chunkRows = (numRows - 1) / numPasses + 1;

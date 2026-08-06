@@ -107,10 +107,11 @@ namespace caret {
         std::vector<char> m_scratchByteArray;
         CaretSparseFile(const CaretSparseFile& rhs);
         CiftiXML m_xml;
+        bool m_xmlBroken;
     public:
         const int64_t* getDimensions() const { return m_header.dims; }
         
-        CaretSparseFile() { m_valuesOffset = -1; };
+        CaretSparseFile() { m_valuesOffset = -1; m_xmlBroken = false; };
         
         virtual void readFile(const AString& filename);
         
@@ -119,7 +120,7 @@ namespace caret {
         CaretSparseFile(const AString& fileName);
         
         ///get a reference to the XML data
-        const CiftiXML& getCiftiXML() const { return m_xml; }
+        const CiftiXML& getCiftiXML() const { if (m_xmlBroken) throw DataFileException("can't use wbsparse XML after forgetting mappings"); return m_xml; }
         
         ValueType getDatatype() const { return ValueType(m_header.valueType); }
         
@@ -186,6 +187,17 @@ namespace caret {
         void getFibersRow(const int64_t& index, FiberFractions* rowOut) { getRow(index, rowOut); } //forward old functions to templated version
         
         void getFibersRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<FiberFractions>& valuesOut) { getRowSparse(index, indicesOut, valuesOut); }
+        
+        void forgetMapping(const int& direction);//HACK: reduce memory usage by modifying the XML
+        
+        float getFileSparsity() const { CaretAssert(!m_indexArray.empty()); return float(m_indexArray.back()) / (m_header.dims[0] * m_header.dims[1]); }
+        
+        int64_t getCountOfRowValues(const int64_t& index) const
+        {
+            CaretAssert(index >= 0 && index < m_header.dims[1]);
+            if (index < 0 || index >= m_header.dims[1]) throw DataFileException("invalid row index requested in wbsparse");
+            return m_indexArray[index + 1] - m_indexArray[index];
+        }
         
         virtual ~CaretSparseFile();
     private:
@@ -329,10 +341,12 @@ namespace caret {
             const int indexSize = m_header.indexSize();
             const int entrySize = indexSize + m_header.valueSize();
             m_scratchBytes.resize(numNonZero * entrySize);
-            int64_t i = 0; //need to track packing into output
+            int64_t i = 0, prevIndex = -1; //need to track packing into output, check if someone used a map with backwards comparison
             for (auto iter : sparseRow)
             {
                 CaretAssert(iter.first >= 0 && iter.first < m_header.dims[0]);
+                CaretAssert(iter.first > prevIndex);
+                prevIndex = iter.first;
                 if (m_header.longIndex > 0) //stick this in a convertIndexWrite function?
                 {
                     int64_t& temp = *(int64_t*)&m_scratchBytes[i * entrySize];
@@ -346,6 +360,7 @@ namespace caret {
                 convertValueWrite(iter.second, m_scratchBytes.data() + i * entrySize + indexSize);//so that it can specialize for FiberFraction type instead of this whole function
                 ++i;
             }
+            (void)prevIndex;
             m_file.write(m_scratchBytes.data(), m_scratchBytes.size());
         }
 

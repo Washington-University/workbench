@@ -480,7 +480,6 @@ AlgorithmSurfacePairsInteriorDistance::AlgorithmSurfacePairsInteriorDistance(Pro
     }
     if (fail) rethrow_exception(exPtr);
     //NOTE: actually supports different volume space for output than for A*
-    //QByteArray apparently limits CiftiXML to about 1GB, so this is important
     if (pathsOut != NULL)
     {
         pathsOut->reinitialize(countingSpace, numPairs);
