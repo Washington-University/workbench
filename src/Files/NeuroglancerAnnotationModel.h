@@ -60,7 +60,8 @@ namespace caret {
         NeuroglancerAnnotation* getAnnotationWithFileName(const AString& fileName);
         
         const NeuroglancerAnnotation* getAnnotationWithFileName(const AString& fileName) const;
-        
+
+        void setHeaderLabels(const QStringList& horizontalHeaderLabels);
 
         void setAllAnnotationsDisplayed(const bool displayStatus);
 

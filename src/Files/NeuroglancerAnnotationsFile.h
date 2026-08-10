@@ -33,6 +33,7 @@
 #include "EventListenerInterface.h"
 #include "NeuroglancerAnnotationTypeEnum.h"
 
+class QFile;
 class QJsonObject;
 class QJsonValue;
 
@@ -116,6 +117,40 @@ namespace caret {
             int32_t m_limit = 0;
         };
         
+        class Sharding {
+        public:
+            AString m_type;
+            AString m_dataEncoding;
+            AString m_hash;
+            int32_t m_minishardBits = -1;
+            AString m_minishardIndexEncoding;
+            int32_t m_preshiftBits = -1;
+            int32_t m_shardBits = -1;
+            bool m_validFlag = false;
+            
+            void print(const AString& name) const;
+        };
+        
+        class Relationship {
+        public:
+            AString m_id;
+            
+            AString m_directoryName;
+            
+            Sharding m_sharding;
+        };
+        
+        class ChunkInfo {
+        public:
+            ChunkInfo() { }
+            ChunkInfo(uint64_t cid, uint64_t offset, uint64_t csize)
+            : m_id(cid), m_offset(offset), m_size(csize) { }
+            uint64_t m_id = -1;
+            uint64_t m_relativeOffset = -1;
+            uint64_t m_offset = -1;
+            uint64_t m_size = -1;
+        };
+        
         NeuroglancerAnnotationsFile();
         
         virtual ~NeuroglancerAnnotationsFile();
@@ -176,22 +211,45 @@ namespace caret {
                                               const SceneClass* sceneClass);
 
     private:
-        void readNeuroglancerFile(const AString& filename);
+        void readNeuroglancerInfoFile(const AString& filename);
 
-        void readNeuroglancerJson(const FileInformation& fileInfo,
-                                      const QJsonObject& topObject);
+        void parseNeuroglancerInfoFileJson(const FileInformation& fileInfo,
+                                           const QJsonObject& topObject);
   
-        void readDimensions(const QJsonObject &dimsObj);
+        void parseDimensionsObject(const QJsonObject &dimsObj);
         
-        void readProperties(const QJsonArray &propsArr);
+        void parsePropertiesArray(const QJsonArray &propsArr);
         
-        std::vector<SpatialGrid> readSpatial(const QJsonArray &spatialArr);
+        void parseByIdObject(const QJsonObject& byIdObject);
         
-        std::vector<float> readFloatArray(const QJsonArray &array);
+        Sharding praseShardingObject(const QJsonObject shardingObject);
         
-        std::vector<int32_t> readIntArray(const QJsonArray &array);
+        void parseRelationshipsArray(const QJsonArray& relationshipsArray);
+        
+        std::vector<SpatialGrid> parseSpatialArray(const QJsonArray &spatialArray);
+        
+        std::vector<float> parseFloatArray(const QJsonArray &array);
+        
+        std::vector<int32_t> parseIntArray(const QJsonArray &array);
         
         void readNeuroglancerAnnotationFiles();
+        
+        void readNeuroglancerAnnotationShardedFiles();
+        
+        void readEncodedMinishardIndex(QFile& file,
+                                       const AString& dataEncoding,
+                                       const uint64_t shardIndexEnd,
+                                       const AString& minishardIndexEncoding,
+                                       const uint64_t minishardOffset,
+                                       const uint64_t minishardLength);
+
+        void processMinishardIndex(QFile& file,
+                                   const uint64_t shardIndexEnd,
+                                   const QByteArray& minishardIndexData,
+                                   const AString& dataEncoding);
+        
+        void readChunksFromShardFile(QFile& file,
+                                     const AString& dataEncoding);
         
         static AString dimensionToString(const Dimension& dimension);
         
@@ -199,6 +257,17 @@ namespace caret {
         
         static AString annotationFileTypeToString(const AnnotationFileType& annotationFileType);
         
+        void addShardingToDataFileInformation(DataFileContentInformation& dataFileInformation,
+                                              const AString& shardingName,
+                                              const Sharding& sharding) const;
+        
+        void readAnnotationFromDataStream(QDataStream& dataStream,
+                                          const AString& annotationID);
+        
+        bool decompressData(const QByteArray& compressedDataIn,
+                            QByteArray& uncompressedDataOut,
+                            const AString encodingName);
+
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         std::unique_ptr<GiftiMetaData> m_fileMetaData;
@@ -207,6 +276,8 @@ namespace caret {
         
         AString m_byIdDirectoryName;
         
+        Sharding m_byIdSharding;
+        
         NeuroglancerAnnotationTypeEnum::Enum m_annotationType = NeuroglancerAnnotationTypeEnum::POINT;
         
         Dimension m_xDimension;
@@ -214,6 +285,8 @@ namespace caret {
         Dimension m_yDimension;
         
         Dimension m_zDimension;
+        
+        std::vector<Relationship> m_relationships;
         
         std::unique_ptr<NeuroglancerAnnotationModel> m_annotationModel;
                 
@@ -232,6 +305,10 @@ namespace caret {
         std::vector<Property> m_properties;
         
         std::vector<std::unique_ptr<NeuroglancerAnnotationLabelModel>> m_labelModels;
+        
+        std::vector<ChunkInfo> m_chunkInfo;
+
+        bool m_debugFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -179,6 +179,24 @@ NeuroglancerAnnotationModel::setAllAnnotationsDisplayed(const bool displayStatus
 }
 
 /**
+ * Set the header labels for the model
+ * @param horizontalHeaderLabels
+ *    Labels for the horizontal header
+ */
+void
+NeuroglancerAnnotationModel::setHeaderLabels(const QStringList& horizontalHeaderLabels)
+{
+    setHorizontalHeaderLabels(horizontalHeaderLabels);
+    
+    QStringList verticalHeaderLabels;
+    const int32_t numAnn(getNumberOfAnnotations());
+    for (int32_t i = 0; i < numAnn; i++) {
+        verticalHeaderLabels.push_back(getAnnotationAtIndex(i)->getFileName());
+    }
+    setVerticalHeaderLabels(verticalHeaderLabels);
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes

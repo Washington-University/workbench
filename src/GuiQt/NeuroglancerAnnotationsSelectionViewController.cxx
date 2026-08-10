@@ -192,7 +192,6 @@ NeuroglancerAnnotationsSelectionViewController::createAnnotationWidget()
     allOnOffLayout->addStretch();
 
     m_annotationTableView = new QTableView();
-    m_annotationTableView->verticalHeader()->setVisible(false);
     QObject::connect(m_annotationTableView, &QTableView::clicked,
                      this, &NeuroglancerAnnotationsSelectionViewController::annotationTableViewItemClicked);
     
