@@ -40,6 +40,9 @@
 // using zlib for compressing and uncompressing data.
 
 #include <stdint.h>
+
+#include <QByteArray>
+
 #include "CaretObject.h"
 
 namespace caret {
@@ -54,7 +57,14 @@ public:
     
     ~DataCompressZLib();
 
-  // Description:  
+    /*
+     * Not from VTK.
+     * Uncompress data without knowing the uncompressed
+     * length beforehand.
+     */
+    static bool uncompressData(QByteArray input, QByteArray &output);
+    
+  // Description:
   // Get the maximum space that may be needed to store data of the
   // given uncompressed size after compression.  This is the minimum
   // size of the output buffer that can be passed to the four-argument
