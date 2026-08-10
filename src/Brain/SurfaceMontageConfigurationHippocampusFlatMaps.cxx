@@ -258,6 +258,11 @@ SurfaceMontageConfigurationHippocampusFlatMaps::updateSurfaceMontageViewports(st
             case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:
                 surfaceMontageViewports[0].setRowAndColumn(0, 0);
                 surfaceMontageViewports[1].setRowAndColumn(0, 1);
+                if ((surfaceMontageViewports[0].getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE)
+                    && (surfaceMontageViewports[1].getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE)) {
+                    surfaceMontageViewports[0].setRowAndColumn(0, 1);
+                    surfaceMontageViewports[1].setRowAndColumn(0, 0);
+                }
                 break;
         }
         
