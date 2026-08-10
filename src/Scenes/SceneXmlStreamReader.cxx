@@ -933,7 +933,6 @@ SceneXmlStreamReader::readSceneObjectMapStringKey(QXmlStreamReader& xmlReader)
                 if (xmlReader.name() == ELEMENT_OBJECT_MAP_VALUE) {
                     const QXmlStreamAttributes valueAttributes = xmlReader.attributes();
                     const QString keyString = valueAttributes.value(ATTRIBUTE_OBJECT_MAP_VALUE_KEY).toString();
-                    std::cout << "keyString: " << keyString << std::endl;
                     if (keyString.isEmpty()) {
                         errorString.appendWithNewLine(ATTRIBUTE_OBJECT_MAP_VALUE_KEY
                                                       + " is missing on "
@@ -957,7 +956,6 @@ SceneXmlStreamReader::readSceneObjectMapStringKey(QXmlStreamReader& xmlReader)
                              * Child class is handled when start element is found
                              */
                             sceneKeyString = keyString;
-                            std::cout << "   class key string: " << sceneKeyString << std::endl;
                             break;
                         case SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE:
                             sceneMap->addEnumeratedType(keyString,
