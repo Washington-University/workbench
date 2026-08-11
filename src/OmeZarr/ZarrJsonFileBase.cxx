@@ -206,14 +206,19 @@ ZarrJsonFileBase::readJsonFromFile(const ZarrDriverTypeEnum::Enum driverType,
                     return jsonError("Unable to open file.");
                 }
                 
-                std::vector<char> jsonCharacters(numberOfBytes);
+                /*
+                 * Need "+1" to allow pointer to after last character.
+                 * Trying to access jsonCharacters[jsonCharacters.size()]
+                 * will cause a crash.
+                 */
+                std::vector<char> jsonCharacters(numberOfBytes + 1);
                 inputStream.seekg(0);
                 if ( ! inputStream.read(&jsonCharacters[0], numberOfBytes)) {
                     return jsonError("Reading all content of file.");
                 }
                 
                 const char* ptrStart(&jsonCharacters[0]);
-                const char* ptrEnd(&jsonCharacters[jsonCharacters.size()]);
+                const char* ptrEnd(&jsonCharacters[jsonCharacters.size() - 1]);
                 
                 try {
                     const nlohmann::json::parser_callback_t callbackFunction = nullptr;
