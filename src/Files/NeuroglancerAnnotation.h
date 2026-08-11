@@ -42,7 +42,7 @@ namespace caret {
 
     public:
         NeuroglancerAnnotation(const NeuroglancerAnnotationTypeEnum::Enum annotationType,
-                               const AString& fileName,
+                               const AString& fileNameNoPath,
                                const std::vector<Vector3D>& ijk,
                                const QColor& color,
                                const float symbolSize,
@@ -58,7 +58,7 @@ namespace caret {
         
         bool isDisplayed() const;
         
-        AString getFileName() const;
+        AString getFileNameNoPath() const;
         
         int32_t getNumberOfIJK() const;
         
@@ -91,7 +91,7 @@ namespace caret {
         
         NeuroglancerAnnotationTypeEnum::Enum m_annotationType = NeuroglancerAnnotationTypeEnum::INVALID;
         
-        AString m_fileName;
+        AString m_fileNameNoPath;
         
         std::vector<Vector3D> m_ijk;
         

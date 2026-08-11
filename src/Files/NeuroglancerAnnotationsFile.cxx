@@ -39,6 +39,7 @@
 #include "AStringNaturalComparison.h"
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionModel.h"
+#include "CaretLogger.h"
 #include "DataCompressZLib.h"
 #include "DataFileException.h"
 #include "DataFileContentInformation.h"
@@ -326,11 +327,19 @@ NeuroglancerAnnotationsFile::readFile(const AString& filename)
     
     readNeuroglancerInfoFile(filename);
     
+    for (const Relationship& r : m_relationships) {
+        readNeuroglancerAnnotationShardedFiles(r.m_sharding,
+                                               ShardingDataType::RELATIONSHIP,
+                                               r.m_directoryName);
+    }
+    
     if (m_byIdSharding.m_validFlag) {
         /*
          * Multiple annotations are in one or more files
          */
-        readNeuroglancerAnnotationShardedFiles();
+        readNeuroglancerAnnotationShardedFiles(m_byIdSharding,
+                                               ShardingDataType::ANNOTATION,
+                                               m_byIdDirectoryName);
     }
     else {
         /*
@@ -684,7 +693,7 @@ NeuroglancerAnnotationsFile::parseByIdObject(const QJsonObject& byIdObject)
     
     if (byIdObject.contains("sharding")) {
         const QJsonObject shardingObject(byIdObject.value("sharding").toObject());
-        m_byIdSharding = praseShardingObject(shardingObject);
+        m_byIdSharding = parseShardingObject(shardingObject);
     }
 }
 
@@ -696,7 +705,7 @@ NeuroglancerAnnotationsFile::parseByIdObject(const QJsonObject& byIdObject)
  *    Sharding class instance
  */
 NeuroglancerAnnotationsFile::Sharding
-NeuroglancerAnnotationsFile::praseShardingObject(const QJsonObject shardingObject)
+NeuroglancerAnnotationsFile::parseShardingObject(const QJsonObject shardingObject)
 {
     Sharding sharding;
     sharding.m_type = shardingObject.value("@type").toString();
@@ -748,7 +757,7 @@ NeuroglancerAnnotationsFile::parseRelationshipsArray(const QJsonArray& relations
         
         if (relationshipsObject.contains("sharding")) {
             const QJsonObject shardingObject(relationshipsObject.value("sharding").toObject());
-            relationship.m_sharding = praseShardingObject(shardingObject);
+            relationship.m_sharding = parseShardingObject(shardingObject);
         }
         m_relationships.push_back(relationship);
     }
@@ -1169,224 +1178,74 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationFiles()
          */
         QDataStream dataStream(&file);
         
-//        const bool useNewFunctionFlag(true);
-//        if (useNewFunctionFlag) {
-            readAnnotationFromDataStream(dataStream,
-                                         filenameOnly);
-//        }
-//        else {
-//            dataStream.setByteOrder(QDataStream::LittleEndian);
-//            dataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-//            
-//            /* Added into the model in same row as NeuroglancerAnnotation */
-//            QList<QStandardItem*> modelRowPropertyValues;
-//            
-//            /* Added to NeuroglancerAnnotation*/
-//            std::vector<const NeuroglancerAnnotationPropertyValue*> neuroglancerAnnotationPropertyValues;
-//            
-//            float annotationSize(2.0);
-//            QColor annotationColor(255, 255, 255, 255);
-//            
-//            float i, j, k;
-//            dataStream >> i >> j >> k;
-//            
-//            const int32_t numProperties(m_properties.size());
-//            for (int32_t iProp = 0; iProp < numProperties; iProp++) {
-//                CaretAssertVectorIndex(m_properties, iProp);
-//                const Property& property(m_properties[iProp]);
-//                
-//                const int64_t offset(property.m_fileOffset);
-//                CaretAssert(offset > 0);
-//                
-//                NeuroglancerAnnotationPropertyDataTypeEnum::Enum propertyType(NeuroglancerAnnotationPropertyDataTypeEnum::INVALID);
-//                QVariant propertyValue = "InvalidSeekFailed";
-//                AString propertyLabelText;
-//                if (file.seek(offset)) {
-//                    switch (property.m_propertyType) {
-//                        case DataType::INVALID:
-//                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::INVALID;
-//                            propertyValue = "InvalidDataType";
-//                            break;
-//                        case DataType::RGB:
-//                        {
-//                            uint8_t r, g, b;
-//                            dataStream >> r >> g >> b;
-//                            QColor color(r, g, b);
-//                            propertyValue = QVariant::fromValue(color);
-//                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::RGBA;
-//                            
-//                            annotationColor.setRgb(r, g, b);
-//                        }
-//                            break;
-//                        case DataType::RGBA:
-//                        {
-//                            uint8_t r, g, b, a;
-//                            dataStream >> r >> g >> b >> a;
-//                            QColor color(r, g, b, a);
-//                            propertyValue = QVariant::fromValue(color);
-//                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::RGBA;
-//                            
-//                            annotationColor.setRgb(r, g, b, a);
-//                        }
-//                            break;
-//                        case DataType::UINT8:
-//                        {
-//                            uint8_t v;
-//                            dataStream >> v;
-//                            propertyValue = static_cast<uint32_t>(v);
-//                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER;
-//                        }
-//                            break;
-//                        case DataType::INT8:
-//                        {
-//                            int8_t v;
-//                            dataStream >> v;
-//                            propertyValue = static_cast<int32_t>(v);
-//                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER;
-//                        }
-//                            break;
-//                        case DataType::UINT16:
-//                        {
-//                            uint16_t v;
-//                            dataStream >> v;
-//                            propertyValue = static_cast<uint32_t>(v);
-//                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER;
-//                        }
-//                            break;
-//                        case DataType::INT16:
-//                        {
-//                            int16_t v;
-//                            dataStream >> v;
-//                            propertyValue = static_cast<int32_t>(v);
-//                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER;
-//                        }
-//                            break;
-//                        case DataType::UINT32:
-//                        {
-//                            int32_t v;
-//                            dataStream >> v;
-//                            propertyValue = v;
-//                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER;
-//                        }
-//                            break;
-//                        case DataType::INT32:
-//                        {
-//                            uint32_t v;
-//                            dataStream >> v;
-//                            propertyValue = v;
-//                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER;
-//                        }
-//                            break;
-//                        case DataType::FLOAT32:
-//                        {
-//                            float v;
-//                            dataStream >> v;
-//                            propertyValue = v;
-//                            propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::FLOAT;
-//                        }
-//                            break;
-//                    }
-//                    
-//                    if (property.m_enumValueLabel.empty()) {
-//                        if (property.m_description == "size") {
-//                            annotationSize = propertyValue.toFloat();
-//                        }
-//                    }
-//                    else {
-//                        int32_t labelIndex(-1);
-//                        switch (propertyType) {
-//                            case NeuroglancerAnnotationPropertyDataTypeEnum::INVALID:
-//                                break;
-//                            case NeuroglancerAnnotationPropertyDataTypeEnum::RGBA:
-//                                break;
-//                            case NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER:
-//                                labelIndex = static_cast<int32_t>(propertyValue.toUInt());
-//                                break;
-//                            case NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER:
-//                                labelIndex = propertyValue.toInt();
-//                                break;
-//                            case NeuroglancerAnnotationPropertyDataTypeEnum::FLOAT:
-//                                break;
-//                            case NeuroglancerAnnotationPropertyDataTypeEnum::LABEL:
-//                                break;
-//                        }
-//                        
-//                        if (labelIndex >= 0) {
-//                            auto labelIter(property.m_enumValueLabel.find(labelIndex));
-//                            if (labelIter != property.m_enumValueLabel.end()) {
-//                                propertyLabelText = labelIter->second;
-//                                propertyType = NeuroglancerAnnotationPropertyDataTypeEnum::LABEL;
-//                            }
-//                        }
-//                    }
-//                }
-//                
-//                NeuroglancerAnnotationPropertyValue* neuroAnnProp(new NeuroglancerAnnotationPropertyValue(property.m_description,
-//                                                                                                          propertyType,
-//                                                                                                          propertyValue,
-//                                                                                                          propertyLabelText,
-//                                                                                                          property.m_labelModel));
-//                modelRowPropertyValues.push_back(neuroAnnProp);
-//                neuroglancerAnnotationPropertyValues.push_back(neuroAnnProp);
-//            }
-//            
-//            bool supportedFlag(false);
-//            switch (m_annotationType) {
-//                case NeuroglancerAnnotationTypeEnum::INVALID:
-//                    break;
-//                case NeuroglancerAnnotationTypeEnum::AXIS_ALIGNED_BOUNDING_BOX:
-//                    break;
-//                case NeuroglancerAnnotationTypeEnum::ELLIPSOID:
-//                    break;
-//                case NeuroglancerAnnotationTypeEnum::LINE:
-//                    break;
-//                case NeuroglancerAnnotationTypeEnum::POINT:
-//                    supportedFlag = true;
-//                    break;
-//                case NeuroglancerAnnotationTypeEnum::POLYLINE:
-//                    break;
-//            }
-//            if ( ! supportedFlag) {
-//                throw DataFileException("Neuroglancer Annotation type not supported for "
-//                                        + NeuroglancerAnnotationTypeEnum::toGuiName(m_annotationType));
-//            }
-//            
-//            std::vector<Vector3D> ijks { Vector3D(i, j, k) };
-//            
-//            NeuroglancerAnnotation* na = new NeuroglancerAnnotation(m_annotationType,
-//                                                                    filenameOnly,
-//                                                                    ijks,
-//                                                                    annotationColor,
-//                                                                    annotationSize,
-//                                                                    neuroglancerAnnotationPropertyValues);
-//            
-//            /*
-//             * The annotation and properties must be inserted
-//             * as a row.  There does not appear to be a way
-//             * to add columns to a stadard item and keep them
-//             * in the same row.
-//             */
-//            QList<QStandardItem*> newRow;
-//            newRow.push_back(na);
-//            newRow.append(modelRowPropertyValues);
-//            
-//            m_annotationModel->addAnnotation(filenameOnly,
-//                                             newRow);
-//        }
+        QByteArray emptyByteArray;
+        readAnnotationFromDataStream(&file,
+                                     emptyByteArray,
+                                     dataStream,
+                                     filenameOnly);
     }
 }
 
 /**
  * Read an annontation from a datastream
+ * @param file
+ *    File containing annotation.  If NULL, annotation is being read from in-memory data
+ * @param dataBytes
+ *    If 'file' is NULL, the annotation is being read from this byte array
  * @param dataStream
  *   The datastream
  * @param annotationID
  *    The annotation ID (may be filename when each annotation in its own file)
  */
 void
-NeuroglancerAnnotationsFile::readAnnotationFromDataStream(QDataStream& dataStream,
+NeuroglancerAnnotationsFile::readAnnotationFromDataStream(QFile* file,
+                                                          const QByteArray& dataBytes,
+                                                          QDataStream& dataStream,
                                                           const AString& annotationID)
 {
+    /*
+     * Position/radii vectors, required by the annotation type, encoded as
+     * float32le values:
+     *
+     *   - POINT:
+     *       The position vector.
+     *
+     *   - LINE:
+     *       The first endpoint position, followed by the second endpoint
+     *       position.
+     *
+     *   - AXIS_ALIGNED_BOUNDING_BOX:
+     *       The first position, followed by the second position.
+     *
+     *   - ELLIPSOID:
+     *       The center position, followed by the radii vector.
+     *
+     *   - POLYLINE:
+     *       The number of points as a uint32le value, followed by the
+     *       position of each point as float32le.
+     *
+     * Properties, encoded per their type:
+     *
+     *   - uint32, int32, float32:
+     *       Encoded as a little-endian value.
+     *
+     *   - uint16, int16:
+     *       Encoded as a little-endian value.
+     *
+     *   - uint8, int8, rgb, rgba:
+     *       Encoded as-is (no byte-order conversion needed).
+     *
+     * Padding:
+     *   Up to 3 padding bytes (value 0) to align the next field to a
+     *   4-byte offset.
+     *
+     * Below is ONLY when each annotation is in a single file (NOT sharded)
+     *
+     * Relationships, for each relationship specified in the info JSON file:
+     *
+     *   1. The number of object IDs, as a uint32le value.
+     *   2. Each related object ID, as a uint64le value.
+     */
     dataStream.setByteOrder(QDataStream::LittleEndian);
     dataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
     
@@ -1543,6 +1402,67 @@ NeuroglancerAnnotationsFile::readAnnotationFromDataStream(QDataStream& dataStrea
         modelRowPropertyValues.push_back(neuroAnnProp);
         neuroglancerAnnotationPropertyValues.push_back(neuroAnnProp);
     }
+
+    QByteArray extraBytes;
+    if (file != NULL) {
+        /*
+         * After reading the annotation, the file position must be at
+         * a 4-byte offset (see comment at beginning of this function).
+         */
+        const int64_t bytesToSkip(file->pos() % 4);
+        CaretAssert((bytesToSkip >= 0)
+                    && (bytesToSkip <= 3));
+        const int64_t bytesActuallySkipped(file->skip(bytesToSkip));
+        if (bytesToSkip != bytesActuallySkipped) {
+            CaretLogWarning("Failed to skip bytes at end of reading Neuroglancer Annotation");
+        }
+        
+        if (m_debugFlag) {
+            const int64_t bytesLeft(file->size() - file->pos());
+            if (bytesLeft > 0) {
+                /*
+                 * Read the remaining bytes
+                 */
+                extraBytes.resize(bytesLeft);
+                dataStream.readRawData(extraBytes.data(), bytesLeft);
+            }
+        }
+    }
+    else {
+        /*
+         * Read any remaining bytes
+         */
+        extraBytes.reserve(256);
+        while (  ! dataStream.atEnd()) {
+            char ch;
+            dataStream >> ch;
+            extraBytes.push_back(ch);
+        }
+        
+        /*
+         * There is no "pos()" in QDataStream so we need to determine
+         * if we are at a 4-byte boundary and if there is "padding"
+         */
+        const int64_t dataArrayPos(dataBytes.length() - extraBytes.length());
+        const int64_t remainder(dataArrayPos % 4);
+        
+        if (remainder >= 0) {
+            /*
+             * Skip over the padded bytes
+             */
+            if (remainder <= extraBytes.size()) {
+                extraBytes = extraBytes.mid(remainder);
+            }
+            else {
+                extraBytes.clear();
+            }
+        }
+    }
+    
+    if ( ! extraBytes.isEmpty()) {
+        if (m_debugFlag) std::cout << "Annotation: " << getFileName() << " has extra bytes at end, num="
+        << extraBytes.size() << std::endl;
+    }
     
     bool supportedFlag(false);
     switch (m_annotationType) {
@@ -1589,21 +1509,29 @@ NeuroglancerAnnotationsFile::readAnnotationFromDataStream(QDataStream& dataStrea
     
     m_annotationModel->addAnnotation(annotationID,
                                      newRow);
-
+    
 }
 
 
 /**
- * Read the sharded data files in the 'byId" directory.
+ * Read the sharded data files for the given sharding data type
  * Sharded files contain one or more annotations in a single file.
+ * @param shardingInfo
+ *    The sharding info
+ * @param shardingDataType
+ *    Type of data stored in sharding
+ * @param shardingDataDirectoryName
+ *    Name of directory containing the sharded data
  */
 void
-NeuroglancerAnnotationsFile::readNeuroglancerAnnotationShardedFiles()
+NeuroglancerAnnotationsFile::readNeuroglancerAnnotationShardedFiles(const Sharding& shardingInfo,
+                                                                    const ShardingDataType shardingDataType,
+                                                                    const AString& shardingDataDirectoryName)
 {
-    QDir dir(m_byIdDirectoryName);
+    QDir dir(shardingDataDirectoryName);
     if ( ! dir.exists()) {
-        throw DataFileException("byID directory does not exist: "
-                                + m_byIdDirectoryName);
+        throw DataFileException("Read sharding directory does not exist: "
+                                + shardingDataDirectoryName);
     }
     
     /*
@@ -1611,9 +1539,9 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationShardedFiles()
      * <shard>.shard file, where <shard> is the lowercase base-16 shard number
      * zero padded to ceil(shard_bits/4) digits.
      */
-    const int32_t numShardFiles(std::exp2(m_byIdSharding.m_shardBits));
+    const int32_t numShardFiles(std::exp2(shardingInfo.m_shardBits));
     if (m_debugFlag) std::cout << "Num shard files: " << numShardFiles << std::endl;
-    const int32_t numDigitsInFileName(std::ceil(m_byIdSharding.m_shardBits / 4));
+    const int32_t numDigitsInFileName(std::ceil(shardingInfo.m_shardBits / 4));
     if (m_debugFlag)std::cout << "   Num digits in filename: " << numDigitsInFileName << std::endl;
 
     std::vector<AString> allShardFileNames;
@@ -1625,7 +1553,7 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationShardedFiles()
          */
         const AString filenameNumber(AString::number(iFile).rightJustified(numDigitsInFileName, '0'));
         const AString filenameOnly(filenameNumber + ".shard");
-        const AString pathAndName(m_byIdDirectoryName
+        const AString pathAndName(shardingDataDirectoryName
                                   + QDir::separator()
                                   + filenameOnly);
         allShardFileNames.push_back(pathAndName);
@@ -1688,9 +1616,8 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationShardedFiles()
          * chunk IDs in the minishard.
          */
         if (m_debugFlag) std::cout << "2**4: " << std::exp2(4.0) << std::endl;
-        const Sharding& shardInfo(m_byIdSharding);
-        if (m_debugFlag) shardInfo.print("By ID Sharding");
-        const int64_t numEntries(std::exp2(shardInfo.m_minishardBits));
+        if (m_debugFlag) shardingInfo.print("By ID Sharding");
+        const int64_t numEntries(std::exp2(shardingInfo.m_minishardBits));
         const int64_t shardIndexLength(numEntries * 16);
         const int64_t shardIndexEnd(shardIndexLength);
         if (m_debugFlag) std::cout << "   Num Entries: " << numEntries << std::endl;
@@ -1723,9 +1650,10 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationShardedFiles()
             const uint64_t startOffset(offsetAndLength.first);
             const uint64_t minishardLength(offsetAndLength.second);
             readEncodedMinishardIndex(file,
-                                      shardInfo.m_dataEncoding,
+                                      shardingDataType,
+                                      shardingInfo.m_dataEncoding,
                                       shardIndexEnd,
-                                      shardInfo.m_minishardIndexEncoding,
+                                      shardingInfo.m_minishardIndexEncoding,
                                       startOffset,
                                       minishardLength);
         }
@@ -1736,6 +1664,8 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationShardedFiles()
  * Read the encoded minishard index
  * @param file
  *    The QFile that is being read
+ * @param shardingDataType
+ *    The sharding data type
  * @param dataEncoding
  *    Type of encoding used to compress data
  * @param shardIndexEnd
@@ -1749,6 +1679,7 @@ NeuroglancerAnnotationsFile::readNeuroglancerAnnotationShardedFiles()
  */
 void
 NeuroglancerAnnotationsFile::readEncodedMinishardIndex(QFile& file,
+                                                       const ShardingDataType shardingDataType,
                                                        const AString& dataEncoding,
                                                        const uint64_t shardIndexEnd,
                                                        const AString& minishardIndexEncoding,
@@ -1793,13 +1724,18 @@ NeuroglancerAnnotationsFile::readEncodedMinishardIndex(QFile& file,
         if (m_debugFlag) std::cout << "Length compressed=" << compressedData.length()
            << " uncompressed=" << uncompressedData.length() << std::endl;
         
+        std::vector<ChunkInfo> minishardChunkInfo;
         processMinishardIndex(file,
+                              shardingDataType,
                               shardIndexEnd,
                               uncompressedData,
-                              dataEncoding);
+                              dataEncoding,
+                              minishardChunkInfo);
         
         readChunksFromShardFile(file,
-                                dataEncoding);
+                                shardingDataType,
+                                dataEncoding,
+                                minishardChunkInfo);
         
     }
     else {
@@ -1813,18 +1749,24 @@ NeuroglancerAnnotationsFile::readEncodedMinishardIndex(QFile& file,
  * Process a minishard
  * @param file
  *    The QFile that is being read
+ * @param shardingDataType
+ *    The sharding data type
  * @param shardIndexEnd
  *    End of shard index
  * @param minishardIndexData
  *    Data in the minishard index
  * @param dataEncoding
  *    Encoding of the chunk data
+ * @param miniShardChunkInfoOut
+ *    Output contains chunk info from the minishard index
  */
 void
 NeuroglancerAnnotationsFile::processMinishardIndex(QFile& file,
+                                                   const ShardingDataType shardingDataType,
                                                    const uint64_t shardIndexEnd,
                                                    const QByteArray& minishardIndexData,
-                                                   const AString& dataEncoding)
+                                                   const AString& dataEncoding,
+                                                   std::vector<ChunkInfo>& miniShardChunkInfoOut)
 {
     /*
      * The "minishard index" stored in the shard file is encoded according to the
@@ -1846,6 +1788,8 @@ NeuroglancerAnnotationsFile::processMinishardIndex(QFile& file,
      * metadata value.
      */
     
+    miniShardChunkInfoOut.clear();
+    
     if (m_debugFlag) std::cout << "Minishard Index Data Length: " << minishardIndexData.length() << std::endl;
 //    const std::ldiv_t divResult(std::ldiv(minishardIndexData.length(), 24));
 //    if (m_debugFlag) std::cout << "   quot=" << divResult.quot << ", rem=" << divResult.rem << std::endl;
@@ -1865,14 +1809,13 @@ NeuroglancerAnnotationsFile::processMinishardIndex(QFile& file,
     const int64_t numChunks(minishardIndexData.length() / 24);
     const int64_t remainder(minishardIndexData.length() % 24);
     if (remainder != 0) {
-        std::cout  <<"ERROR: minishard is not evenly divisible by 24, remainder=" << remainder << std::endl;
+        throw DataFileException("ERROR: minishard is not evenly divisible by 24, remainder="
+                                + AString::number(remainder));
         return;
     }
     
-    m_chunkInfo.resize(numChunks);
+    miniShardChunkInfoOut.resize(numChunks);
     
-    const uint64_t* dataPtr(reinterpret_cast<const uint64_t*>(minishardIndexData.data()));
-    int64_t dataOffset(0);
     /*
      * Row zero (dim i=0) contains chunk IDs
      * A chunkID is relative to the previous chunk ID
@@ -1890,8 +1833,8 @@ NeuroglancerAnnotationsFile::processMinishardIndex(QFile& file,
         previousChunkID = chunkID;
         
 
-        CaretAssertVectorIndex(m_chunkInfo, iChunk);
-        m_chunkInfo[iChunk].m_id = chunkID;
+        CaretAssertVectorIndex(miniShardChunkInfoOut, iChunk);
+        miniShardChunkInfoOut[iChunk].m_id = chunkID;
     }
     
     /*
@@ -1905,7 +1848,7 @@ NeuroglancerAnnotationsFile::processMinishardIndex(QFile& file,
         }
         uint64_t chunkOffset;
         dataStream >> chunkOffset;
-        m_chunkInfo[iChunk].m_relativeOffset = chunkOffset;
+        miniShardChunkInfoOut[iChunk].m_relativeOffset = chunkOffset;
     }
     
     /*
@@ -1919,8 +1862,8 @@ NeuroglancerAnnotationsFile::processMinishardIndex(QFile& file,
         uint64_t chunkSize;
         dataStream >> chunkSize;
         
-        CaretAssertVectorIndex(m_chunkInfo, iChunk);
-        m_chunkInfo[iChunk].m_size = chunkSize;
+        CaretAssertVectorIndex(miniShardChunkInfoOut, iChunk);
+        miniShardChunkInfoOut[iChunk].m_size = chunkSize;
     }
     
     /*
@@ -1929,8 +1872,8 @@ NeuroglancerAnnotationsFile::processMinishardIndex(QFile& file,
      */
     int64_t previousChunkEndOffset(shardIndexEnd);
     for (int64_t iChunk = 0; iChunk < numChunks; iChunk++) {
-        CaretAssertVectorIndex(m_chunkInfo, iChunk);
-        ChunkInfo& ci(m_chunkInfo[iChunk]);
+        CaretAssertVectorIndex(miniShardChunkInfoOut, iChunk);
+        ChunkInfo& ci(miniShardChunkInfoOut[iChunk]);
         ci.m_offset = previousChunkEndOffset + ci.m_relativeOffset;
         
         previousChunkEndOffset = ci.m_offset + ci.m_size;
@@ -1938,8 +1881,8 @@ NeuroglancerAnnotationsFile::processMinishardIndex(QFile& file,
     
     if (m_debugFlag) {
         for (int64_t iChunk = 0; iChunk < numChunks; iChunk++) {
-            CaretAssertVectorIndex(m_chunkInfo, iChunk);
-            const ChunkInfo& ci(m_chunkInfo[iChunk]);
+            CaretAssertVectorIndex(miniShardChunkInfoOut, iChunk);
+            const ChunkInfo& ci(miniShardChunkInfoOut[iChunk]);
             if (m_debugFlag) std::cout << "Chunk " << iChunk
                 << ": id=" << ci.m_id << ", offset=" << ci.m_offset
                 << ", rel offset=" << ci.m_relativeOffset
@@ -1952,17 +1895,23 @@ NeuroglancerAnnotationsFile::processMinishardIndex(QFile& file,
  * Read data (annotations) from the chunks from the shard file
  * @param file
  *    The QFile that is being read
+ * @param shardingDataType
+ *    The sharding data type
  * @param dataEncoding
  *    Encoding of the chunk data
+ * @param miniShardChunkInfo
+ *    Info about each chunk
  */
 void
 NeuroglancerAnnotationsFile::readChunksFromShardFile(QFile& file,
-                                                     const AString& dataEncoding)
+                                                     const ShardingDataType shardingDataType,
+                                                     const AString& dataEncoding,
+                                                     const std::vector<ChunkInfo>& miniShardChunkInfo)
 {
-    const int64_t numChunks(m_chunkInfo.size());
+    const int64_t numChunks(miniShardChunkInfo.size());
     for (int64_t i = 0; i < numChunks; i++) {
-        CaretAssertVectorIndex(m_chunkInfo, i);
-        const ChunkInfo& chunk(m_chunkInfo[i]);
+        CaretAssertVectorIndex(miniShardChunkInfo, i);
+        const ChunkInfo& chunk(miniShardChunkInfo[i]);
         
         /*
          * Seek to the location of the chunk in the file.
@@ -1981,8 +1930,23 @@ NeuroglancerAnnotationsFile::readChunksFromShardFile(QFile& file,
              * The chunk contains one annotation so read it
              */
             QDataStream dataStream(data);
-            readAnnotationFromDataStream(dataStream,
-                                         AString::number(chunk.m_id));
+            
+            switch (shardingDataType) {
+                case ShardingDataType::ANNOTATION:
+                {
+                    QFile* nullFile(NULL);
+                    readAnnotationFromDataStream(nullFile,
+                                                 data,
+                                                 dataStream,
+                                                 AString::number(chunk.m_id));
+                }
+                    break;
+                case ShardingDataType::RELATIONSHIP:
+                    readRelationshipsFromDataStream(data,
+                                                    dataStream,
+                                                    AString::number(chunk.m_id));
+                    break;
+            }
         }
         else {
             throw DataFileException("Failed to seek to "
@@ -2035,6 +1999,32 @@ NeuroglancerAnnotationsFile::decompressData(const QByteArray& compressedDataIn,
     }
     return false;
 }
+
+/**
+ * Read a relationship from a datastream
+ * @param data
+ *    The data
+ * @param dataStream
+ *    The datastream wrapped around 'data'
+ * @param relationshipID
+ *    The relationship ID (may be filename when each annotation in its own file)
+ */
+void
+NeuroglancerAnnotationsFile::readRelationshipsFromDataStream(const QByteArray& data,
+                                                             QDataStream& dataStream,
+                                                             const AString& relationshipID)
+{
+    dataStream.setByteOrder(QDataStream::LittleEndian);
+    dataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+    
+    uint64_t numAnn;
+    dataStream >> numAnn;
+    if (m_debugFlag) {
+        std::cout << "Relation ID=" << relationshipID
+        << ", length=" << data.length()
+        << ", num ann= " << numAnn << std::endl;
+    }
+ }
 
 /**
  * @return XYZ of an annotation's coordinate

@@ -47,7 +47,7 @@ using namespace caret;
  * Constructor.
  * @param annotationType
  *    The type of the annotation
- * @param fileName
+ * @param fileNameNoPath
  *    Name of file (no path) from which annotation was read
  * @param ijk
  *    IJK(s) for the annotation
@@ -59,14 +59,14 @@ using namespace caret;
  *    Propertry values for this annotation
  */
 NeuroglancerAnnotation::NeuroglancerAnnotation(const NeuroglancerAnnotationTypeEnum::Enum annotationType,
-                                               const AString& fileName,
+                                               const AString& fileNameNoPath,
                                                const std::vector<Vector3D>& ijk,
                                                const QColor& color,
                                                const float symbolSize,
                                                const std::vector<const NeuroglancerAnnotationPropertyValue*>& propertyValues)
 : NeuroglancerAnnotationBase(NeuroglancerAnnotationBase::BaseType::ANNOTATION),
 m_annotationType(annotationType),
-m_fileName(fileName),
+m_fileNameNoPath(fileNameNoPath),
 m_ijk(ijk),
 m_color(color),
 m_symbolSize(symbolSize),
@@ -95,7 +95,7 @@ m_propertyValues(propertyValues)
     setFlags(Qt::ItemIsSelectable
              | Qt::ItemIsEnabled);
     
-    setText(fileName
+    setText(m_fileNameNoPath
             + " - "
             + NeuroglancerAnnotationTypeEnum::toGuiName(m_annotationType)
             + " ("
@@ -125,7 +125,7 @@ void
 NeuroglancerAnnotation::copyHelperNeuroglancerAnnotation(const NeuroglancerAnnotation& obj)
 {
     m_annotationType = obj.m_annotationType;
-    m_fileName       = obj.m_fileName;
+    m_fileNameNoPath = obj.m_fileNameNoPath;
     m_ijk            = obj.m_ijk;
     m_color          = obj.m_color;
     m_symbolSize     = obj.m_symbolSize;
@@ -173,12 +173,12 @@ NeuroglancerAnnotation::isDisplayed() const
 }
 
 /**
- * @return Name of file from which annotation was read
+ * @return Name of file without path from which annotation was read
  */
 AString
-NeuroglancerAnnotation::getFileName() const
+NeuroglancerAnnotation::getFileNameNoPath() const
 {
-    return m_fileName;
+    return m_fileNameNoPath;
 }
 
 /**

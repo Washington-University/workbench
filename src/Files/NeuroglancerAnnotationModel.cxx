@@ -191,7 +191,7 @@ NeuroglancerAnnotationModel::setHeaderLabels(const QStringList& horizontalHeader
     QStringList verticalHeaderLabels;
     const int32_t numAnn(getNumberOfAnnotations());
     for (int32_t i = 0; i < numAnn; i++) {
-        verticalHeaderLabels.push_back(getAnnotationAtIndex(i)->getFileName());
+        verticalHeaderLabels.push_back(getAnnotationAtIndex(i)->getFileNameNoPath());
     }
     setVerticalHeaderLabels(verticalHeaderLabels);
 }
@@ -224,7 +224,7 @@ NeuroglancerAnnotationModel::saveToScene(const SceneAttributes* sceneAttributes,
         NeuroglancerAnnotation* ann(getAnnotationAtIndex(i));
         const AString className("NeuroAnn_"
                                 + AString::number(i));
-        annMap->addClass(ann->getFileName(), ann->saveToScene(sceneAttributes,
+        annMap->addClass(ann->getFileNameNoPath(), ann->saveToScene(sceneAttributes,
                                                               className));
     }
     

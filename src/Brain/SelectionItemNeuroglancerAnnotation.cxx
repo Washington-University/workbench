@@ -325,7 +325,7 @@ SelectionItemNeuroglancerAnnotation::toString() const
     text += ("Surface: " + ((m_surface != NULL) ? m_surface->getFileNameNoPath() : "INVALID") + "\n");
     text += ("Volume File: " + name + "\n");
     text += ("Neuroglancer File: " + ((m_neuroAnnFile != NULL) ? m_neuroAnnFile->getFileNameNoPath() : "INVALID") + "\n");
-    text += ("NeuroglancerAnnotation: " + ((m_neuroAnn != NULL) ? m_neuroAnn->getFileName() : "INVALID") + "\n");
+    text += ("NeuroglancerAnnotation: " + ((m_neuroAnn != NULL) ? m_neuroAnn->getFileNameNoPath() : "INVALID") + "\n");
     text += ("NeuroglancerAnnotation Index: " + AString::number(m_neuroAnnIndex) + "\n");
     return text;
 }

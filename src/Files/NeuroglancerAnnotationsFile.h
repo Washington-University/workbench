@@ -211,6 +211,11 @@ namespace caret {
                                               const SceneClass* sceneClass);
 
     private:
+        enum class ShardingDataType {
+            ANNOTATION,
+            RELATIONSHIP
+        };
+        
         void readNeuroglancerInfoFile(const AString& filename);
 
         void parseNeuroglancerInfoFileJson(const FileInformation& fileInfo,
@@ -222,7 +227,7 @@ namespace caret {
         
         void parseByIdObject(const QJsonObject& byIdObject);
         
-        Sharding praseShardingObject(const QJsonObject shardingObject);
+        Sharding parseShardingObject(const QJsonObject shardingObject);
         
         void parseRelationshipsArray(const QJsonArray& relationshipsArray);
         
@@ -234,9 +239,12 @@ namespace caret {
         
         void readNeuroglancerAnnotationFiles();
         
-        void readNeuroglancerAnnotationShardedFiles();
+        void readNeuroglancerAnnotationShardedFiles(const Sharding& shardingInfo,
+                                                    const ShardingDataType shardingDataType,
+                                                    const AString& shardingDataDirectoryName);
         
         void readEncodedMinishardIndex(QFile& file,
+                                       const ShardingDataType shardingDataType,
                                        const AString& dataEncoding,
                                        const uint64_t shardIndexEnd,
                                        const AString& minishardIndexEncoding,
@@ -244,12 +252,16 @@ namespace caret {
                                        const uint64_t minishardLength);
 
         void processMinishardIndex(QFile& file,
+                                   const ShardingDataType shardingDataType,
                                    const uint64_t shardIndexEnd,
                                    const QByteArray& minishardIndexData,
-                                   const AString& dataEncoding);
+                                   const AString& dataEncoding,
+                                   std::vector<ChunkInfo>& miniShardChunkInfoOut);
         
         void readChunksFromShardFile(QFile& file,
-                                     const AString& dataEncoding);
+                                     const ShardingDataType shardingDataType,
+                                     const AString& dataEncoding,
+                                     const std::vector<ChunkInfo>& miniShardChunkInfo);
         
         static AString dimensionToString(const Dimension& dimension);
         
@@ -261,8 +273,14 @@ namespace caret {
                                               const AString& shardingName,
                                               const Sharding& sharding) const;
         
-        void readAnnotationFromDataStream(QDataStream& dataStream,
+        void readAnnotationFromDataStream(QFile* file,
+                                          const QByteArray& dataBytes,
+                                          QDataStream& dataStream,
                                           const AString& annotationID);
+        
+        void readRelationshipsFromDataStream(const QByteArray& data,
+                                             QDataStream& dataStream,
+                                             const AString& relationshipID);
         
         bool decompressData(const QByteArray& compressedDataIn,
                             QByteArray& uncompressedDataOut,
@@ -306,7 +324,7 @@ namespace caret {
         
         std::vector<std::unique_ptr<NeuroglancerAnnotationLabelModel>> m_labelModels;
         
-        std::vector<ChunkInfo> m_chunkInfo;
+//        std::vector<ChunkInfo> m_chunkInfo;
 
         bool m_debugFlag = false;
         
