@@ -127,19 +127,19 @@ bool VolumeSpace::matches(const VolumeSpace& right) const
             return false;
         }
     }
-    const float TOLER_RATIO = 0.999f;//ratio a spacing element can mismatch by
+    Vector3D step[3], origin, rstep[3], rorigin;
+    getSpacingVectors(step[0], step[1], step[2], origin);
+    right.getSpacingVectors(rstep[0], rstep[1], rstep[2], rorigin);
+    float maxExtent = -INFINITY;
     for (int i = 0; i < 3; ++i)
     {
-        for (int j = 0; j < 4; ++j)
-        {
-            float leftelem = m_sform[i][j];
-            float rightelem = right.m_sform[i][j];
-            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (leftelem / rightelem < TOLER_RATIO || rightelem / leftelem < TOLER_RATIO)))
-            {
-                return false;
-            }
-        }
+        Vector3D diff = step[i] - rstep[i];
+        float avgLength = (step[i].length() + rstep[i].length()) / 2.0f;
+        float avgExtent = (step[i].length() * m_dims[i] + rstep[i].length() * right.m_dims[i]) / 2.0f;
+        if (!(avgLength <= 0.0f || diff.length() / avgLength < 0.0001f)) return false; //don't create NaN, but do reject it
+        if (avgExtent > maxExtent) maxExtent = avgExtent;
     }
+    if (!((origin - rorigin).length() / maxExtent < 0.0001f)) return false; //compare origin error to FoV extent
     return true;
 }
 
