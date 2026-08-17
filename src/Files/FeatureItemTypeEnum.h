@@ -1,5 +1,5 @@
-#ifndef __NEUROGLANCER_ANNOTATION_TYPE_ENUM_H__
-#define __NEUROGLANCER_ANNOTATION_TYPE_ENUM_H__
+#ifndef __FEATURE_ITEM_TYPE_ENUM_H__
+#define __FEATURE_ITEM_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class NeuroglancerAnnotationTypeEnum {
+class FeatureItemTypeEnum {
 
 public:
     /**
@@ -37,20 +37,12 @@ public:
     enum Enum {
         /** Invalid */
         INVALID,
-        /** Axis Aligned Bounding Box */
-        AXIS_ALIGNED_BOUNDING_BOX,
-        /** Ellipsoid */
-        ELLIPSOID,
-        /** Line */
-        LINE,
         /** Point */
         POINT,
-        /** Polyline */
-        POLYLINE
     };
 
 
-    ~NeuroglancerAnnotationTypeEnum();
+    ~FeatureItemTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -71,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    NeuroglancerAnnotationTypeEnum(const Enum enumValue, 
+    FeatureItemTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const NeuroglancerAnnotationTypeEnum* findData(const Enum enumValue);
+    static const FeatureItemTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<NeuroglancerAnnotationTypeEnum> enumData;
+    static std::vector<FeatureItemTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -102,11 +94,11 @@ private:
     AString guiName;
 };
 
-#ifdef __NEUROGLANCER_ANNOTATION_TYPE_ENUM_DECLARE__
-std::vector<NeuroglancerAnnotationTypeEnum> NeuroglancerAnnotationTypeEnum::enumData;
-bool NeuroglancerAnnotationTypeEnum::initializedFlag = false;
-int32_t NeuroglancerAnnotationTypeEnum::integerCodeCounter = 0; 
-#endif // __NEUROGLANCER_ANNOTATION_TYPE_ENUM_DECLARE__
+#ifdef __FEATURE_ITEM_TYPE_ENUM_DECLARE__
+std::vector<FeatureItemTypeEnum> FeatureItemTypeEnum::enumData;
+bool FeatureItemTypeEnum::initializedFlag = false;
+int32_t FeatureItemTypeEnum::integerCodeCounter = 0; 
+#endif // __FEATURE_ITEM_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__NEUROGLANCER_ANNOTATION_TYPE_ENUM_H__
+#endif  //__FEATURE_ITEM_TYPE_ENUM_H__

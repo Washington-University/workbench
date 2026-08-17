@@ -9,7 +9,7 @@
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty ofFeatureModel
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
@@ -19,13 +19,13 @@
  */
 /*LICENSE_END*/
 
-#define __NEUROGLANCER_ANNOTATION_MODEL_DECLARE__
-#include "NeuroglancerAnnotationModel.h"
-#undef __NEUROGLANCER_ANNOTATION_MODEL_DECLARE__
+#define __FEATURE_ITEM_MODEL_DECLARE__
+#include "FeatureItemModel.h"
+#undef __FEATURE_ITEM_MODEL_DECLARE__
 
 #include "CaretAssert.h"
 #include "EventManager.h"
-#include "NeuroglancerAnnotation.h"
+#include "FeatureItem.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SceneObjectMapStringKey.h"
@@ -35,15 +35,15 @@ using namespace caret;
 
     
 /**
- * \class caret::NeuroglancerAnnotationModel 
- * \brief Model that contains NeuroglancerAnnotations
+ * \class caret::FeatureItemModel 
+ * \brief Model that contains FeatureItems
  * \ingroup Files
  */
 
 /**
  * Constructor.
  */
-NeuroglancerAnnotationModel::NeuroglancerAnnotationModel()
+FeatureItemModel::FeatureItemModel()
 : QStandardItemModel()
 {
     
@@ -55,7 +55,7 @@ NeuroglancerAnnotationModel::NeuroglancerAnnotationModel()
 /**
  * Destructor.
  */
-NeuroglancerAnnotationModel::~NeuroglancerAnnotationModel()
+FeatureItemModel::~FeatureItemModel()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -67,7 +67,7 @@ NeuroglancerAnnotationModel::~NeuroglancerAnnotationModel()
  *    An event for which this instance is listening.
  */
 void
-NeuroglancerAnnotationModel::receiveEvent(Event* event)
+FeatureItemModel::receiveEvent(Event* event)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -78,102 +78,104 @@ NeuroglancerAnnotationModel::receiveEvent(Event* event)
 }
 
 /**
- * Add an annotation and its properties
- * @param annotationAndProperties
- *    The annotation is first and then the properties
+ * Add a feature and its properties
+ * @param featureFilename
+ *    Name of file containing feature
+ * @param featureAndProperties
+ *    The feature is first and then the properties
  */
 void
-NeuroglancerAnnotationModel::addAnnotation(const AString& annotationFilename,
-                                           const QList<QStandardItem*>& annotationAndProperties)
+FeatureItemModel::addFeature(const AString& featureFilename,
+                         const QList<QStandardItem*>& featureAndProperties)
 {
-    m_filenameToRowMap.insert(std::make_pair(annotationFilename,
+    m_filenameToRowMap.insert(std::make_pair(featureFilename,
                                              rowCount()));
-    appendRow(annotationAndProperties);
+    appendRow(featureAndProperties);
 }
 
 /**
- * @return Number of annotations
+ * @return Number of features
  */
 int32_t
-NeuroglancerAnnotationModel::getNumberOfAnnotations() const
+FeatureItemModel::getNumberOfFeatures() const
 {
     return rowCount();
 }
 
 /**
- * @return Annotation at the given index or NULL if not found
+ * @return Feature at the given index or NULL if not found
  * @param index
- *    Index of annotation
+ *    Index of feature
  * @return
- *    Annotation at index or NULL if not found
+ *    Feature at index or NULL if not found
  */
-NeuroglancerAnnotation*
-NeuroglancerAnnotationModel::getAnnotationAtIndex(const int32_t index)
+FeatureItem*
+FeatureItemModel::getFeatureAtIndex(const int32_t index)
 {
     const int32_t column(0);
     CaretAssert((index >= 0)
                 && (index < rowCount()));
     QStandardItem* standardItem(item(index, column));
     CaretAssert(standardItem);
-    NeuroglancerAnnotation* neuroAnn(dynamic_cast<NeuroglancerAnnotation*>(standardItem));
-    CaretAssert(neuroAnn);
-    return neuroAnn;
+    FeatureItem* featureItem(dynamic_cast<FeatureItem*>(standardItem));
+    CaretAssert(featureItem);
+    return featureItem;
 }
 
 /**
- * @return Annotation at the given index or NULL if not found
+ * @return Feature at the given index or NULL if not found (const method)
  * @param index
- *    Index of annotation
+ *    Index of feature
  * @return
- *    Annotation at index or NULL if not found
+ *    Feature at index or NULL if not found
  */
-const NeuroglancerAnnotation*
-NeuroglancerAnnotationModel::getAnnotationAtIndex(const int32_t index) const
+const FeatureItem*
+FeatureItemModel::getFeatureAtIndex(const int32_t index) const
 {
     const int32_t column(0);
     CaretAssert((index >= 0)
                 && (index < rowCount()));
     const QStandardItem* standardItem(item(index, column));
     CaretAssert(standardItem);
-    const NeuroglancerAnnotation* neuroAnn(dynamic_cast<const NeuroglancerAnnotation*>(standardItem));
-    CaretAssert(neuroAnn);
-    return neuroAnn;
+    const FeatureItem* featureItem(dynamic_cast<const FeatureItem*>(standardItem));
+    CaretAssert(featureItem);
+    return featureItem;
 }
 
 /**
- * @return Annotation at the given filename or NULL if not found
+ * @return FeatureItem at the given filename or NULL if not found
  * @param fileName
  *    Name of file
  * @return
- *    Annotation with filename or NULL if not found
+ *    FeatureItem with filename or NULL if not found
  */
-NeuroglancerAnnotation*
-NeuroglancerAnnotationModel::getAnnotationWithFileName(const AString& fileName)
+FeatureItem*
+FeatureItemModel::getFeatureWithFileName(const AString& fileName)
 {
-    NeuroglancerAnnotation* ann(NULL);
+    FeatureItem* featureItem(NULL);
     const auto iter(m_filenameToRowMap.find(fileName));
     if (iter != m_filenameToRowMap.end()) {
         const int32_t rowIndex(iter->second);
-        ann = getAnnotationAtIndex(rowIndex);
+        featureItem = getFeatureAtIndex(rowIndex);
     }
-    return ann;
+    return featureItem;
 }
 
 
 /**
- * Set display status of all annotations in this file
+ * Set display status of all feature items in this file
  * @param displayStatus
  *    If true, display all.
  */
 void
-NeuroglancerAnnotationModel::setAllAnnotationsDisplayed(const bool displayStatus)
+FeatureItemModel::setAllFeaturesDisplayed(const bool displayStatus)
 {
     const int32_t column(0);
     const Qt::CheckState checkState(displayStatus
                                     ? Qt::Checked
                                     : Qt::Unchecked);
-    const int32_t numAnn(rowCount());
-    for (int32_t i = 0; i < numAnn; i++) {
+    const int32_t num(rowCount());
+    for (int32_t i = 0; i < num; i++) {
         item(i, column)->setCheckState(checkState);
     }
 }
@@ -184,14 +186,14 @@ NeuroglancerAnnotationModel::setAllAnnotationsDisplayed(const bool displayStatus
  *    Labels for the horizontal header
  */
 void
-NeuroglancerAnnotationModel::setHeaderLabels(const QStringList& horizontalHeaderLabels)
+FeatureItemModel::setHeaderLabels(const QStringList& horizontalHeaderLabels)
 {
     setHorizontalHeaderLabels(horizontalHeaderLabels);
     
     QStringList verticalHeaderLabels;
-    const int32_t numAnn(getNumberOfAnnotations());
-    for (int32_t i = 0; i < numAnn; i++) {
-        verticalHeaderLabels.push_back(getAnnotationAtIndex(i)->getFileNameNoPath());
+    const int32_t num(getNumberOfFeatures());
+    for (int32_t i = 0; i < num; i++) {
+        verticalHeaderLabels.push_back(getFeatureAtIndex(i)->getFileNameNoPath());
     }
     setVerticalHeaderLabels(verticalHeaderLabels);
 }
@@ -208,27 +210,32 @@ NeuroglancerAnnotationModel::setHeaderLabels(const QStringList& horizontalHeader
  *    Name of instance in the scene.
  */
 SceneClass*
-NeuroglancerAnnotationModel::saveToScene(const SceneAttributes* sceneAttributes,
+FeatureItemModel::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
+    /*
+     * cannot use feature filename as key since features stored in
+     * a sharded file that contains may features.  Maybe use
+     * shardIndex of feature
+     */
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "NeuroglancerAnnotationModel",
+                                            "FeatureItemModel",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    SceneObjectMapStringKey* annMap(new SceneObjectMapStringKey("annotationsMap",
-                                                                SceneObjectDataTypeEnum::SCENE_CLASS));
-    const int32_t numAnn(getNumberOfAnnotations());
-    for (int32_t i = 0; i < numAnn; i++) {
-        NeuroglancerAnnotation* ann(getAnnotationAtIndex(i));
-        const AString className("NeuroAnn_"
+    SceneObjectMapStringKey* featureMap(new SceneObjectMapStringKey("featureItemMap",
+                                                                    SceneObjectDataTypeEnum::SCENE_CLASS));
+    const int32_t num(getNumberOfFeatures());
+    for (int32_t i = 0; i < num; i++) {
+        FeatureItem* featureItem(getFeatureAtIndex(i));
+        const AString className("FeatureItem"
                                 + AString::number(i));
-        annMap->addClass(ann->getFileNameNoPath(), ann->saveToScene(sceneAttributes,
-                                                              className));
+        featureMap->addClass(featureItem->getFileNameNoPath(), featureItem->saveToScene(sceneAttributes,
+                                                                                className));
     }
     
-    sceneClass->addChild(annMap);
+    sceneClass->addChild(featureMap);
     
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
@@ -249,7 +256,7 @@ NeuroglancerAnnotationModel::saveToScene(const SceneAttributes* sceneAttributes,
  *     sceneClass from which model specific information is obtained.
  */
 void
-NeuroglancerAnnotationModel::restoreFromScene(const SceneAttributes* sceneAttributes,
+FeatureItemModel::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
@@ -259,16 +266,16 @@ NeuroglancerAnnotationModel::restoreFromScene(const SceneAttributes* sceneAttrib
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
-    const SceneObjectMapStringKey* annMap = sceneClass->getMapStringKey("annotationsMap");
-    if (annMap != NULL) {
-        const std::vector<AString> allKeys(annMap->getKeys());
+    const SceneObjectMapStringKey* featureMap = sceneClass->getMapStringKey("featureItemMap");
+    if (featureMap != NULL) {
+        const std::vector<AString> allKeys(featureMap->getKeys());
         for (const AString& key : allKeys) {
-            const SceneClass* annClass(annMap->classValue(key));
-            if (annClass != NULL) {
-                NeuroglancerAnnotation* neuroAnn(getAnnotationWithFileName(key));
-                if (neuroAnn != NULL) {
-                    neuroAnn->restoreFromScene(sceneAttributes,
-                                               annClass);
+            const SceneClass* sc(featureMap->classValue(key));
+            if (sc != NULL) {
+                FeatureItem* featureItem(getFeatureWithFileName(key));
+                if (featureItem != NULL) {
+                    featureItem->restoreFromScene(sceneAttributes,
+                                                  sc);
                 }
             }
         }

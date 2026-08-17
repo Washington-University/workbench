@@ -1,5 +1,5 @@
-#ifndef __NEUROGLANCER_ANNOTATION_LABEL_H__
-#define __NEUROGLANCER_ANNOTATION_LABEL_H__
+#ifndef __FEATURE_LABEL_H__
+#define __FEATURE_LABEL_H__
 
 /*LICENSE_START*/
 /*
@@ -25,23 +25,23 @@
 
 #include <memory>
 
-#include "NeuroglancerAnnotationBase.h"
+#include "FeatureBase.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
 
-    class NeuroglancerAnnotationLabel : public NeuroglancerAnnotationBase, public SceneableInterface {
+    class FeatureLabel : public FeatureBase, public SceneableInterface {
         
     public:
-        NeuroglancerAnnotationLabel(const int32_t value,
+        FeatureLabel(const int32_t value,
                                     const AString& text);
         
-        virtual ~NeuroglancerAnnotationLabel();
+        virtual ~FeatureLabel();
         
-        NeuroglancerAnnotationLabel(const NeuroglancerAnnotationLabel&) = delete;
+        FeatureLabel(const FeatureLabel&) = delete;
 
-        NeuroglancerAnnotationLabel& operator=(const NeuroglancerAnnotationLabel&) = delete;
+        FeatureLabel& operator=(const FeatureLabel&) = delete;
         
         int32_t getValue() const;
         
@@ -62,9 +62,9 @@ namespace caret {
 
     };
     
-#ifdef __NEUROGLANCER_ANNOTATION_LABEL_DECLARE__
+#ifdef __FEATURE_LABEL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __NEUROGLANCER_ANNOTATION_LABEL_DECLARE__
+#endif // __FEATURE_LABEL_DECLARE__
 
 } // namespace
-#endif  //__NEUROGLANCER_ANNOTATION_LABEL_H__
+#endif  //__FEATURE_LABEL_H__

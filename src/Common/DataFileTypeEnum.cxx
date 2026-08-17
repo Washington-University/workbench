@@ -311,6 +311,13 @@ DataFileTypeEnum::initialize()
                                         false,             /* ext below begins with dot */
                                         DataFileTypeEnum::toCziImageFileExtension().mid(1)));
     
+    enumData.push_back(DataFileTypeEnum(FEATURE,
+                                        "FEATURE",
+                                        "Points",
+                                        "Points",
+                                        false,
+                                        "info")); // this file is never written
+    
     enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI",
                                         "Foci",
@@ -362,13 +369,6 @@ DataFileTypeEnum::initialize()
                                         "METRIC_DYNAMIC",
                                         true,
                                         "func_dynconn")); // this file is never written
-    
-    enumData.push_back(DataFileTypeEnum(NEUROGLANCER_ANNOTATION,
-                                        "NEUROGLANCER_ANNOTATION",
-                                        "Neuroglancer Annotation",
-                                        "Neuroglancer Annotation",
-                                        false,
-                                        "info")); // this file is never written
     
     enumData.push_back(DataFileTypeEnum(OME_ZARR_IMAGE,
                                         "OME_ZARR_IMAGE",
@@ -904,7 +904,7 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 validFlag = includeNonWritableFileTypesFlag;
                 break;
-            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            case DataFileTypeEnum::FEATURE:
                 validFlag = includeNonWritableFileTypesFlag;
                 break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
@@ -1306,7 +1306,7 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
                     addEnumFlag = false;
                 }
                 break;
-            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            case DataFileTypeEnum::FEATURE:
                 break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
@@ -1702,7 +1702,7 @@ DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             //dialogFilterShowType = DialogFilterShowType::SHOW_DIRECTORY;
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
@@ -1797,7 +1797,7 @@ DataFileTypeEnum::fileExtensionMatchesExactFileName(const Enum enumValue)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             extensionIsExactFileName = true;
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:

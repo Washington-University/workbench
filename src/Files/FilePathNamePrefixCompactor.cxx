@@ -196,7 +196,7 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const st
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 fileSpecialPrefix = "metricdynconn - ";
                 break;
-            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            case DataFileTypeEnum::FEATURE:
                 break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;

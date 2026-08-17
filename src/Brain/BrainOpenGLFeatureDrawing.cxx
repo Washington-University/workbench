@@ -19,15 +19,16 @@
  */
 /*LICENSE_END*/
 
-#define __BRAIN_OPEN_G_L_NEUROGLANCER_ANNOTATION_DRAWING_DECLARE__
-#include "BrainOpenGLNeuroglancerAnnotationDrawing.h"
-#undef __BRAIN_OPEN_G_L_NEUROGLANCER_ANNOTATION_DRAWING_DECLARE__
+#define __BRAIN_OPEN_G_L_FEATURE_DRAWING_DECLARE__
+#include "BrainOpenGLFeatureDrawing.h"
+#undef __BRAIN_OPEN_G_L_FEATURE_DRAWING_DECLARE__
 
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "DisplayPropertiesNeuroglancerAnnotations.h"
+#include "DisplayPropertiesFeature.h"
+#include "FeatureFile.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GraphicsEngineDataOpenGL.h"
@@ -35,11 +36,10 @@
 #include "GroupAndNameHierarchyModel.h"
 #include "HistologySlice.h"
 #include "IdentificationWithColor.h"
-#include "NeuroglancerAnnotation.h"
-#include "NeuroglancerAnnotationModel.h"
-#include "NeuroglancerAnnotationsFile.h"
+#include "FeatureItem.h"
+#include "FeatureItemModel.h"
 #include "Plane.h"
-#include "SelectionItemNeuroglancerAnnotation.h"
+#include "SelectionItemFeature.h"
 #include "SelectionManager.h"
 #include "VolumeMappableInterface.h"
 
@@ -48,15 +48,15 @@ using namespace caret;
 
 
 /**
- * \class caret::BrainOpenGLNeuroglancerAnnotationDrawing
- * \brief Draws neuroglancer annotations on brain models
+ * \class caret::BrainOpenGLFeatureDrawing
+ * \brief Draws features on brain models
  * \ingroup Brain
  */
 
 /**
  * Constructor.
  */
-BrainOpenGLNeuroglancerAnnotationDrawing::BrainOpenGLNeuroglancerAnnotationDrawing()
+BrainOpenGLFeatureDrawing::BrainOpenGLFeatureDrawing()
 : CaretObject()
 {
     
@@ -65,12 +65,12 @@ BrainOpenGLNeuroglancerAnnotationDrawing::BrainOpenGLNeuroglancerAnnotationDrawi
 /**
  * Destructor.
  */
-BrainOpenGLNeuroglancerAnnotationDrawing::~BrainOpenGLNeuroglancerAnnotationDrawing()
+BrainOpenGLFeatureDrawing::~BrainOpenGLFeatureDrawing()
 {
 }
 
 /**
- * Draw neuroglancer annotations on surface
+ * Draw features on surface
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -79,7 +79,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::~BrainOpenGLNeuroglancerAnnotationDraw
  *    Surface on which foci are drawn
  */
 void
-BrainOpenGLNeuroglancerAnnotationDrawing::drawOnSurface(Brain* brain,
+BrainOpenGLFeatureDrawing::drawOnSurface(Brain* brain,
                                                         BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                         const Surface* surface)
 {
@@ -89,7 +89,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnSurface(Brain* brain,
     const Plane invalidPlane;
     const VolumeSliceViewPlaneEnum::Enum invalidSliceViewPlane(VolumeSliceViewPlaneEnum::ALL);
     const float invalidlSliceThickness(0.0);
-    drawAllNeuroAnn(DrawType::SURFACE,
+    drawAllFeatures(DrawType::SURFACE,
                     brain,
                     fixedPipelineDrawing,
                     surface,
@@ -103,7 +103,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnSurface(Brain* brain,
 }
 
 /**
- * Draw neuroglancer annotations on whole brain
+ * Draw features on whole brain
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -112,7 +112,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnSurface(Brain* brain,
  *    Underlay volume for volume drawing
  */
 void
-BrainOpenGLNeuroglancerAnnotationDrawing::drawOnWholeBrain(Brain* brain,
+BrainOpenGLFeatureDrawing::drawOnWholeBrain(Brain* brain,
                                                            BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                            VolumeMappableInterface* underlayVolume)
 {
@@ -122,7 +122,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnWholeBrain(Brain* brain,
     const Plane invalidPlane;
     const VolumeSliceViewPlaneEnum::Enum invalidSliceViewPlane(VolumeSliceViewPlaneEnum::ALL);
     const float invalidlSliceThickness(0.0);
-    drawAllNeuroAnn(DrawType::WHOLE_BRAIN,
+    drawAllFeatures(DrawType::WHOLE_BRAIN,
                     brain,
                     fixedPipelineDrawing,
                     invalidSurface,
@@ -136,7 +136,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnWholeBrain(Brain* brain,
 }
 
 /**
- * Draw neuroglancer annotations on MPR volume slices.
+ * Draw features on MPR volume slices.
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -151,7 +151,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnWholeBrain(Brain* brain,
  *   Thickness of a slice
  */
 void
-BrainOpenGLNeuroglancerAnnotationDrawing::drawOnHistology(Brain* brain,
+BrainOpenGLFeatureDrawing::drawOnHistology(Brain* brain,
                                                           BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                           HistologySlicesFile* histologySlicesFile,
                                                           const HistologySlice* histologySlice,
@@ -162,7 +162,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnHistology(Brain* brain,
     const Surface* invalidSurface(NULL);
     VolumeMappableInterface* invalidVolumeFile(NULL);
     const VolumeSliceViewPlaneEnum::Enum invalidSliceViewPlane(VolumeSliceViewPlaneEnum::ALL);
-    drawAllNeuroAnn(DrawType::HISTOLOGY,
+    drawAllFeatures(DrawType::HISTOLOGY,
                     brain,
                     fixedPipelineDrawing,
                     invalidSurface,
@@ -175,7 +175,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnHistology(Brain* brain,
 }
 
 /**
- * Draw neuroglancer annotations on MPR volume slices.
+ * Draw features on MPR volume slices.
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -190,7 +190,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnHistology(Brain* brain,
  *   Thickness of a slice
  */
 void
-BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeMpr(Brain* brain,
+BrainOpenGLFeatureDrawing::drawOnVolumeMpr(Brain* brain,
                                                           BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                           VolumeMappableInterface* underlayVolume,
                                                           const Plane& plane,
@@ -200,7 +200,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeMpr(Brain* brain,
     const Surface* invalidSurface(NULL);
     HistologySlicesFile* invalidHistologySlicesFile(NULL);
     const HistologySlice* invalidHistologySlice(NULL);
-    drawAllNeuroAnn(DrawType::VOLUME_MPR,
+    drawAllFeatures(DrawType::VOLUME_MPR,
                     brain,
                     fixedPipelineDrawing,
                     invalidSurface,
@@ -214,7 +214,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeMpr(Brain* brain,
 
 
 /**
- * Draw neuroglancer annotations on oblique volume slices.
+ * Draw features on oblique volume slices.
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -228,7 +228,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeMpr(Brain* brain,
  * @param sliceThickness
  *   Thickness of a slice */
 void
-BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeOblique(Brain* brain,
+BrainOpenGLFeatureDrawing::drawOnVolumeOblique(Brain* brain,
                                                               BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                               VolumeMappableInterface* underlayVolume,
                                                               const Plane& plane,
@@ -238,7 +238,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeOblique(Brain* brain,
     const Surface* invalidSurface(NULL);
     HistologySlicesFile* invalidHistologySlicesFile(NULL);
     const HistologySlice* invalidHistologySlice(NULL);
-    drawAllNeuroAnn(DrawType::VOLUME_OBLIQUE,
+    drawAllFeatures(DrawType::VOLUME_OBLIQUE,
                     brain,
                     fixedPipelineDrawing,
                     invalidSurface,
@@ -251,7 +251,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeOblique(Brain* brain,
 }
 
 /**
- * Draw neuroglancer annotations on orthogonal volume slices.
+ * Draw features on orthogonal volume slices.
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -266,7 +266,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeOblique(Brain* brain,
  *   Thickness of a slice
  */
 void
-BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeOrthogonal(Brain* brain,
+BrainOpenGLFeatureDrawing::drawOnVolumeOrthogonal(Brain* brain,
                                                                  BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                                  VolumeMappableInterface* underlayVolume,
                                                                  const Plane& plane,
@@ -276,7 +276,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeOrthogonal(Brain* brain,
     const Surface* invalidSurface(NULL);
     HistologySlicesFile* invalidHistologySlicesFile(NULL);
     const HistologySlice* invalidHistologySlice(NULL);
-    drawAllNeuroAnn(DrawType::VOLUME_ORTHOGONAL,
+    drawAllFeatures(DrawType::VOLUME_ORTHOGONAL,
                     brain,
                     fixedPipelineDrawing,
                     invalidSurface,
@@ -289,9 +289,9 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeOrthogonal(Brain* brain,
 }
 
 /**
- * Draw neuroglancer annotations
+ * Draw features
  * @param drawType
- *    Type of model for drawing neuroglancer annotations
+ *    Type of model for drawing features
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -310,7 +310,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeOrthogonal(Brain* brain,
  *   Thickness of a slice
  */
 void
-BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawType,
+BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
                                                           Brain* brain,
                                                           BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                           const Surface* surface,
@@ -321,15 +321,15 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                                                           const VolumeSliceViewPlaneEnum::Enum /*sliceViewPlane*/,
                                                           const float sliceThickness)
 {
-    fixedPipelineDrawing->checkForOpenGLError(NULL, "At beginning BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn())");
+    fixedPipelineDrawing->checkForOpenGLError(NULL, "At beginning BrainOpenGLFeatureDrawing::drawAllFeatures())");
     
-    const std::vector<NeuroglancerAnnotationsFile*> allNeuroAnnFiles(brain->getAllNeuroglancerAnnotationFiles());
-    const int32_t numberOfNeuroAnnFiles(allNeuroAnnFiles.size());
-    if (numberOfNeuroAnnFiles <= 0) {
+    const std::vector<FeatureFile*> allFeatureFiles(brain->getAllFeatureFiles());
+    const int32_t numberOfFeatureFiles(allFeatureFiles.size());
+    if (numberOfFeatureFiles <= 0) {
         return;
     }
     
-    SelectionItemNeuroglancerAnnotation* selectNeuroAnn = brain->getSelectionManager()->getNeuroglancerAnnotationIdentification();
+    SelectionItemFeature* selectionItemFeature = brain->getSelectionManager()->getFeatureIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -348,8 +348,8 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                 case DrawType::VOLUME_OBLIQUE:
                 case DrawType::VOLUME_ORTHOGONAL:
                 case DrawType::WHOLE_BRAIN:
-                    CaretAssert(selectNeuroAnn);
-                    selectionItem = selectNeuroAnn;
+                    CaretAssert(selectionItemFeature);
+                    selectionItem = selectionItemFeature;
                     break;
             }
             CaretAssert(selectionItem);
@@ -370,15 +370,15 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
     
     const float halfSliceThickness = sliceThickness * 0.5;
     
-    const DisplayPropertiesNeuroglancerAnnotations* neuroAnnDisplayProperties(brain->getDisplayPropertiesNeuroglancerAnnotations());
-    const DisplayGroupEnum::Enum displayGroup = neuroAnnDisplayProperties->getDisplayGroupForTab(fixedPipelineDrawing->windowTabIndex);
+    const DisplayPropertiesFeature* featureDisplayProperties(brain->getDisplayPropertiesFeature());
+    const DisplayGroupEnum::Enum displayGroup = featureDisplayProperties->getDisplayGroupForTab(fixedPipelineDrawing->windowTabIndex);
     
-    if ( ! neuroAnnDisplayProperties->isDisplayed(displayGroup,
+    if ( ! featureDisplayProperties->isDisplayed(displayGroup,
                                                fixedPipelineDrawing->windowTabIndex)) {
         return;
     }
     
-    const float symbolScale(neuroAnnDisplayProperties->getSymbolScale());
+    const float symbolScale(featureDisplayProperties->getSymbolScale());
     
     switch (drawType) {
         case DrawType::HISTOLOGY:
@@ -396,48 +396,40 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
     }
     
     /*
-     * Process each neuroglancer annotation file
+     * Process each feature file
      */
-    for (int32_t iFile = 0; iFile < numberOfNeuroAnnFiles; iFile++) {
-        CaretAssertVectorIndex(allNeuroAnnFiles, iFile);
-        const NeuroglancerAnnotationsFile* neuroAnnFile(allNeuroAnnFiles[iFile]);
-        const NeuroglancerAnnotationModel* neuroAnnModel(neuroAnnFile->getAnnotationModel());
-        if (neuroAnnModel == NULL) {
+    for (int32_t iFile = 0; iFile < numberOfFeatureFiles; iFile++) {
+        CaretAssertVectorIndex(allFeatureFiles, iFile);
+        const FeatureFile* featureFile(allFeatureFiles[iFile]);
+        const FeatureItemModel* featureItemModel(featureFile->getFeatureItemModel());
+        if (featureItemModel == NULL) {
             continue;
         }
-        const int32_t numAnn = neuroAnnModel->getNumberOfAnnotations();
+        const int32_t numFeatures = featureItemModel->getNumberOfFeatures();
         
-        for (int32_t jAnn = 0; jAnn < numAnn; jAnn++) {
-            const NeuroglancerAnnotation* neuroAnn(neuroAnnModel->getAnnotationAtIndex(jAnn));
-            if ( ! neuroAnn->isDisplayed()) {
+        for (int32_t jFeatureIndex = 0; jFeatureIndex < numFeatures; jFeatureIndex++) {
+            const FeatureItem* featureItem(featureItemModel->getFeatureAtIndex(jFeatureIndex));
+            if ( ! featureItem->isDisplayed()) {
                 continue;
             }
             
             bool supportedTypeFlag(false);
-            switch (neuroAnn->getType()) {
-                case NeuroglancerAnnotationTypeEnum::INVALID:
+            switch (featureItem->getType()) {
+                case FeatureItemTypeEnum::INVALID:
                     break;
-                case NeuroglancerAnnotationTypeEnum::AXIS_ALIGNED_BOUNDING_BOX:
-                    break;
-                case NeuroglancerAnnotationTypeEnum::ELLIPSOID:
-                    break;
-                case NeuroglancerAnnotationTypeEnum::LINE:
-                    break;
-                case NeuroglancerAnnotationTypeEnum::POINT:
+                case FeatureItemTypeEnum::POINT:
                     supportedTypeFlag = true;
-                    break;
-                case NeuroglancerAnnotationTypeEnum::POLYLINE:
                     break;
             }
             if ( ! supportedTypeFlag) {
                 CaretAssert(0);
-                CaretLogSevere("Neuroglancer Annotation of type "
-                               + neuroAnn->getTypeName()
+                CaretLogSevere("Feature of type "
+                               + featureItem->getTypeName()
                                + " not supported for drawing.");
                 continue;
             }
             
-            const QColor& color(neuroAnn->getColor());
+            const QColor& color(featureItem->getColor());
             std::array<uint8_t, 4> rgba {
                 static_cast<uint8_t>(color.red()),
                 static_cast<uint8_t>(color.green()),
@@ -445,11 +437,11 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                 static_cast<uint8_t>(color.alpha())
             };
             
-            CaretAssert(neuroAnn->getNumberOfIJK() > 0);
+            CaretAssert(featureItem->getNumberOfIJK() > 0);
             const int32_t coordIndex(0);
-            Vector3D xyz(neuroAnnFile->annotationIJKtoXYZ(neuroAnn, coordIndex));
+            Vector3D xyz(featureFile->featureIJKtoXYZ(featureItem, coordIndex));
 
-            bool drawNeuroAnnFlag = false;
+            bool drawFeatureFlag = false;
             switch (drawType) {
                 case DrawType::HISTOLOGY:
                 {
@@ -470,13 +462,13 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                             xyz[0] = planeOnSliceXYZ[0];
                             xyz[1] = planeOnSliceXYZ[1];
                             xyz[2] = planeOnSliceXYZ[2];
-                            drawNeuroAnnFlag = true;
+                            drawFeatureFlag = true;
                         }
                     }
                 }
                     break;
                 case DrawType::SURFACE:
-                    drawNeuroAnnFlag = true;
+                    drawFeatureFlag = true;
                     break;
                 case DrawType::VOLUME_MPR:
                 case DrawType::VOLUME_OBLIQUE:
@@ -486,30 +478,30 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                     if (testFlag) {
                         CaretAssert(underlayVolume);
                         xyz = plane.projectPointToPlane(xyz);
-                        drawNeuroAnnFlag = true;
+                        drawFeatureFlag = true;
                     }
                     else {
                         if (plane.absoluteDistanceToPlane(xyz) < halfSliceThickness) {
                             xyz = plane.projectPointToPlane(xyz);
-                            drawNeuroAnnFlag = true;
+                            drawFeatureFlag = true;
                         }
                     }
                 }
                     break;
                 case DrawType::WHOLE_BRAIN:
                 if (underlayVolume != NULL) {
-                    drawNeuroAnnFlag = true;
+                    drawFeatureFlag = true;
                 }
                     break;
             }
             
-            if (drawNeuroAnnFlag) {
+            if (drawFeatureFlag) {
                 glPushMatrix();
                 if (selectFlag) {
                     fixedPipelineDrawing->colorIdentification->addItem(rgba.data(),
                                                                        SelectionItemDataTypeEnum::FOCUS_VOLUME,
                                                                        iFile, /* file index */
-                                                                       jAnn,  /* Ann index*/
+                                                                       jFeatureIndex,  /* Ann index*/
                                                                        0); /* projection index */
                     rgba[3] = 255;
                 }
@@ -520,7 +512,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
                 std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive;
                 idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
                 idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
-                                               (neuroAnn->getSymbolSize() * symbolScale));
+                                               (featureItem->getSymbolSize() * symbolScale));
                 idPrimitive->addVertex(xyz,
                                        rgba.data());
                 GraphicsEngineDataOpenGL::draw(idPrimitive.get());
@@ -530,98 +522,98 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
     }
     
     if (selectFlag) {
-        int32_t neuroAnnFileIndex = -1;
-        int32_t neuroAnnIndex = -1;
-        int32_t neuroAnnProjectionIndex = -1;
+        int32_t featureFileIndex = -1;
+        int32_t featureIndex = -1;
+        int32_t featureProjectionIndex = -1;
         float depth = -1.0;
         fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::FOCUS_VOLUME,
                                                          fixedPipelineDrawing->mouseX,
                                                          fixedPipelineDrawing->mouseY,
-                                                         neuroAnnFileIndex,
-                                                         neuroAnnIndex,
-                                                         neuroAnnProjectionIndex,
+                                                         featureFileIndex,
+                                                         featureIndex,
+                                                         featureProjectionIndex,
                                                          depth);
-        if (neuroAnnFileIndex >= 0) {
-            NeuroglancerAnnotationsFile* neuroAnnFile(brain->getNeuroglancerAnnotationsFile(neuroAnnFileIndex));
-            CaretAssert(neuroAnnFile);
-            NeuroglancerAnnotationModel* neuroAnnModel(neuroAnnFile->getAnnotationModel());
-            CaretAssert(neuroAnnModel);
+        if (featureFileIndex >= 0) {
+            FeatureFile* featureFile(brain->getFeatureFile(featureFileIndex));
+            CaretAssert(featureFile);
+            FeatureItemModel* featureItemModel(featureFile->getFeatureItemModel());
+            CaretAssert(featureItemModel);
             switch (drawType) {
                 case DrawType::HISTOLOGY:
-                    if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(neuroAnnModel->getAnnotationAtIndex(neuroAnnIndex));
-                        CaretAssert(neuroAnn);
-                        selectNeuroAnn->setBrain(brain);
-                        selectNeuroAnn->setHistologySelection(histologySlicesFile,
-                                                              neuroAnnFile,
-                                                              neuroAnn,
-                                                              neuroAnnIndex);
-                        selectNeuroAnn->setScreenDepth(depth);
+                    if (selectionItemFeature->isOtherScreenDepthCloserToViewer(depth)) {
+                        FeatureItem* featureItem(featureItemModel->getFeatureAtIndex(featureIndex));
+                        CaretAssert(featureItem);
+                        selectionItemFeature->setBrain(brain);
+                        selectionItemFeature->setHistologySelection(histologySlicesFile,
+                                                              featureFile,
+                                                              featureItem,
+                                                              featureIndex);
+                        selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(neuroAnnFile->annotationIJKtoXYZ(neuroAnn,
+                        const Vector3D xyz(featureFile->featureIJKtoXYZ(featureItem,
                                                                             coordIndex));
-                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
-                        CaretLogFine("Selected Histology Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
+                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
+                        CaretLogFine("Selected Histology Feature Identification Symbol: " + QString::number(featureIndex));
                     }
                     break;
                 case DrawType::SURFACE:
-                    if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(neuroAnnModel->getAnnotationAtIndex(neuroAnnIndex));
-                        CaretAssert(neuroAnn);
-                        selectNeuroAnn->setBrain(brain);
-                        selectNeuroAnn->setSurfaceSelection(surface,
-                                                            neuroAnnFile,
-                                                            neuroAnn,
-                                                            neuroAnnIndex);
-                        selectNeuroAnn->setScreenDepth(depth);
+                    if (selectionItemFeature->isOtherScreenDepthCloserToViewer(depth)) {
+                        FeatureItem* featureItem(featureItemModel->getFeatureAtIndex(featureIndex));
+                        CaretAssert(featureItem);
+                        selectionItemFeature->setBrain(brain);
+                        selectionItemFeature->setSurfaceSelection(surface,
+                                                            featureFile,
+                                                            featureItem,
+                                                            featureIndex);
+                        selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(neuroAnnFile->annotationIJKtoXYZ(neuroAnn,
+                        const Vector3D xyz(featureFile->featureIJKtoXYZ(featureItem,
                                                                             coordIndex));
-                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
-                        CaretLogFine("Selected Surface Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
+                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
+                        CaretLogFine("Selected Surface Feature Identification Symbol: " + QString::number(featureIndex));
                     }
                     break;
                 case DrawType::VOLUME_MPR:
                 case DrawType::VOLUME_OBLIQUE:
                 case DrawType::VOLUME_ORTHOGONAL:
-                    CaretAssert(selectNeuroAnn);
-                    if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(neuroAnnModel->getAnnotationAtIndex(neuroAnnIndex));
-                        CaretAssert(neuroAnn);
-                        selectNeuroAnn->setBrain(brain);
-                        selectNeuroAnn->setVolumeSelection(underlayVolume,
-                                                           neuroAnnFile,
-                                                           neuroAnn,
-                                                           neuroAnnIndex);
-                        selectNeuroAnn->setScreenDepth(depth);
+                    CaretAssert(selectionItemFeature);
+                    if (selectionItemFeature->isOtherScreenDepthCloserToViewer(depth)) {
+                        FeatureItem* featureItem(featureItemModel->getFeatureAtIndex(featureIndex));
+                        CaretAssert(featureItem);
+                        selectionItemFeature->setBrain(brain);
+                        selectionItemFeature->setVolumeSelection(underlayVolume,
+                                                           featureFile,
+                                                                 featureItem,
+                                                           featureIndex);
+                        selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(neuroAnnFile->annotationIJKtoXYZ(neuroAnn,
+                        const Vector3D xyz(featureFile->featureIJKtoXYZ(featureItem,
                                                                             coordIndex));
-                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
-                        CaretLogFine("Selected Volume Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
+                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
+                        CaretLogFine("Selected Volume Feature Identification Symbol: " + QString::number(featureIndex));
                     }
                     break;
                 case DrawType::WHOLE_BRAIN:
-                    if (selectNeuroAnn->isOtherScreenDepthCloserToViewer(depth)) {
-                        NeuroglancerAnnotation* neuroAnn(neuroAnnModel->getAnnotationAtIndex(neuroAnnIndex));
-                        CaretAssert(neuroAnn);
-                        selectNeuroAnn->setBrain(brain);
-                        selectNeuroAnn->setWholeBrainSelection(neuroAnnFile,
-                                                               neuroAnn,
-                                                               neuroAnnIndex);
-                        selectNeuroAnn->setScreenDepth(depth);
+                    if (selectionItemFeature->isOtherScreenDepthCloserToViewer(depth)) {
+                        FeatureItem* feature(featureItemModel->getFeatureAtIndex(featureIndex));
+                        CaretAssert(feature);
+                        selectionItemFeature->setBrain(brain);
+                        selectionItemFeature->setWholeBrainSelection(featureFile,
+                                                               feature,
+                                                               featureIndex);
+                        selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(neuroAnnFile->annotationIJKtoXYZ(neuroAnn,
+                        const Vector3D xyz(featureFile->featureIJKtoXYZ(feature,
                                                                             coordIndex));
-                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectNeuroAnn, xyz);
-                        CaretLogFine("Selected Surface Neuro Ann Identification Symbol: " + QString::number(neuroAnnIndex));
+                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
+                        CaretLogFine("Selected Surface Feature Identification Symbol: " + QString::number(featureIndex));
                     }
                     break;
             }
         }
     }
     
-    fixedPipelineDrawing->checkForOpenGLError(NULL, "At end BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn())");
+    fixedPipelineDrawing->checkForOpenGLError(NULL, "At end BrainOpenGLFeatureDrawing::drawAllFeatures())");
 }
 
 /**
@@ -635,7 +627,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllNeuroAnn(const DrawType drawTyp
  *     Size of square.
  */
 void
-BrainOpenGLNeuroglancerAnnotationDrawing::drawSquare(const float size)
+BrainOpenGLFeatureDrawing::drawSquare(const float size)
 {
     const float length = size * 0.5;
     

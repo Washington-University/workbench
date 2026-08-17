@@ -1,5 +1,5 @@
-#ifndef __SELECTION_ITEM_NEUROGLANCER_ANNOTATION__H_
-#define __SELECTION_ITEM_NEUROGLANCER_ANNOTATION__H_
+#ifndef __SELECTION_ITEM_FEATURE__H_
+#define __SELECTION_ITEM_FEATURE__H_
 
 /*LICENSE_START*/
 /*
@@ -26,13 +26,13 @@
 
 namespace caret {
 
-    class NeuroglancerAnnotation;
-    class NeuroglancerAnnotationsFile;
+    class FeatureFile;
+    class FeatureItem;
     class HistologySlicesFile;
     class Surface;
     class VolumeMappableInterface;
     
-    class SelectionItemNeuroglancerAnnotation : public SelectionItem {
+    class SelectionItemFeature : public SelectionItem {
         
     public:
         enum class IdType {
@@ -44,27 +44,27 @@ namespace caret {
         };
         
         void setSurfaceSelection(const Surface* surface,
-                                 NeuroglancerAnnotationsFile* neuroAnnFile,
-                                 NeuroglancerAnnotation* neuroAnn,
-                                 const int32_t neuroAnnIndex);
+                                 FeatureFile* featureFile,
+                                 FeatureItem* featureItem,
+                                 const int32_t featureIndex);
 
         void setHistologySelection(HistologySlicesFile* histologySlicesFile,
-                                   NeuroglancerAnnotationsFile* neuroAnnFile,
-                                   NeuroglancerAnnotation* neuroAnn,
-                                   const int32_t neuroAnnIndex);
+                                   FeatureFile* featureFile,
+                                   FeatureItem* featureItem,
+                                   const int32_t featureIndex);
         
         void setVolumeSelection(VolumeMappableInterface* volumeMappableInterface,
-                                NeuroglancerAnnotationsFile* neuroAnnFile,
-                                NeuroglancerAnnotation* neuroAnn,
-                                const int32_t neuroAnnIndex);
+                                FeatureFile* featureFile,
+                                FeatureItem* featureItem,
+                                const int32_t featureIndex);
 
-        void setWholeBrainSelection(NeuroglancerAnnotationsFile* neuroAnnFile,
-                                    NeuroglancerAnnotation* neuroAnn,
-                                    const int32_t neuroAnnIndex);
+        void setWholeBrainSelection(FeatureFile* featureFile,
+                                    FeatureItem* featureItem,
+                                    const int32_t featureIndex);
 
-        SelectionItemNeuroglancerAnnotation();
+        SelectionItemFeature();
         
-        virtual ~SelectionItemNeuroglancerAnnotation();
+        virtual ~SelectionItemFeature();
         
         virtual bool isValid() const override;
         
@@ -82,15 +82,15 @@ namespace caret {
         
         const HistologySlicesFile* getHistologySlicesFile() const;
         
-        NeuroglancerAnnotation* getNeuroglancerAnnotation();
+        FeatureItem* getFeatureItem();
         
-        const NeuroglancerAnnotation* getNeuroglancerAnnotation() const;
+        const FeatureItem* getFeatureItem() const;
         
-        NeuroglancerAnnotationsFile* getNeuroglancerAnnotationsFile();
+        FeatureFile* getFeatureFile();
         
-        const NeuroglancerAnnotationsFile* getNeuroglancerAnnotationsFile() const;
+        const FeatureFile* getFeatureFile() const;
         
-        int32_t getNeuroglancerAnnotationIndex() const;
+        int32_t getFeatureItemIndex() const;
         
         virtual void reset() override;
         
@@ -99,22 +99,22 @@ namespace caret {
     private:
         void resetPrivate();
         
-        SelectionItemNeuroglancerAnnotation(const SelectionItemNeuroglancerAnnotation&);
+        SelectionItemFeature(const SelectionItemFeature&);
 
-        SelectionItemNeuroglancerAnnotation& operator=(const SelectionItemNeuroglancerAnnotation&);
+        SelectionItemFeature& operator=(const SelectionItemFeature&);
         
         IdType m_idType = IdType::INVALID;
-        NeuroglancerAnnotation* m_neuroAnn = NULL;
-        NeuroglancerAnnotationsFile* m_neuroAnnFile = NULL;
+        FeatureItem* m_featureItem = NULL;
+        FeatureFile* m_featureFile = NULL;
         const Surface* m_surface = NULL;
         VolumeMappableInterface* m_volumeFile = NULL;
         HistologySlicesFile* m_histologySlicesFile = NULL;
-        int32_t m_neuroAnnIndex = -1;
+        int32_t m_featureIndex = -1;
     };
     
-#ifdef __SELECTION_ITEM_NEUROGLANCER_ANNOTATION_DECLARE__
+#ifdef __SELECTION_ITEM_FEATURE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SELECTION_ITEM_NEUROGLANCER_ANNOTATION_DECLARE__
+#endif // __SELECTION_ITEM_FEATURE_DECLARE__
 
 } // namespace
-#endif  //__SELECTION_ITEM_NEUROGLANCER_ANNOTATION__H_
+#endif  //__SELECTION_ITEM_FEATURE__H_

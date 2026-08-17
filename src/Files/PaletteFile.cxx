@@ -1879,7 +1879,7 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             invalid = true;
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:

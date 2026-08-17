@@ -77,6 +77,8 @@ public:
         CONNECTIVITY_SCALAR_DATA_SERIES,
         /** Zeiss CZI Image File */
         CZI_IMAGE_FILE,
+        /** Feature */
+        FEATURE,
         /** Foci */
         FOCI,
         /** Histology Slices File */
@@ -91,8 +93,6 @@ public:
         METRIC,
         /** Metric Dynamic Connectivity */
         METRIC_DYNAMIC,
-        /* Neuroglancer Annotations */
-        NEUROGLANCER_ANNOTATION,
         /** OME-ZARR Image */
         OME_ZARR_IMAGE,
         /** Palette */

@@ -34,7 +34,7 @@
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLFociDrawing.h"
 #include "BrainOpenGLIdentificationDrawing.h"
-#include "BrainOpenGLNeuroglancerAnnotationDrawing.h"
+#include "BrainOpenGLFeatureDrawing.h"
 #include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
@@ -4390,10 +4390,10 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
         }
         
         /*
-         * Draw neuroglancer annotations
+         * Draw features
          */
-        BrainOpenGLNeuroglancerAnnotationDrawing neurAnnDrawing;
-        neurAnnDrawing.drawOnVolumeOrthogonal(m_brain,
+        BrainOpenGLFeatureDrawing featureDrawing;
+        featureDrawing.drawOnVolumeOrthogonal(m_brain,
                                               m_fixedPipelineDrawing,
                                               const_cast<VolumeMappableInterface*>(underlayVolume),
                                               slicePlane,

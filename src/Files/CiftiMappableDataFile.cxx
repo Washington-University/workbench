@@ -260,7 +260,7 @@ VolumeMappableInterface()
         case DataFileTypeEnum::META_VOLUME:
         case DataFileTypeEnum::METRIC:
         case DataFileTypeEnum::METRIC_DYNAMIC:
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
         case DataFileTypeEnum::OME_ZARR_IMAGE:
         case DataFileTypeEnum::PALETTE:
         case DataFileTypeEnum::RGBA:
@@ -855,7 +855,7 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
         case DataFileTypeEnum::METRIC:
         case DataFileTypeEnum::META_VOLUME:
         case DataFileTypeEnum::METRIC_DYNAMIC:
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
         case DataFileTypeEnum::OME_ZARR_IMAGE:
         case DataFileTypeEnum::PALETTE:
         case DataFileTypeEnum::RGBA:
@@ -2547,7 +2547,7 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
@@ -6092,7 +6092,7 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
         case DataFileTypeEnum::METRIC_DYNAMIC:
             CaretAssert(0);
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             CaretAssert(0);
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:

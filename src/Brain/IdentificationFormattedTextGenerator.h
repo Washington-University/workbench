@@ -62,7 +62,7 @@ namespace caret {
     class SelectionItemHistologyCoordinate;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
-    class SelectionItemNeuroglancerAnnotation;
+    class SelectionItemFeature;
     class SelectionItemSurfaceNode;
     class SelectionItemVoxel;
     class SelectionManager;
@@ -165,11 +165,11 @@ namespace caret {
                                             const int32_t projectionIndex,
                                             const bool toolTipFlag) const;
         
-        void generateNeuroglancerAnnotationIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
-                                                             IdentificationStringBuilder& idText,
-                                                             const SelectionItemNeuroglancerAnnotation* idNeuroAnn,
-                                                             const bool toolTipFlag) const;
-        
+        void generateFeatureIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
+                                              IdentificationStringBuilder& idText,
+                                              const SelectionItemFeature* selectionFeature,
+                                              const bool toolTipFlag) const;
+
         void generateSurfaceVertexIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                const Brain* brain,
                                                const SelectionItemSurfaceNode* idSurfaceNode) const;
@@ -286,8 +286,8 @@ namespace caret {
                                                              const int32_t vertexIndex,
                                                              std::vector<AString>& textLinesOut) const;
 
-        void generateNeuroglancerAnnotationToolTip(const DataToolTipsManager* dataToolTipsManager,
-                                                   const SelectionItemNeuroglancerAnnotation* neuroAnnSelection,
+        void generateFeatureToolTip(const DataToolTipsManager* dataToolTipsManager,
+                                                   const SelectionItemFeature* featureSelection,
                                                    HtmlTableBuilder& htmlTableBuilder,
                                                    IdentificationStringBuilder& idText) const;
         

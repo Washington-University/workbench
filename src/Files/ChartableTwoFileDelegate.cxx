@@ -190,7 +190,7 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
         case DataFileTypeEnum::METRIC_DYNAMIC:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;

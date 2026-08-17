@@ -3133,7 +3133,7 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                         displayedDataFiles.insert(metricDynFile);
                     }
                         break;
-                    case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                    case DataFileTypeEnum::FEATURE:
                         break;
                     case DataFileTypeEnum::OME_ZARR_IMAGE:
                         break;

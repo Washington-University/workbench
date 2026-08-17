@@ -1,5 +1,5 @@
-#ifndef __NEUROGLANCER_ANNOTATION_BASE_H__
-#define __NEUROGLANCER_ANNOTATION_BASE_H__
+#ifndef __FEATURE_BASE_H__
+#define __FEATURE_BASE_H__
 
 /*LICENSE_START*/
 /*
@@ -31,22 +31,22 @@
 
 namespace caret {
 
-    class NeuroglancerAnnotationBase : public QStandardItem {
+    class FeatureBase : public QStandardItem {
         
     public:
         enum class BaseType {
-            ANNOTATION,
-            LABEL,
-            PROPERTY
+            FEATURE_ITEM,
+            FEATURE_LABEL,
+            FEATURE_PROPERTY
         };
         
-        NeuroglancerAnnotationBase(const BaseType baseType);
+        FeatureBase(const BaseType baseType);
         
-        virtual ~NeuroglancerAnnotationBase();
+        virtual ~FeatureBase();
         
-        NeuroglancerAnnotationBase(const NeuroglancerAnnotationBase&) = delete;
+        FeatureBase(const FeatureBase&) = delete;
 
-        NeuroglancerAnnotationBase& operator=(const NeuroglancerAnnotationBase&) = delete;
+        FeatureBase& operator=(const FeatureBase&) = delete;
         
         BaseType getBaseType() const;
 
@@ -60,9 +60,9 @@ namespace caret {
 
     };
     
-#ifdef __NEUROGLANCER_ANNOTATION_BASE_DECLARE__
+#ifdef __FEATURE_BASE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __NEUROGLANCER_ANNOTATION_BASE_DECLARE__
+#endif // __FEATURE_BASE_DECLARE__
 
 } // namespace
-#endif  //__NEUROGLANCER_ANNOTATION_BASE_H__
+#endif  //__FEATURE_BASE_H__

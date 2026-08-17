@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __NEUROGLANCER_ANNOTATION_PROPERTY_DATA_TYPE_ENUM_DECLARE__
-#include "NeuroglancerAnnotationPropertyDataTypeEnum.h"
-#undef __NEUROGLANCER_ANNOTATION_PROPERTY_DATA_TYPE_ENUM_DECLARE__
+#define __FEATURE_ITEM_TYPE_ENUM_DECLARE__
+#include "FeatureItemTypeEnum.h"
+#undef __FEATURE_ITEM_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::NeuroglancerAnnotationPropertyDataTypeEnum 
+ * \class caret::FeatureItemTypeEnum 
  * \brief 
  *
  *
@@ -41,46 +41,38 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_neuroglancerAnnotationPropertyDataTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_featureTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void neuroglancerAnnotationPropertyDataTypeEnumComboBoxItemActivated();
+ *             void featureTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "NeuroglancerAnnotationPropertyDataTypeEnum.h"
+ *         #include "FeatureItemTypeEnum.h"
  * 
  *     Instatiate:
- *         m_neuroglancerAnnotationPropertyDataTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_neuroglancerAnnotationPropertyDataTypeEnumComboBox->setup<NeuroglancerAnnotationPropertyDataTypeEnum,NeuroglancerAnnotationPropertyDataTypeEnum::Enum>();
+ *         m_featureTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_featureTypeEnumComboBox->setup<FeatureItemTypeEnum,FeatureItemTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_neuroglancerAnnotationPropertyDataTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(neuroglancerAnnotationPropertyDataTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_featureTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(featureTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_neuroglancerAnnotationPropertyDataTypeEnumComboBox->setSelectedItem<NeuroglancerAnnotationPropertyDataTypeEnum,NeuroglancerAnnotationPropertyDataTypeEnum::Enum>(NEW_VALUE);
+ *         m_featureTypeEnumComboBox->setSelectedItem<FeatureItemTypeEnum,FeatureItemTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const NeuroglancerAnnotationPropertyDataTypeEnum::Enum VARIABLE = m_neuroglancerAnnotationPropertyDataTypeEnumComboBox->getSelectedItem<NeuroglancerAnnotationPropertyDataTypeEnum,NeuroglancerAnnotationPropertyDataTypeEnum::Enum>();
+ *         const FeatureItemTypeEnum::Enum VARIABLE = m_featureTypeEnumComboBox->getSelectedItem<FeatureItemTypeEnum,FeatureItemTypeEnum::Enum>();
  * 
  */
 
 /*
 switch (value) {
-    case NeuroglancerAnnotationPropertyDataTypeEnum::INVALID:
+    case FeatureItemTypeEnum::INVALID:
         break;
-    case NeuroglancerAnnotationPropertyDataTypeEnum::RGBA:
-        break;
-    case NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER:
-        break;
-    case NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER:
-        break;
-    case NeuroglancerAnnotationPropertyDataTypeEnum::FLOAT:
-        break;
-    case NeuroglancerAnnotationPropertyDataTypeEnum::LABEL:
+    case FeatureItemTypeEnum::POINT:
         break;
 }
 */
@@ -96,7 +88,7 @@ switch (value) {
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-NeuroglancerAnnotationPropertyDataTypeEnum::NeuroglancerAnnotationPropertyDataTypeEnum(const Enum enumValue,
+FeatureItemTypeEnum::FeatureItemTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -109,7 +101,7 @@ NeuroglancerAnnotationPropertyDataTypeEnum::NeuroglancerAnnotationPropertyDataTy
 /**
  * Destructor.
  */
-NeuroglancerAnnotationPropertyDataTypeEnum::~NeuroglancerAnnotationPropertyDataTypeEnum()
+FeatureItemTypeEnum::~FeatureItemTypeEnum()
 {
 }
 
@@ -117,37 +109,20 @@ NeuroglancerAnnotationPropertyDataTypeEnum::~NeuroglancerAnnotationPropertyDataT
  * Initialize the enumerated metadata.
  */
 void
-NeuroglancerAnnotationPropertyDataTypeEnum::initialize()
+FeatureItemTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(NeuroglancerAnnotationPropertyDataTypeEnum(RGBA,
-                                    "RGBA",
-                                    "Rgba"));
+    enumData.push_back(FeatureItemTypeEnum(INVALID,
+                                           "INVALID",
+                                           "Invalid"));
     
-    enumData.push_back(NeuroglancerAnnotationPropertyDataTypeEnum(INVALID,
-                                                                  "INVALID",
-                                                                  "Invalid"));
-    
-    enumData.push_back(NeuroglancerAnnotationPropertyDataTypeEnum(UNSIGNED_INTEGER,
-                                    "UNSIGNED_INTEGER", 
-                                    "Unsigned Integer"));
-    
-    enumData.push_back(NeuroglancerAnnotationPropertyDataTypeEnum(INTEGER, 
-                                    "INTEGER", 
-                                    "Integer"));
-    
-    enumData.push_back(NeuroglancerAnnotationPropertyDataTypeEnum(FLOAT, 
-                                    "FLOAT", 
-                                    "Float"));
-    
-    enumData.push_back(NeuroglancerAnnotationPropertyDataTypeEnum(LABEL, 
-                                    "LABEL", 
-                                    "Label"));
-    
+    enumData.push_back(FeatureItemTypeEnum(POINT,
+                                           "POINT",
+                                           "Point"));
 }
 
 /**
@@ -157,14 +132,14 @@ NeuroglancerAnnotationPropertyDataTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const NeuroglancerAnnotationPropertyDataTypeEnum*
-NeuroglancerAnnotationPropertyDataTypeEnum::findData(const Enum enumValue)
+const FeatureItemTypeEnum*
+FeatureItemTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const NeuroglancerAnnotationPropertyDataTypeEnum* d = &enumData[i];
+        const FeatureItemTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -181,10 +156,10 @@ NeuroglancerAnnotationPropertyDataTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-NeuroglancerAnnotationPropertyDataTypeEnum::toName(Enum enumValue) {
+FeatureItemTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const NeuroglancerAnnotationPropertyDataTypeEnum* enumInstance = findData(enumValue);
+    const FeatureItemTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -198,18 +173,18 @@ NeuroglancerAnnotationPropertyDataTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-NeuroglancerAnnotationPropertyDataTypeEnum::Enum 
-NeuroglancerAnnotationPropertyDataTypeEnum::fromName(const AString& name, bool* isValidOut)
+FeatureItemTypeEnum::Enum 
+FeatureItemTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = NeuroglancerAnnotationPropertyDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = FeatureItemTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<NeuroglancerAnnotationPropertyDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const NeuroglancerAnnotationPropertyDataTypeEnum& d = *iter;
+        const FeatureItemTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -221,7 +196,7 @@ NeuroglancerAnnotationPropertyDataTypeEnum::fromName(const AString& name, bool* 
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type NeuroglancerAnnotationPropertyDataTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type FeatureItemTypeEnum"));
     }
     return enumValue;
 }
@@ -234,10 +209,10 @@ NeuroglancerAnnotationPropertyDataTypeEnum::fromName(const AString& name, bool* 
  *     String representing enumerated value.
  */
 AString 
-NeuroglancerAnnotationPropertyDataTypeEnum::toGuiName(Enum enumValue) {
+FeatureItemTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const NeuroglancerAnnotationPropertyDataTypeEnum* enumInstance = findData(enumValue);
+    const FeatureItemTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -251,18 +226,18 @@ NeuroglancerAnnotationPropertyDataTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-NeuroglancerAnnotationPropertyDataTypeEnum::Enum 
-NeuroglancerAnnotationPropertyDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+FeatureItemTypeEnum::Enum 
+FeatureItemTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = NeuroglancerAnnotationPropertyDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = FeatureItemTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<NeuroglancerAnnotationPropertyDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const NeuroglancerAnnotationPropertyDataTypeEnum& d = *iter;
+        const FeatureItemTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -274,7 +249,7 @@ NeuroglancerAnnotationPropertyDataTypeEnum::fromGuiName(const AString& guiName, 
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type NeuroglancerAnnotationPropertyDataTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type FeatureItemTypeEnum"));
     }
     return enumValue;
 }
@@ -286,10 +261,10 @@ NeuroglancerAnnotationPropertyDataTypeEnum::fromGuiName(const AString& guiName, 
  *    Integer code for data type.
  */
 int32_t
-NeuroglancerAnnotationPropertyDataTypeEnum::toIntegerCode(Enum enumValue)
+FeatureItemTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const NeuroglancerAnnotationPropertyDataTypeEnum* enumInstance = findData(enumValue);
+    const FeatureItemTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -304,18 +279,18 @@ NeuroglancerAnnotationPropertyDataTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-NeuroglancerAnnotationPropertyDataTypeEnum::Enum
-NeuroglancerAnnotationPropertyDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+FeatureItemTypeEnum::Enum
+FeatureItemTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = NeuroglancerAnnotationPropertyDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = FeatureItemTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<NeuroglancerAnnotationPropertyDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const NeuroglancerAnnotationPropertyDataTypeEnum& enumInstance = *iter;
+        const FeatureItemTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -327,7 +302,7 @@ NeuroglancerAnnotationPropertyDataTypeEnum::fromIntegerCode(const int32_t intege
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type NeuroglancerAnnotationPropertyDataTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type FeatureItemTypeEnum"));
     }
     return enumValue;
 }
@@ -340,13 +315,13 @@ NeuroglancerAnnotationPropertyDataTypeEnum::fromIntegerCode(const int32_t intege
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-NeuroglancerAnnotationPropertyDataTypeEnum::getAllEnums(std::vector<NeuroglancerAnnotationPropertyDataTypeEnum::Enum>& allEnums)
+FeatureItemTypeEnum::getAllEnums(std::vector<FeatureItemTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<NeuroglancerAnnotationPropertyDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -362,16 +337,16 @@ NeuroglancerAnnotationPropertyDataTypeEnum::getAllEnums(std::vector<Neuroglancer
  *     If true, the names are sorted in alphabetical order.
  */
 void
-NeuroglancerAnnotationPropertyDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+FeatureItemTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<NeuroglancerAnnotationPropertyDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(NeuroglancerAnnotationPropertyDataTypeEnum::toName(iter->enumValue));
+        allNames.push_back(FeatureItemTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -388,16 +363,16 @@ NeuroglancerAnnotationPropertyDataTypeEnum::getAllNames(std::vector<AString>& al
  *     If true, the names are sorted in alphabetical order.
  */
 void
-NeuroglancerAnnotationPropertyDataTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+FeatureItemTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<NeuroglancerAnnotationPropertyDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(NeuroglancerAnnotationPropertyDataTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(FeatureItemTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

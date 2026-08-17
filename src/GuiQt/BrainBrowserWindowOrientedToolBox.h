@@ -46,7 +46,7 @@ namespace caret {
     class ImageSelectionViewController;
     class LabelSelectionViewWidget;
     class MediaOverlaySetViewController;
-    class NeuroglancerAnnotationsSelectionViewController;
+    class FeatureSelectionViewController;
     class OverlaySetViewController;
     class SamplesSelectionViewController;
     class VolumeSurfaceOutlineSetViewController;
@@ -131,7 +131,7 @@ namespace caret {
         
         MediaOverlaySetViewController* m_mediaSelectionViewController;
         
-        NeuroglancerAnnotationsSelectionViewController* m_neuroAnnSelectionViewController;
+        FeatureSelectionViewController* m_featureSelectionViewController;
         
         SamplesSelectionViewController* m_samplesSelectionViewController;
         
@@ -169,7 +169,7 @@ namespace caret {
         
         int32_t m_mediaTabIndex;
         
-        int32_t m_neuroglancerTabIndex;
+        int32_t m_featureTabIndex;
         
         int32_t m_samplesTabIndex;
         

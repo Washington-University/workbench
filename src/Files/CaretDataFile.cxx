@@ -135,7 +135,7 @@ SceneableInterface()
         case DataFileTypeEnum::METRIC_DYNAMIC:
             supportsIdentificationAttributesFlag = true;
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             supportsIdentificationAttributesFlag = true;
@@ -689,21 +689,21 @@ CaretDataFile::castToVolumeFile() const
 }
 
 /**
- * @return File casted to neuroglancer annotations file (avoids use of dynamic_cast that can be slow)
- * Overidden in NeuroglancerAnnotationsFile
+ * @return File casted to feature file (avoids use of dynamic_cast that can be slow)
+ * Overidden in FeatureFile
  */
-NeuroglancerAnnotationsFile*
-CaretDataFile::castToNeuroglancerAnnotationsFile()
+FeatureFile*
+CaretDataFile::castToFeatureFile()
 {
     return NULL;
 }
 
 /**
- * @return File casted to neuroglancer annotations file (avoids use of dynamic_cast that can be slow)
- * Overidden in NeuroglancerAnnotationsFile
+ * @return File casted to feature file (avoids use of dynamic_cast that can be slow)
+ * Overidden in FeatureFile
  */
-const NeuroglancerAnnotationsFile*
-CaretDataFile::castToNeuroglancerAnnotationsFile() const
+const FeatureFile*
+CaretDataFile::castToFeatureFile() const
 {
     return NULL;
 }

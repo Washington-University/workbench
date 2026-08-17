@@ -19,15 +19,15 @@
  */
 /*LICENSE_END*/
 
-#define __DISPLAY_PROPERTIES_NEUROGLANCER_ANNOTATIONS_DECLARE__
-#include "DisplayPropertiesNeuroglancerAnnotations.h"
-#undef __DISPLAY_PROPERTIES_NEUROGLANCER_ANNOTATIONS_DECLARE__
+#define __DISPLAY_PROPERTIES_FEATURE_DECLARE__
+#include "DisplayPropertiesFeature.h"
+#undef __DISPLAY_PROPERTIES_FEATURE_DECLARE__
 
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionModel.h"
 #include "DisplayPropertyDataFloat.h"
-#include "NeuroglancerAnnotationsFile.h"
-#include "NeuroglancerAnnotationModel.h"
+#include "FeatureFile.h"
+#include "FeatureItemModel.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -37,19 +37,19 @@ using namespace caret;
 
     
 /**
- * \class caret::DisplayPropertiesNeuroglancerAnnotations 
- * \brief Contains display properties for neuroglancer annotations.
+ * \class caret::DisplayPropertiesFeature 
+ * \brief Contains display properties for features.
  */
 
 /**
  * Constructor.
  */
-DisplayPropertiesNeuroglancerAnnotations::DisplayPropertiesNeuroglancerAnnotations()
+DisplayPropertiesFeature::DisplayPropertiesFeature()
 : DisplayProperties()
 {
     resetPrivate();
     
-    m_neurogAnnFileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileType(DataFileTypeEnum::NEUROGLANCER_ANNOTATION));
+    m_featureFileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileType(DataFileTypeEnum::FEATURE));
     
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
@@ -62,15 +62,15 @@ DisplayPropertiesNeuroglancerAnnotations::DisplayPropertiesNeuroglancerAnnotatio
                                m_displayStatusInDisplayGroup[0]);
     m_sceneAssistant->add("m_symbolScale",
                           &m_symbolScale);
-    m_sceneAssistant->add("m_neurogAnnFileSelectionModel",
+    m_sceneAssistant->add("m_featureFileSelectionModel",
                           "CaretDataFileSelectionModel",
-                          m_neurogAnnFileSelectionModel.get());
+                          m_featureFileSelectionModel.get());
 }
 
 /**
  * Destructor.
  */
-DisplayPropertiesNeuroglancerAnnotations::~DisplayPropertiesNeuroglancerAnnotations()
+DisplayPropertiesFeature::~DisplayPropertiesFeature()
 {
     
 }
@@ -83,7 +83,7 @@ DisplayPropertiesNeuroglancerAnnotations::~DisplayPropertiesNeuroglancerAnnotati
  *    Index of tab to which properties are copied.
  */
 void 
-DisplayPropertiesNeuroglancerAnnotations::copyDisplayProperties(const int32_t sourceTabIndex,
+DisplayPropertiesFeature::copyDisplayProperties(const int32_t sourceTabIndex,
                                                  const int32_t targetTabIndex)
 {
     const DisplayGroupEnum::Enum displayGroup = this->getDisplayGroupForTab(sourceTabIndex);
@@ -97,13 +97,13 @@ DisplayPropertiesNeuroglancerAnnotations::copyDisplayProperties(const int32_t so
  * and remove any data.
  */
 void 
-DisplayPropertiesNeuroglancerAnnotations::reset()
+DisplayPropertiesFeature::reset()
 {
     resetPrivate();
 }
 
 void
-DisplayPropertiesNeuroglancerAnnotations::resetPrivate()
+DisplayPropertiesFeature::resetPrivate()
 {
     const bool defaultDisplayStatusFlag(true);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -121,7 +121,7 @@ DisplayPropertiesNeuroglancerAnnotations::resetPrivate()
  * Update due to changes in data.
  */
 void 
-DisplayPropertiesNeuroglancerAnnotations::update()
+DisplayPropertiesFeature::update()
 {
     
 }
@@ -132,7 +132,7 @@ DisplayPropertiesNeuroglancerAnnotations::update()
  *     Display group.
  */
 bool 
-DisplayPropertiesNeuroglancerAnnotations::isDisplayed(const DisplayGroupEnum::Enum displayGroup,
+DisplayPropertiesFeature::isDisplayed(const DisplayGroupEnum::Enum displayGroup,
                                    const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_displayStatusInDisplayGroup, 
@@ -155,7 +155,7 @@ DisplayPropertiesNeuroglancerAnnotations::isDisplayed(const DisplayGroupEnum::En
  *    New status.
  */
 void 
-DisplayPropertiesNeuroglancerAnnotations::setDisplayed(const DisplayGroupEnum::Enum displayGroup,
+DisplayPropertiesFeature::setDisplayed(const DisplayGroupEnum::Enum displayGroup,
                                     const int32_t tabIndex,
                                        const bool displayStatus)
 {
@@ -177,7 +177,7 @@ DisplayPropertiesNeuroglancerAnnotations::setDisplayed(const DisplayGroupEnum::E
  * @return Scaling for symbols
  */
 float
-DisplayPropertiesNeuroglancerAnnotations::getSymbolScale() const
+DisplayPropertiesFeature::getSymbolScale() const
 {
     return m_symbolScale;
 }
@@ -188,7 +188,7 @@ DisplayPropertiesNeuroglancerAnnotations::getSymbolScale() const
  *    New scaling value
  */
 void
-DisplayPropertiesNeuroglancerAnnotations::setSymbolScale(const float symbolScale)
+DisplayPropertiesFeature::setSymbolScale(const float symbolScale)
 {
     m_symbolScale = symbolScale;
 }
@@ -199,7 +199,7 @@ DisplayPropertiesNeuroglancerAnnotations::setSymbolScale(const float symbolScale
  *    Index of browser tab.
  */
 DisplayGroupEnum::Enum 
-DisplayPropertiesNeuroglancerAnnotations::getDisplayGroupForTab(const int32_t browserTabIndex) const
+DisplayPropertiesFeature::getDisplayGroupForTab(const int32_t browserTabIndex) const
 {
     CaretAssertArrayIndex(m_displayGroup, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
@@ -215,7 +215,7 @@ DisplayPropertiesNeuroglancerAnnotations::getDisplayGroupForTab(const int32_t br
  *    New value for display group.
  */
 void 
-DisplayPropertiesNeuroglancerAnnotations::setDisplayGroupForTab(const int32_t browserTabIndex,
+DisplayPropertiesFeature::setDisplayGroupForTab(const int32_t browserTabIndex,
                                           const DisplayGroupEnum::Enum  displayGroup)
 {
     CaretAssertArrayIndex(m_displayGroup, 
@@ -225,81 +225,81 @@ DisplayPropertiesNeuroglancerAnnotations::setDisplayGroupForTab(const int32_t br
 }
 
 /**
- * @return The neuroglancer annotation file selection model (selects the file)
+ * @return The feature file selection model (selects the file)
  */
 CaretDataFileSelectionModel*
-DisplayPropertiesNeuroglancerAnnotations::getNeuroglancerAnnotationFileSelectionModel()
+DisplayPropertiesFeature::getFeatureFileSelectionModel()
 {
-    return m_neurogAnnFileSelectionModel.get();
+    return m_featureFileSelectionModel.get();
 }
 
 /**
- * @return The neuroglancer annotation file selection model (const method) (selects the file)
+ * @return The feature file selection model (const method) (selects the file)
  */
 const CaretDataFileSelectionModel*
-DisplayPropertiesNeuroglancerAnnotations::getNeuroglancerAnnotationFileSelectionModel() const
+DisplayPropertiesFeature::getFeatureFileSelectionModel() const
 {
-    return m_neurogAnnFileSelectionModel.get();
+    return m_featureFileSelectionModel.get();
 }
 
 /**
- * @return The selected neuroglancer annotation file
+ * @return The selected feature file
  */
-NeuroglancerAnnotationsFile*
-DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationFile()
+FeatureFile*
+DisplayPropertiesFeature::getSelectedFeatureFile()
 {
-    NeuroglancerAnnotationsFile* neuroAnnFile(NULL);
+    FeatureFile* featureFile(NULL);
     
-    CaretDataFile* cdf(getNeuroglancerAnnotationFileSelectionModel()->getSelectedFile());
+    CaretDataFile* cdf(getFeatureFileSelectionModel()->getSelectedFile());
     if (cdf != NULL) {
-        neuroAnnFile = cdf->castToNeuroglancerAnnotationsFile();
+        featureFile = cdf->castToFeatureFile();
     }
-    return neuroAnnFile;
+    return featureFile;
 }
 
 /**
- * @return The selected neuroglancer annotation file
+ * @return The selected feature file
  */
-const NeuroglancerAnnotationsFile*
-DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationFile() const
+const FeatureFile*
+DisplayPropertiesFeature::getSelectedFeatureFile() const
 {
-    const NeuroglancerAnnotationsFile* neuroAnnFile(NULL);
+    const FeatureFile* featureFile(NULL);
     
-    const CaretDataFile* cdf(getNeuroglancerAnnotationFileSelectionModel()->getSelectedFile());
+    const CaretDataFile* cdf(getFeatureFileSelectionModel()->getSelectedFile());
     if (cdf != NULL) {
-        neuroAnnFile = cdf->castToNeuroglancerAnnotationsFile();
+        featureFile = cdf->castToFeatureFile();
     }
-    return neuroAnnFile;
+    return featureFile;
 }
 
 /**
- * @return The selected neuroglancer annotation model (could be NULL)
+ * @return The selected feature model (could be NULL)
  */
-NeuroglancerAnnotationModel*
-DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationModel()
+FeatureItemModel*
+DisplayPropertiesFeature::getSelectedFeatureItemModel()
 {
-    NeuroglancerAnnotationModel* annModel(NULL);
+    FeatureItemModel* featureItemModel(NULL);
     
-    NeuroglancerAnnotationsFile* annFile(getSelectedNeuroglancerAnnotationFile());
-    if (annFile != NULL) {
-        annModel = annFile->getAnnotationModel();
+    FeatureFile* featureFile(getSelectedFeatureFile());
+    if (featureFile != NULL) {
+        featureItemModel = featureFile->getFeatureItemModel();
     }
-    return annModel;
+    return featureItemModel;
 }
 
 /**
- * @return The selected neuroglancer annotation model (could be NULL) (const method)
+ * @return The selected feature model (could be NULL) (const method)
  */
-const NeuroglancerAnnotationModel*
-DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationModel() const
+const FeatureItemModel*
+DisplayPropertiesFeature::getSelectedFeatureItemModel() const
 {
-    const NeuroglancerAnnotationModel* annModel(NULL);
+    const FeatureItemModel* featureItemModel(NULL);
     
-    const NeuroglancerAnnotationsFile* annFile(getSelectedNeuroglancerAnnotationFile());
-    if (annFile != NULL) {
-        annModel = annFile->getAnnotationModel();
+    const FeatureFile* featureFile(getSelectedFeatureFile());
+    if (featureFile != NULL) {
+        featureItemModel = featureFile->getFeatureItemModel();
     }
-    return annModel;
+    return featureItemModel;
 }
 
 /**
@@ -315,13 +315,13 @@ DisplayPropertiesNeuroglancerAnnotations::getSelectedNeuroglancerAnnotationModel
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-DisplayPropertiesNeuroglancerAnnotations::saveToScene(const SceneAttributes* sceneAttributes,
+DisplayPropertiesFeature::saveToScene(const SceneAttributes* sceneAttributes,
                    const AString& instanceName)
 {
     const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
     
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "DisplayPropertiesNeuroglancerAnnotations",
+                                            "DisplayPropertiesFeature",
                                             1);
     
     m_sceneAssistant->saveMembers(sceneAttributes, 
@@ -350,7 +350,7 @@ DisplayPropertiesNeuroglancerAnnotations::saveToScene(const SceneAttributes* sce
  *     saved and should be restored.
  */
 void 
-DisplayPropertiesNeuroglancerAnnotations::restoreFromScene(const SceneAttributes* sceneAttributes,
+DisplayPropertiesFeature::restoreFromScene(const SceneAttributes* sceneAttributes,
                         const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {

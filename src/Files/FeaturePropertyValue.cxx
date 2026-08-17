@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __NEUROGLANCER_ANNOTATION_PROPERTY_VALUE_DECLARE__
-#include "NeuroglancerAnnotationPropertyValue.h"
-#undef __NEUROGLANCER_ANNOTATION_PROPERTY_VALUE_DECLARE__
+#define __FEATURE_PROPERTY_VALUE_DECLARE__
+#include "FeaturePropertyValue.h"
+#undef __FEATURE_PROPERTY_VALUE_DECLARE__
 
 #include <array>
 
@@ -33,8 +33,8 @@ using namespace caret;
 
     
 /**
- * \class caret::NeuroglancerAnnotationPropertyValue 
- * \brief Class for value that is stored in NeuroglancerAnnotation of an annotation property
+ * \class caret::FeaturePropertyValue 
+ * \brief Class for a feature value that is stored in a FeatureItem
  * \ingroup Files
  */
 
@@ -49,12 +49,12 @@ using namespace caret;
  * @param labelText
  *    Text for when data type is label
  */
-NeuroglancerAnnotationPropertyValue::NeuroglancerAnnotationPropertyValue(const AString& description,
-                                                                         const NeuroglancerAnnotationPropertyDataTypeEnum::Enum dataType,
+FeaturePropertyValue::FeaturePropertyValue(const AString& description,
+                                                                         const FeaturePropertyDataTypeEnum::Enum dataType,
                                                                          const QVariant& value,
                                                                          const AString& labelText,
-                                                                         const NeuroglancerAnnotationLabelModel* labelModel)
-: NeuroglancerAnnotationBase(NeuroglancerAnnotationBase::BaseType::PROPERTY),
+                                                                         const FeatureLabelModel* labelModel)
+: FeatureBase(FeatureBase::BaseType::FEATURE_PROPERTY),
 m_description(description),
 m_dataType(dataType),
 m_value(value),
@@ -66,25 +66,25 @@ m_labelModel(labelModel)
     
     AString dataText;
     switch (m_dataType) {
-        case NeuroglancerAnnotationPropertyDataTypeEnum::INVALID:
+        case FeaturePropertyDataTypeEnum::INVALID:
             dataText = m_value.toString();
             break;
-        case NeuroglancerAnnotationPropertyDataTypeEnum::RGBA:
+        case FeaturePropertyDataTypeEnum::RGBA:
         {
             QColor color = m_value.value<QColor>();
             dataText = QColorToString(color);
         }
             break;
-        case NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER:
+        case FeaturePropertyDataTypeEnum::UNSIGNED_INTEGER:
             dataText = AString::number(m_value.toUInt());
             break;
-        case NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER:
+        case FeaturePropertyDataTypeEnum::INTEGER:
             dataText = AString::number(m_value.toInt());
             break;
-        case NeuroglancerAnnotationPropertyDataTypeEnum::FLOAT:
+        case FeaturePropertyDataTypeEnum::FLOAT:
             dataText = AString::number(m_value.toFloat(), 'f', 3);
             break;
-        case NeuroglancerAnnotationPropertyDataTypeEnum::LABEL:
+        case FeaturePropertyDataTypeEnum::LABEL:
             dataText = m_labelText;
             break;
     }
@@ -95,7 +95,7 @@ m_labelModel(labelModel)
 /**
  * Destructor.
  */
-NeuroglancerAnnotationPropertyValue::~NeuroglancerAnnotationPropertyValue()
+FeaturePropertyValue::~FeaturePropertyValue()
 {
 }
 
@@ -105,7 +105,7 @@ NeuroglancerAnnotationPropertyValue::~NeuroglancerAnnotationPropertyValue()
  *   The QColor
  */
 AString
-NeuroglancerAnnotationPropertyValue::QColorToString(const QColor& color)
+FeaturePropertyValue::QColorToString(const QColor& color)
 {
     return AString("("
                    + QString::number(color.red())
@@ -122,24 +122,24 @@ NeuroglancerAnnotationPropertyValue::QColorToString(const QColor& color)
  * @return String representation
  */
 AString
-NeuroglancerAnnotationPropertyValue::toString() const
+FeaturePropertyValue::toString() const
 {
     AString txt("Description=\"" + m_description
-                + "\", DataType=" + NeuroglancerAnnotationPropertyDataTypeEnum::toGuiName(m_dataType)
+                + "\", DataType=" + FeaturePropertyDataTypeEnum::toGuiName(m_dataType)
                 + ", Value=" + text());
     
     switch (m_dataType) {
-        case NeuroglancerAnnotationPropertyDataTypeEnum::INVALID:
+        case FeaturePropertyDataTypeEnum::INVALID:
             break;
-        case NeuroglancerAnnotationPropertyDataTypeEnum::RGBA:
+        case FeaturePropertyDataTypeEnum::RGBA:
             break;
-        case NeuroglancerAnnotationPropertyDataTypeEnum::UNSIGNED_INTEGER:
+        case FeaturePropertyDataTypeEnum::UNSIGNED_INTEGER:
             break;
-        case NeuroglancerAnnotationPropertyDataTypeEnum::INTEGER:
+        case FeaturePropertyDataTypeEnum::INTEGER:
             break;
-        case NeuroglancerAnnotationPropertyDataTypeEnum::FLOAT:
+        case FeaturePropertyDataTypeEnum::FLOAT:
             break;
-        case NeuroglancerAnnotationPropertyDataTypeEnum::LABEL:
+        case FeaturePropertyDataTypeEnum::LABEL:
             txt += (", Label=" + m_labelText);
             break;
     }
@@ -151,8 +151,8 @@ NeuroglancerAnnotationPropertyValue::toString() const
 /**
  * @param The data type
  */
-NeuroglancerAnnotationPropertyDataTypeEnum::Enum
-NeuroglancerAnnotationPropertyValue::getDataType() const
+FeaturePropertyDataTypeEnum::Enum
+FeaturePropertyValue::getDataType() const
 {
     return m_dataType;
 }
@@ -161,7 +161,7 @@ NeuroglancerAnnotationPropertyValue::getDataType() const
  * @return Description of the property
  */
 const AString&
-NeuroglancerAnnotationPropertyValue::getDescription() const
+FeaturePropertyValue::getDescription() const
 {
     return m_description;
 }
@@ -171,7 +171,7 @@ NeuroglancerAnnotationPropertyValue::getDescription() const
  * @return The data value
  */
 const QVariant&
-NeuroglancerAnnotationPropertyValue::getValue() const
+FeaturePropertyValue::getValue() const
 {
     return m_value;
 }
@@ -181,7 +181,7 @@ NeuroglancerAnnotationPropertyValue::getValue() const
  * @return Text for when data type is label
  */
 const AString&
-NeuroglancerAnnotationPropertyValue::getLabelText() const
+FeaturePropertyValue::getLabelText() const
 {
     return m_labelText;
 }
@@ -189,8 +189,8 @@ NeuroglancerAnnotationPropertyValue::getLabelText() const
 /**
  * @return The label model
  */
-const NeuroglancerAnnotationLabelModel*
-NeuroglancerAnnotationPropertyValue::getLabelModel() const
+const FeatureLabelModel*
+FeaturePropertyValue::getLabelModel() const
 {
     return m_labelModel;
 }

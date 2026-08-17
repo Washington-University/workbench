@@ -1,5 +1,5 @@
-#ifndef __NEUROGLANCER_ANNOTATION_PROPERTY_VALUE_H__
-#define __NEUROGLANCER_ANNOTATION_PROPERTY_VALUE_H__
+#ifndef __FEATURE_PROPERTY_VALUE_H__
+#define __FEATURE_PROPERTY_VALUE_H__
 
 /*LICENSE_START*/
 /*
@@ -26,30 +26,30 @@
 #include <memory>
 
 #include "AString.h"
-#include "NeuroglancerAnnotationBase.h"
-#include "NeuroglancerAnnotationPropertyDataTypeEnum.h"
+#include "FeatureBase.h"
+#include "FeaturePropertyDataTypeEnum.h"
 
 class QColor;
 
 namespace caret {
-    class NeuroglancerAnnotationLabelModel;
+    class FeatureLabelModel;
 
-    class NeuroglancerAnnotationPropertyValue : public NeuroglancerAnnotationBase {
+    class FeaturePropertyValue : public FeatureBase {
         
     public:
-        NeuroglancerAnnotationPropertyValue(const AString& propertyName,
-                                            const NeuroglancerAnnotationPropertyDataTypeEnum::Enum dataType,
+        FeaturePropertyValue(const AString& propertyName,
+                                            const FeaturePropertyDataTypeEnum::Enum dataType,
                                             const QVariant& value,
                                             const AString& labelText,
-                                            const NeuroglancerAnnotationLabelModel* labelModel);
+                                            const FeatureLabelModel* labelModel);
         
-        virtual ~NeuroglancerAnnotationPropertyValue();
+        virtual ~FeaturePropertyValue();
         
-        NeuroglancerAnnotationPropertyValue(const NeuroglancerAnnotationPropertyValue&) = delete;
+        FeaturePropertyValue(const FeaturePropertyValue&) = delete;
 
-        NeuroglancerAnnotationPropertyValue& operator=(const NeuroglancerAnnotationPropertyValue&) = delete;
+        FeaturePropertyValue& operator=(const FeaturePropertyValue&) = delete;
         
-        NeuroglancerAnnotationPropertyDataTypeEnum::Enum getDataType() const;
+        FeaturePropertyDataTypeEnum::Enum getDataType() const;
         
         const AString& getDescription() const;
         
@@ -57,7 +57,7 @@ namespace caret {
         
         const AString& getLabelText() const;
 
-        const NeuroglancerAnnotationLabelModel* getLabelModel() const;
+        const FeatureLabelModel* getLabelModel() const;
         
         static AString QColorToString(const QColor& color);
         
@@ -68,21 +68,21 @@ namespace caret {
     private:
         const AString m_description;
         
-        const NeuroglancerAnnotationPropertyDataTypeEnum::Enum m_dataType;
+        const FeaturePropertyDataTypeEnum::Enum m_dataType;
         
         const QVariant m_value;
         
         const AString m_labelText;
         
-        const NeuroglancerAnnotationLabelModel* m_labelModel;
+        const FeatureLabelModel* m_labelModel;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __NEUROGLANCER_ANNOTATION_PROPERTY_VALUE_DECLARE__
+#ifdef __FEATURE_PROPERTY_VALUE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __NEUROGLANCER_ANNOTATION_PROPERTY_VALUE_DECLARE__
+#endif // __FEATURE_PROPERTY_VALUE_DECLARE__
 
 } // namespace
-#endif  //__NEUROGLANCER_ANNOTATION_PROPERTY_VALUE_H__
+#endif  //__FEATURE_PROPERTY_VALUE_H__

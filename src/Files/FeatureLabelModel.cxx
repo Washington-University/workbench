@@ -19,12 +19,12 @@
  */
 /*LICENSE_END*/
 
-#define __NEUROGLANCER_ANNOTATION_LABEL_MODEL_DECLARE__
-#include "NeuroglancerAnnotationLabelModel.h"
-#undef __NEUROGLANCER_ANNOTATION_LABEL_MODEL_DECLARE__
+#define __FEATURE_LABEL_MODEL_DECLARE__
+#include "FeatureLabelModel.h"
+#undef __FEATURE_LABEL_MODEL_DECLARE__
 
 #include "CaretAssert.h"
-#include "NeuroglancerAnnotationLabel.h"
+#include "FeatureLabel.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SceneObjectMapIntegerKey.h"
@@ -34,8 +34,8 @@ using namespace caret;
 
     
 /**
- * \class caret::NeuroglancerAnnotationLabelModel 
- * \brief Model for a set of labels from an annotation property
+ * \class caret::FeatureLabelModel 
+ * \brief Model for a set of labels from a feature property
  * \ingroup Files
  */
 
@@ -44,7 +44,7 @@ using namespace caret;
  * @param description
  *    Description of the property containing the labels
  */
-NeuroglancerAnnotationLabelModel::NeuroglancerAnnotationLabelModel(const AString& description)
+FeatureLabelModel::FeatureLabelModel(const AString& description)
 : QStandardItemModel(),
 m_description(description)
 {
@@ -56,7 +56,7 @@ m_description(description)
 /**
  * Destructor.
  */
-NeuroglancerAnnotationLabelModel::~NeuroglancerAnnotationLabelModel()
+FeatureLabelModel::~FeatureLabelModel()
 {
 }
 
@@ -64,7 +64,7 @@ NeuroglancerAnnotationLabelModel::~NeuroglancerAnnotationLabelModel()
  * @return Description of the model
  */
 AString
-NeuroglancerAnnotationLabelModel::getDescription() const
+FeatureLabelModel::getDescription() const
 {
     return m_description;
 }
@@ -75,7 +75,7 @@ NeuroglancerAnnotationLabelModel::getDescription() const
  *    The label.
  */
 void
-NeuroglancerAnnotationLabelModel::addLabel(NeuroglancerAnnotationLabel* label)
+FeatureLabelModel::addLabel(FeatureLabel* label)
 {
     appendRow(label);
     
@@ -88,10 +88,10 @@ NeuroglancerAnnotationLabelModel::addLabel(NeuroglancerAnnotationLabel* label)
  * @param value
  *    Value of the label
  */
-NeuroglancerAnnotationLabel*
-NeuroglancerAnnotationLabelModel::getLabelWithValue(const int32_t value)
+FeatureLabel*
+FeatureLabelModel::getLabelWithValue(const int32_t value)
 {
-    NeuroglancerAnnotationLabel* labelOut(NULL);
+    FeatureLabel* labelOut(NULL);
     
     const auto iter(m_valueToLabelMap.find(value));
     if (iter != m_valueToLabelMap.end()) {
@@ -101,10 +101,10 @@ NeuroglancerAnnotationLabelModel::getLabelWithValue(const int32_t value)
     return labelOut;
 }
 
-const NeuroglancerAnnotationLabel*
-NeuroglancerAnnotationLabelModel::getLabelWithValue(const int32_t value) const
+const FeatureLabel*
+FeatureLabelModel::getLabelWithValue(const int32_t value) const
 {
-    NeuroglancerAnnotationLabel* labelOut(NULL);
+    FeatureLabel* labelOut(NULL);
     
     const auto iter(m_valueToLabelMap.find(value));
     if (iter != m_valueToLabelMap.end()) {
@@ -120,7 +120,7 @@ NeuroglancerAnnotationLabelModel::getLabelWithValue(const int32_t value) const
  *    If true, display all.
  */
 void
-NeuroglancerAnnotationLabelModel::setAllLabelsDisplayed(const bool displayStatus)
+FeatureLabelModel::setAllLabelsDisplayed(const bool displayStatus)
 {
     const Qt::CheckState checkState(displayStatus
                                     ? Qt::Checked
@@ -143,11 +143,11 @@ NeuroglancerAnnotationLabelModel::setAllLabelsDisplayed(const bool displayStatus
  *    Name of instance in the scene.
  */
 SceneClass*
-NeuroglancerAnnotationLabelModel::saveToScene(const SceneAttributes* sceneAttributes,
+FeatureLabelModel::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "NeuroglancerAnnotationLabelModel",
+                                            "FeatureLabelModel",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -183,7 +183,7 @@ NeuroglancerAnnotationLabelModel::saveToScene(const SceneAttributes* sceneAttrib
  *     sceneClass from which model specific information is obtained.
  */
 void
-NeuroglancerAnnotationLabelModel::restoreFromScene(const SceneAttributes* sceneAttributes,
+FeatureLabelModel::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
@@ -197,12 +197,12 @@ NeuroglancerAnnotationLabelModel::restoreFromScene(const SceneAttributes* sceneA
     if (labelsMap != NULL) {
         const std::vector<int32_t> allKeys(labelsMap->getKeys());
         for (const int32_t key : allKeys) {
-            const SceneClass* annClass(labelsMap->classValue(key));
-            if (annClass != NULL) {
-                NeuroglancerAnnotationLabel* label(getLabelWithValue(key));
+            const SceneClass* sc(labelsMap->classValue(key));
+            if (sc != NULL) {
+                FeatureLabel* label(getLabelWithValue(key));
                 if (label != NULL) {
                     label->restoreFromScene(sceneAttributes,
-                                            annClass);
+                                            sc);
                 }
             }
         }

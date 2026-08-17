@@ -480,7 +480,7 @@ IdentificationSimpleTextGenerator::generateVolumeIdentificationText(Identificati
                                 break;
                             case DataFileTypeEnum::METRIC_DYNAMIC:
                                 break;
-                            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                            case DataFileTypeEnum::FEATURE:
                                 break;
                             case DataFileTypeEnum::OME_ZARR_IMAGE:
                                 break;
@@ -656,7 +656,7 @@ IdentificationSimpleTextGenerator::generateSurfaceIdentificationText(Identificat
                     break;
                 case DataFileTypeEnum::METRIC_DYNAMIC:
                     break;
-                case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                case DataFileTypeEnum::FEATURE:
                     break;
                 case DataFileTypeEnum::OME_ZARR_IMAGE:
                     break;

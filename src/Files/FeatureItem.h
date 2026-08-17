@@ -1,5 +1,5 @@
-#ifndef __NEUROGLANCER_ANNOTATION_H__
-#define __NEUROGLANCER_ANNOTATION_H__
+#ifndef __FEATURE_ITEM_H__
+#define __FEATURE_ITEM_H__
 
 /*LICENSE_START*/
 /*
@@ -27,34 +27,34 @@
 
 #include <QColor>
 
-#include "NeuroglancerAnnotationBase.h"
-#include "NeuroglancerAnnotationTypeEnum.h"
+#include "FeatureBase.h"
+#include "FeatureItemTypeEnum.h"
 #include "SceneableInterface.h"
 #include "Vector3D.h"
 
 
 namespace caret {
     class CaretDataFileSelectionModel;
-    class NeuroglancerAnnotationPropertyValue;
-    class NeuroglancerAnnotationsFile;
+    class FeatureFile;
+    class FeaturePropertyValue;
     
-    class NeuroglancerAnnotation : public NeuroglancerAnnotationBase, public SceneableInterface {
+    class FeatureItem : public FeatureBase, public SceneableInterface {
 
     public:
-        NeuroglancerAnnotation(const NeuroglancerAnnotationTypeEnum::Enum annotationType,
+        FeatureItem(const FeatureItemTypeEnum::Enum featureType,
                                const AString& fileNameNoPath,
                                const std::vector<Vector3D>& ijk,
                                const QColor& color,
                                const float symbolSize,
-                               const std::vector<const NeuroglancerAnnotationPropertyValue*>& propertyValues);
+                               const std::vector<const FeaturePropertyValue*>& propertyValues);
         
-        virtual ~NeuroglancerAnnotation();
+        virtual ~FeatureItem();
         
-        NeuroglancerAnnotation(const NeuroglancerAnnotation& obj) = delete;
+        FeatureItem(const FeatureItem& obj) = delete;
         
-        NeuroglancerAnnotation& operator=(const NeuroglancerAnnotation& obj) = delete;
+        FeatureItem& operator=(const FeatureItem& obj) = delete;
         
-        NeuroglancerAnnotationTypeEnum::Enum getType() const;
+        FeatureItemTypeEnum::Enum getType() const;
         
         bool isDisplayed() const;
         
@@ -75,8 +75,8 @@ namespace caret {
         virtual AString toString() const override;
         
         void getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
-                                   const NeuroglancerAnnotationsFile* neuroglancerAnnotationFile,
-                                   const int32_t annotationIndex,
+                                   const FeatureFile* featureFile,
+                                   const int32_t featureIndex,
                                    const bool toolTipFlag) const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -87,9 +87,9 @@ namespace caret {
         
         
     private:
-        void copyHelperNeuroglancerAnnotation(const NeuroglancerAnnotation& obj);
+        void copyHelperFeatureItem(const FeatureItem& obj);
         
-        NeuroglancerAnnotationTypeEnum::Enum m_annotationType = NeuroglancerAnnotationTypeEnum::INVALID;
+        FeatureItemTypeEnum::Enum m_featureType = FeatureItemTypeEnum::INVALID;
         
         AString m_fileNameNoPath;
         
@@ -99,16 +99,16 @@ namespace caret {
         
         float m_symbolSize;
         
-        std::vector<const NeuroglancerAnnotationPropertyValue*> m_propertyValues;
+        std::vector<const FeaturePropertyValue*> m_propertyValues;
         
         // ADD_NEW_MEMBERS_HERE
         
     };
     
-#ifdef ____NEUROGLANCER_ANNOTATION__DECLARE__
+#ifdef __FEATURE_ITEM__DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // ____NEUROGLANCER_ANNOTATION__DECLARE__
+#endif // __FEATURE_ITEM__DECLARE__
     
 } // namespace
-#endif  //__NEUROGLANCER_ANNOTATION_H__
+#endif  //__FEATURE_ITEM_H__
 

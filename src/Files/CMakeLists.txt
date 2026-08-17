@@ -27,9 +27,9 @@ IF(WORKBENCH_USE_CMAKE_AUTOMOC)
 ELSE()
     SET(MOC_INPUT_HEADER_FILES
         DataFileEditorModel.h
+	FeatureItemModel.h
+        FeatureLabelModel.h
         LabelSelectionItemModel.h
-	NeuroglancerAnnotationLabelModel.h
-	NeuroglancerAnnotationModel.h
     )
 
     IF(Qt6_FOUND)
@@ -138,6 +138,15 @@ EventSurfaceColoringInvalidate.h
 EventSurfaceFileGet.h
 EventSurfaceStructuresValidGet.h
 EventVolumeColoringInvalidate.h
+FeatureBase.h
+FeatureFile.h
+FeatureItem.h
+FeatureItemModel.h
+FeatureItemTypeEnum.h
+FeatureLabel.h
+FeatureLabelModel.h
+FeaturePropertyDataTypeEnum.h
+FeaturePropertyValue.h
 Fiber.h
 FiberOrientation.h
 FiberOrientationColoringTypeEnum.h
@@ -188,15 +197,7 @@ MetaVolumeFileXmlStreamWriter.h
 MetricDynamicConnectivityFile.h
 MetricFile.h
 MetricSmoothingObject.h
-NeuroglancerAnnotation.h
-NeuroglancerAnnotationBase.h
-NeuroglancerAnnotationLabel.h
-NeuroglancerAnnotationLabelModel.h
-NeuroglancerAnnotationModel.h
-NeuroglancerAnnotationPropertyValue.h
-NeuroglancerAnnotationPropertyDataTypeEnum.h
-NeuroglancerAnnotationTypeEnum.h
-NeuroglancerAnnotationsFile.h
+NeuroglancerAnnotationFileImporter.h
 NodeAndVoxelColoring.h
 OmeZarrImageFile.h
 OxfordSparseThreeFile.h
@@ -347,6 +348,15 @@ EventSurfaceColoringInvalidate.cxx
 EventSurfaceFileGet.cxx
 EventSurfaceStructuresValidGet.cxx
 EventVolumeColoringInvalidate.cxx
+FeatureBase.cxx
+FeatureFile.cxx
+FeatureItem.cxx
+FeatureItemModel.cxx
+FeatureItemTypeEnum.cxx
+FeatureLabel.cxx
+FeatureLabelModel.cxx
+FeaturePropertyDataTypeEnum.cxx
+FeaturePropertyValue.cxx
 Fiber.cxx
 FiberOrientation.cxx
 FiberOrientationColoringTypeEnum.cxx
@@ -396,15 +406,7 @@ MetaVolumeFileXmlStreamWriter.cxx
 MetricDynamicConnectivityFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
-NeuroglancerAnnotation.cxx
-NeuroglancerAnnotationBase.cxx
-NeuroglancerAnnotationLabel.cxx
-NeuroglancerAnnotationLabelModel.cxx
-NeuroglancerAnnotationModel.cxx
-NeuroglancerAnnotationPropertyValue.cxx
-NeuroglancerAnnotationPropertyDataTypeEnum.cxx
-NeuroglancerAnnotationTypeEnum.cxx
-NeuroglancerAnnotationsFile.cxx
+NeuroglancerAnnotationFileImporter.cxx
 NodeAndVoxelColoring.cxx
 OmeZarrImageFile.cxx
 OxfordSparseThreeFile.cxx

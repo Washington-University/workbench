@@ -62,7 +62,7 @@
 #include "ImageSelectionViewController.h"
 #include "LabelSelectionViewWidget.h"
 #include "MediaOverlaySetViewController.h"
-#include "NeuroglancerAnnotationsSelectionViewController.h"
+#include "FeatureSelectionViewController.h"
 #include "OverlaySetViewController.h"
 #include "SamplesSelectionViewController.h"
 #include "SceneClass.h"
@@ -210,7 +210,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_imageTabIndex = -1;
     m_labelTabIndex = -1;
     m_mediaTabIndex = -1;
-    m_neuroglancerTabIndex = -1;
+    m_featureTabIndex = -1;
     m_overlayTabIndex = -1;
     m_samplesTabIndex = -1;
     m_volumeSurfaceOutlineTabIndex = -1;
@@ -325,11 +325,11 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     }
     
     if (isFeaturesToolBox) {
-        m_neuroAnnSelectionViewController = new NeuroglancerAnnotationsSelectionViewController(browserWindowIndex,
+        m_featureSelectionViewController = new FeatureSelectionViewController(browserWindowIndex,
                                                                                                objectNamePrefix,
                                                                                                this);
-        m_neuroglancerTabIndex = addToTabWidget(m_neuroAnnSelectionViewController,
-                                                "NeuroAnn");
+        m_featureTabIndex = addToTabWidget(m_featureSelectionViewController,
+                                                "Points");
     }
     
     if (isFeaturesToolBox) {
@@ -865,7 +865,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool haveFoci          = false;
         bool haveImages        = false;
         bool haveLabels        = false;
-        bool haveNeuroglancer  = false;
+        bool haveFeatures      = false;
         bool haveSamples       = false;
         bool haveSurfaces      = false;
         bool haveVolumes       = false;
@@ -967,8 +967,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::METRIC_DYNAMIC:
                     haveConnFiles = true;
                     break;
-                case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
-                    haveNeuroglancer = true;
+                case DataFileTypeEnum::FEATURE:
+                    haveFeatures = true;
                     break;
                 case DataFileTypeEnum::OME_ZARR_IMAGE:
                     haveImages = true;
@@ -1142,7 +1142,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                                                                                || haveCziImages));
         if (m_labelTabIndex >= 0) m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
         
-        if (m_neuroglancerTabIndex >= 0) m_tabWidget->setTabEnabled(m_neuroglancerTabIndex, haveNeuroglancer);
+        if (m_featureTabIndex >= 0) m_tabWidget->setTabEnabled(m_featureTabIndex, haveFeatures);
         if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, enableLayers);
         if (m_mediaTabIndex >= 0) m_tabWidget->setTabEnabled(m_mediaTabIndex, enableMedia);
         if (m_histologyTabIndex >= 0) m_tabWidget->setTabEnabled(m_histologyTabIndex, enableHistology);

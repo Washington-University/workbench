@@ -521,7 +521,7 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                  numNodes, 
                                                                  overlayRGBV);
                     break;
-                case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                case DataFileTypeEnum::FEATURE:
                     break;
                 case DataFileTypeEnum::OME_ZARR_IMAGE:
                     break;

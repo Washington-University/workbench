@@ -51,7 +51,7 @@
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLMediaCoordinateDrawing.h"
 #include "BrainOpenGLMediaDrawing.h"
-#include "BrainOpenGLNeuroglancerAnnotationDrawing.h"
+#include "BrainOpenGLFeatureDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLVolumeMprThreeDrawing.h"
 #include "BrainOpenGLVolumeMprTwoDrawing.h"
@@ -8452,10 +8452,10 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
     }
 
     /*
-     * Draw neuroglancer annotations
+     * Draw features
      */
-    BrainOpenGLNeuroglancerAnnotationDrawing neurAnnDrawing;
-    neurAnnDrawing.drawOnWholeBrain(m_brain,
+    BrainOpenGLFeatureDrawing featureDrawing;
+    featureDrawing.drawOnWholeBrain(m_brain,
                                     this,
                                     underlayVolumeFile);
 

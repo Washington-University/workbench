@@ -1,5 +1,5 @@
-#ifndef __NEUROGLANCER_ANNOTATIONS_SELECTION_VIEW_CONTROLLER__H_
-#define __NEUROGLANCER_ANNOTATIONS_SELECTION_VIEW_CONTROLLER__H_
+#ifndef __FEATURE_SELECTION_VIEW_CONTROLLER__H_
+#define __FEATURE_SELECTION_VIEW_CONTROLLER__H_
 
 /*LICENSE_START*/
 /*
@@ -42,19 +42,19 @@ namespace caret {
     class CaretDataFileSelectionComboBox;
     class DisplayGroupEnumComboBox;
     class EnumComboBoxTemplate;
-    class NeuroglancerAnnotationLabelModel;
+    class FeatureLabelModel;
     class WuQTabWidget;
     
-    class NeuroglancerAnnotationsSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
+    class FeatureSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
         
         Q_OBJECT
 
     public:
-        NeuroglancerAnnotationsSelectionViewController(const int32_t browserWindowIndex,
+        FeatureSelectionViewController(const int32_t browserWindowIndex,
                                                        const QString& parentObjectName,
                                                        QWidget* parent = 0);
 
-        virtual ~NeuroglancerAnnotationsSelectionViewController();
+        virtual ~FeatureSelectionViewController();
         
         void receiveEvent(Event* event);
         
@@ -71,28 +71,28 @@ namespace caret {
         
         void processAttributesChanges();
         
-        void annotationTableViewItemClicked(const QModelIndex& index);
+        void featureItemTableViewItemClicked(const QModelIndex& index);
         
         void labelModelComboBoxActivated(int index);
         
         void labelTableViewItemClicked(const QModelIndex& index);
         
     private:
-        NeuroglancerAnnotationsSelectionViewController(const NeuroglancerAnnotationsSelectionViewController&);
+        FeatureSelectionViewController(const FeatureSelectionViewController&);
 
-        NeuroglancerAnnotationsSelectionViewController& operator=(const NeuroglancerAnnotationsSelectionViewController&);
+        FeatureSelectionViewController& operator=(const FeatureSelectionViewController&);
 
-        void updateNeuroAnnViewController();
+        void updateFeatureViewController();
         
-        void updateOtherNeuroAnnViewControllers();
+        void updateOtherFeatureViewControllers();
         
-        void updateAnnotationWidget();
+        void updateFeatureItemsWidget();
         
         void updateLabelWidget();
         
-        QWidget* createAnnotationWidget();
+        QWidget* createFeatureItemsWidget();
         
-        void annotationsAllOnOffButtonClicked(const bool onFlag);
+        void featureItemsAllOnOffButtonClicked(const bool onFlag);
         
         void labelsAllOnOffButtonClicked(const bool onFlag);
         
@@ -100,13 +100,13 @@ namespace caret {
         
         QWidget* createLabelsWidget();
         
-        NeuroglancerAnnotationLabelModel* getSelectedLabelModel();
+        FeatureLabelModel* getSelectedLabelModel();
         
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex;
         
-        CaretDataFileSelectionComboBox* m_neuroAnnFileSelectionComboBox;
+        CaretDataFileSelectionComboBox* m_featureFileSelectionComboBox;
         
         CaretDataFileSelectionComboBox* m_volumeFileSelectionComboBox;
         
@@ -118,9 +118,9 @@ namespace caret {
         
         WuQTabWidget* m_tabWidget;
         
-        static std::set<NeuroglancerAnnotationsSelectionViewController*> allNeuroglancerAnnotationsSelectionViewControllers;
+        static std::set<FeatureSelectionViewController*> allFeatureSelectionViewControllers;
         
-        QTableView* m_annotationTableView;
+        QTableView* m_featureItemTableView;
         
         QComboBox* m_labelModelSelectionComboBox;
         
@@ -128,9 +128,9 @@ namespace caret {
         
     };
     
-#ifdef __NEUROGLANCER_ANNOTATIONS_SELECTION_VIEW_CONTROLLER_DECLARE__
-    std::set<NeuroglancerAnnotationsSelectionViewController*> NeuroglancerAnnotationsSelectionViewController::allNeuroglancerAnnotationsSelectionViewControllers;
-#endif // __NEUROGLANCER_ANNOTATIONS_SELECTION_VIEW_CONTROLLER_DECLARE__
+#ifdef __FEATURE_SELECTION_VIEW_CONTROLLER_DECLARE__
+    std::set<FeatureSelectionViewController*> FeatureSelectionViewController::allFeatureSelectionViewControllers;
+#endif // __FEATURE_SELECTION_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__NEUROGLANCER_ANNOTATIONS_SELECTION_VIEW_CONTROLLER__H_
+#endif  //__FEATURE_SELECTION_VIEW_CONTROLLER__H_

@@ -32,7 +32,7 @@
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLFociDrawing.h"
 #include "BrainOpenGLIdentificationDrawing.h"
-#include "BrainOpenGLNeuroglancerAnnotationDrawing.h"
+#include "BrainOpenGLFeatureDrawing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeMprThreeDrawing.h"
 #include "BrainOpenGLVolumeSurfaceOutlineDrawing.h"
@@ -687,10 +687,10 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const GraphicsOrthographicProj
                                   sliceSpacing);
 
     /*
-     * Draw neuroglancer annotations
+     * Draw features
      */
-    BrainOpenGLNeuroglancerAnnotationDrawing neurAnnDrawing;
-    neurAnnDrawing.drawOnHistology(m_fixedPipelineDrawing->m_brain,
+    BrainOpenGLFeatureDrawing featureDrawing;
+    featureDrawing.drawOnHistology(m_fixedPipelineDrawing->m_brain,
                                    m_fixedPipelineDrawing,
                                    underlayHistologySlicesFile,
                                    underlayHistologySlice,

@@ -650,7 +650,7 @@ OperationSceneFileRestructure::copySpecialFileTypes(const AString& fromFileName,
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
@@ -813,8 +813,8 @@ OperationSceneFileRestructure::getChildDataFiles(const AString& dataFileName)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
-            throw OperationException("Program not finsihed: Neuroglancer Pins Files needs to read its child files");
+        case DataFileTypeEnum::FEATURE:
+            throw OperationException("Program not finished: Feature File needs to read its child files");
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             throw OperationException("Program not finished: OME-ZARR File needs to read its child volume files");

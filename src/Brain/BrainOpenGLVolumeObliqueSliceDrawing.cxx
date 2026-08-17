@@ -32,7 +32,7 @@
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLFociDrawing.h"
-#include "BrainOpenGLNeuroglancerAnnotationDrawing.h"
+#include "BrainOpenGLFeatureDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
@@ -1214,10 +1214,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnu
                                                   sliceViewPlane,
                                                   sliceThickness);
                 /*
-                 * Draw neuroglancer annotations
+                 * Draw Features
                  */
-                BrainOpenGLNeuroglancerAnnotationDrawing neurAnnDrawing;
-                neurAnnDrawing.drawOnVolumeOblique(m_brain,
+                BrainOpenGLFeatureDrawing featureDrawing;
+                featureDrawing.drawOnVolumeOblique(m_brain,
                                                    m_fixedPipelineDrawing,
                                                    m_underlayVolume,
                                                    slicePlane,

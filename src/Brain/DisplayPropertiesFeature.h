@@ -1,5 +1,5 @@
-#ifndef __DISPLAY_PROPERTIES_NEUROGLANCER_ANNOTATIONS__H_
-#define __DISPLAY_PROPERTIES_NEUROGLANCER_ANNOTATIONS__H_
+#ifndef __DISPLAY_PROPERTIES_FEATURE__H_
+#define __DISPLAY_PROPERTIES_FEATURE__H_
 
 /*LICENSE_START*/
 /*
@@ -30,15 +30,15 @@
 namespace caret {
     class CaretDataFileSelectionModel;
     class DisplayPropertyDataFloat;
-    class NeuroglancerAnnotationsFile;
-    class NeuroglancerAnnotationModel;
+    class FeatureFile;
+    class FeatureItemModel;
     
-    class DisplayPropertiesNeuroglancerAnnotations : public DisplayProperties {
+    class DisplayPropertiesFeature : public DisplayProperties {
         
     public:
-        DisplayPropertiesNeuroglancerAnnotations();
+        DisplayPropertiesFeature();
         
-        virtual ~DisplayPropertiesNeuroglancerAnnotations();
+        virtual ~DisplayPropertiesFeature();
 
         virtual void reset();
         
@@ -63,17 +63,17 @@ namespace caret {
         
         void setSymbolScale(const float symbolScale);
         
-        CaretDataFileSelectionModel* getNeuroglancerAnnotationFileSelectionModel();
+        CaretDataFileSelectionModel* getFeatureFileSelectionModel();
         
-        const CaretDataFileSelectionModel* getNeuroglancerAnnotationFileSelectionModel() const;
+        const CaretDataFileSelectionModel* getFeatureFileSelectionModel() const;
 
-        NeuroglancerAnnotationModel* getSelectedNeuroglancerAnnotationModel();
+        FeatureItemModel* getSelectedFeatureItemModel();
         
-        const NeuroglancerAnnotationModel* getSelectedNeuroglancerAnnotationModel() const;
+        const FeatureItemModel* getSelectedFeatureItemModel() const;
         
-        NeuroglancerAnnotationsFile* getSelectedNeuroglancerAnnotationFile();
+        FeatureFile* getSelectedFeatureFile();
         
-        const NeuroglancerAnnotationsFile* getSelectedNeuroglancerAnnotationFile() const;
+        const FeatureFile* getSelectedFeatureFile() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -84,9 +84,9 @@ namespace caret {
     private:
         void resetPrivate();
         
-        DisplayPropertiesNeuroglancerAnnotations(const DisplayPropertiesNeuroglancerAnnotations&);
+        DisplayPropertiesFeature(const DisplayPropertiesFeature&);
 
-        DisplayPropertiesNeuroglancerAnnotations& operator=(const DisplayPropertiesNeuroglancerAnnotations&);
+        DisplayPropertiesFeature& operator=(const DisplayPropertiesFeature&);
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
@@ -96,13 +96,13 @@ namespace caret {
         
         float m_symbolScale = 1.0;
         
-        std::unique_ptr<CaretDataFileSelectionModel> m_neurogAnnFileSelectionModel;
+        std::unique_ptr<CaretDataFileSelectionModel> m_featureFileSelectionModel;
         
     };
     
-#ifdef __DISPLAY_PROPERTIES_NEUROGLANCER_ANNOTATIONS_DECLARE__
+#ifdef __DISPLAY_PROPERTIES_FEATURE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __DISPLAY_PROPERTIES_NEUROGLANCER_ANNOTATIONS_DECLARE__
+#endif // __DISPLAY_PROPERTIES_FEATURE_DECLARE__
 
 } // namespace
-#endif  //__DISPLAY_PROPERTIES_NEUROGLANCER_ANNOTATIONS__H_
+#endif  //__DISPLAY_PROPERTIES_FEATURE__H_

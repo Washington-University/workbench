@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __NEUROGLANCER_ANNOTATION_LABEL_DECLARE__
-#include "NeuroglancerAnnotationLabel.h"
-#undef __NEUROGLANCER_ANNOTATION_LABEL_DECLARE__
+#define __FEATURE_LABEL_DECLARE__
+#include "FeatureLabel.h"
+#undef __FEATURE_LABEL_DECLARE__
 
 #include "CaretAssert.h"
 #include "SceneClass.h"
@@ -31,8 +31,8 @@ using namespace caret;
 
     
 /**
- * \class caret::NeuroglancerAnnotationLabel 
- * \brief Annotation index and label
+ * \class caret::FeatureLabel 
+ * \brief Feature index and label
  * \ingroup Files
  */
 
@@ -43,9 +43,9 @@ using namespace caret;
  * @param text
  *    Text of the label
  */
-NeuroglancerAnnotationLabel::NeuroglancerAnnotationLabel(const int32_t value,
+FeatureLabel::FeatureLabel(const int32_t value,
                                                          const AString& text)
-: NeuroglancerAnnotationBase(NeuroglancerAnnotationBase::BaseType::LABEL),
+: FeatureBase(FeatureBase::BaseType::FEATURE_LABEL),
 m_value(value)
 {
     setText(text);
@@ -59,7 +59,7 @@ m_value(value)
 /**
  * Destructor.
  */
-NeuroglancerAnnotationLabel::~NeuroglancerAnnotationLabel()
+FeatureLabel::~FeatureLabel()
 {
 }
 
@@ -67,7 +67,7 @@ NeuroglancerAnnotationLabel::~NeuroglancerAnnotationLabel()
  * @return Value of the label
  */
 int32_t
-NeuroglancerAnnotationLabel::getValue() const
+FeatureLabel::getValue() const
 {
     return m_value;
 }
@@ -76,7 +76,7 @@ NeuroglancerAnnotationLabel::getValue() const
  * @return String showing content.
  */
 AString
-NeuroglancerAnnotationLabel::toString() const
+FeatureLabel::toString() const
 {
     return ("Value=" + AString::number(m_value)
             + ", Text=" + text());
@@ -98,11 +98,11 @@ NeuroglancerAnnotationLabel::toString() const
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass*
-NeuroglancerAnnotationLabel::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+FeatureLabel::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                          const AString& instanceName)
 {
     SceneClass* sceneClass(new SceneClass(instanceName,
-                                          "NeuroglancerAnnotationLabel",
+                                          "FeatureLabel",
                                           1));
     const bool checkedFlag(checkState() == Qt::Checked);
     sceneClass->addBoolean("checkedFlag",
@@ -125,7 +125,7 @@ NeuroglancerAnnotationLabel::saveToScene(const SceneAttributes* /*sceneAttribute
  *     this interface.  May be NULL for some types of scenes.
  */
 void
-NeuroglancerAnnotationLabel::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+FeatureLabel::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
                                               const SceneClass* sceneClass)
 {
     const bool defaultValue(true);

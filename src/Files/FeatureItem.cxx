@@ -19,18 +19,18 @@
  */
 /*LICENSE_END*/
 
-#define ____NEUROGLANCER_ANNOTATION__DECLARE__
-#include "NeuroglancerAnnotation.h"
-#undef ____NEUROGLANCER_ANNOTATION__DECLARE__
+#define __FEATURE_ITEM__DECLARE__
+#include "FeatureItem.h"
+#undef __FEATURE_ITEM__DECLARE__
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "NeuroglancerAnnotation.h"
-#include "NeuroglancerAnnotationLabel.h"
-#include "NeuroglancerAnnotationLabelModel.h"
-#include "NeuroglancerAnnotationModel.h"
-#include "NeuroglancerAnnotationsFile.h"
-#include "NeuroglancerAnnotationPropertyValue.h"
+#include "FeatureItem.h"
+#include "FeatureLabel.h"
+#include "FeatureLabelModel.h"
+#include "FeatureItemModel.h"
+#include "FeatureFile.h"
+#include "FeaturePropertyValue.h"
 #include "SceneClass.h"
 
 using namespace caret;
@@ -38,57 +38,45 @@ using namespace caret;
 
 
 /**
- * \class caret::NeuroglancerAnnotation
- * \brief Class for an annotation that could be point, line, area, etc
+ * \class caret::FeatureItem
+ * \brief Class for an feature that could be point, line, area, etc
  * \ingroup Files
  */
 
 /**
  * Constructor.
- * @param annotationType
- *    The type of the annotation
+ * @param featureType
+ *    The type of the feature
  * @param fileNameNoPath
- *    Name of file (no path) from which annotation was read
+ *    Name of file (no path) from which feature was read
  * @param ijk
- *    IJK(s) for the annotation
+ *    IJK(s) for the feature
  * @param color
- *    Color of the annotation
+ *    Color of the feature
  * @param symbolSize
  *    Size of the symbol
  * @param propertieValues
- *    Propertry values for this annotation
+ *    Propertry values for this feature
  */
-NeuroglancerAnnotation::NeuroglancerAnnotation(const NeuroglancerAnnotationTypeEnum::Enum annotationType,
+FeatureItem::FeatureItem(const FeatureItemTypeEnum::Enum featureType,
                                                const AString& fileNameNoPath,
                                                const std::vector<Vector3D>& ijk,
                                                const QColor& color,
                                                const float symbolSize,
-                                               const std::vector<const NeuroglancerAnnotationPropertyValue*>& propertyValues)
-: NeuroglancerAnnotationBase(NeuroglancerAnnotationBase::BaseType::ANNOTATION),
-m_annotationType(annotationType),
+                                               const std::vector<const FeaturePropertyValue*>& propertyValues)
+: FeatureBase(FeatureBase::BaseType::FEATURE_ITEM),
+m_featureType(featureType),
 m_fileNameNoPath(fileNameNoPath),
 m_ijk(ijk),
 m_color(color),
 m_symbolSize(symbolSize),
 m_propertyValues(propertyValues)
 {
-    switch (m_annotationType) {
-        case NeuroglancerAnnotationTypeEnum::INVALID:
+    switch (m_featureType) {
+        case FeatureItemTypeEnum::INVALID:
             break;
-        case NeuroglancerAnnotationTypeEnum::AXIS_ALIGNED_BOUNDING_BOX:
-            CaretAssert(m_ijk.size() == 2);
-            break;
-        case NeuroglancerAnnotationTypeEnum::ELLIPSOID:
+        case FeatureItemTypeEnum::POINT:
             CaretAssert(m_ijk.size() == 1);
-            break;
-        case NeuroglancerAnnotationTypeEnum::LINE:
-            CaretAssert(m_ijk.size() >= 2);
-            break;
-        case NeuroglancerAnnotationTypeEnum::POINT:
-            CaretAssert(m_ijk.size() == 1);
-            break;
-        case NeuroglancerAnnotationTypeEnum::POLYLINE:
-            CaretAssert(m_ijk.size() >= 2);
             break;
     }
     
@@ -97,7 +85,7 @@ m_propertyValues(propertyValues)
     
     setText(m_fileNameNoPath
             + " - "
-            + NeuroglancerAnnotationTypeEnum::toGuiName(m_annotationType)
+            + FeatureItemTypeEnum::toGuiName(m_featureType)
             + " ("
             + AString::fromNumbers(m_ijk[0])
             + ")");
@@ -112,7 +100,7 @@ m_propertyValues(propertyValues)
 /**
  * Destructor.
  */
-NeuroglancerAnnotation::~NeuroglancerAnnotation()
+FeatureItem::~FeatureItem()
 {
 }
 
@@ -122,9 +110,9 @@ NeuroglancerAnnotation::~NeuroglancerAnnotation()
  *    Object that is copied.
  */
 void
-NeuroglancerAnnotation::copyHelperNeuroglancerAnnotation(const NeuroglancerAnnotation& obj)
+FeatureItem::copyHelperFeatureItem(const FeatureItem& obj)
 {
-    m_annotationType = obj.m_annotationType;
+    m_featureType = obj.m_featureType;
     m_fileNameNoPath = obj.m_fileNameNoPath;
     m_ijk            = obj.m_ijk;
     m_color          = obj.m_color;
@@ -133,22 +121,22 @@ NeuroglancerAnnotation::copyHelperNeuroglancerAnnotation(const NeuroglancerAnnot
 }
 
 /**
- * @return The annotation type
+ * @return The feature type
  */
-NeuroglancerAnnotationTypeEnum::Enum
-NeuroglancerAnnotation::getType() const
+FeatureItemTypeEnum::Enum
+FeatureItem::getType() const
 {
-    return m_annotationType;
+    return m_featureType;
 }
 
 /**
- * @return True if the annotation is displayed
+ * @return True if the feature is displayed
  */
 bool
-NeuroglancerAnnotation::isDisplayed() const
+FeatureItem::isDisplayed() const
 {
     /*
-     * Is annotation checkbox off
+     * Is feature checkbox off
      */
     if (checkState() != Qt::Checked) {
         return false;
@@ -157,10 +145,10 @@ NeuroglancerAnnotation::isDisplayed() const
     /*
      * Are there any labels with their checkbox off?
      */
-    for (const NeuroglancerAnnotationPropertyValue* propertyValue  : m_propertyValues) {
-        const NeuroglancerAnnotationLabelModel* labelModel(propertyValue->getLabelModel());
+    for (const FeaturePropertyValue* propertyValue  : m_propertyValues) {
+        const FeatureLabelModel* labelModel(propertyValue->getLabelModel());
         if (labelModel != NULL) {
-            const NeuroglancerAnnotationLabel* label(labelModel->getLabelWithValue(propertyValue->getValue().toInt()));
+            const FeatureLabel* label(labelModel->getLabelWithValue(propertyValue->getValue().toInt()));
             if (label != NULL) {
                 if (label->checkState() != Qt::Checked) {
                     return false;
@@ -173,19 +161,19 @@ NeuroglancerAnnotation::isDisplayed() const
 }
 
 /**
- * @return Name of file without path from which annotation was read
+ * @return Name of file without path from which feature was read
  */
 AString
-NeuroglancerAnnotation::getFileNameNoPath() const
+FeatureItem::getFileNameNoPath() const
 {
     return m_fileNameNoPath;
 }
 
 /**
- * @return Number of IJK in the annotation
+ * @return Number of IJK in the feature
  */
 int32_t
-NeuroglancerAnnotation::getNumberOfIJK() const
+FeatureItem::getNumberOfIJK() const
 {
     return m_ijk.size();
 }
@@ -194,7 +182,7 @@ NeuroglancerAnnotation::getNumberOfIJK() const
  * @return The color
  */
 const QColor&
-NeuroglancerAnnotation::getColor() const
+FeatureItem::getColor() const
 {
     return m_color;
 }
@@ -205,17 +193,17 @@ NeuroglancerAnnotation::getColor() const
  *    The index
  */
 const Vector3D&
-NeuroglancerAnnotation::getIJK(const int32_t index) const
+FeatureItem::getIJK(const int32_t index) const
 {
     CaretAssertVectorIndex(m_ijk, index);
     return m_ijk[index];
 }
 
 /**
- * @return The size of the annotation
+ * @return The size of the feature
  */
 float
-NeuroglancerAnnotation::getSymbolSize() const
+FeatureItem::getSymbolSize() const
 {
     return m_symbolSize;
 }
@@ -224,9 +212,9 @@ NeuroglancerAnnotation::getSymbolSize() const
  * @return The name of the type
  */
 AString
-NeuroglancerAnnotation::getTypeName() const
+FeatureItem::getTypeName() const
 {
-    return NeuroglancerAnnotationTypeEnum::toGuiName(m_annotationType);
+    return FeatureItemTypeEnum::toGuiName(m_featureType);
 }
 
 /**
@@ -234,7 +222,7 @@ NeuroglancerAnnotation::getTypeName() const
  * @return String describing this object's content.
  */
 AString
-NeuroglancerAnnotation::toString() const
+FeatureItem::toString() const
 {
     AString ijkString;
     for (int32_t i = 0; i < getNumberOfIJK(); i++) {
@@ -245,34 +233,34 @@ NeuroglancerAnnotation::toString() const
     }
     AString txt("type=" + getTypeName()
                 + ", IJK=" + ijkString
-                + ", color=" + NeuroglancerAnnotationPropertyValue::QColorToString(m_color));
+                + ", color=" + FeaturePropertyValue::QColorToString(m_color));
     return txt;
 }
 
 /**
- * Get identification text for this annotation
+ * Get identification text for this feature
  * @param idTextOut
  *    Rows of text for display
- * @param neuroglancerAnnotationFile
- *    Neuroglancer annotation file containing this annotation
- * @param annotationIndex
- *    Index of this annotation in the neuroglancer annotation file
+ * @param featureFile
+ *    Feature file containing this feature
+ * @param featureIndex
+ *    Index of this feature in the feature file
  * @param toolTipFlag
  *    If true, text is for tooltip
  */
 void
-NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
-                                              const NeuroglancerAnnotationsFile* neuroglancerAnnotationFile,
-                                              const int32_t annotationIndex,
+FeatureItem::getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
+                                              const FeatureFile* featureFile,
+                                              const int32_t featureIndex,
                                               const bool toolTipFlag) const
 {
     idTextOut.clear();
     
-    const AString neuroAnnName("Neuro Ann "
-                               + text());
+    const AString featureName(FeatureItemTypeEnum::toGuiName(getType()));
+
     if (toolTipFlag) {
         std::vector<AString> rowOne;
-        rowOne.push_back(neuroAnnName);
+        rowOne.push_back(featureName);
         idTextOut.push_back(rowOne);
         
         const int32_t iCoord(0);
@@ -282,24 +270,16 @@ NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>&
                          + AString::fromNumbers(ijk));
         idTextOut.push_back(rowTwo);
         
-        if (neuroglancerAnnotationFile != NULL) {
-            const NeuroglancerAnnotationModel* annModel(neuroglancerAnnotationFile->getAnnotationModel());
-            if (annModel != NULL) {
-                const NeuroglancerAnnotation* neuroAnn(annModel->getAnnotationAtIndex(annotationIndex));
-                if (neuroAnn != NULL) {
-                    const Vector3D xyz(neuroglancerAnnotationFile->annotationIJKtoXYZ(neuroAnn,
-                                                                                      iCoord));
-                    std::vector<AString> rowThree;
-                    rowThree.push_back("XYZ: "
-                                       + AString::fromNumbers(xyz, ",", 'f', 3));
-                    idTextOut.push_back(rowThree);
-                }
-            }
-        }
+        const Vector3D xyz(featureFile->featureIJKtoXYZ(this,
+                                                        iCoord));
+        std::vector<AString> rowThree;
+        rowThree.push_back("XYZ: "
+                           + AString::fromNumbers(xyz, ",", 'f', 3));
+        idTextOut.push_back(rowThree);
     }
     else {
         std::vector<AString> rowOne;
-        rowOne.push_back(neuroAnnName);
+        rowOne.push_back(featureName);
         idTextOut.push_back(rowOne);
         
         const int32_t numIJK(getNumberOfIJK());
@@ -314,9 +294,9 @@ NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>&
                                 + ": "
                                 + AString::fromNumbers(ijk));
             
-            if (neuroglancerAnnotationFile != NULL) {
-                const Vector3D xyz(neuroglancerAnnotationFile->annotationIJKtoXYZ(this,
-                                                                                  iCoord));
+            if (featureFile != NULL) {
+                const Vector3D xyz(featureFile->featureIJKtoXYZ(this,
+                                                                iCoord));
                 rowIJKXYZ.push_back("XYZ"
                                     + indexString
                                     + ": "
@@ -326,7 +306,7 @@ NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>&
         }
         
         for (const auto& propVal : m_propertyValues) {
-            if (propVal->getDataType() == NeuroglancerAnnotationPropertyDataTypeEnum::LABEL) {
+            if (propVal->getDataType() == FeaturePropertyDataTypeEnum::LABEL) {
                 std::vector<AString> row {
                     propVal->getDescription(),
                     propVal->getLabelText()
@@ -353,11 +333,11 @@ NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>&
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass*
-NeuroglancerAnnotation::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+FeatureItem::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                     const AString& instanceName)
 {
     SceneClass* sceneClass(new SceneClass(instanceName,
-                                          "NeuroglancerAnnotation",
+                                          "FeatureItem",
                                           1));
     const bool checkedFlag(checkState() == Qt::Checked);
     sceneClass->addBoolean("checkedFlag",
@@ -380,7 +360,7 @@ NeuroglancerAnnotation::saveToScene(const SceneAttributes* /*sceneAttributes*/,
  *     this interface.  May be NULL for some types of scenes.
  */
 void
-NeuroglancerAnnotation::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+FeatureItem::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
                                          const SceneClass* sceneClass)
 {
     const bool defaultValue(true);

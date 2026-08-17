@@ -94,9 +94,9 @@ namespace caret {
         
         void setShowHistology(const bool status);
         
-        bool isShowNeuroglancerAnnotation() const;
+        bool isShowFeatures() const;
         
-        void setShowNeuroglancerAnnotation(const bool status);
+        void setShowFeatures(const bool status);
         
         // ADD_NEW_METHODS_HERE
 
@@ -148,7 +148,8 @@ namespace caret {
         
         bool m_showHistologyFlag = true;
         
-        bool m_showNeuroglancerAnnotationFlag = true;
+        bool m_showFeaturesFlag = true;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

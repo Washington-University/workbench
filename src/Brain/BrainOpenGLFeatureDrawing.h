@@ -1,5 +1,5 @@
-#ifndef __BRAIN_OPEN_G_L_NEUROGLANCER_ANNOTATION_DRAWING_H__
-#define __BRAIN_OPEN_G_L_NEUROGLANCER_ANNOTATION_DRAWING_H__
+#ifndef __BRAIN_OPEN_G_L_FEATURE_DRAWING_H__
+#define __BRAIN_OPEN_G_L_FEATURE_DRAWING_H__
 
 /*LICENSE_START*/
 /*
@@ -38,12 +38,12 @@ namespace caret {
     class Surface;
     class VolumeMappableInterface;
     
-    class BrainOpenGLNeuroglancerAnnotationDrawing : public CaretObject {
+    class BrainOpenGLFeatureDrawing : public CaretObject {
         
     public:
-        BrainOpenGLNeuroglancerAnnotationDrawing();
+        BrainOpenGLFeatureDrawing();
         
-        virtual ~BrainOpenGLNeuroglancerAnnotationDrawing();
+        virtual ~BrainOpenGLFeatureDrawing();
         
         void drawOnSurface(Brain* brain,
                            BrainOpenGLFixedPipeline* fixedPipelineDrawing,
@@ -82,9 +82,9 @@ namespace caret {
                               VolumeMappableInterface* underlayVolume);
         
 
-        BrainOpenGLNeuroglancerAnnotationDrawing(const BrainOpenGLNeuroglancerAnnotationDrawing&) = delete;
+        BrainOpenGLFeatureDrawing(const BrainOpenGLFeatureDrawing&) = delete;
         
-        BrainOpenGLNeuroglancerAnnotationDrawing& operator=(const BrainOpenGLNeuroglancerAnnotationDrawing&) = delete;
+        BrainOpenGLFeatureDrawing& operator=(const BrainOpenGLFeatureDrawing&) = delete;
         
         
         // ADD_NEW_METHODS_HERE
@@ -99,7 +99,7 @@ namespace caret {
             WHOLE_BRAIN
         };
         
-        void drawAllNeuroAnn(const DrawType drawType,
+        void drawAllFeatures(const DrawType drawType,
                              Brain* brain,
                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                              const Surface* surface,
@@ -117,10 +117,10 @@ namespace caret {
         
     };
     
-#ifdef __BRAIN_OPEN_G_L_NEUROGLANCER_ANNOTATION_DRAWING_DECLARE__
+#ifdef __BRAIN_OPEN_G_L_FEATURE_DRAWING_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __BRAIN_OPEN_G_L_NEUROGLANCER_ANNOTATION_DRAWING_DECLARE__
+#endif // __BRAIN_OPEN_G_L_FEATURE_DRAWING_DECLARE__
     
 } // namespace
-#endif  //__BRAIN_OPEN_G_L_NEUROGLANCER_ANNOTATION_DRAWING_H__
+#endif  //__BRAIN_OPEN_G_L_FEATURE_DRAWING_H__
 

@@ -162,6 +162,7 @@ ELSE()
 	DynConnViewController.h
         EnumComboBoxTemplate.h
 	ExitProgramModifiedFilesDialog.h
+	FeatureSelectionViewController.h
         FiberOrientationSelectionViewController.h
         FiberSamplesOpenGLWidget.h
         FociProjectionDialog.h
@@ -211,7 +212,6 @@ ELSE()
         MetaDataEditorWidget.h
 	MovieRecordingDialog.h
 	NamesOnOffLineEditWidget.h
-	NeuroglancerAnnotationsSelectionViewController.h
         OffScreenOpenGLRenderer.h
 	OpenFileQuicklyDialog.h
         OverlaySetViewController.h
@@ -504,6 +504,7 @@ EventUpdateVolumeEditingToolBar.h
 EventUpdateYokedWindows.h
 EventUserInterfaceUpdate.h
 ExitProgramModifiedFilesDialog.h
+FeatureSelectionViewController.h
 FiberOrientationSelectionViewController.h
 FiberSamplesOpenGLWidget.h
 FociProjectionDialog.h
@@ -558,7 +559,6 @@ MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MovieRecordingDialog.h
 NamesOnOffLineEditWidget.h
-NeuroglancerAnnotationsSelectionViewController.h
 OffScreenOpenGLRenderer.h
 OpenFileQuicklyDialog.h
 OverlaySetViewController.h
@@ -875,6 +875,7 @@ EventUpdateVolumeEditingToolBar.cxx
 EventUpdateYokedWindows.cxx
 EventUserInterfaceUpdate.cxx
 ExitProgramModifiedFilesDialog.cxx
+FeatureSelectionViewController.cxx
 FiberOrientationSelectionViewController.cxx
 FiberSamplesOpenGLWidget.cxx
 FociProjectionDialog.cxx
@@ -929,7 +930,6 @@ MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MovieRecordingDialog.cxx
 NamesOnOffLineEditWidget.cxx
-NeuroglancerAnnotationsSelectionViewController.cxx
 OffScreenOpenGLRenderer.cxx
 OpenFileQuicklyDialog.cxx
 OverlaySetViewController.cxx

@@ -75,7 +75,7 @@
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesImages.h"
 #include "DisplayPropertiesLabels.h"
-#include "DisplayPropertiesNeuroglancerAnnotations.h"
+#include "DisplayPropertiesFeature.h"
 #include "DisplayPropertiesSamples.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
@@ -127,7 +127,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "LabelFile.h"
-#include "NeuroglancerAnnotationsFile.h"
+#include "FeatureFile.h"
 #include "OmeZarrImageFile.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -235,8 +235,8 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_displayPropertiesCziImages = new DisplayPropertiesCziImages();
     m_displayProperties.push_back(m_displayPropertiesCziImages);
     
-    m_displayPropertiesNeuroglancerAnnotations = new DisplayPropertiesNeuroglancerAnnotations();
-    m_displayProperties.push_back(m_displayPropertiesNeuroglancerAnnotations);
+    m_displayPropertiesFeature = new DisplayPropertiesFeature();
+    m_displayProperties.push_back(m_displayPropertiesFeature);
     
     m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation(this);
     m_displayProperties.push_back(m_displayPropertiesFiberOrientation);
@@ -320,9 +320,9 @@ Brain::Brain(CaretPreferences* caretPreferences)
                           "DisplayPropertiesCziImages",
                           m_displayPropertiesCziImages);
     
-    m_sceneAssistant->add("m_displayPropertiesNeuroglancerAnnotations",
-                          "DisplayPropertiesNeuroglancerAnnotations",
-                          m_displayPropertiesNeuroglancerAnnotations);
+    m_sceneAssistant->add("m_displayPropertiesFeature",
+                          "DisplayPropertiesFeature",
+                          m_displayPropertiesFeature);
     
     m_sceneAssistant->add("displayPropertiesFiberOrientation",
                           "DisplayPropertiesFiberOrientation",
@@ -677,10 +677,10 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_cziImageFiles.clear();
     
-    for (auto np : m_neuroglancerAnnotationFiles) {
-        delete np;
+    for (auto ff : m_featureFiles) {
+        delete ff;
     }
-    m_neuroglancerAnnotationFiles.clear();
+    m_featureFiles.clear();
     
     for (auto oz : m_omeZarrImageFiles) {
         delete oz;
@@ -1011,7 +1011,7 @@ Brain::resetBrainKeepSceneFiles()
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 break;
-            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            case DataFileTypeEnum::FEATURE:
                 break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
@@ -2392,7 +2392,7 @@ Brain::addReadOrReloadCziImageFile(const FileModeAddReadReload fileMode,
 }
 
 /**
- * Read a neuroglancer annotations file.
+ * Read a feature file.
  *
  * @param fileMode
  *    Mode for file adding, reading, or reloading.
@@ -2404,18 +2404,18 @@ Brain::addReadOrReloadCziImageFile(const FileModeAddReadReload fileMode,
  * @throws DataFileException
  *    If reading failed.
  */
-NeuroglancerAnnotationsFile*
-Brain::addReadOrReloadNeuroglancerAnnotationsFile(const FileModeAddReadReload fileMode,
+FeatureFile*
+Brain::addReadOrReloadFeatureFile(const FileModeAddReadReload fileMode,
                                            CaretDataFile* caretDataFile,
                                            const AString& filename)
 {
-    NeuroglancerAnnotationsFile* neuroglancerAnnFile = NULL;
+    FeatureFile* featureFile = NULL;
     if (caretDataFile != NULL) {
-        neuroglancerAnnFile = dynamic_cast<NeuroglancerAnnotationsFile*>(caretDataFile);
-        CaretAssert(neuroglancerAnnFile);
+        featureFile = dynamic_cast<FeatureFile*>(caretDataFile);
+        CaretAssert(featureFile);
     }
     else {
-        neuroglancerAnnFile = new NeuroglancerAnnotationsFile();
+        featureFile = new FeatureFile();
     }
     
     bool addFlag  = false;
@@ -2436,7 +2436,7 @@ Brain::addReadOrReloadNeuroglancerAnnotationsFile(const FileModeAddReadReload fi
     if (readFlag) {
         try {
             try {
-                neuroglancerAnnFile->readFile(filename);
+                featureFile->readFile(filename);
             }
             catch (const std::bad_alloc&) {
                 /*
@@ -2453,19 +2453,19 @@ Brain::addReadOrReloadNeuroglancerAnnotationsFile(const FileModeAddReadReload fi
                 removeAndDeleteDataFile(caretDataFile);
             }
             else {
-                delete neuroglancerAnnFile;
+                delete featureFile;
             }
             throw dfe;
         }
     }
     
     if (addFlag) {
-        updateDataFileNameIfDuplicate(m_neuroglancerAnnotationFiles,
-                                      neuroglancerAnnFile);
-        m_neuroglancerAnnotationFiles.push_back(neuroglancerAnnFile);
+        updateDataFileNameIfDuplicate(m_featureFiles,
+                                      featureFile);
+        m_featureFiles.push_back(featureFile);
     }
     
-    return neuroglancerAnnFile;
+    return featureFile;
 }
 
 
@@ -5576,11 +5576,11 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
         case DataFileTypeEnum::METRIC_DYNAMIC:
             CaretAssertMessage(0, "Metric dynamic files should never be added to brain");
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
         {
-            NeuroglancerAnnotationsFile* file(dynamic_cast<NeuroglancerAnnotationsFile*>(caretDataFile));
+            FeatureFile* file(dynamic_cast<FeatureFile*>(caretDataFile));
             CaretAssert(file);
-            m_neuroglancerAnnotationFiles.push_back(file);
+            m_featureFiles.push_back(file);
         }
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
@@ -5844,45 +5844,45 @@ Brain::getCziImageFile(const int32_t indx) const
 }
 
 /**
- * @return All neuoglancer pins files
+ * @return All feature files
  */
-const std::vector<NeuroglancerAnnotationsFile*>
-Brain::getAllNeuroglancerAnnotationFiles() const
+const std::vector<FeatureFile*>
+Brain::getAllFeatureFiles() const
 {
-    return m_neuroglancerAnnotationFiles;
+    return m_featureFiles;
 }
 
 /**
- * @return Number of neuroglancer pins files
+ * @return Number of feature files
  */
 int32_t
-Brain::getNumberOfNeuroglancerAnnotationsFile() const
+Brain::getNumberOfFeatureFiles() const
 {
-    return m_neuroglancerAnnotationFiles.size();
+    return m_featureFiles.size();
 }
 
 /**
- * @return Neuroglancer pins file at the given index
+ * @return Feature file at the given index
  * @param indx
  *    Index of file
  */
-NeuroglancerAnnotationsFile*
-Brain::getNeuroglancerAnnotationsFile(const int32_t indx)
+FeatureFile*
+Brain::getFeatureFile(const int32_t indx)
 {
-    CaretAssertVectorIndex(m_neuroglancerAnnotationFiles, indx);
-    return m_neuroglancerAnnotationFiles[indx];
+    CaretAssertVectorIndex(m_featureFiles, indx);
+    return m_featureFiles[indx];
 }
 
 /**
- * @return Neuroglancer pins file at the given index
+ * @return Feature file at the given index
  * @param indx
  *    Index of file
  */
-const NeuroglancerAnnotationsFile*
-Brain::getNeuroglancerAnnotationsFile(const int32_t indx) const
+const FeatureFile*
+Brain::getFeatureFile(const int32_t indx) const
 {
-    CaretAssertVectorIndex(m_neuroglancerAnnotationFiles, indx);
-    return m_neuroglancerAnnotationFiles[indx];
+    CaretAssertVectorIndex(m_featureFiles, indx);
+    return m_featureFiles[indx];
 }
 
 /**
@@ -6782,7 +6782,7 @@ Brain::getReloadableDataFiles() const
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 reloadFlag = false;
                 break;
-            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            case DataFileTypeEnum::FEATURE:
                 break;
             case DataFileTypeEnum::OME_ZARR_IMAGE:
                 break;
@@ -7151,8 +7151,8 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 CaretAssertMessage(0, "Metric dynamic files are never read by Brain");
                 break;
-            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
-                caretDataFileRead = addReadOrReloadNeuroglancerAnnotationsFile(fileMode,
+            case DataFileTypeEnum::FEATURE:
+                caretDataFileRead = addReadOrReloadFeatureFile(fileMode,
                                                                         caretDataFile,
                                                                         dataFileName);
                 break;
@@ -7710,7 +7710,7 @@ Brain::sortDataFilesByFileNameNoPath()
 {
     sortDataFileTypeByFileNameNoPath(m_cziImageFiles);
     sortDataFileTypeByFileNameNoPath(m_imageFiles);
-    sortDataFileTypeByFileNameNoPath(m_neuroglancerAnnotationFiles);
+    sortDataFileTypeByFileNameNoPath(m_featureFiles);
     sortDataFileTypeByFileNameNoPath(m_omeZarrImageFiles);
 }
 
@@ -9121,7 +9121,7 @@ Brain::setAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
@@ -9218,8 +9218,8 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_ciftiDenseSparseFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_neuroglancerAnnotationFiles.begin(),
-                           m_neuroglancerAnnotationFiles.end());
+                           m_featureFiles.begin(),
+                           m_featureFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_omeZarrImageFiles.begin(),
@@ -9490,7 +9490,7 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
@@ -9605,7 +9605,7 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::METRIC_DYNAMIC:
             canBeRemovedFlag = false;
             break;
-        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        case DataFileTypeEnum::FEATURE:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             break;
@@ -9850,11 +9850,11 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
         return true;
     }
 
-    std::vector<NeuroglancerAnnotationsFile*>::iterator neuroAnnFileIterator(std::find(m_neuroglancerAnnotationFiles.begin(),
-                                                                                       m_neuroglancerAnnotationFiles.end(),
+    std::vector<FeatureFile*>::iterator featureFileIterator(std::find(m_featureFiles.begin(),
+                                                                       m_featureFiles.end(),
                                                                                  caretDataFile));
-    if (neuroAnnFileIterator != m_neuroglancerAnnotationFiles.end()) {
-        m_neuroglancerAnnotationFiles.erase(neuroAnnFileIterator);
+    if (featureFileIterator != m_featureFiles.end()) {
+        m_featureFiles.erase(featureFileIterator);
         return true;
     }
     
@@ -10002,21 +10002,21 @@ Brain::getDisplayPropertiesCziImages() const
 }
 
 /**
- * @return The neuroglancer annotation display properties.
+ * @return The feature display properties.
  */
-DisplayPropertiesNeuroglancerAnnotations*
-Brain::getDisplayPropertiesNeuroglancerAnnotations()
+DisplayPropertiesFeature*
+Brain::getDisplayPropertiesFeature()
 {
-    return m_displayPropertiesNeuroglancerAnnotations;
+    return m_displayPropertiesFeature;
 }
 
 /**
- * @return The neuroglancer annotation display properties.
+ * @return The feature  display properties.
  */
-const DisplayPropertiesNeuroglancerAnnotations*
-Brain::getDisplayPropertiesNeuroglancerAnnotations() const
+const DisplayPropertiesFeature*
+Brain::getDisplayPropertiesFeature() const
 {
-    return m_displayPropertiesNeuroglancerAnnotations;
+    return m_displayPropertiesFeature;
 }
 
 /**

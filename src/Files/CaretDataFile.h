@@ -32,12 +32,12 @@ namespace caret {
 
     class CaretMappableDataFile;
     class CziImageFile;
+    class FeatureFile;
     class FileIdentificationAttributes;
     class GiftiMetaData;
     class HistologySlicesFile;
     class ImageFile;
     class MediaFile;
-    class NeuroglancerAnnotationsFile;
     class OmeZarrImageFile;
     class VolumeFile;
     
@@ -118,8 +118,8 @@ namespace caret {
         virtual VolumeFile* castToVolumeFile();
         virtual const VolumeFile* castToVolumeFile() const;
         
-        virtual NeuroglancerAnnotationsFile* castToNeuroglancerAnnotationsFile();
-        virtual const NeuroglancerAnnotationsFile* castToNeuroglancerAnnotationsFile() const;
+        virtual FeatureFile* castToFeatureFile();
+        virtual const FeatureFile* castToFeatureFile() const;
         
         FileIdentificationAttributes* getFileIdentificationAttributes();
         

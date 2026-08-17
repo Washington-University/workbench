@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __NEUROGLANCER_ANNOTATION_BASE_DECLARE__
-#include "NeuroglancerAnnotationBase.h"
-#undef __NEUROGLANCER_ANNOTATION_BASE_DECLARE__
+#define __FEATURE_BASE_DECLARE__
+#include "FeatureBase.h"
+#undef __FEATURE_BASE_DECLARE__
 
 #include "CaretAssert.h"
 using namespace caret;
@@ -29,8 +29,8 @@ using namespace caret;
 
     
 /**
- * \class caret::NeuroglancerAnnotationBase 
- * \brief Base type for NeuroglancerAnnotation and NeuroglancerProperty
+ * \class caret::FeatureBase 
+ * \brief Base class for some Feature classes that are placed in Qt model classes
  * \ingroup Files
  */
 
@@ -39,7 +39,7 @@ using namespace caret;
  * @param baseType
  *   The base type
  */
-NeuroglancerAnnotationBase::NeuroglancerAnnotationBase(const BaseType baseType)
+FeatureBase::FeatureBase(const BaseType baseType)
 : QStandardItem(),
 m_baseType(baseType)
 {
@@ -49,15 +49,15 @@ m_baseType(baseType)
 /**
  * Destructor.
  */
-NeuroglancerAnnotationBase::~NeuroglancerAnnotationBase()
+FeatureBase::~FeatureBase()
 {
 }
 
 /**
  * @return The base type
  */
-NeuroglancerAnnotationBase::BaseType
-NeuroglancerAnnotationBase::getBaseType() const
+FeatureBase::BaseType
+FeatureBase::getBaseType() const
 {
     return m_baseType;
 }

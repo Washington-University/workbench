@@ -1,5 +1,5 @@
-#ifndef __NEUROGLANCER_ANNOTATION_MODEL_H__
-#define __NEUROGLANCER_ANNOTATION_MODEL_H__
+#ifndef __FEATURE_LABEL_MODEL_H__
+#define __FEATURE_LABEL_MODEL_H__
 
 /*LICENSE_START*/
 /*
@@ -27,47 +27,37 @@
 
 #include <QStandardItemModel>
 
-#include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
-    class NeuroglancerAnnotation;
+    class FeatureLabel;
     class SceneClassAssistant;
 
-    class NeuroglancerAnnotationModel : public QStandardItemModel, public EventListenerInterface, public SceneableInterface {
+    class FeatureLabelModel : public QStandardItemModel, public SceneableInterface {
         
         Q_OBJECT
 
     public:
-        NeuroglancerAnnotationModel();
+        FeatureLabelModel(const AString& description);
         
-        virtual ~NeuroglancerAnnotationModel();
+        virtual ~FeatureLabelModel();
         
-        NeuroglancerAnnotationModel(const NeuroglancerAnnotationModel&) = delete;
+        FeatureLabelModel(const FeatureLabelModel&) = delete;
 
-        NeuroglancerAnnotationModel& operator=(const NeuroglancerAnnotationModel&) = delete;
-        
-        void addAnnotation(const AString& annotationFilename,
-                           const QList<QStandardItem*>& annotationAndProperties);
-        
-        int32_t getNumberOfAnnotations() const;
-        
-        NeuroglancerAnnotation* getAnnotationAtIndex(const int32_t index);
-        
-        const NeuroglancerAnnotation* getAnnotationAtIndex(const int32_t index) const;
-        
-        NeuroglancerAnnotation* getAnnotationWithFileName(const AString& fileName);
-        
-        const NeuroglancerAnnotation* getAnnotationWithFileName(const AString& fileName) const;
+        FeatureLabelModel& operator=(const FeatureLabelModel&) = delete;
 
-        void setHeaderLabels(const QStringList& horizontalHeaderLabels);
+        AString getDescription() const;
 
-        void setAllAnnotationsDisplayed(const bool displayStatus);
-
+        void addLabel(FeatureLabel* label);
+        
+        FeatureLabel* getLabelWithValue(const int32_t value);
+        
+        const FeatureLabel* getLabelWithValue(const int32_t value) const;
+        
+        void setAllLabelsDisplayed(const bool displayStatus);
+        
         // ADD_NEW_METHODS_HERE
-
-        virtual void receiveEvent(Event* event);
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -93,16 +83,17 @@ namespace caret {
     private:
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        /** Maps annotation filename to its row in the model */
-        std::map<AString, int32_t> m_filenameToRowMap;
+        AString m_description;
+        
+        std::map<int32_t, FeatureLabel*> m_valueToLabelMap;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __NEUROGLANCER_ANNOTATION_MODEL_DECLARE__
+#ifdef __FEATURE_LABEL_MODEL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __NEUROGLANCER_ANNOTATION_MODEL_DECLARE__
+#endif // __FEATURE_LABEL_MODEL_DECLARE__
 
 } // namespace
-#endif  //__NEUROGLANCER_ANNOTATION_MODEL_H__
+#endif  //__FEATURE_LABEL_MODEL_H__
