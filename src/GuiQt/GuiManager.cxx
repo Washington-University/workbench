@@ -913,6 +913,30 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
         }
     }
     
+    
+    /*
+     * Look for an empty specification file.  If found, remove it
+     * from the list of modified data files
+     */
+    std::vector<CaretDataFile*>::iterator emptySpecFileIter(modifiedDataFiles.end());
+    for (std::vector<CaretDataFile*>::iterator iter = modifiedDataFiles.begin();
+         iter != modifiedDataFiles.end();
+         iter++) {
+        const CaretDataFile* cdf(*iter);
+        if (cdf->getDataFileType() == DataFileTypeEnum::SPECIFICATION) {
+            if (cdf->getFileName().isEmpty()) {
+                emptySpecFileIter = iter;
+            }
+        }
+    }
+    
+    /*
+     * If empty spec file exists, remove it from list of modified files
+     */
+    if (emptySpecFileIter != modifiedDataFiles.end()) {
+        modifiedDataFiles.erase(emptySpecFileIter);
+    }
+    
     const int32_t modFileCount = static_cast<int32_t>(modifiedDataFiles.size());
     const int32_t paletteModFileCount = static_cast<int32_t>(paletteModifiedDataFiles.size());
     
