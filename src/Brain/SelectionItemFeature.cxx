@@ -325,7 +325,7 @@ SelectionItemFeature::toString() const
     text += ("Surface: " + ((m_surface != NULL) ? m_surface->getFileNameNoPath() : "INVALID") + "\n");
     text += ("Volume File: " + name + "\n");
     text += ("Feature File: " + ((m_featureFile != NULL) ? m_featureFile->getFileNameNoPath() : "INVALID") + "\n");
-    text += ("FeatureItem: " + ((m_featureItem != NULL) ? m_featureItem->getFileNameNoPath() : "INVALID") + "\n");
+    text += ("Feature Item: " + ((m_featureItem != NULL) ? m_featureItem->getUniqueIdAsString() : "INVALID") + "\n");
     text += ("Feature Index: " + AString::number(m_featureIndex) + "\n");
     return text;
 }

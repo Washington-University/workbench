@@ -48,7 +48,7 @@ namespace caret {
 
         FeatureItemModel& operator=(const FeatureItemModel&) = delete;
         
-        void addFeature(const AString& featureFilename,
+        void addFeature(const uint64_t uniqueID,
                         const QList<QStandardItem*>& featureAndProperties);
         
         int32_t getNumberOfFeatures() const;
@@ -57,10 +57,8 @@ namespace caret {
         
         const FeatureItem* getFeatureAtIndex(const int32_t index) const;
         
-        FeatureItem* getFeatureWithFileName(const AString& fileName);
+        FeatureItem* getFeatureWithUniqueID(const uint64_t uniqueID);
         
-        const FeatureItem* getFeatureWithFileName(const AString& fileName) const;
-
         void setHeaderLabels(const QStringList& horizontalHeaderLabels);
 
         void setAllFeaturesDisplayed(const bool displayStatus);
@@ -94,7 +92,7 @@ namespace caret {
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         /** Maps feature filename to its row in the model */
-        std::map<AString, int32_t> m_filenameToRowMap;
+        std::map<uint64_t, int64_t> m_uniqueIdToRowMap;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -217,10 +217,19 @@ FeatureFile::addToDataFileContentInformation(DataFileContentInformation& dataFil
      * Limit number of features to show.  If count is large it will be very
      * slow and use a large amount of memory.
      */
-    const int maxFeaturesToShowCount(100);
-    const int32_t numRows(std::min(m_featureModel->rowCount(),
-                                   maxFeaturesToShowCount));
-    dataFileInformation.addNameAndValue("Number of Points", AString::number(numRows));
+    int32_t numRows(m_featureModel->rowCount());
+    AString numberOfPointsText(AString::number(numRows));
+    const int maxFeaturesToShowCount(50);
+    if (maxFeaturesToShowCount < numRows) {
+        numRows = maxFeaturesToShowCount;
+        numberOfPointsText = ("Showing "
+                              + AString::number(maxFeaturesToShowCount)
+                              + " of "
+                              + AString::number(m_featureModel->rowCount()));
+    }
+    
+    dataFileInformation.addNameAndValue("Number of Points",
+                                        numberOfPointsText);
     const int32_t numCols(m_featureModel->columnCount());
     for (int32_t iRow = 0; iRow < numRows; iRow++) {
         for (int32_t jCol = 0; jCol < numCols; jCol++) {

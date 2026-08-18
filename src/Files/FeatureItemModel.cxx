@@ -24,11 +24,12 @@
 #undef __FEATURE_ITEM_MODEL_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventManager.h"
 #include "FeatureItem.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
-#include "SceneObjectMapStringKey.h"
+#include "SceneObjectMapIntegerKey.h"
 
 using namespace caret;
 
@@ -79,16 +80,24 @@ FeatureItemModel::receiveEvent(Event* event)
 
 /**
  * Add a feature and its properties
- * @param featureFilename
- *    Name of file containing feature
+ * @param uniqueID
+ *    Unique ID of feature
  * @param featureAndProperties
  *    The feature is first and then the properties
  */
 void
-FeatureItemModel::addFeature(const AString& featureFilename,
-                         const QList<QStandardItem*>& featureAndProperties)
+FeatureItemModel::addFeature(const uint64_t uniqueID,
+                             const QList<QStandardItem*>& featureAndProperties)
 {
-    m_filenameToRowMap.insert(std::make_pair(featureFilename,
+    if (m_uniqueIdToRowMap.find(uniqueID) != m_uniqueIdToRowMap.end()) {
+        CaretLogWarning("Feature with uniqueID="
+                        + AString::number(uniqueID)
+                        + " exists.  Feature and properties not added to model.");
+        for (auto& fp : featureAndProperties) {
+            delete fp;
+        }
+    }
+    m_uniqueIdToRowMap.insert(std::make_pair(uniqueID,
                                              rowCount()));
     appendRow(featureAndProperties);
 }
@@ -143,18 +152,18 @@ FeatureItemModel::getFeatureAtIndex(const int32_t index) const
 }
 
 /**
- * @return FeatureItem at the given filename or NULL if not found
- * @param fileName
- *    Name of file
+ * @return FeatureItem with given unique ID or NULL if not found
+ * @param uniqueID
+ *    Unique ID of feature
  * @return
  *    FeatureItem with filename or NULL if not found
  */
 FeatureItem*
-FeatureItemModel::getFeatureWithFileName(const AString& fileName)
+FeatureItemModel::getFeatureWithUniqueID(const uint64_t uniqueID)
 {
     FeatureItem* featureItem(NULL);
-    const auto iter(m_filenameToRowMap.find(fileName));
-    if (iter != m_filenameToRowMap.end()) {
+    const auto iter(m_uniqueIdToRowMap.find(uniqueID));
+    if (iter != m_uniqueIdToRowMap.end()) {
         const int32_t rowIndex(iter->second);
         featureItem = getFeatureAtIndex(rowIndex);
     }
@@ -193,7 +202,7 @@ FeatureItemModel::setHeaderLabels(const QStringList& horizontalHeaderLabels)
     QStringList verticalHeaderLabels;
     const int32_t num(getNumberOfFeatures());
     for (int32_t i = 0; i < num; i++) {
-        verticalHeaderLabels.push_back(getFeatureAtIndex(i)->getFileNameNoPath());
+        verticalHeaderLabels.push_back(getFeatureAtIndex(i)->getUniqueIdAsString());
     }
     setVerticalHeaderLabels(verticalHeaderLabels);
 }
@@ -224,15 +233,16 @@ FeatureItemModel::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    SceneObjectMapStringKey* featureMap(new SceneObjectMapStringKey("featureItemMap",
+    SceneObjectMapIntegerKey* featureMap(new SceneObjectMapIntegerKey("featureItemMap",
                                                                     SceneObjectDataTypeEnum::SCENE_CLASS));
     const int32_t num(getNumberOfFeatures());
     for (int32_t i = 0; i < num; i++) {
         FeatureItem* featureItem(getFeatureAtIndex(i));
         const AString className("FeatureItem"
                                 + AString::number(i));
-        featureMap->addClass(featureItem->getFileNameNoPath(), featureItem->saveToScene(sceneAttributes,
-                                                                                className));
+        featureMap->addClass(featureItem->getUniqueID(),
+                             featureItem->saveToScene(sceneAttributes,
+                                                      className));
     }
     
     sceneClass->addChild(featureMap);
@@ -266,13 +276,13 @@ FeatureItemModel::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
-    const SceneObjectMapStringKey* featureMap = sceneClass->getMapStringKey("featureItemMap");
+    const SceneObjectMapIntegerKey* featureMap = sceneClass->getMapIntegerKey("featureItemMap");
     if (featureMap != NULL) {
-        const std::vector<AString> allKeys(featureMap->getKeys());
-        for (const AString& key : allKeys) {
+        const std::vector<int32_t> allKeys(featureMap->getKeys());
+        for (const int32_t& key : allKeys) {
             const SceneClass* sc(featureMap->classValue(key));
             if (sc != NULL) {
-                FeatureItem* featureItem(getFeatureWithFileName(key));
+                FeatureItem* featureItem(getFeatureWithUniqueID(key));
                 if (featureItem != NULL) {
                     featureItem->restoreFromScene(sceneAttributes,
                                                   sc);
@@ -284,6 +294,5 @@ FeatureItemModel::restoreFromScene(const SceneAttributes* sceneAttributes,
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
-    
 }
 

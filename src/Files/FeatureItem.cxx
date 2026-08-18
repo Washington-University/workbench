@@ -47,8 +47,8 @@ using namespace caret;
  * Constructor.
  * @param featureType
  *    The type of the feature
- * @param fileNameNoPath
- *    Name of file (no path) from which feature was read
+ * @param uniqueID
+ *    Unique ID of feature
  * @param ijk
  *    IJK(s) for the feature
  * @param color
@@ -59,14 +59,14 @@ using namespace caret;
  *    Propertry values for this feature
  */
 FeatureItem::FeatureItem(const FeatureItemTypeEnum::Enum featureType,
-                                               const AString& fileNameNoPath,
+                                               const uint64_t uniqueID,
                                                const std::vector<Vector3D>& ijk,
                                                const QColor& color,
                                                const float symbolSize,
                                                const std::vector<const FeaturePropertyValue*>& propertyValues)
 : FeatureBase(FeatureBase::BaseType::FEATURE_ITEM),
 m_featureType(featureType),
-m_fileNameNoPath(fileNameNoPath),
+m_uniqueID(uniqueID),
 m_ijk(ijk),
 m_color(color),
 m_symbolSize(symbolSize),
@@ -83,12 +83,12 @@ m_propertyValues(propertyValues)
     setFlags(Qt::ItemIsSelectable
              | Qt::ItemIsEnabled);
     
-    setText(m_fileNameNoPath
-            + " - "
-            + FeatureItemTypeEnum::toGuiName(m_featureType)
-            + " ("
-            + AString::fromNumbers(m_ijk[0])
-            + ")");
+    /*
+     * Sets string version of unique ID
+     * and text displayed in GUI
+     */
+    setUniqueID(m_uniqueID);
+    
     setCheckable(true);
     setCheckState(Qt::Checked);
     
@@ -112,8 +112,8 @@ FeatureItem::~FeatureItem()
 void
 FeatureItem::copyHelperFeatureItem(const FeatureItem& obj)
 {
-    m_featureType = obj.m_featureType;
-    m_fileNameNoPath = obj.m_fileNameNoPath;
+    m_featureType    = obj.m_featureType;
+    m_uniqueID       = obj.m_uniqueID;
     m_ijk            = obj.m_ijk;
     m_color          = obj.m_color;
     m_symbolSize     = obj.m_symbolSize;
@@ -161,12 +161,21 @@ FeatureItem::isDisplayed() const
 }
 
 /**
- * @return Name of file without path from which feature was read
+ * @return Unique ID of this feature
+ */
+uint64_t
+FeatureItem::getUniqueID() const
+{
+    return m_uniqueID;
+}
+
+/**
+ * @return Unique ID of this feature
  */
 AString
-FeatureItem::getFileNameNoPath() const
+FeatureItem::getUniqueIdAsString() const
 {
-    return m_fileNameNoPath;
+    return m_uniqueIdString;
 }
 
 /**
@@ -218,6 +227,42 @@ FeatureItem::getTypeName() const
 }
 
 /**
+ * Set the unique ID
+ * @param uniqueID
+ *    New unique ID
+ */
+void
+FeatureItem::setUniqueID(const uint64_t uniqueID)
+{
+    m_uniqueID = uniqueID;
+    m_uniqueIdString = AString::number(m_uniqueID);
+    
+    setText(m_uniqueIdString
+            + " - "
+            + FeatureItemTypeEnum::toGuiName(m_featureType)
+            + " ("
+            + AString::fromNumbers(m_ijk[0])
+            + ")");
+}
+
+/**
+ * Set the unique ID
+ * @param uniqueID
+ *    New unique ID
+ */
+void
+FeatureItem::setUniqueID(const AString& uniqueID)
+{
+    bool validFlag(false);
+    setUniqueID(uniqueID.toULong(&validFlag));
+    if ( ! validFlag) {
+        CaretLogSevere("Failed to convert \""
+                       + uniqueID
+                       + " to an unsigned long");
+    }
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -231,7 +276,8 @@ FeatureItem::toString() const
         }
         ijkString += "(" + AString::fromNumbers(m_ijk[i]) + ")";
     }
-    AString txt("type=" + getTypeName()
+    AString txt("id=" + getUniqueIdAsString()
+                + ", type=" + getTypeName()
                 + ", IJK=" + ijkString
                 + ", color=" + FeaturePropertyValue::QColorToString(m_color));
     return txt;
@@ -256,7 +302,9 @@ FeatureItem::getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
 {
     idTextOut.clear();
     
-    const AString featureName(FeatureItemTypeEnum::toGuiName(getType()));
+    const AString featureName(AString::number(m_uniqueID)
+                              + " "
+                              + FeatureItemTypeEnum::toGuiName(getType()));
 
     if (toolTipFlag) {
         std::vector<AString> rowOne;

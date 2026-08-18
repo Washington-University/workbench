@@ -34,6 +34,7 @@
 class QFile;
 class QJsonObject;
 class QJsonValue;
+class QStandardItem;
 
 namespace caret {
     class FeatureFile;
@@ -166,6 +167,22 @@ namespace caret {
             RELATIONSHIP
         };
         
+        /**
+         * Contains name and feature with properties that are added to
+         * a model.  The model could be be a table or a tree.
+         */
+        class NewAnnoationInformation {
+        public:
+            NewAnnoationInformation(const uint64_t uniqueID,
+                                    const QList<QStandardItem*>& featureAndPropertiesList)
+            : m_uniqueID(uniqueID),
+            m_featureAndPropertiesList(featureAndPropertiesList) { }
+            
+            const uint64_t m_uniqueID;
+            const QList<QStandardItem*> m_featureAndPropertiesList;
+        };
+        
+
         static AString neuroglancerDataTypeToString(const NeuroglancerDataType& dataType);
         
         void readNeuroglancerInfoFile(const AString& filename);
@@ -223,10 +240,11 @@ namespace caret {
                                               const AString& shardingName,
                                               const Sharding& sharding) const;
         
-        void readAnnotationFromDataStream(QFile* file,
-                                          const QByteArray& dataBytes,
-                                          QDataStream& dataStream,
-                                          const AString& annotationID);
+        NewAnnoationInformation readAnnotationFromDataStream(QFile* file,
+                                                             const QByteArray& dataBytes,
+                                                             QDataStream& dataStream,
+                                                             const uint64_t annotationID,
+                                                             const bool readRelationshipDataAfterAnnotationFlag);
         
         void readRelationshipsFromDataStream(const QByteArray& data,
                                              QDataStream& dataStream,

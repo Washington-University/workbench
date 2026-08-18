@@ -42,7 +42,7 @@ namespace caret {
 
     public:
         FeatureItem(const FeatureItemTypeEnum::Enum featureType,
-                               const AString& fileNameNoPath,
+                               const uint64_t uniqueID,
                                const std::vector<Vector3D>& ijk,
                                const QColor& color,
                                const float symbolSize,
@@ -58,7 +58,9 @@ namespace caret {
         
         bool isDisplayed() const;
         
-        AString getFileNameNoPath() const;
+        AString getUniqueIdAsString() const;
+        
+        uint64_t getUniqueID() const;
         
         int32_t getNumberOfIJK() const;
         
@@ -70,7 +72,9 @@ namespace caret {
 
         AString getTypeName() const;
         
-        // ADD_NEW_METHODS_HERE
+        void setUniqueID(const AString& uniqueID);
+        
+        void setUniqueID(const uint64_t uniqueID);
         
         virtual AString toString() const override;
         
@@ -85,13 +89,17 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass) override;
         
+        // ADD_NEW_METHODS_HERE
         
+
     private:
         void copyHelperFeatureItem(const FeatureItem& obj);
         
         FeatureItemTypeEnum::Enum m_featureType = FeatureItemTypeEnum::INVALID;
         
-        AString m_fileNameNoPath;
+        uint64_t m_uniqueID;
+        
+        AString m_uniqueIdString;
         
         std::vector<Vector3D> m_ijk;
         
