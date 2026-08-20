@@ -42,12 +42,13 @@ namespace caret {
 
     public:
         FeatureItem(const FeatureItemTypeEnum::Enum featureType,
-                               const uint64_t uniqueID,
-                               const std::vector<Vector3D>& ijk,
-                               const QColor& color,
-                               const float symbolSize,
-                               const std::vector<const FeaturePropertyValue*>& propertyValues);
-        
+                    const uint64_t relationshipID,
+                    const uint64_t uniqueID,
+                    const std::vector<Vector3D>& ijk,
+                    const QColor& color,
+                    const float symbolSize,
+                    const std::vector<const FeaturePropertyValue*>& propertyValues);
+
         virtual ~FeatureItem();
         
         FeatureItem(const FeatureItem& obj) = delete;
@@ -57,6 +58,8 @@ namespace caret {
         FeatureItemTypeEnum::Enum getType() const;
         
         bool isDisplayed() const;
+        
+        uint64_t getRelationshipID() const;
         
         AString getUniqueIdAsString() const;
         
@@ -97,9 +100,9 @@ namespace caret {
         
         FeatureItemTypeEnum::Enum m_featureType = FeatureItemTypeEnum::INVALID;
         
-        uint64_t m_uniqueID;
+        uint64_t m_relationshipID;
         
-        AString m_uniqueIdString;
+        uint64_t m_uniqueID;
         
         std::vector<Vector3D> m_ijk;
         

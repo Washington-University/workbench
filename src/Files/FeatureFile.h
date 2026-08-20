@@ -30,8 +30,10 @@
 #include "CaretDataFileSelectionModel.h"
 #include "EventListenerInterface.h"
 #include "FeatureItemTypeEnum.h"
+#include "FunctionResult.h"
 
 class QFile;
+class QStandardItem;
 
 namespace caret {
     class FeatureItem;
@@ -44,6 +46,8 @@ namespace caret {
     class FeatureFile : public CaretDataFile, public EventListenerInterface {
         
     public:
+        static void destroyFeatureAndProperties(QList<QStandardItem*>& featureAndProperties);
+        
         FeatureFile();
         
         virtual ~FeatureFile();
@@ -51,6 +55,9 @@ namespace caret {
         FeatureFile(const FeatureFile&) = delete;
 
         FeatureFile& operator=(const FeatureFile&) = delete;
+        
+        FunctionResult addFeature(const uint64_t uniqueID,
+                                  const QList<QStandardItem*>& featureAndProperties);
         
         virtual FeatureFile* castToFeatureFile() override;
         virtual const FeatureFile* castToFeatureFile() const override;

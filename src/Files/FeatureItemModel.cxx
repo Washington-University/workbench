@@ -79,27 +79,102 @@ FeatureItemModel::receiveEvent(Event* event)
 }
 
 /**
- * Add a feature and its properties
+ * Add a feature to this model.  If there is
+ * a feature already in the model with the matching unique ID, the
+ * featureAndProperties are NOT added and are destroyed.
+ *
  * @param uniqueID
  *    Unique ID of feature
  * @param featureAndProperties
- *    The feature is first and then the properties
+ *    The feature is first and then the properties.  Caller MUST NOT
+ *    reference featureAndProperties after calling this function as
+ *    they could be destroyed immediately or at a later time.
+ * @return
+ *   A FunctionResult with success or failure.
  */
-void
+FunctionResult
 FeatureItemModel::addFeature(const uint64_t uniqueID,
                              const QList<QStandardItem*>& featureAndProperties)
 {
-    if (m_uniqueIdToRowMap.find(uniqueID) != m_uniqueIdToRowMap.end()) {
-        CaretLogWarning("Feature with uniqueID="
-                        + AString::number(uniqueID)
-                        + " exists.  Feature and properties not added to model.");
+    for (const auto& qsi : featureAndProperties) {
+        CaretAssert(qsi);
+    }
+
+    AString errorMessage;
+    
+    if (columnCount() > 0) {
+        if (featureAndProperties.size() != columnCount()) {
+            errorMessage = ("Model contains "
+                            + AString::number(columnCount())
+                            + " columns but new feature with unique id="
+                            + AString::number(uniqueID)
+                            + " contains "
+                            + AString::number(featureAndProperties.size())
+                            + " columns.  Feature has been discarded.");
+        }
+    }
+    
+    if (errorMessage.isEmpty()) {
+        const auto result(m_uniqueIdToRowMap.insert(std::make_pair(uniqueID,
+                                                                   rowCount())));
+        if (result.second) {
+            appendRow(featureAndProperties);
+        }
+        else {
+            errorMessage = ("Feature with uniqueID="
+                            + AString::number(uniqueID)
+                            + " exists in model.  Feature has been discarded.");
+        }
+    }
+
+    if ( ! errorMessage.isEmpty()) {
+        /*
+         * If there is an error, featureAndProperties were
+         * not added to the model so destroy them.
+         */
         for (auto& fp : featureAndProperties) {
             delete fp;
         }
+        CaretLogWarning(errorMessage);
     }
-    m_uniqueIdToRowMap.insert(std::make_pair(uniqueID,
-                                             rowCount()));
-    appendRow(featureAndProperties);
+    
+    return FunctionResult(errorMessage,
+                          errorMessage.isEmpty());
+    
+//    if (m_uniqueIdToRowMap.find(uniqueID) != m_uniqueIdToRowMap.end()) {
+//        errorMessage = ("Feature with uniqueID="
+//                        + AString::number(uniqueID)
+//                        + " exists in model.  Feature and properties not added.");
+//        for (auto& fp : featureAndProperties) {
+//            delete fp;
+//        }
+//        return FunctionResult::error(<#const AString &errorMessage#>)
+//    }
+//    
+//    const auto result(m_uniqueIdToRowMap.insert(std::make_pair(uniqueID,
+//                                                               rowCount())));
+//    if (result.second) {
+//        for (const auto& qsi : featureAndProperties) {
+//            CaretAssert(qsi);
+//        }
+//        if (columnCount() != featureAndProperties.size()) {
+//            CaretLogWarning("Model contains "
+//                            + AString::number(columnCount())
+//                            + " columns but new feature with unique id="
+//                            + AString::number(uniqueID)
+//                            + " contains "
+//                            + AString::number(featureAndProperties.size())
+//                            + " columns");
+//        }
+//        appendRow(featureAndProperties);
+//    }
+//    else {
+//        /* Should not get here with test at beginning of this function */
+//        CaretAssert(0);
+//        CaretLogWarning("Unique ID="
+//                        + AString::number(uniqueID)
+//                        + " already exists in this feature model.");
+//    }
 }
 
 /**

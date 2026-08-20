@@ -28,6 +28,7 @@
 #include <QStandardItemModel>
 
 #include "EventListenerInterface.h"
+#include "FunctionResult.h"
 #include "SceneableInterface.h"
 
 
@@ -48,8 +49,8 @@ namespace caret {
 
         FeatureItemModel& operator=(const FeatureItemModel&) = delete;
         
-        void addFeature(const uint64_t uniqueID,
-                        const QList<QStandardItem*>& featureAndProperties);
+        FunctionResult addFeature(const uint64_t uniqueID,
+                                  const QList<QStandardItem*>& featureAndProperties);
         
         int32_t getNumberOfFeatures() const;
         

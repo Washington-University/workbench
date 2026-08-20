@@ -63,6 +63,15 @@ using namespace caret;
  */
 
 /**
+ * @return The invalid relationship ID
+ */
+uint64_t
+NeuroglancerAnnotationFileImporter::getInvalidRelationshipID()
+{
+    return std::numeric_limits<uint64_t>::max();
+}
+
+/**
  * Constructor.
  * @param featureFile
  *    Data is imported into this feature file
@@ -904,12 +913,18 @@ NeuroglancerAnnotationFileImporter::readNeuroglancerAnnotationFiles()
         // probably want readRelationshipDataAfterAnnotationFlag to be true
         const bool readRelationshipDataAfterAnnotationFlag(false);
         const NewAnnoationInformation nfi(readAnnotationFromDataStream(&file,
-                                                                     emptyByteArray,
-                                                                     dataStream,
-                                                                     filenameInt,
-                                                                     readRelationshipDataAfterAnnotationFlag));
-        m_featureFile->m_featureModel->addFeature(nfi.m_uniqueID,
-                                                  nfi.m_featureAndPropertiesList);
+                                                                       emptyByteArray,
+                                                                       dataStream,
+                                                                       getInvalidRelationshipID(),
+                                                                       filenameInt,
+                                                                       readRelationshipDataAfterAnnotationFlag));
+        /*
+         * DO NOT reference nfi.m_featureAndPropertiesList
+         * after calling addFeature as it is destroyed if
+         * not added to model.
+         */
+        m_featureFile->addFeature(nfi.m_uniqueID,
+                                  nfi.m_featureAndPropertiesList);
     }
 }
 
@@ -921,6 +936,8 @@ NeuroglancerAnnotationFileImporter::readNeuroglancerAnnotationFiles()
  *    If 'file' is NULL, the annotation is being read from this byte array
  * @param dataStream
  *   The datastream
+ * @param relationshipID
+ *    The relationship that groups this annotation with other annotations
  * @param annotationID
  *    The annotation ID (may be filename when each annotation in its own file)
  * @param readRelationshipDataAfterAnnotationFlag
@@ -932,6 +949,7 @@ NeuroglancerAnnotationFileImporter::NewAnnoationInformation
 NeuroglancerAnnotationFileImporter::readAnnotationFromDataStream(QFile* file,
                                                                  const QByteArray& dataBytes,
                                                                  QDataStream& dataStream,
+                                                                 const uint64_t relationshipID,
                                                                  const uint64_t annotationID,
                                                                  const bool readRelationshipDataAfterAnnotationFlag)
 {
@@ -1274,6 +1292,7 @@ NeuroglancerAnnotationFileImporter::readAnnotationFromDataStream(QFile* file,
      * Create the annotation
      */
     FeatureItem* na = new FeatureItem(m_annotationType,
+                                      relationshipID,
                                       annotationID,
                                       ijks,
                                       annotationColor,
@@ -1720,24 +1739,25 @@ NeuroglancerAnnotationFileImporter::readChunksFromShardFile(QFile& file,
                     QFile* nullFile(NULL);
                     const bool readRelationshipDataAfterAnnotationFlag(false);
                     const NewAnnoationInformation nfi(readAnnotationFromDataStream(nullFile,
-                                                                                 data,
-                                                                                 dataStream,
-                                                                                 chunk.m_id,
-                                                                                 readRelationshipDataAfterAnnotationFlag));
-                    
-                    m_featureFile->m_featureModel->addFeature(nfi.m_uniqueID,
-                                                              nfi.m_featureAndPropertiesList);
-                    
-                    FeatureItem* featureItem(dynamic_cast<FeatureItem*>(nfi.m_featureAndPropertiesList[0]));
-                    CaretAssert(featureItem);
-                    //std::cout << "Sharded Ann: " << featureItem->toString() << std::endl;
+                                                                                   data,
+                                                                                   dataStream,
+                                                                                   getInvalidRelationshipID(),
+                                                                                   chunk.m_id,
+                                                                                   readRelationshipDataAfterAnnotationFlag));
 
+                    /*
+                     * DO NOT reference nfi.m_featureAndPropertiesList
+                     * after calling addFeature as it is destroyed if
+                     * not added to model.
+                     */
+                    m_featureFile->addFeature(nfi.m_uniqueID,
+                                              nfi.m_featureAndPropertiesList);
                 }
                     break;
                 case ShardingDataType::RELATIONSHIP:
                     readRelationshipsFromDataStream(data,
                                                     dataStream,
-                                                    AString::number(chunk.m_id));
+                                                    chunk.m_id);
                     break;
             }
         }
@@ -1804,8 +1824,8 @@ NeuroglancerAnnotationFileImporter::decompressData(const QByteArray& compressedD
  */
 void
 NeuroglancerAnnotationFileImporter::readRelationshipsFromDataStream(const QByteArray& data,
-                                                             QDataStream& dataStream,
-                                                             const AString& relationshipID)
+                                                                    QDataStream& dataStream,
+                                                                    const uint64_t relationshipID)
 {
     /*
      * Multiple annotation encoding
@@ -1833,11 +1853,11 @@ NeuroglancerAnnotationFileImporter::readRelationshipsFromDataStream(const QByteA
     
     uint64_t numAnn;
     dataStream >> numAnn;
- //   if (m_debugFlag) {
+    if (m_debugFlag) {
         std::cout << "Relation ID=" << relationshipID
         << ", length=" << data.length()
         << ", num ann= " << numAnn << std::endl;
-//    }
+    }
 
     /*
      * Read the annotations
@@ -1848,10 +1868,11 @@ NeuroglancerAnnotationFileImporter::readRelationshipsFromDataStream(const QByteA
         const bool readRelationshipDataAfterAnnotationFlag(false);
         uint64_t temporaryID(i); /* replaced in next loop */
         const NewAnnoationInformation nfi(readAnnotationFromDataStream(nullFile,
-                                                                     data,
-                                                                     dataStream,
-                                                                     temporaryID,
-                                                                     readRelationshipDataAfterAnnotationFlag));
+                                                                       data,
+                                                                       dataStream,
+                                                                       relationshipID,
+                                                                       temporaryID,
+                                                                       readRelationshipDataAfterAnnotationFlag));
         newAnnotationInfo.push_back(nfi);
     }
     
@@ -1866,7 +1887,15 @@ NeuroglancerAnnotationFileImporter::readRelationshipsFromDataStream(const QByteA
         FeatureItem* featureItem(dynamic_cast<FeatureItem*>(newAnnotationInfo[i].m_featureAndPropertiesList[0]));
         CaretAssert(featureItem);
         featureItem->setUniqueID(annID);
-//        std::cout << "Relationship Ann " << i << ": " << featureItem->toString() << std::endl;
+        
+        //        std::cout << "Relationship Ann " << i << ": " << featureItem->toString() << std::endl;
+        /*
+         * DO NOT reference newAnnotationInfo[i].m_featureAndPropertiesList
+         * after calling addFeature as it is destroyed if
+         * not added to model.
+         */
+        m_featureFile->addFeature(annID,
+                                  newAnnotationInfo[i].m_featureAndPropertiesList);
     }
 }
 

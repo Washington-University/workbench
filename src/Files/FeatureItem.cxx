@@ -47,6 +47,8 @@ using namespace caret;
  * Constructor.
  * @param featureType
  *    The type of the feature
+ * @param relationshipID
+ *    The relationship ID that groups features
  * @param uniqueID
  *    Unique ID of feature
  * @param ijk
@@ -59,13 +61,15 @@ using namespace caret;
  *    Propertry values for this feature
  */
 FeatureItem::FeatureItem(const FeatureItemTypeEnum::Enum featureType,
-                                               const uint64_t uniqueID,
-                                               const std::vector<Vector3D>& ijk,
-                                               const QColor& color,
-                                               const float symbolSize,
-                                               const std::vector<const FeaturePropertyValue*>& propertyValues)
+                         const uint64_t relationshipID,
+                         const uint64_t uniqueID,
+                         const std::vector<Vector3D>& ijk,
+                         const QColor& color,
+                         const float symbolSize,
+                         const std::vector<const FeaturePropertyValue*>& propertyValues)
 : FeatureBase(FeatureBase::BaseType::FEATURE_ITEM),
 m_featureType(featureType),
+m_relationshipID(relationshipID),
 m_uniqueID(uniqueID),
 m_ijk(ijk),
 m_color(color),
@@ -113,11 +117,13 @@ void
 FeatureItem::copyHelperFeatureItem(const FeatureItem& obj)
 {
     m_featureType    = obj.m_featureType;
+    m_relationshipID = obj.m_relationshipID;
     m_uniqueID       = obj.m_uniqueID;
     m_ijk            = obj.m_ijk;
     m_color          = obj.m_color;
     m_symbolSize     = obj.m_symbolSize;
     m_propertyValues = obj.m_propertyValues;
+    setUniqueID(m_uniqueID);
 }
 
 /**
@@ -161,6 +167,15 @@ FeatureItem::isDisplayed() const
 }
 
 /**
+ * @return Relationship ID of this features
+ */
+uint64_t
+FeatureItem::getRelationshipID() const
+{
+    return m_relationshipID;
+}
+
+/**
  * @return Unique ID of this feature
  */
 uint64_t
@@ -170,12 +185,12 @@ FeatureItem::getUniqueID() const
 }
 
 /**
- * @return Unique ID of this feature
+ * @return Unique ID of this feature as a string
  */
 AString
 FeatureItem::getUniqueIdAsString() const
 {
-    return m_uniqueIdString;
+    return AString::number(m_uniqueID);
 }
 
 /**
@@ -235,9 +250,8 @@ void
 FeatureItem::setUniqueID(const uint64_t uniqueID)
 {
     m_uniqueID = uniqueID;
-    m_uniqueIdString = AString::number(m_uniqueID);
     
-    setText(m_uniqueIdString
+    setText(getUniqueIdAsString()
             + " - "
             + FeatureItemTypeEnum::toGuiName(m_featureType)
             + " ("

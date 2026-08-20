@@ -140,6 +140,7 @@ namespace caret {
             FeatureLabelModel* m_labelModel = NULL;
         };
 
+        static uint64_t getInvalidRelationshipID();
         
         NeuroglancerAnnotationFileImporter(FeatureFile* featureFile);
         
@@ -178,8 +179,8 @@ namespace caret {
             : m_uniqueID(uniqueID),
             m_featureAndPropertiesList(featureAndPropertiesList) { }
             
-            const uint64_t m_uniqueID;
-            const QList<QStandardItem*> m_featureAndPropertiesList;
+            uint64_t m_uniqueID;
+            QList<QStandardItem*> m_featureAndPropertiesList;
         };
         
 
@@ -243,12 +244,13 @@ namespace caret {
         NewAnnoationInformation readAnnotationFromDataStream(QFile* file,
                                                              const QByteArray& dataBytes,
                                                              QDataStream& dataStream,
+                                                             const uint64_t relationshipID,
                                                              const uint64_t annotationID,
                                                              const bool readRelationshipDataAfterAnnotationFlag);
         
         void readRelationshipsFromDataStream(const QByteArray& data,
                                              QDataStream& dataStream,
-                                             const AString& relationshipID);
+                                             const uint64_t relationshipID);
         
         bool decompressData(const QByteArray& compressedDataIn,
                             QByteArray& uncompressedDataOut,

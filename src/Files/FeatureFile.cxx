@@ -63,6 +63,21 @@ using namespace caret;
  */
 
 /**
+ * Destroy a feature and properties.  List is empty upon exit.
+ * @param featureAndProperties
+ *    Items that are destroyed.
+ */
+void
+FeatureFile::destroyFeatureAndProperties(QList<QStandardItem*>& featureAndProperties)
+{
+    for (QStandardItem* qsi : featureAndProperties) {
+        CaretAssert(qsi);
+        delete qsi;
+    }
+    featureAndProperties.clear();
+}
+
+/**
  * Constructor.
  */
 FeatureFile::FeatureFile()
@@ -359,6 +374,43 @@ FeatureFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
             labelModel->restoreFromScene(sceneAttributes, labelClass);
         }
     }
+}
+
+/**
+ * Add a feature to this file in the matching relationship id.  If there is
+ * a feature already in the model with the matching unique ID, the
+ * featureAndProperties are NOT added and are destroyed.
+ * @param uniqueID
+ *    Unique ID of feature
+ * @param featureAndProperties
+ *    The feature is first and then the properties.  Caller MUST NOT
+ *    reference featureAndProperties after calling this function as
+ *    they could be destroyed immediately or at a later time.
+ * @return
+ *   A FunctionResult with success or failure.
+ */
+FunctionResult
+FeatureFile::addFeature(const uint64_t uniqueID,
+                        const QList<QStandardItem*>& featureAndProperties)
+{
+    //
+    /*
+    need to return false is item was not added to model
+    and indicated that if items is not added it is destroyed
+        so that caller should not attemp to access featureAndProperties
+        
+    also need to look at relationship id to so that each
+        relationship id has its own model and need to
+        change model and view to tree view from table
+        where root element is FeatureRelationship (new class).
+    */
+    
+    CaretAssertVectorIndex(featureAndProperties, 0);
+    const FeatureItem* featureItem(dynamic_cast<const FeatureItem*>(featureAndProperties[0]));
+    CaretAssert(featureItem);
+    
+    return m_featureModel->addFeature(uniqueID,
+                                      featureAndProperties);
 }
 
 /**
