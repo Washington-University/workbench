@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <fstream>
 #include <map>
+#include <sstream>
 #include <vector>
 
 using namespace caret;
@@ -193,78 +194,56 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     {
         CaretLogInfo("-transpose is not needed with -make-symmetric");
     }
-    int64_t numZeros = 0;
-    bool afterZero = false;
-    if (transpose)
+    bool prevZero = false;
+    string thisLine;
+    int32_t dotDims[2] = {-1, -1};
+    while (getline(dotFile, thisLine))
     {
-        while (dotFile >> tempValue.index[1] >> tempValue.index[0] >> tempValue.value)//this is the only line that is different for transpose
+        if (thisLine == "") continue; //ignore blank lines
+        istringstream lineStream(thisLine);
+        if (transpose)
         {
-            if (tempValue.value == 0.0f)
+            if (!(lineStream >> tempValue.index[1] >> tempValue.index[0] >> tempValue.value))
             {
-                if (tempValue.index[0] != rowSize || tempValue.index[1] != colSize)
-                {
-                    throw OperationException("dimensions line in .dot file doesn't agree with provided row/column spaces");
-                }
-                ++numZeros;//ignore, we expect one line (last in file) to have this
-            } else {
-                if (tempValue.index[0] < 1 || tempValue.index[0] > rowSize ||
-                    tempValue.index[1] < 1 || tempValue.index[1] > colSize)
-                {
-                    throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) + ", " + AString::number(tempValue.index[1]) +
-                        ", perhaps you need to remove -transpose");
-                }
-                if (numZeros != 0) afterZero = true;
-                tempValue.index[0] -= 1;//fix for 1-indexing
-                tempValue.index[1] -= 1;
-                dotFileContents.push_back(tempValue);
-                if (halfMatrix && tempValue.index[0] != tempValue.index[1])
-                {
-                    int32_t tempIndex = tempValue.index[0];
-                    tempValue.index[0] = tempValue.index[1];
-                    tempValue.index[1] = tempIndex;
-                    dotFileContents.push_back(tempValue);
-                }
+                throw OperationException("badly formatted line in dot file: '" + thisLine + "'");
+            }
+        } else {
+            if (!(lineStream >> tempValue.index[0] >> tempValue.index[1] >> tempValue.value))
+            {
+                throw OperationException("badly formatted line in dot file: '" + thisLine + "'");
             }
         }
-    } else {
-        while (dotFile >> tempValue.index[0] >> tempValue.index[1] >> tempValue.value)
+        if (tempValue.value == 0.0f)
         {
-            if (tempValue.value == 0.0f)
+            dotDims[0] = tempValue.index[0]; dotDims[1] = tempValue.index[1];
+            prevZero = true;
+            continue; //ignore, we expect at least one line (last in file) to have this, and any other lines with it have no effect
+        }
+        if (tempValue.index[0] < 1 || tempValue.index[0] > rowSize ||
+            tempValue.index[1] < 1 || tempValue.index[1] > colSize)
+        {
+            if (transpose)
             {
-                if (tempValue.index[0] != rowSize || tempValue.index[1] != colSize)
-                {
-                    throw OperationException("dimensions line in .dot file doesn't agree with provided row/column spaces");
-                }
-                ++numZeros;
+                throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) +
+                                         ", " + AString::number(tempValue.index[1]) + ", perhaps you need to remove -transpose");
             } else {
-                if (tempValue.index[0] < 1 || tempValue.index[0] > rowSize ||
-                    tempValue.index[1] < 1 || tempValue.index[1] > colSize)
-                {
-                    throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) + ", " + AString::number(tempValue.index[1]) +
-                        ", perhaps you need to use -transpose");
-                }
-                if (numZeros != 0) afterZero = true;
-                tempValue.index[0] -= 1;//fix for 1-indexing
-                tempValue.index[1] -= 1;
-                dotFileContents.push_back(tempValue);
-                if (halfMatrix && tempValue.index[0] != tempValue.index[1])
-                {
-                    int32_t tempIndex = tempValue.index[0];
-                    tempValue.index[0] = tempValue.index[1];
-                    tempValue.index[1] = tempIndex;
-                    dotFileContents.push_back(tempValue);
-                }
+                throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) +
+                                         ", " + AString::number(tempValue.index[1]) + ", perhaps you need to use -transpose");
             }
         }
+        tempValue.index[0] -= 1;//fix for 1-indexing
+        tempValue.index[1] -= 1;
+        dotFileContents.push_back(tempValue);
+        if (halfMatrix && tempValue.index[0] != tempValue.index[1])
+        {
+            int32_t tempIndex = tempValue.index[0];
+            tempValue.index[0] = tempValue.index[1];
+            tempValue.index[1] = tempIndex;
+            dotFileContents.push_back(tempValue);
+        }
     }
-    if (numZeros != 1)
-    {
-        CaretLogWarning("found (and ignored) " + AString::number(numZeros) + " lines with zero for value, expected 1");
-    }
-    if (afterZero)
-    {
-        CaretLogWarning("found data lines after dimensionality line (which should be the last line of the file)");
-    }
+    if (!prevZero) throw OperationException("last line (dimensions) of dot file not found, file may have been truncated");
+    if (dotDims[0] != rowSize || dotDims[1] != colSize) throw OperationException("dimensions line in .dot file doesn't agree with provided row/column spaces");
     bool sorted = true;
     int64_t numValues = (int64_t)dotFileContents.size();
     for (int64_t i = 1; i < numValues; ++i)
