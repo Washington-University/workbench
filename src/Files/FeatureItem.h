@@ -28,6 +28,7 @@
 #include <QColor>
 
 #include "FeatureBase.h"
+#include "FeatureKey.h"
 #include "FeatureItemTypeEnum.h"
 #include "SceneableInterface.h"
 #include "Vector3D.h"
@@ -42,7 +43,7 @@ namespace caret {
 
     public:
         FeatureItem(const FeatureItemTypeEnum::Enum featureType,
-                    const uint64_t relationshipID,
+                    const uint64_t groupID,
                     const uint64_t uniqueID,
                     const std::vector<Vector3D>& ijk,
                     const QColor& color,
@@ -59,7 +60,9 @@ namespace caret {
         
         bool isDisplayed() const;
         
-        uint64_t getRelationshipID() const;
+        const FeatureKey& getFeatureKey() const;
+        
+        uint64_t getGroupID() const;
         
         AString getUniqueIdAsString() const;
         
@@ -83,9 +86,8 @@ namespace caret {
         
         void getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
                                    const FeatureFile* featureFile,
-                                   const int32_t featureIndex,
                                    const bool toolTipFlag) const;
-        
+
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName) override;
 
@@ -100,9 +102,7 @@ namespace caret {
         
         FeatureItemTypeEnum::Enum m_featureType = FeatureItemTypeEnum::INVALID;
         
-        uint64_t m_relationshipID;
-        
-        uint64_t m_uniqueID;
+        FeatureKey m_featureKey;
         
         std::vector<Vector3D> m_ijk;
         

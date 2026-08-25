@@ -46,8 +46,6 @@ namespace caret {
     class FeatureFile : public CaretDataFile, public EventListenerInterface {
         
     public:
-        static void destroyFeatureAndProperties(QList<QStandardItem*>& featureAndProperties);
-        
         FeatureFile();
         
         virtual ~FeatureFile();
@@ -56,8 +54,7 @@ namespace caret {
 
         FeatureFile& operator=(const FeatureFile&) = delete;
         
-        FunctionResult addFeature(const uint64_t uniqueID,
-                                  const QList<QStandardItem*>& featureAndProperties);
+        FunctionResult addFeature(QList<QStandardItem*>& featureAndProperties);
         
         virtual FeatureFile* castToFeatureFile() override;
         virtual const FeatureFile* castToFeatureFile() const override;

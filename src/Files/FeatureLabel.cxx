@@ -44,7 +44,7 @@ using namespace caret;
  *    Text of the label
  */
 FeatureLabel::FeatureLabel(const int32_t value,
-                                                         const AString& text)
+                           const AString& text)
 : FeatureBase(FeatureBase::BaseType::FEATURE_LABEL),
 m_value(value)
 {

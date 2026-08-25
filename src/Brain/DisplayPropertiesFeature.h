@@ -63,6 +63,10 @@ namespace caret {
         
         void setSymbolScale(const float symbolScale);
         
+        float getDistanceFromVolumeSliceTolerance() const;
+        
+        void setDistanceFromVolumeSliceTolerance(const float distanceFromSlice);
+        
         CaretDataFileSelectionModel* getFeatureFileSelectionModel();
         
         const CaretDataFileSelectionModel* getFeatureFileSelectionModel() const;
@@ -95,6 +99,8 @@ namespace caret {
         bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         float m_symbolScale = 1.0;
+        
+        float m_distanceFromSliceTolerance = 100.0;
         
         std::unique_ptr<CaretDataFileSelectionModel> m_featureFileSelectionModel;
         

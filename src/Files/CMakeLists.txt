@@ -141,8 +141,10 @@ EventVolumeColoringInvalidate.h
 FeatureBase.h
 FeatureFile.h
 FeatureItem.h
+FeatureItemGroup.h
 FeatureItemModel.h
 FeatureItemTypeEnum.h
+FeatureKey.h
 FeatureLabel.h
 FeatureLabelModel.h
 FeaturePropertyDataTypeEnum.h
@@ -351,8 +353,10 @@ EventVolumeColoringInvalidate.cxx
 FeatureBase.cxx
 FeatureFile.cxx
 FeatureItem.cxx
+FeatureItemGroup.cxx
 FeatureItemModel.cxx
 FeatureItemTypeEnum.cxx
+FeatureKey.cxx
 FeatureLabel.cxx
 FeatureLabelModel.cxx
 FeaturePropertyDataTypeEnum.cxx

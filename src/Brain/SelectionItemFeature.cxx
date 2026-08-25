@@ -76,7 +76,8 @@ SelectionItemFeature::resetPrivate()
     m_histologySlicesFile = NULL;
     m_featureItem      = NULL;
     m_featureFile   = NULL;
-    m_featureIndex = -1;
+    m_featureGroupID = 0;
+    m_featureUniqueID = 0;
 }
 
 /**
@@ -105,14 +106,17 @@ SelectionItemFeature::getIdType() const
  *    feature file containing feature item
  * @param featureItem
  *    The feature item
- * @param featureIndex
- *    Index of feature in feature file
+ * @param featureGroupID
+ *    Group ID of feature in feature file
+ * @param featureUniqueID
+ *    Unique ID of feature
  */
 void
 SelectionItemFeature::setSurfaceSelection(const Surface* surface,
                                           FeatureFile* featureFile,
-                                        FeatureItem* featureItem,
-                                        const int32_t featureIndex)
+                                          FeatureItem* featureItem,
+                                          const int32_t featureGroupID,
+                                          const int32_t featureUniqueID)
 {
     CaretAssert(surface);
     CaretAssert(featureFile);
@@ -122,7 +126,8 @@ SelectionItemFeature::setSurfaceSelection(const Surface* surface,
     m_surface              = surface;
     m_featureFile             = featureFile;
     m_featureItem                = featureItem;
-    m_featureIndex           = featureIndex;
+    m_featureGroupID       = featureGroupID;
+    m_featureUniqueID      = featureUniqueID;
 }
 
 /**
@@ -137,7 +142,8 @@ SelectionItemFeature::setSurfaceSelection(const Surface* surface,
 void
 SelectionItemFeature::setWholeBrainSelection(FeatureFile* featureFile,
                                                             FeatureItem* featureItem,
-                                                            const int32_t featureIndex)
+                                             const int32_t featureGroupID,
+                                             const int32_t featureUniqueID)
 {
     CaretAssert(featureFile);
     CaretAssert(featureItem);
@@ -145,7 +151,8 @@ SelectionItemFeature::setWholeBrainSelection(FeatureFile* featureFile,
     m_idType        = IdType::WHOLE_BRAIN;
     m_featureFile  = featureFile;
     m_featureItem  = featureItem;
-    m_featureIndex = featureIndex;
+    m_featureGroupID       = featureGroupID;
+    m_featureUniqueID      = featureUniqueID;
 }
 
 
@@ -165,7 +172,8 @@ void
 SelectionItemFeature::setHistologySelection(HistologySlicesFile* histologySlicesFile,
                                             FeatureFile* featureFile,
                                           FeatureItem* featureItem,
-                                          const int32_t featureIndex)
+                                            const int32_t featureGroupID,
+                                            const int32_t featureUniqueID)
 {
     CaretAssert(histologySlicesFile);
     CaretAssert(featureFile);
@@ -175,7 +183,8 @@ SelectionItemFeature::setHistologySelection(HistologySlicesFile* histologySlices
     m_histologySlicesFile  = histologySlicesFile;
     m_featureFile             = featureFile;
     m_featureItem                = featureItem;
-    m_featureIndex           = featureIndex;
+    m_featureGroupID       = featureGroupID;
+    m_featureUniqueID      = featureUniqueID;
 }
 
 /**
@@ -193,7 +202,8 @@ void
 SelectionItemFeature::setVolumeSelection(VolumeMappableInterface* volumeMappableInterface,
                                          FeatureFile* featureFile,
                                        FeatureItem* featureItem,
-                                       const int32_t featureIndex)
+                                         const int32_t featureGroupID,
+                                         const int32_t featureUniqueID)
 {
     CaretAssert(volumeMappableInterface);
     CaretAssert(featureFile);
@@ -203,7 +213,8 @@ SelectionItemFeature::setVolumeSelection(VolumeMappableInterface* volumeMappable
     m_volumeFile           = volumeMappableInterface;
     m_featureFile             = featureFile;
     m_featureItem               = featureItem;
-    m_featureIndex           = featureIndex;
+    m_featureGroupID       = featureGroupID;
+    m_featureUniqueID      = featureUniqueID;
 }
 
 /**
@@ -297,12 +308,21 @@ SelectionItemFeature::getFeatureFile()
 }
 
 /**
- * return Index of selected feature.
+ * return Group ID of selected feature.
  */
-int32_t 
-SelectionItemFeature::getFeatureItemIndex() const
+uint64_t
+SelectionItemFeature::getFeatureGroupID() const
 {
-    return m_featureIndex;
+    return m_featureGroupID;
+}
+
+/**
+ * return Unique ID of selected feature.
+ */
+uint64_t
+SelectionItemFeature::getFeatureUniqueID() const
+{
+    return m_featureUniqueID;
 }
 
 /**
@@ -326,6 +346,7 @@ SelectionItemFeature::toString() const
     text += ("Volume File: " + name + "\n");
     text += ("Feature File: " + ((m_featureFile != NULL) ? m_featureFile->getFileNameNoPath() : "INVALID") + "\n");
     text += ("Feature Item: " + ((m_featureItem != NULL) ? m_featureItem->getUniqueIdAsString() : "INVALID") + "\n");
-    text += ("Feature Index: " + AString::number(m_featureIndex) + "\n");
+    text += ("Feature Group ID: " + AString::number(m_featureGroupID) + "\n");
+    text += ("Feature Unique ID: " + AString::number(m_featureUniqueID) + "\n");
     return text;
 }

@@ -27,6 +27,7 @@
 #include "CaretLogger.h"
 #include "EventManager.h"
 #include "FeatureItem.h"
+#include "FeatureItemGroup.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SceneObjectMapIntegerKey.h"
@@ -50,7 +51,14 @@ FeatureItemModel::FeatureItemModel()
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-//    EventManager::get()->addEventListener(this, EventTypeEnum::);
+
+    const bool getCheckBoxChangedNotificationFlag(false);
+    if (getCheckBoxChangedNotificationFlag) {
+        QObject::connect(this, &FeatureItemModel::itemChanged,
+                         [=](QStandardItem* item) {
+            std::cout << "Data changed: " << item->text() << std::endl;
+        });
+    }
 }
 
 /**
@@ -83,8 +91,6 @@ FeatureItemModel::receiveEvent(Event* event)
  * a feature already in the model with the matching unique ID, the
  * featureAndProperties are NOT added and are destroyed.
  *
- * @param uniqueID
- *    Unique ID of feature
  * @param featureAndProperties
  *    The feature is first and then the properties.  Caller MUST NOT
  *    reference featureAndProperties after calling this function as
@@ -93,21 +99,23 @@ FeatureItemModel::receiveEvent(Event* event)
  *   A FunctionResult with success or failure.
  */
 FunctionResult
-FeatureItemModel::addFeature(const uint64_t uniqueID,
-                             const QList<QStandardItem*>& featureAndProperties)
+FeatureItemModel::addFeature(QList<QStandardItem*>& featureAndProperties)
 {
     for (const auto& qsi : featureAndProperties) {
         CaretAssert(qsi);
     }
-
+    CaretAssertVectorIndex(featureAndProperties, 0);
+    FeatureItem* featureItem(dynamic_cast<FeatureItem*>(featureAndProperties[0]));
+    CaretAssert(featureItem);
+    
     AString errorMessage;
     
-    if (columnCount() > 0) {
+    if (columnCount() > 1) {
         if (featureAndProperties.size() != columnCount()) {
             errorMessage = ("Model contains "
                             + AString::number(columnCount())
                             + " columns but new feature with unique id="
-                            + AString::number(uniqueID)
+                            + AString::number(featureItem->getUniqueID())
                             + " contains "
                             + AString::number(featureAndProperties.size())
                             + " columns.  Feature has been discarded.");
@@ -115,15 +123,29 @@ FeatureItemModel::addFeature(const uint64_t uniqueID,
     }
     
     if (errorMessage.isEmpty()) {
-        const auto result(m_uniqueIdToRowMap.insert(std::make_pair(uniqueID,
-                                                                   rowCount())));
-        if (result.second) {
-            appendRow(featureAndProperties);
+        const uint64_t groupID(featureItem->getGroupID());
+        
+        FeatureItemGroup* featureItemGroup(NULL);
+        const auto groupIter(m_groupIdToFeatureGroupMap.find(groupID));
+        if (groupIter != m_groupIdToFeatureGroupMap.end()) {
+            /*
+             * Add to existing group
+             */
+            featureItemGroup = groupIter->second;
         }
         else {
-            errorMessage = ("Feature with uniqueID="
-                            + AString::number(uniqueID)
-                            + " exists in model.  Feature has been discarded.");
+            /*
+             * Add to new group
+             */
+            featureItemGroup = new FeatureItemGroup(groupID);
+            invisibleRootItem()->appendRow(featureItemGroup);
+            m_groupIdToFeatureGroupMap.insert(std::make_pair(groupID,
+                                                             featureItemGroup));
+        }
+        
+        FunctionResult result(featureItemGroup->addFeature(featureAndProperties));
+        if (result.isError()) {
+            errorMessage = result.getErrorMessage();
         }
     }
 
@@ -140,127 +162,102 @@ FeatureItemModel::addFeature(const uint64_t uniqueID,
     
     return FunctionResult(errorMessage,
                           errorMessage.isEmpty());
+}
+
+/**
+ * @return All feature groups in this model
+ */
+std::vector<const FeatureItemGroup*>
+FeatureItemModel::getAllFeatureGroups() const
+{
+    std::vector<const FeatureItemGroup*> allFeatureGroups;
     
-//    if (m_uniqueIdToRowMap.find(uniqueID) != m_uniqueIdToRowMap.end()) {
-//        errorMessage = ("Feature with uniqueID="
-//                        + AString::number(uniqueID)
-//                        + " exists in model.  Feature and properties not added.");
-//        for (auto& fp : featureAndProperties) {
-//            delete fp;
-//        }
-//        return FunctionResult::error(<#const AString &errorMessage#>)
-//    }
-//    
-//    const auto result(m_uniqueIdToRowMap.insert(std::make_pair(uniqueID,
-//                                                               rowCount())));
-//    if (result.second) {
-//        for (const auto& qsi : featureAndProperties) {
-//            CaretAssert(qsi);
-//        }
-//        if (columnCount() != featureAndProperties.size()) {
-//            CaretLogWarning("Model contains "
-//                            + AString::number(columnCount())
-//                            + " columns but new feature with unique id="
-//                            + AString::number(uniqueID)
-//                            + " contains "
-//                            + AString::number(featureAndProperties.size())
-//                            + " columns");
-//        }
-//        appendRow(featureAndProperties);
-//    }
-//    else {
-//        /* Should not get here with test at beginning of this function */
-//        CaretAssert(0);
-//        CaretLogWarning("Unique ID="
-//                        + AString::number(uniqueID)
-//                        + " already exists in this feature model.");
-//    }
+    for (const auto iter : m_groupIdToFeatureGroupMap) {
+        allFeatureGroups.push_back(iter.second);
+    }
+    
+    return allFeatureGroups;
 }
 
 /**
- * @return Number of features
+ * @return FeatureItemGroup with given group ID or NULL if not found
+ * @param groupID
+ *    The group ID
  */
-int32_t
-FeatureItemModel::getNumberOfFeatures() const
+FeatureItemGroup*
+FeatureItemModel::getFeatureItemGroupWithID(const uint64_t groupID)
 {
-    return rowCount();
+    FeatureItemGroup* featureGroupOut(NULL);
+    
+    const auto groupIter(m_groupIdToFeatureGroupMap.find(groupID));
+    if (groupIter != m_groupIdToFeatureGroupMap.end()) {
+        featureGroupOut = groupIter->second;
+        CaretAssert(featureGroupOut);
+    }
+    return featureGroupOut;
 }
 
-/**
- * @return Feature at the given index or NULL if not found
- * @param index
- *    Index of feature
- * @return
- *    Feature at index or NULL if not found
- */
-FeatureItem*
-FeatureItemModel::getFeatureAtIndex(const int32_t index)
-{
-    const int32_t column(0);
-    CaretAssert((index >= 0)
-                && (index < rowCount()));
-    QStandardItem* standardItem(item(index, column));
-    CaretAssert(standardItem);
-    FeatureItem* featureItem(dynamic_cast<FeatureItem*>(standardItem));
-    CaretAssert(featureItem);
-    return featureItem;
-}
 
 /**
- * @return Feature at the given index or NULL if not found (const method)
- * @param index
- *    Index of feature
- * @return
- *    Feature at index or NULL if not found
- */
-const FeatureItem*
-FeatureItemModel::getFeatureAtIndex(const int32_t index) const
-{
-    const int32_t column(0);
-    CaretAssert((index >= 0)
-                && (index < rowCount()));
-    const QStandardItem* standardItem(item(index, column));
-    CaretAssert(standardItem);
-    const FeatureItem* featureItem(dynamic_cast<const FeatureItem*>(standardItem));
-    CaretAssert(featureItem);
-    return featureItem;
-}
-
-/**
- * @return FeatureItem with given unique ID or NULL if not found
+ * @return FeatureItem with given group and unique ID or NULL if not found
+ * @param groupID
+ *    Group ID of feature
  * @param uniqueID
  *    Unique ID of feature
  * @return
  *    FeatureItem with filename or NULL if not found
  */
 FeatureItem*
-FeatureItemModel::getFeatureWithUniqueID(const uint64_t uniqueID)
+FeatureItemModel::getFeatureWithGroupAndUniqueID(const uint64_t groupID,
+                                                 const uint64_t uniqueID)
 {
-    FeatureItem* featureItem(NULL);
-    const auto iter(m_uniqueIdToRowMap.find(uniqueID));
-    if (iter != m_uniqueIdToRowMap.end()) {
-        const int32_t rowIndex(iter->second);
-        featureItem = getFeatureAtIndex(rowIndex);
+    FeatureItem* featureItemOut(NULL);
+    
+    FeatureItemGroup* featureItemGroup(getFeatureItemGroupWithID(groupID));
+    if (featureItemGroup != NULL) {
+        featureItemOut = featureItemGroup->getFeatureWithUniqueID(uniqueID);
     }
-    return featureItem;
+    
+    return featureItemOut;
 }
 
 
 /**
- * Set display status of all feature items in this file
- * @param displayStatus
+ * Set checked status of all feature items in this file
+ * @param checked
  *    If true, display all.
  */
 void
-FeatureItemModel::setAllFeaturesDisplayed(const bool displayStatus)
+FeatureItemModel::setCheckedStatusOfAllItems(const bool checked)
 {
-    const int32_t column(0);
-    const Qt::CheckState checkState(displayStatus
-                                    ? Qt::Checked
-                                    : Qt::Unchecked);
-    const int32_t num(rowCount());
-    for (int32_t i = 0; i < num; i++) {
-        item(i, column)->setCheckState(checkState);
+    QStandardItem* rootItem(invisibleRootItem());
+    const int32_t numChildren(rootItem->rowCount());
+    for (int32_t iRow = 0; iRow < numChildren; iRow++) {
+        QStandardItem* childItem(rootItem->child(iRow));
+        FeatureItemGroup* groupItem(dynamic_cast<FeatureItemGroup*>(childItem));
+        groupItem->setAllChildrenChecked(checked);
+        CaretAssert(groupItem);
+        groupItem->setCheckState(checked
+                                 ? Qt::Checked
+                                 : Qt::Unchecked);
+    }
+
+    updateCheckedStateOfAllItems();
+}
+
+/**
+ * Update the checked state of all items
+ */
+void
+FeatureItemModel::updateCheckedStateOfAllItems()
+{
+    QStandardItem* rootItem(invisibleRootItem());
+    const int32_t numChildren(rootItem->rowCount());
+    for (int32_t iRow = 0; iRow < numChildren; iRow++) {
+        QStandardItem* childItem(rootItem->child(iRow));
+        FeatureBase* featureBase(dynamic_cast<FeatureBase*>(childItem));
+        CaretAssert(featureBase);
+        featureBase->setCheckStateFromChildren();
     }
 }
 
@@ -272,14 +269,10 @@ FeatureItemModel::setAllFeaturesDisplayed(const bool displayStatus)
 void
 FeatureItemModel::setHeaderLabels(const QStringList& horizontalHeaderLabels)
 {
+    /*
+     * Note: Cannot set vertical labels in a tree model (must be a table model)
+     */
     setHorizontalHeaderLabels(horizontalHeaderLabels);
-    
-    QStringList verticalHeaderLabels;
-    const int32_t num(getNumberOfFeatures());
-    for (int32_t i = 0; i < num; i++) {
-        verticalHeaderLabels.push_back(getFeatureAtIndex(i)->getUniqueIdAsString());
-    }
-    setVerticalHeaderLabels(verticalHeaderLabels);
 }
 
 /**
@@ -308,20 +301,21 @@ FeatureItemModel::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    SceneObjectMapIntegerKey* featureMap(new SceneObjectMapIntegerKey("featureItemMap",
-                                                                    SceneObjectDataTypeEnum::SCENE_CLASS));
-    const int32_t num(getNumberOfFeatures());
-    for (int32_t i = 0; i < num; i++) {
-        FeatureItem* featureItem(getFeatureAtIndex(i));
-        const AString className("FeatureItem"
-                                + AString::number(i));
-        featureMap->addClass(featureItem->getUniqueID(),
-                             featureItem->saveToScene(sceneAttributes,
-                                                      className));
+    SceneObjectMapIntegerKey* groupSceneMap(new SceneObjectMapIntegerKey("groupSceneMap",
+                                                                         SceneObjectDataTypeEnum::SCENE_CLASS));
+    
+    for (const auto& groupIter : m_groupIdToFeatureGroupMap) {
+        const uint64_t groupID(groupIter.first);
+        const AString groupClassName("FeatureGroup_"
+                                     + AString::number(groupID));
+        std::cout << "Saving to scene: " << groupClassName << std::endl;
+        groupSceneMap->addClass(groupID,
+                                groupIter.second->saveToScene(sceneAttributes,
+                                                              groupClassName));
     }
     
-    sceneClass->addChild(featureMap);
-    
+    sceneClass->addChild(groupSceneMap);
+
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
     //                        sceneClass);
@@ -351,16 +345,21 @@ FeatureItemModel::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
-    const SceneObjectMapIntegerKey* featureMap = sceneClass->getMapIntegerKey("featureItemMap");
-    if (featureMap != NULL) {
-        const std::vector<int32_t> allKeys(featureMap->getKeys());
-        for (const int32_t& key : allKeys) {
-            const SceneClass* sc(featureMap->classValue(key));
-            if (sc != NULL) {
-                FeatureItem* featureItem(getFeatureWithUniqueID(key));
-                if (featureItem != NULL) {
-                    featureItem->restoreFromScene(sceneAttributes,
-                                                  sc);
+    const SceneObjectMapIntegerKey* groupSceneMap(sceneClass->getMapIntegerKey("groupSceneMap"));
+    if (groupSceneMap != NULL) {
+        const std::vector<int32_t> allGroupIDs(groupSceneMap->getKeys());
+        for (const int32_t& groupID : allGroupIDs) {
+            const SceneClass* groupScene(groupSceneMap->classValue(groupID));
+            if (groupScene != NULL) {
+                FeatureItemGroup* featureItemGroup(getFeatureItemGroupWithID(groupID));
+                if (featureItemGroup != NULL) {
+                    featureItemGroup->restoreFromScene(sceneAttributes,
+                                                       groupScene);
+                }
+                else {
+                    CaretLogWarning("Failed to find Group with ID="
+                                    + AString::number(groupID)
+                                    + " for restoring scene.");
                 }
             }
         }
@@ -369,5 +368,6 @@ FeatureItemModel::restoreFromScene(const SceneAttributes* sceneAttributes,
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
+    updateCheckedStateOfAllItems();
 }
 

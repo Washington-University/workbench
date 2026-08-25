@@ -633,6 +633,10 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_borderSelectionViewController->saveToScene(sceneAttributes,
                                                      "m_borderSelectionViewController"));
     }
+    if (m_featureSelectionViewController != NULL) {
+        sceneClass->addClass(m_featureSelectionViewController->saveToScene(sceneAttributes,
+                                                                           "m_featureSelectionViewController"));
+    }
     if (m_fiberOrientationViewController != NULL) {
         sceneClass->addClass(m_fiberOrientationViewController->saveToScene(sceneAttributes,
                                                      "m_fiberOrientationViewController"));
@@ -748,6 +752,10 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
     if (m_borderSelectionViewController != NULL) {
         m_borderSelectionViewController->restoreFromScene(sceneAttributes,
                                                           sceneClass->getClass("m_borderSelectionViewController"));
+    }
+    if (m_featureSelectionViewController != NULL) {
+        m_featureSelectionViewController->restoreFromScene(sceneAttributes,
+                                                           sceneClass->getClass("m_featureSelectionViewController"));
     }
     if (m_fiberOrientationViewController != NULL) {
         m_fiberOrientationViewController->restoreFromScene(sceneAttributes,

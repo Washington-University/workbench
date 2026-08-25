@@ -140,8 +140,6 @@ namespace caret {
             FeatureLabelModel* m_labelModel = NULL;
         };
 
-        static uint64_t getInvalidRelationshipID();
-        
         NeuroglancerAnnotationFileImporter(FeatureFile* featureFile);
         
         virtual ~NeuroglancerAnnotationFileImporter();

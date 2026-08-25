@@ -1,5 +1,5 @@
-#ifndef __FEATURE_ITEM_MODEL_H__
-#define __FEATURE_ITEM_MODEL_H__
+#ifndef __FEATURE_ITEM_GROUP_H__
+#define __FEATURE_ITEM_GROUP_H__
 
 /*LICENSE_START*/
 /*
@@ -22,52 +22,44 @@
 /*LICENSE_END*/
 
 
-#include <map>
+#include <cstdint>
 #include <memory>
 
-#include <QStandardItemModel>
-
-#include "EventListenerInterface.h"
+#include "FeatureBase.h"
 #include "FunctionResult.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
     class FeatureItem;
-    class FeatureItemGroup;
     class SceneClassAssistant;
 
-    class FeatureItemModel : public QStandardItemModel, public EventListenerInterface, public SceneableInterface {
+    class FeatureItemGroup : public FeatureBase, public SceneableInterface {
         
-        Q_OBJECT
-
     public:
-        FeatureItemModel();
-        
-        virtual ~FeatureItemModel();
-        
-        FeatureItemModel(const FeatureItemModel&) = delete;
+        static uint64_t getDefaultGroupID();
 
-        FeatureItemModel& operator=(const FeatureItemModel&) = delete;
+        FeatureItemGroup(const uint64_t groupID);
+        
+        virtual ~FeatureItemGroup();
+        
+        FeatureItemGroup(const FeatureItemGroup&) = delete;
+
+        FeatureItemGroup& operator=(const FeatureItemGroup&) = delete;
         
         FunctionResult addFeature(QList<QStandardItem*>& featureAndProperties);
         
-        std::vector<const FeatureItemGroup*> getAllFeatureGroups() const;
-        
-        FeatureItemGroup* getFeatureItemGroupWithID(const uint64_t groupID);
-        
-        FeatureItem* getFeatureWithGroupAndUniqueID(const uint64_t groupID,
-                                                    const uint64_t uniqueID);
-        
-        void setHeaderLabels(const QStringList& horizontalHeaderLabels);
+        uint64_t getGroupID() const;
 
-        void setCheckedStatusOfAllItems(const bool checked);
-
-        void updateCheckedStateOfAllItems();
+        const std::vector<const FeatureItem*>& getAllFeatures() const;
         
+        std::vector<const uint64_t>& getAllFeatureUniqueIDs() const;
+        
+        FeatureItem* getFeatureWithUniqueID(const uint64_t uniqueID);
+
+        AString toString() const;
+
         // ADD_NEW_METHODS_HERE
-
-        virtual void receiveEvent(Event* event);
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -91,19 +83,22 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        /** Maps Group ID to FeatureItemGroup */
-        std::map<uint64_t, FeatureItemGroup*> m_groupIdToFeatureGroupMap;
+        uint64_t m_groupID;
+        
+        std::map<uint64_t, FeatureItem*> m_uniqueIdToFeatureMap;
+        
+        /* lazy initialized */
+        mutable std::vector<const FeatureItem*> m_allFeatures;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __FEATURE_ITEM_MODEL_DECLARE__
+#ifdef __FEATURE_ITEM_GROUP_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __FEATURE_ITEM_MODEL_DECLARE__
+#endif // __FEATURE_ITEM_GROUP_DECLARE__
 
 } // namespace
-#endif  //__FEATURE_ITEM_MODEL_H__
+#endif  //__FEATURE_ITEM_GROUP_H__

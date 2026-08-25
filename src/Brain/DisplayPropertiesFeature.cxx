@@ -62,6 +62,8 @@ DisplayPropertiesFeature::DisplayPropertiesFeature()
                                m_displayStatusInDisplayGroup[0]);
     m_sceneAssistant->add("m_symbolScale",
                           &m_symbolScale);
+    m_sceneAssistant->add("m_distanceFromSliceTolerance",
+                          &m_distanceFromSliceTolerance);
     m_sceneAssistant->add("m_featureFileSelectionModel",
                           "CaretDataFileSelectionModel",
                           m_featureFileSelectionModel.get());
@@ -115,6 +117,7 @@ DisplayPropertiesFeature::resetPrivate()
         m_displayStatusInDisplayGroup[i] = defaultDisplayStatusFlag;
     }
     m_symbolScale = 1.0;
+    m_distanceFromSliceTolerance = 100.0;
 }
 
 /**
@@ -192,6 +195,26 @@ DisplayPropertiesFeature::setSymbolScale(const float symbolScale)
 {
     m_symbolScale = symbolScale;
 }
+
+/**
+ * @return Distance a feature can be from slice to be displayed
+ */
+float
+DisplayPropertiesFeature::getDistanceFromVolumeSliceTolerance() const
+{
+    return m_distanceFromSliceTolerance;
+}
+
+/**
+ * Set distance a feature can be from slice to be displayed
+ * @param tolerance
+ */
+void
+DisplayPropertiesFeature::setDistanceFromVolumeSliceTolerance(const float distanceFromSlice)
+{
+    m_distanceFromSliceTolerance = distanceFromSlice;
+}
+
 
 /**
  * Get the display group for a given browser tab.

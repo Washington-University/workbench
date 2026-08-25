@@ -37,6 +37,7 @@
 #include "HistologySlice.h"
 #include "IdentificationWithColor.h"
 #include "FeatureItem.h"
+#include "FeatureItemGroup.h"
 #include "FeatureItemModel.h"
 #include "Plane.h"
 #include "SelectionItemFeature.h"
@@ -372,6 +373,7 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
     
     const DisplayPropertiesFeature* featureDisplayProperties(brain->getDisplayPropertiesFeature());
     const DisplayGroupEnum::Enum displayGroup = featureDisplayProperties->getDisplayGroupForTab(fixedPipelineDrawing->windowTabIndex);
+    const float distanceFromVolumeSliceTolerance(featureDisplayProperties->getDistanceFromVolumeSliceTolerance());
     
     if ( ! featureDisplayProperties->isDisplayed(displayGroup,
                                                fixedPipelineDrawing->windowTabIndex)) {
@@ -398,179 +400,203 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
     /*
      * Process each feature file
      */
+    int64_t numDrawn(0);
     for (int32_t iFile = 0; iFile < numberOfFeatureFiles; iFile++) {
         CaretAssertVectorIndex(allFeatureFiles, iFile);
         const FeatureFile* featureFile(allFeatureFiles[iFile]);
         const FeatureItemModel* featureItemModel(featureFile->getFeatureItemModel());
-        if (featureItemModel == NULL) {
-            continue;
-        }
-        const int32_t numFeatures = featureItemModel->getNumberOfFeatures();
-        
-        for (int32_t jFeatureIndex = 0; jFeatureIndex < numFeatures; jFeatureIndex++) {
-            const FeatureItem* featureItem(featureItemModel->getFeatureAtIndex(jFeatureIndex));
-            if ( ! featureItem->isDisplayed()) {
-                continue;
-            }
+        const std::vector<const FeatureItemGroup*> allFeatureGroups(featureItemModel->getAllFeatureGroups());
+        const int32_t numGroups(allFeatureGroups.size());
+        for (int32_t jGroupIndex = 0; jGroupIndex < numGroups; jGroupIndex++) {
+            CaretAssertVectorIndex(allFeatureGroups, jGroupIndex);
+            const FeatureItemGroup* featureGroup(allFeatureGroups[jGroupIndex]);
             
-            bool supportedTypeFlag(false);
-            switch (featureItem->getType()) {
-                case FeatureItemTypeEnum::INVALID:
-                    break;
-                case FeatureItemTypeEnum::POINT:
-                    supportedTypeFlag = true;
-                    break;
-            }
-            if ( ! supportedTypeFlag) {
-                CaretAssert(0);
-                CaretLogSevere("Feature of type "
-                               + featureItem->getTypeName()
-                               + " not supported for drawing.");
-                continue;
-            }
+            const std::vector<const FeatureItem*> allFeatures(featureGroup->getAllFeatures());
             
-            const QColor& color(featureItem->getColor());
-            std::array<uint8_t, 4> rgba {
-                static_cast<uint8_t>(color.red()),
-                static_cast<uint8_t>(color.green()),
-                static_cast<uint8_t>(color.blue()),
-                static_cast<uint8_t>(color.alpha())
-            };
-            
-            CaretAssert(featureItem->getNumberOfIJK() > 0);
-            const int32_t coordIndex(0);
-            Vector3D xyz(featureFile->featureIJKtoXYZ(featureItem, coordIndex));
-
-            bool drawFeatureFlag = false;
-            switch (drawType) {
-                case DrawType::HISTOLOGY:
-                {
-                    CaretAssert(histologySlice);
-                    Vector3D xyzOnSlice;
-                    /*
-                     * Need to convert stereotaxic to 'histology plane' XYZ
-                     */
-                    Vector3D stereotaxicOnSliceXYZ;
-                    Vector3D planeOnSliceXYZ;
-                    float distanceToSlice;
-                    if (histologySlice->projectStereotaxicXyzToSlice(xyz,
-                                                                     stereotaxicOnSliceXYZ,
-                                                                     distanceToSlice,
-                                                                     planeOnSliceXYZ)) {
-                        const float distanceToHistologySliceTolerance = halfSliceThickness;
-                        if (distanceToSlice < distanceToHistologySliceTolerance) {
-                            xyz[0] = planeOnSliceXYZ[0];
-                            xyz[1] = planeOnSliceXYZ[1];
-                            xyz[2] = planeOnSliceXYZ[2];
-                            drawFeatureFlag = true;
+            for (const FeatureItem* featureItem : allFeatures) {
+                CaretAssert(featureItem);
+                if ( ! featureItem->isDisplayed()) {
+                    continue;
+                }
+                
+                bool supportedTypeFlag(false);
+                switch (featureItem->getType()) {
+                    case FeatureItemTypeEnum::INVALID:
+                        break;
+                    case FeatureItemTypeEnum::POINT:
+                        supportedTypeFlag = true;
+                        break;
+                }
+                if ( ! supportedTypeFlag) {
+                    CaretAssert(0);
+                    CaretLogSevere("Feature of type "
+                                   + featureItem->getTypeName()
+                                   + " not supported for drawing.");
+                    continue;
+                }
+                
+                const QColor& color(featureItem->getColor());
+                std::array<uint8_t, 4> rgba {
+                    static_cast<uint8_t>(color.red()),
+                    static_cast<uint8_t>(color.green()),
+                    static_cast<uint8_t>(color.blue()),
+                    static_cast<uint8_t>(color.alpha())
+                };
+                
+                CaretAssert(featureItem->getNumberOfIJK() > 0);
+                const int32_t coordIndex(0);
+                Vector3D xyz(featureFile->featureIJKtoXYZ(featureItem, coordIndex));
+                
+                bool drawFeatureFlag = false;
+                switch (drawType) {
+                    case DrawType::HISTOLOGY:
+                    {
+                        CaretAssert(histologySlice);
+                        Vector3D xyzOnSlice;
+                        /*
+                         * Need to convert stereotaxic to 'histology plane' XYZ
+                         */
+                        Vector3D stereotaxicOnSliceXYZ;
+                        Vector3D planeOnSliceXYZ;
+                        float distanceToSlice;
+                        if (histologySlice->projectStereotaxicXyzToSlice(xyz,
+                                                                         stereotaxicOnSliceXYZ,
+                                                                         distanceToSlice,
+                                                                         planeOnSliceXYZ)) {
+                            const float distanceToHistologySliceTolerance = halfSliceThickness;
+                            if (distanceToSlice < distanceToHistologySliceTolerance) {
+                                xyz[0] = planeOnSliceXYZ[0];
+                                xyz[1] = planeOnSliceXYZ[1];
+                                xyz[2] = planeOnSliceXYZ[2];
+                                drawFeatureFlag = true;
+                            }
                         }
                     }
-                }
-                    break;
-                case DrawType::SURFACE:
-                    drawFeatureFlag = true;
-                    break;
-                case DrawType::VOLUME_MPR:
-                case DrawType::VOLUME_OBLIQUE:
-                case DrawType::VOLUME_ORTHOGONAL:
-                {
-                    const bool testFlag(false);
-                    if (testFlag) {
-                        CaretAssert(underlayVolume);
-                        xyz = plane.projectPointToPlane(xyz);
+                        break;
+                    case DrawType::SURFACE:
                         drawFeatureFlag = true;
-                    }
-                    else {
-                        if (plane.absoluteDistanceToPlane(xyz) < halfSliceThickness) {
+                        break;
+                    case DrawType::VOLUME_MPR:
+                    case DrawType::VOLUME_OBLIQUE:
+                    case DrawType::VOLUME_ORTHOGONAL:
+                    {
+                        const bool testFlag(false);
+                        if (testFlag) {
+                            CaretAssert(underlayVolume);
                             xyz = plane.projectPointToPlane(xyz);
                             drawFeatureFlag = true;
                         }
+                        else {
+                            if (plane.absoluteDistanceToPlane(xyz) < distanceFromVolumeSliceTolerance) {
+                                xyz = plane.projectPointToPlane(xyz);
+                                drawFeatureFlag = true;
+                            }
+                        }
                     }
+                        break;
+                    case DrawType::WHOLE_BRAIN:
+                        if (underlayVolume != NULL) {
+                            drawFeatureFlag = true;
+                        }
+                        break;
                 }
-                    break;
-                case DrawType::WHOLE_BRAIN:
-                if (underlayVolume != NULL) {
-                    drawFeatureFlag = true;
+                
+                if (drawFeatureFlag) {
+                    ++numDrawn;
+                    
+                    glPushMatrix();
+                    if (selectFlag) {
+                        fixedPipelineDrawing->colorIdentification->addItem(rgba.data(),
+                                                                           SelectionItemDataTypeEnum::FOCUS_VOLUME,
+                                                                           iFile, /* file index */
+                                                                           featureItem->getGroupID(),
+                                                                           featureItem->getUniqueID());
+                        rgba[3] = 255;
+                    }
+                    /*
+                     * Need to draw each symbol independently since each symbol
+                     * contains a unique size (diameter)
+                     */
+                    const bool drawWithPointsFlag(true);
+                    if (drawWithPointsFlag) {
+                        glPointSize(symbolScale);
+                        glBegin(GL_POINTS);
+                        glColor4ubv(rgba.data());
+                        glVertex3fv(xyz);
+                        glEnd();
+                    }
+                    else {
+                        std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive;
+                        idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
+                        idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
+                                                       (featureItem->getSymbolSize() * symbolScale));
+                        idPrimitive->addVertex(xyz,
+                                               rgba.data());
+                        GraphicsEngineDataOpenGL::draw(idPrimitive.get());
+                    }
+                    glPopMatrix();
                 }
-                    break;
-            }
-            
-            if (drawFeatureFlag) {
-                glPushMatrix();
-                if (selectFlag) {
-                    fixedPipelineDrawing->colorIdentification->addItem(rgba.data(),
-                                                                       SelectionItemDataTypeEnum::FOCUS_VOLUME,
-                                                                       iFile, /* file index */
-                                                                       jFeatureIndex,  /* Ann index*/
-                                                                       0); /* projection index */
-                    rgba[3] = 255;
-                }
-                /*
-                 * Need to draw each symbol independently since each symbol
-                 * contains a unique size (diameter)
-                 */
-                std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive;
-                idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
-                idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
-                                               (featureItem->getSymbolSize() * symbolScale));
-                idPrimitive->addVertex(xyz,
-                                       rgba.data());
-                GraphicsEngineDataOpenGL::draw(idPrimitive.get());
-                glPopMatrix();
             }
         }
     }
     
     if (selectFlag) {
         int32_t featureFileIndex = -1;
-        int32_t featureIndex = -1;
-        int32_t featureProjectionIndex = -1;
+        int32_t featureGroupID(-1);
+        int32_t featureUniqueID= -1;
         float depth = -1.0;
         fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::FOCUS_VOLUME,
                                                          fixedPipelineDrawing->mouseX,
                                                          fixedPipelineDrawing->mouseY,
                                                          featureFileIndex,
-                                                         featureIndex,
-                                                         featureProjectionIndex,
+                                                         featureGroupID,
+                                                         featureUniqueID,
                                                          depth);
         if (featureFileIndex >= 0) {
             FeatureFile* featureFile(brain->getFeatureFile(featureFileIndex));
             CaretAssert(featureFile);
             FeatureItemModel* featureItemModel(featureFile->getFeatureItemModel());
             CaretAssert(featureItemModel);
+            FeatureItem* featureItem(featureItemModel->getFeatureWithGroupAndUniqueID(featureGroupID,
+                                                                                      featureUniqueID));
+            CaretAssert(featureItem);
             switch (drawType) {
                 case DrawType::HISTOLOGY:
                     if (selectionItemFeature->isOtherScreenDepthCloserToViewer(depth)) {
-                        FeatureItem* featureItem(featureItemModel->getFeatureAtIndex(featureIndex));
-                        CaretAssert(featureItem);
                         selectionItemFeature->setBrain(brain);
                         selectionItemFeature->setHistologySelection(histologySlicesFile,
                                                               featureFile,
                                                               featureItem,
-                                                              featureIndex);
+                                                                    featureGroupID,
+                                                                    featureUniqueID);
                         selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
                         const Vector3D xyz(featureFile->featureIJKtoXYZ(featureItem,
                                                                             coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
-                        CaretLogFine("Selected Histology Feature Identification Symbol: " + QString::number(featureIndex));
+                        CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
+                                     + QString::number(featureGroupID)
+                                     + " UniqueID="
+                                     + QString::number(featureUniqueID));
                     }
                     break;
                 case DrawType::SURFACE:
                     if (selectionItemFeature->isOtherScreenDepthCloserToViewer(depth)) {
-                        FeatureItem* featureItem(featureItemModel->getFeatureAtIndex(featureIndex));
-                        CaretAssert(featureItem);
                         selectionItemFeature->setBrain(brain);
                         selectionItemFeature->setSurfaceSelection(surface,
                                                             featureFile,
                                                             featureItem,
-                                                            featureIndex);
+                                                                  featureGroupID,
+                                                                  featureUniqueID);
                         selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
                         const Vector3D xyz(featureFile->featureIJKtoXYZ(featureItem,
                                                                             coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
-                        CaretLogFine("Selected Surface Feature Identification Symbol: " + QString::number(featureIndex));
+                        CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
+                                     + QString::number(featureGroupID)
+                                     + " UniqueID="
+                                     + QString::number(featureUniqueID));
                     }
                     break;
                 case DrawType::VOLUME_MPR:
@@ -578,35 +604,39 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
                 case DrawType::VOLUME_ORTHOGONAL:
                     CaretAssert(selectionItemFeature);
                     if (selectionItemFeature->isOtherScreenDepthCloserToViewer(depth)) {
-                        FeatureItem* featureItem(featureItemModel->getFeatureAtIndex(featureIndex));
-                        CaretAssert(featureItem);
                         selectionItemFeature->setBrain(brain);
                         selectionItemFeature->setVolumeSelection(underlayVolume,
                                                            featureFile,
                                                                  featureItem,
-                                                           featureIndex);
+                                                                 featureGroupID,
+                                                                 featureUniqueID);
                         selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
                         const Vector3D xyz(featureFile->featureIJKtoXYZ(featureItem,
                                                                             coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
-                        CaretLogFine("Selected Volume Feature Identification Symbol: " + QString::number(featureIndex));
+                        CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
+                                     + QString::number(featureGroupID)
+                                     + " UniqueID="
+                                     + QString::number(featureUniqueID));
                     }
                     break;
                 case DrawType::WHOLE_BRAIN:
                     if (selectionItemFeature->isOtherScreenDepthCloserToViewer(depth)) {
-                        FeatureItem* feature(featureItemModel->getFeatureAtIndex(featureIndex));
-                        CaretAssert(feature);
                         selectionItemFeature->setBrain(brain);
                         selectionItemFeature->setWholeBrainSelection(featureFile,
-                                                               feature,
-                                                               featureIndex);
+                                                               featureItem,
+                                                                     featureGroupID,
+                                                                     featureUniqueID);
                         selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(featureFile->featureIJKtoXYZ(feature,
+                        const Vector3D xyz(featureFile->featureIJKtoXYZ(featureItem,
                                                                             coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
-                        CaretLogFine("Selected Surface Feature Identification Symbol: " + QString::number(featureIndex));
+                        CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
+                                     + QString::number(featureGroupID)
+                                     + " UniqueID="
+                                     + QString::number(featureUniqueID));
                     }
                     break;
             }

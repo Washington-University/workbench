@@ -33,7 +33,10 @@
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
+class QLineEdit;
 class QTableView;
+class QToolButton;
+class QTreeView;
 class QVBoxLayout;
 
 namespace caret {
@@ -42,6 +45,7 @@ namespace caret {
     class CaretDataFileSelectionComboBox;
     class DisplayGroupEnumComboBox;
     class EnumComboBoxTemplate;
+    class FeatureItemModel;
     class FeatureLabelModel;
     class WuQTabWidget;
     
@@ -71,11 +75,35 @@ namespace caret {
         
         void processAttributesChanges();
         
-        void featureItemTableViewItemClicked(const QModelIndex& index);
-        
         void labelModelComboBoxActivated(int index);
         
         void labelTableViewItemClicked(const QModelIndex& index);
+
+        void featureTreeItemClicked(const QModelIndex& modelIndex);
+        
+        void featureTreeItemDoubleClicked(const QModelIndex& modelIndex);
+        
+        void featureCollapseAllActionTriggered();
+        
+        void featureExpandAllActionTriggered();
+        
+        void featureAllOnActionTriggered();
+        
+        void featureAllOffActionTriggered();
+        
+        void featureInfoActionTriggered();
+        
+        void featureMoreActionTriggered();
+        
+        void featureFindActionTriggered();
+        
+        void featureNextActionTriggered();
+        
+        void featureFindTextLineEditTextChanged(const QString& text);
+        
+        void featureScrollTreeViewToFindItem();
+        
+        void scrollTreeViewToFindItem();
         
     private:
         FeatureSelectionViewController(const FeatureSelectionViewController&);
@@ -102,6 +130,10 @@ namespace caret {
         
         FeatureLabelModel* getSelectedLabelModel();
         
+        void featureResetFindItemsAndFindText();
+        
+        void featureResetFindItems();
+        
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex;
@@ -116,15 +148,40 @@ namespace caret {
 
         QDoubleSpinBox* m_symbolScaleSpinBox;
         
+        QDoubleSpinBox* m_distanceToVolumeSliceSpinBox;
+        
         WuQTabWidget* m_tabWidget;
         
         static std::set<FeatureSelectionViewController*> allFeatureSelectionViewControllers;
         
-        QTableView* m_featureItemTableView;
+        QTreeView* m_featureItemTreeView;
         
         QComboBox* m_labelModelSelectionComboBox;
         
         QTableView* m_labelsTableView;
+        
+        
+        QAction* m_featureCollapseAllAction;
+        QAction* m_featureExpandAllAction;
+        QAction* m_featureAllOnAction;
+        QAction* m_featureAllOffAction;
+        QAction* m_featureMoreAction;
+        QToolButton* m_featureMoreToolButton;
+        QAction* m_featureInfoAction;
+        QToolButton* m_featureInfoToolButton;
+        QAction* m_featureFindAction;
+        QAction* m_featureNextAction;
+        QLineEdit* m_featureFindTextLineEdit;
+        
+        FeatureItemModel* m_selectedFeatureItemModel = NULL;
+        
+        /*
+         * Find model indices are in proxy model, not the model from the file
+         */
+        std::vector<QModelIndex> m_featureFindItemModelIndices;
+        
+        int32_t m_featureFindItemsCurrentIndex = 0;
+
         
     };
     

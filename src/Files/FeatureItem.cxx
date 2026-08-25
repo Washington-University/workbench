@@ -47,8 +47,8 @@ using namespace caret;
  * Constructor.
  * @param featureType
  *    The type of the feature
- * @param relationshipID
- *    The relationship ID that groups features
+ * @param groupID
+ *    The group ID that groups features
  * @param uniqueID
  *    Unique ID of feature
  * @param ijk
@@ -61,7 +61,7 @@ using namespace caret;
  *    Propertry values for this feature
  */
 FeatureItem::FeatureItem(const FeatureItemTypeEnum::Enum featureType,
-                         const uint64_t relationshipID,
+                         const uint64_t groupID,
                          const uint64_t uniqueID,
                          const std::vector<Vector3D>& ijk,
                          const QColor& color,
@@ -69,8 +69,8 @@ FeatureItem::FeatureItem(const FeatureItemTypeEnum::Enum featureType,
                          const std::vector<const FeaturePropertyValue*>& propertyValues)
 : FeatureBase(FeatureBase::BaseType::FEATURE_ITEM),
 m_featureType(featureType),
-m_relationshipID(relationshipID),
-m_uniqueID(uniqueID),
+m_featureKey(groupID,
+             uniqueID),
 m_ijk(ijk),
 m_color(color),
 m_symbolSize(symbolSize),
@@ -91,7 +91,7 @@ m_propertyValues(propertyValues)
      * Sets string version of unique ID
      * and text displayed in GUI
      */
-    setUniqueID(m_uniqueID);
+    setUniqueID(m_featureKey.getUniqueID());
     
     setCheckable(true);
     setCheckState(Qt::Checked);
@@ -117,13 +117,12 @@ void
 FeatureItem::copyHelperFeatureItem(const FeatureItem& obj)
 {
     m_featureType    = obj.m_featureType;
-    m_relationshipID = obj.m_relationshipID;
-    m_uniqueID       = obj.m_uniqueID;
+    m_featureKey     = obj.m_featureKey;
     m_ijk            = obj.m_ijk;
     m_color          = obj.m_color;
     m_symbolSize     = obj.m_symbolSize;
     m_propertyValues = obj.m_propertyValues;
-    setUniqueID(m_uniqueID);
+    setUniqueID(m_featureKey.getUniqueID());
 }
 
 /**
@@ -167,12 +166,21 @@ FeatureItem::isDisplayed() const
 }
 
 /**
- * @return Relationship ID of this features
+ * @return FeatureKey for this instance
+ */
+const FeatureKey&
+FeatureItem::getFeatureKey() const
+{
+    return m_featureKey;
+}
+
+/**
+ * @return Group ID of this features
  */
 uint64_t
-FeatureItem::getRelationshipID() const
+FeatureItem::getGroupID() const
 {
-    return m_relationshipID;
+    return m_featureKey.getGroupID();
 }
 
 /**
@@ -181,7 +189,7 @@ FeatureItem::getRelationshipID() const
 uint64_t
 FeatureItem::getUniqueID() const
 {
-    return m_uniqueID;
+    return m_featureKey.getUniqueID();
 }
 
 /**
@@ -190,7 +198,7 @@ FeatureItem::getUniqueID() const
 AString
 FeatureItem::getUniqueIdAsString() const
 {
-    return AString::number(m_uniqueID);
+    return AString::number(m_featureKey.getUniqueID());
 }
 
 /**
@@ -242,15 +250,14 @@ FeatureItem::getTypeName() const
 }
 
 /**
- * Set the unique ID
+ * Set the unique ID which may change the text name of this feature
  * @param uniqueID
  *    New unique ID
  */
 void
 FeatureItem::setUniqueID(const uint64_t uniqueID)
 {
-    m_uniqueID = uniqueID;
-    
+    m_featureKey.setUniqueID(uniqueID);
     setText(getUniqueIdAsString()
             + " - "
             + FeatureItemTypeEnum::toGuiName(m_featureType)
@@ -303,20 +310,17 @@ FeatureItem::toString() const
  *    Rows of text for display
  * @param featureFile
  *    Feature file containing this feature
- * @param featureIndex
- *    Index of this feature in the feature file
  * @param toolTipFlag
  *    If true, text is for tooltip
  */
 void
 FeatureItem::getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
-                                              const FeatureFile* featureFile,
-                                              const int32_t featureIndex,
-                                              const bool toolTipFlag) const
+                                   const FeatureFile* featureFile,
+                                   const bool toolTipFlag) const
 {
     idTextOut.clear();
     
-    const AString featureName(AString::number(m_uniqueID)
+    const AString featureName(getUniqueIdAsString()
                               + " "
                               + FeatureItemTypeEnum::toGuiName(getType()));
 

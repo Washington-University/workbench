@@ -24,6 +24,7 @@
 #undef __FEATURE_FILE_DECLARE__
 
 #include <cmath>
+#include <limits>
 
 #include <zlib.h>
 
@@ -61,21 +62,6 @@ using namespace caret;
  * \brief Featues.  Initially "points" but could add "linear" and other types
  * \ingroup Files
  */
-
-/**
- * Destroy a feature and properties.  List is empty upon exit.
- * @param featureAndProperties
- *    Items that are destroyed.
- */
-void
-FeatureFile::destroyFeatureAndProperties(QList<QStandardItem*>& featureAndProperties)
-{
-    for (QStandardItem* qsi : featureAndProperties) {
-        CaretAssert(qsi);
-        delete qsi;
-    }
-    featureAndProperties.clear();
-}
 
 /**
  * Constructor.
@@ -361,6 +347,14 @@ FeatureFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
+    /*
+     * Default all features and labels on
+     */
+    m_featureModel->setCheckedStatusOfAllItems(true);
+    for (auto& lm : m_labelModels) {
+        lm->setAllLabelsDisplayed(true);
+    }
+    
     const SceneClass* annModelScene(sceneClass->getClass("m_featureModel"));
     if (annModelScene != NULL) {
         m_featureModel->restoreFromScene(sceneAttributes,
@@ -380,8 +374,7 @@ FeatureFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
  * Add a feature to this file in the matching relationship id.  If there is
  * a feature already in the model with the matching unique ID, the
  * featureAndProperties are NOT added and are destroyed.
- * @param uniqueID
- *    Unique ID of feature
+ *
  * @param featureAndProperties
  *    The feature is first and then the properties.  Caller MUST NOT
  *    reference featureAndProperties after calling this function as
@@ -390,27 +383,20 @@ FeatureFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
  *   A FunctionResult with success or failure.
  */
 FunctionResult
-FeatureFile::addFeature(const uint64_t uniqueID,
-                        const QList<QStandardItem*>& featureAndProperties)
+FeatureFile::addFeature(QList<QStandardItem*>& featureAndProperties)
 {
-    //
-    /*
-    need to return false is item was not added to model
-    and indicated that if items is not added it is destroyed
-        so that caller should not attemp to access featureAndProperties
-        
-    also need to look at relationship id to so that each
-        relationship id has its own model and need to
-        change model and view to tree view from table
-        where root element is FeatureRelationship (new class).
-    */
-    
     CaretAssertVectorIndex(featureAndProperties, 0);
     const FeatureItem* featureItem(dynamic_cast<const FeatureItem*>(featureAndProperties[0]));
     CaretAssert(featureItem);
     
-    return m_featureModel->addFeature(uniqueID,
-                                      featureAndProperties);
+    if (featureItem->getGroupID() > std::numeric_limits<int32_t>::max()) {
+        CaretLogWarning("Group ID is greater than 32-bit integer maximum.  OpenGL ID will fail.");
+    }
+    if (featureItem->getUniqueID() > std::numeric_limits<int32_t>::max()) {
+        CaretLogWarning("Unique ID is greater than 32-bit integer maximum.  OpenGL ID will fail.");
+    }
+    
+    return m_featureModel->addFeature(featureAndProperties);
 }
 
 /**

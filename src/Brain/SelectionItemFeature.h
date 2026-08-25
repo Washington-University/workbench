@@ -46,21 +46,25 @@ namespace caret {
         void setSurfaceSelection(const Surface* surface,
                                  FeatureFile* featureFile,
                                  FeatureItem* featureItem,
-                                 const int32_t featureIndex);
+                                 const int32_t featureGroupID,
+                                 const int32_t featureUniqueID);
 
         void setHistologySelection(HistologySlicesFile* histologySlicesFile,
                                    FeatureFile* featureFile,
                                    FeatureItem* featureItem,
-                                   const int32_t featureIndex);
-        
+                                   const int32_t featureGroupID,
+                                   const int32_t featureUniqueID);
+
         void setVolumeSelection(VolumeMappableInterface* volumeMappableInterface,
                                 FeatureFile* featureFile,
                                 FeatureItem* featureItem,
-                                const int32_t featureIndex);
+                                const int32_t featureGroupID,
+                                const int32_t featureUniqueID);
 
         void setWholeBrainSelection(FeatureFile* featureFile,
                                     FeatureItem* featureItem,
-                                    const int32_t featureIndex);
+                                    const int32_t featureGroupID,
+                                    const int32_t featureUniqueID);
 
         SelectionItemFeature();
         
@@ -90,7 +94,9 @@ namespace caret {
         
         const FeatureFile* getFeatureFile() const;
         
-        int32_t getFeatureItemIndex() const;
+        uint64_t getFeatureGroupID() const;
+        
+        uint64_t getFeatureUniqueID() const;
         
         virtual void reset() override;
         
@@ -109,7 +115,8 @@ namespace caret {
         const Surface* m_surface = NULL;
         VolumeMappableInterface* m_volumeFile = NULL;
         HistologySlicesFile* m_histologySlicesFile = NULL;
-        int32_t m_featureIndex = -1;
+        int32_t m_featureGroupID = 0;
+        int32_t m_featureUniqueID = 0;
     };
     
 #ifdef __SELECTION_ITEM_FEATURE_DECLARE__

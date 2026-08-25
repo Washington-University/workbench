@@ -1,5 +1,5 @@
-#ifndef __FEATURE_BASE_H__
-#define __FEATURE_BASE_H__
+#ifndef __FEATURE_KEY_H__
+#define __FEATURE_KEY_H__
 
 /*LICENSE_START*/
 /*
@@ -25,55 +25,60 @@
 
 #include <memory>
 
-#include <QStandardItem>
+#include "CaretObject.h"
 
-#include "AString.h"
+
 
 namespace caret {
 
-    class FeatureBase : public QStandardItem {
+    class FeatureKey : public CaretObject {
         
     public:
-        enum class BaseType {
-            FEATURE_GROUP,
-            FEATURE_ITEM,
-            FEATURE_LABEL,
-            FEATURE_PROPERTY
-        };
+        static FeatureKey fromSceneKeyString(const AString& sceneKeyString);
         
-        static void destroyFeatureAndProperties(QList<QStandardItem*>& featureAndProperties);
+        FeatureKey(const uint64_t groupID,
+                   const uint64_t uniqueID);
         
-        FeatureBase(const BaseType baseType);
+        FeatureKey();
         
-        virtual ~FeatureBase();
+        virtual ~FeatureKey();
         
-        FeatureBase(const FeatureBase&) = delete;
+        FeatureKey(const FeatureKey& obj);
 
-        FeatureBase& operator=(const FeatureBase&) = delete;
+        FeatureKey& operator=(const FeatureKey& obj);
         
-        BaseType getBaseType() const;
+        bool operator==(const FeatureKey& obj) const;
 
-        virtual AString toString() const = 0;
-        
-        void setAllChildrenChecked(const bool checked);
-        
-        Qt::CheckState setCheckStateFromChildren();
+        bool isValid() const;
 
+        uint64_t getGroupID() const;
+        
+        uint64_t getUniqueID() const;
+        
+        void setUniqueID(const uint64_t uniqueID);
+        
+        AString toSceneKeyString() const;
+        
         // ADD_NEW_METHODS_HERE
 
-    protected:
-        void setCheckedStatusOfAllChildren(QStandardItem* item,
-                                           const Qt::CheckState checkState);
+        virtual AString toString() const;
         
     private:
-        const BaseType m_baseType;
+        void copyHelperFeatureKey(const FeatureKey& obj);
+
+        uint64_t m_groupID;
+        
+        uint64_t m_uniqueID;
+        
+        bool m_validFlag = false;
+
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __FEATURE_BASE_DECLARE__
+#ifdef __FEATURE_KEY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __FEATURE_BASE_DECLARE__
+#endif // __FEATURE_KEY_DECLARE__
 
 } // namespace
-#endif  //__FEATURE_BASE_H__
+#endif  //__FEATURE_KEY_H__
