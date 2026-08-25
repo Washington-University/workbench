@@ -103,7 +103,13 @@ namespace caret {
         
         void featureScrollTreeViewToFindItem();
         
-        void scrollTreeViewToFindItem();
+        void labelFindActionTriggered();
+        
+        void labelNextActionTriggered();
+        
+        void labelFindTextLineEditTextChanged(const QString& text);
+        
+        void labelScrollTreeViewToFindItem();
         
     private:
         FeatureSelectionViewController(const FeatureSelectionViewController&);
@@ -133,6 +139,10 @@ namespace caret {
         void featureResetFindItemsAndFindText();
         
         void featureResetFindItems();
+        
+        void labelResetFindItemsAndFindText();
+        
+        void labelResetFindItems();
         
         const QString m_objectNamePrefix;
         
@@ -173,15 +183,29 @@ namespace caret {
         QAction* m_featureNextAction;
         QLineEdit* m_featureFindTextLineEdit;
         
-        FeatureItemModel* m_selectedFeatureItemModel = NULL;
-        
         /*
          * Find model indices are in proxy model, not the model from the file
          */
         std::vector<QModelIndex> m_featureFindItemModelIndices;
         
         int32_t m_featureFindItemsCurrentIndex = 0;
+        
 
+        QAction* m_labelFindAction;
+        QAction* m_labelNextAction;
+        QLineEdit* m_labelFindTextLineEdit;
+        /*
+         * Find model indices are in proxy model, not the model from the file
+         */
+        std::vector<QModelIndex> m_labelFindItemModelIndices;
+        
+        int32_t m_labelFindItemsCurrentIndex = 0;
+        
+
+
+
+        FeatureItemModel* m_selectedFeatureItemModel = NULL;
+        
         
     };
     

@@ -140,10 +140,10 @@ m_objectNamePrefix(parentObjectName
     QWidget* labelsWidget     = this->createLabelsWidget();
     
     m_tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
-                                               this);
+                                   this);
     m_tabWidget->getWidget()->layout()->setContentsMargins(0, 0, 0, 0);
     m_tabWidget->addTab(featuresItemsWidget,
-                      "Points");
+                        "Points");
     m_tabWidget->addTab(attributesWidget,
                         "Attributes");
     m_tabWidget->addTab(labelsWidget,
@@ -162,7 +162,8 @@ m_objectNamePrefix(parentObjectName
     layout->addLayout(groupLayout);
     layout->addLayout(fileLayout);
     layout->addWidget(m_tabWidget->getWidget(), 100);
-    
+    layout->addStretch();
+
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
     FeatureSelectionViewController::allFeatureSelectionViewControllers.insert(this);
@@ -274,12 +275,14 @@ FeatureSelectionViewController::createFeatureItemsWidget()
     QObject::connect(m_featureItemTreeView, &QTreeView::clicked,
                      this, &FeatureSelectionViewController::featureTreeItemClicked);
     
-    const int BIG_STRETCH(100);
+//    const int BIG_STRETCH(100);
     QWidget* widget(new QWidget());
     QVBoxLayout* layout(new QVBoxLayout(widget));
     layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(layout->spacing() / 2);
     layout->addLayout(buttonsLayout);
-    layout->addWidget(m_featureItemTreeView, BIG_STRETCH);
+    layout->addWidget(m_featureItemTreeView);//, BIG_STRETCH);
+//    layout->addStretch();
     
     return widget;
 }
@@ -359,6 +362,8 @@ FeatureSelectionViewController::featureAllOffActionTriggered()
 void
 FeatureSelectionViewController::featureInfoActionTriggered()
 {
+// TBD
+//
 //    const LabelSelectionItem* labelItem(getLabelSelectionItemAtModelIndex(m_treeView->currentIndex()));
 //    if (labelItem != NULL) {
 //        const bool infoButtonFlag(true);
@@ -379,6 +384,8 @@ FeatureSelectionViewController::featureInfoActionTriggered()
 void
 FeatureSelectionViewController::featureMoreActionTriggered()
 {
+// TBD
+//
 //    DisplayPropertiesLabels* dsl(GuiManager::get()->getBrain()->getDisplayPropertiesLabels());
 //    
 //    QMenu menu;
@@ -434,7 +441,7 @@ FeatureSelectionViewController::featureFindActionTriggered()
     if (m_featureFindItemModelIndices.empty()) {
         GuiManager::get()->beep();
     }
-    scrollTreeViewToFindItem();
+    featureScrollTreeViewToFindItem();
 }
 
 /**
@@ -443,37 +450,9 @@ FeatureSelectionViewController::featureFindActionTriggered()
 void
 FeatureSelectionViewController::featureNextActionTriggered()
 {
-    scrollTreeViewToFindItem();
+    featureScrollTreeViewToFindItem();
 }
 
-/**
- * Scroll the tree view to the next find item
- */
-void
-FeatureSelectionViewController::scrollTreeViewToFindItem()
-{
-    const int32_t numFindItems(m_featureFindItemModelIndices.size());
-    if (numFindItems > 0) {
-        if ((m_featureFindItemsCurrentIndex < 0)
-            || (m_featureFindItemsCurrentIndex >= numFindItems)) {
-            m_featureFindItemsCurrentIndex = 0;
-        }
-        CaretAssertVectorIndex(m_featureFindItemModelIndices, m_featureFindItemsCurrentIndex);
-        const QModelIndex modelIndex(m_featureFindItemModelIndices[m_featureFindItemsCurrentIndex]);
-        if (modelIndex.isValid()) {
-            m_featureItemTreeView->setCurrentIndex(modelIndex);
-            m_featureItemTreeView->scrollTo(modelIndex,
-                                            QTreeView::PositionAtCenter);
-        }
-        
-        /*
-         * For 'next'
-         */
-        ++m_featureFindItemsCurrentIndex;
-    }
-    
-    m_featureNextAction->setEnabled(numFindItems > 1);
-}
 /**
  * Scroll the tree view to the next find item
  */
@@ -554,20 +533,47 @@ FeatureSelectionViewController::createLabelsWidget()
     fileLayout->addWidget(m_labelModelSelectionComboBox, BIG_STRETCH);
 
     QToolButton* allOnToolButton(new QToolButton());
-    allOnToolButton->setText("All On");
+    allOnToolButton->setText("On");
     QObject::connect(allOnToolButton, &QToolButton::clicked,
                      [=]() { labelsAllOnOffButtonClicked(true); });
     
     QToolButton* allOffToolButton(new QToolButton());
-    allOffToolButton->setText("All Off");
+    allOffToolButton->setText("Off");
     QObject::connect(allOffToolButton, &QToolButton::clicked,
                      [=]() { labelsAllOnOffButtonClicked(false); });
     
-    QHBoxLayout* allOnOffLayout(new QHBoxLayout());
-    allOnOffLayout->setContentsMargins(0, 0, 0, 0);
-    allOnOffLayout->addWidget(allOnToolButton);
-    allOnOffLayout->addWidget(allOffToolButton);
-    allOnOffLayout->addStretch();
+    m_labelFindAction = new QAction("Find");
+    m_labelFindAction->setToolTip("Find the first item containing the text");
+    m_labelFindAction->setEnabled(false);
+    QObject::connect(m_labelFindAction, &QAction::triggered,
+                     this, &FeatureSelectionViewController::labelFindActionTriggered);
+    QToolButton* findToolButton(new QToolButton);
+    findToolButton->setDefaultAction(m_labelFindAction);
+    
+    m_labelNextAction = new QAction("Next");
+    m_labelNextAction->setToolTip("Move to the next item containing the text (will wrap)");
+    m_labelNextAction->setEnabled(false);
+    QObject::connect(m_labelNextAction, &QAction::triggered,
+                     this, &FeatureSelectionViewController::labelNextActionTriggered);
+    QToolButton* nextToolButton(new QToolButton);
+    nextToolButton->setDefaultAction(m_labelNextAction);
+    
+    m_labelFindTextLineEdit = new QLineEdit();
+    m_labelFindTextLineEdit->setToolTip("Enter find text here");
+    QObject::connect(m_labelFindTextLineEdit, &QLineEdit::returnPressed,
+                     this, &FeatureSelectionViewController::labelFindActionTriggered);
+    QObject::connect(m_labelFindTextLineEdit, &QLineEdit::textChanged,
+                     this, &FeatureSelectionViewController::labelFindTextLineEditTextChanged);
+    
+    QHBoxLayout* buttonsLayout(new QHBoxLayout());
+    buttonsLayout->setSpacing(buttonsLayout->spacing() / 2);
+    buttonsLayout->setContentsMargins(2, 2, 2, 2);
+    buttonsLayout->addWidget(allOnToolButton);
+    buttonsLayout->addWidget(allOffToolButton);
+    buttonsLayout->addWidget(findToolButton);
+    buttonsLayout->addWidget(nextToolButton);
+    buttonsLayout->addWidget(m_labelFindTextLineEdit, 100);
+
     m_labelsTableView = new QTableView();
     m_labelsTableView->horizontalHeader()->setVisible(false);
     m_labelsTableView->verticalHeader()->setVisible(false);
@@ -577,11 +583,115 @@ FeatureSelectionViewController::createLabelsWidget()
     QWidget* widget(new QWidget());
     QVBoxLayout* layout(new QVBoxLayout(widget));
     layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(layout->spacing() / 2);
     layout->addLayout(fileLayout);
-    layout->addLayout(allOnOffLayout);
-    layout->addWidget(m_labelsTableView, BIG_STRETCH);
-    
+    layout->addLayout(buttonsLayout);
+    layout->addWidget(m_labelsTableView);//, BIG_STRETCH);
+//    layout->addStretch();
+
     return widget;
+}
+
+/**
+ * Called when find button is clicked or return is pressed in the find line edit
+ */
+void
+FeatureSelectionViewController::labelFindActionTriggered()
+{
+    m_labelFindItemModelIndices.clear();
+    m_labelFindItemsCurrentIndex = 0;
+    
+    FeatureLabelModel* labelModel(getSelectedLabelModel());
+    if (labelModel != NULL) {
+        const QString findText(m_labelFindTextLineEdit->text().trimmed());
+        
+        const int modelColumn(0);
+        QList<QStandardItem*> matchingItems(labelModel->findItems(findText,
+                                                                  (Qt::MatchContains
+                                                                   | Qt::MatchRecursive),
+                                                                  modelColumn));
+        for (QStandardItem* item : matchingItems) {
+            const QModelIndex modelIndex(labelModel->indexFromItem(item));
+            if (modelIndex.isValid()) {
+                m_labelFindItemModelIndices.push_back(modelIndex);
+            }
+        }
+    }
+    if (m_labelFindItemModelIndices.empty()) {
+        GuiManager::get()->beep();
+    }
+    labelScrollTreeViewToFindItem();
+}
+
+/**
+ * Called when next button is clicked
+ */
+void
+FeatureSelectionViewController::labelNextActionTriggered()
+{
+    labelScrollTreeViewToFindItem();
+}
+
+/**
+ * Scroll the tree view to the next find item
+ */
+void
+FeatureSelectionViewController::labelScrollTreeViewToFindItem()
+{
+    const int32_t numFindItems(m_labelFindItemModelIndices.size());
+    if (numFindItems > 0) {
+        if ((m_labelFindItemsCurrentIndex < 0)
+            || (m_labelFindItemsCurrentIndex >= numFindItems)) {
+            m_labelFindItemsCurrentIndex = 0;
+        }
+        CaretAssertVectorIndex(m_labelFindItemModelIndices, m_labelFindItemsCurrentIndex);
+        const QModelIndex modelIndex(m_labelFindItemModelIndices[m_labelFindItemsCurrentIndex]);
+        if (modelIndex.isValid()) {
+            m_labelsTableView->setCurrentIndex(modelIndex);
+            m_labelsTableView->scrollTo(modelIndex,
+                                        QTreeView::PositionAtCenter);
+        }
+        
+        /*
+         * For 'next'
+         */
+        ++m_labelFindItemsCurrentIndex;
+    }
+    
+    m_labelNextAction->setEnabled(numFindItems > 1);
+}
+
+/**
+ * Called when next button is clicked
+ * @param text
+ *    Text in the line edit
+ */
+void
+FeatureSelectionViewController::labelFindTextLineEditTextChanged(const QString& text)
+{
+    m_labelFindAction->setEnabled( ! text.trimmed().isEmpty());
+    m_labelNextAction->setEnabled(false);
+    m_labelFindItemModelIndices.clear();
+    m_labelFindItemsCurrentIndex = 0;
+}
+
+/**
+ * Reset find items but and clear find text
+ */
+void
+FeatureSelectionViewController::labelResetFindItemsAndFindText()
+{
+    m_labelFindTextLineEdit->clear();
+    labelResetFindItems();
+}
+
+/**
+ * Reset find items but do not clear find text
+ */
+void
+FeatureSelectionViewController::labelResetFindItems()
+{
+    labelFindTextLineEditTextChanged(m_labelFindTextLineEdit->text());
 }
 
 /**
@@ -609,7 +719,8 @@ FeatureSelectionViewController::createAttributesWidget()
 
     QWidget* widget = new QWidget();
     QGridLayout* layout = new QGridLayout(widget);
-    layout->setAlignment(Qt::AlignTop);
+    layout->setVerticalSpacing(layout->verticalSpacing() / 2);
+//    layout->setAlignment(Qt::AlignTop);
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 100);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -619,6 +730,8 @@ FeatureSelectionViewController::createAttributesWidget()
     ++row;
     layout->addWidget(distanceToVolumeSliceLabel, row, 0);
     layout->addWidget(m_distanceToVolumeSliceSpinBox, row, 1);
+    ++row;
+    layout->setRowStretch(row, 100);
 
     return widget;
 }
