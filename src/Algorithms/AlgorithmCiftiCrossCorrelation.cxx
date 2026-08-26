@@ -58,6 +58,8 @@ OperationParameters* AlgorithmCiftiCrossCorrelation::getParameters()
     
     ret->createOptionalParameter(5, "-fisher-z", "apply fisher small z transform (ie, artanh) to correlation");
     
+    ret->createOptionalParameter(7, "-covariance", "compute covariance instead of correlation");
+    
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(6, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
@@ -102,6 +104,7 @@ void AlgorithmCiftiCrossCorrelation::useParameters(OperationParameters* myParams
         }
     }
     bool fisherZ = myParams->getOptionalParameter(5)->m_present;
+    bool covariance = myParams->getOptionalParameter(7)->m_present;
     float memLimitGB = -1.0f;
     OptionalParameter* memLimitOpt = myParams->getOptionalParameter(6);
     if (memLimitOpt->m_present)
@@ -112,16 +115,20 @@ void AlgorithmCiftiCrossCorrelation::useParameters(OperationParameters* myParams
             throw AlgorithmException("memory limit cannot be negative");
         }
     }
-    AlgorithmCiftiCrossCorrelation(myProgObj, myCiftiA, myCiftiB, myCiftiOut, weights, fisherZ, memLimitGB);
+    AlgorithmCiftiCrossCorrelation(myProgObj, myCiftiA, myCiftiB, myCiftiOut, weights, fisherZ, covariance, memLimitGB);
 }
 
 AlgorithmCiftiCrossCorrelation::AlgorithmCiftiCrossCorrelation(ProgressObject* myProgObj, const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, CiftiFile* myCiftiOut,
-                                                               const vector<float>* weights, const bool& fisherZ, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
+                                                               const vector<float>* weights, const bool& fisherZ, const bool& covariance, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    init(myCiftiA, myCiftiB, myCiftiOut, weights);
-    CiftiXMLOld outXML = myCiftiA->getCiftiXMLOld();
-    outXML.copyMapping(CiftiXMLOld::ALONG_ROW, myCiftiB->getCiftiXMLOld(), CiftiXMLOld::ALONG_COLUMN);//(try to) copy B's along column mapping to output's along row mapping
+    if (covariance)
+    {
+        if (fisherZ) throw AlgorithmException("cannot apply fisher z transformation to covariance");
+    }
+    init(myCiftiA, myCiftiB, myCiftiOut, weights, covariance);
+    CiftiXML outXML = myCiftiA->getCiftiXML();
+    outXML.setMap(CiftiXML::ALONG_ROW, *(myCiftiB->getCiftiXML().getMap(CiftiXML::ALONG_COLUMN)));
     myCiftiOut->setCiftiXML(outXML);
     int64_t chunkSize = m_numRowsA;
     if (memLimitGB >= 0.0f)
@@ -161,8 +168,9 @@ AlgorithmCiftiCrossCorrelation::AlgorithmCiftiCrossCorrelation(ProgressObject* m
     }
 }
 
-void AlgorithmCiftiCrossCorrelation::init(const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, const CiftiFile* myCiftiOut, const vector<float>* weights)
+void AlgorithmCiftiCrossCorrelation::init(const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, const CiftiFile* myCiftiOut, const vector<float>* weights, const bool covarianceMode)
 {
+    m_covariance = covarianceMode;
     m_numCols = myCiftiA->getNumberOfColumns();
     if (myCiftiB->getNumberOfColumns() != m_numCols) throw AlgorithmException("input cifti files have different row lengths");
     m_numRowsA = myCiftiA->getNumberOfRows();
@@ -190,6 +198,7 @@ void AlgorithmCiftiCrossCorrelation::init(const CiftiFile* myCiftiA, const Cifti
                 }
                 m_weightSum += val;
                 m_weights.push_back(val);
+                m_sqrtWeights.push_back(sqrt(val));
                 m_weightIndexes.push_back(i);
                 if (val != 1.0f)
                 {
@@ -249,19 +258,39 @@ float AlgorithmCiftiCrossCorrelation::correlate(const float* row1, const float& 
     {
         int numWeights = (int)m_weightIndexes.size();//because we compacted the data in the row to not include any zero weights
         double accum = dsdot(row1, row2, numWeights);//these have already had the weighted row means subtracted out, and weights applied
-        r = accum / (rrs1 * rrs2);//as do these
+        if (m_covariance)
+        {
+            if (m_binaryWeights)
+            {
+                r = accum / numWeights;
+            } else {
+                r = accum / m_weightSum;
+            }
+        } else {
+            r = accum / (rrs1 * rrs2);//these also have weights applied
+        }
     } else {
         double accum = dsdot(row1, row2, m_numCols);//these have already had the row means subtracted out
-        r = accum / (rrs1 * rrs2);
+        if (m_covariance)
+        {
+            r = accum / m_numCols;
+        } else {
+            r = accum / (rrs1 * rrs2);
+        }
     }
-    if (fisherZ)
+    if (!m_covariance)
     {
-        if (r > 0.999999) r = 0.999999;//prevent inf
-        if (r < -0.999999) r = -0.999999;//prevent -inf
-        return 0.5 * log((1 + r) / (1 - r));
+        if (fisherZ)
+        {
+            if (r > 0.999999) r = 0.999999;//prevent inf
+            if (r < -0.999999) r = -0.999999;//prevent -inf
+            return 0.5 * log((1 + r) / (1 - r));
+        } else {
+            if (r > 1.0) r = 1.0;//don't output anything silly
+            if (r < -1.0) r = -1.0;
+            return r;
+        }
     } else {
-        if (r > 1.0) r = 1.0;//don't output anything silly
-        if (r < -1.0) r = -1.0;
         return r;
     }
 }
@@ -340,7 +369,7 @@ void AlgorithmCiftiCrossCorrelation::cacheRowsA(const int64_t& begin, const int6
 
 void AlgorithmCiftiCrossCorrelation::adjustRow(float* row, RowInfo& info)
 {
-    if (!info.m_haveCalculated)//ensure statistics are calculated
+    if (!info.m_haveCalculated) //ensure statistics are calculated
     {
         info.m_haveCalculated = true;
         double accum = 0.0;
@@ -354,26 +383,12 @@ void AlgorithmCiftiCrossCorrelation::adjustRow(float* row, RowInfo& info)
                     accum += row[m_weightIndexes[i]];
                 }
                 info.m_mean = accum / mycount;
-                accum = 0.0;
-                for (int64_t i = 0; i < mycount; ++i)
-                {
-                    float tempf = row[m_weightIndexes[i]] - info.m_mean;
-                    accum += tempf * tempf;
-                }
-                info.m_rootResidSqr = sqrt(accum);
             } else {
                 for (int64_t i = 0; i < mycount; ++i)
                 {
                     accum += m_weights[i] * row[m_weightIndexes[i]];
                 }
                 info.m_mean = accum / m_weightSum;
-                accum = 0.0;
-                for (int64_t i = 0; i < mycount; ++i)
-                {
-                    float tempf = row[m_weightIndexes[i]] - info.m_mean;
-                    accum += m_weights[i] * tempf * tempf;
-                }
-                info.m_rootResidSqr = sqrt(accum);
             }
         } else {
             for (int64_t i = 0; i < m_numCols; ++i)
@@ -381,16 +396,42 @@ void AlgorithmCiftiCrossCorrelation::adjustRow(float* row, RowInfo& info)
                 accum += row[i];
             }
             info.m_mean = accum / m_numCols;
-            accum = 0.0;
-            for (int64_t i = 0; i < m_numCols; ++i)
+        }
+        accum = 0.0;
+        if (m_covariance)
+        {
+            info.m_rootResidSqr = 0.0f; //we have weight sum as another member
+        } else {
+            if (m_weightedMode)
             {
-                float tempf = row[i] - info.m_mean;
-                accum += tempf * tempf;
+                int64_t mycount = (int64_t)m_weightIndexes.size();
+                if (m_binaryWeights)
+                {
+                    for (int64_t i = 0; i < mycount; ++i)
+                    {
+                        float tempf = row[m_weightIndexes[i]] - info.m_mean;
+                        accum += tempf * tempf;
+                    }
+                    info.m_rootResidSqr = sqrt(accum);
+                } else {
+                    for (int64_t i = 0; i < mycount; ++i)
+                    {
+                        float tempf = row[m_weightIndexes[i]] - info.m_mean;
+                        accum += m_weights[i] * tempf * tempf;
+                    }
+                    info.m_rootResidSqr = sqrt(accum);
+                }
+            } else {
+                for (int64_t i = 0; i < m_numCols; ++i)
+                {
+                    float tempf = row[i] - info.m_mean;
+                    accum += tempf * tempf;
+                }
+                info.m_rootResidSqr = sqrt(accum);
             }
-            info.m_rootResidSqr = sqrt(accum);
         }
     }
-    if (m_weightedMode)//COMPACT data, subtract mean, multiply by square root of weights if applicable
+    if (m_weightedMode) //COMPACT data, subtract mean, multiply by square root of weights if applicable
     {
         int64_t mycount = (int64_t)m_weightIndexes.size();
         if (m_binaryWeights)
@@ -402,7 +443,7 @@ void AlgorithmCiftiCrossCorrelation::adjustRow(float* row, RowInfo& info)
         } else {
             for (int64_t i = 0; i < mycount; ++i)
             {
-                row[i] = sqrt(m_weights[i]) * (row[m_weightIndexes[i]] - info.m_mean);//this is so the numerator doesn't get squared weights applied, since this happens to both rows
+                row[i] = m_sqrtWeights[i] * (row[m_weightIndexes[i]] - info.m_mean);//this is so the numerator doesn't get squared weights applied, since this happens to both rows
             }
         }
     } else {

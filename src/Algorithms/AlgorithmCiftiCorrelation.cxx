@@ -537,7 +537,7 @@ float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1,
                     r = accum / rrs1;//NOTE: will equal rrs2 as it only depends on weights, and is not square root
                 }
             } else {
-                r = accum / (rrs1 * rrs2);//as do these
+                r = accum / (rrs1 * rrs2);//these also have weights applied
             }
         } else {
             double accum = dsdot(row1, row2, m_numCols);//these have already had the row means subtracted out
@@ -723,7 +723,7 @@ void AlgorithmCiftiCorrelation::computeRowStats(const float* row, float& mean, f
                     float tempf = row[m_weightIndexes[i]] - mean;
                     accum += tempf * tempf;
                 }
-            rootResidSqr = sqrt(accum);
+                rootResidSqr = sqrt(accum);
             } else {
                 for (int i = 0; i < weightsize; ++i)
                 {
