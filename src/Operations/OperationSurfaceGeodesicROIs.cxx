@@ -49,7 +49,7 @@ OperationParameters* OperationSurfaceGeodesicROIs::getParameters()
     
     ret->addDoubleParameter(2, "limit", "geodesic distance limit from vertex, in mm");
     
-    ret->addStringParameter(3, "vertex-list-file", "a text file containing the vertices to draw ROIs around");
+    ret->addStringParameter(3, "vertex-list-file", "a text file containing the vertex indices (0-based) to draw ROIs around");
     
     ret->addMetricOutputParameter(4, "metric-out", "the output metric");
     
@@ -67,7 +67,7 @@ OperationParameters* OperationSurfaceGeodesicROIs::getParameters()
 
     ret->setHelpText(
         AString("For each vertex in the list file, a column in the output metric is created, and an ROI around that vertex is drawn in that column.  ") +
-        "Each metric column will have zeros outside the geodesic distance spacified by <limit>, and by default will have a value of 1.0 inside it.  " +
+        "Each metric column will have zeros outside the geodesic distance specified by <limit>, and by default will have a value of 1.0 inside it.  " +
         "If the -gaussian option is specified, the values inside the ROI will instead form a gaussian with the specified value of sigma, normalized " +
         "so that the sum of the nonzero values in the metric column is 1.0.  The <method> argument to -overlap-logic must be one of ALLOW, CLOSEST, or EXCLUDE.  " +
         "ALLOW is the default, and means that ROIs are treated independently and may overlap.  " +
