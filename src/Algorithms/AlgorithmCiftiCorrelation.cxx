@@ -76,6 +76,9 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     
     ret->createOptionalParameter(8, "-covariance", "compute covariance instead of correlation");
     
+    OptionalParameter* fixnanOpt = ret->createOptionalParameter(9, "-fixnan", "replace NaN results with a value");
+    fixnanOpt->addDoubleParameter(1, "value", "value to replace NaN with");
+    
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(6, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
@@ -174,28 +177,37 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
     }
     bool noDemean = myParams->getOptionalParameter(7)->m_present;
     bool covariance = myParams->getOptionalParameter(8)->m_present;
+    OptionalParameter* fixnanOpt = myParams->getOptionalParameter(9);
+    bool fixNan = false;
+    float nanfixVal = -1.0f;
+    if (fixnanOpt->m_present)
+    {
+        fixNan = true;
+        nanfixVal = float(fixnanOpt->getDouble(1));
+    }
     if (roiOverrideMode)
     {
         if (ciftiRoiMode)
         {
-            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, ciftiRoi, weights, fisherZ, memLimitGB, noDemean, covariance);
+            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, ciftiRoi, weights, fisherZ, memLimitGB, noDemean, covariance, fixNan, nanfixVal);
         } else {
-            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, weights, fisherZ, memLimitGB, noDemean, covariance);
+            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, weights, fisherZ, memLimitGB, noDemean, covariance, fixNan, nanfixVal);
         }
     } else {
-        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, weights, fisherZ, memLimitGB, noDemean, covariance);
+        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, weights, fisherZ, memLimitGB, noDemean, covariance, fixNan, nanfixVal);
     }
 }
 
 AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut, const vector<float>* weights,
-                                                     const bool& fisherZ, const float& memLimitGB, const bool& noDemean, const bool& covariance) : AbstractAlgorithm(myProgObj)
+                                                     const bool& fisherZ, const float& memLimitGB, const bool& noDemean, const bool& covariance,
+                                                     const bool& fixnan, const float& nanfixVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (covariance)
     {
         if (fisherZ) throw AlgorithmException("cannot apply fisher z transformation to covariance");
     }
-    init(myCifti, weights, noDemean, covariance);
+    init(myCifti, weights, noDemean, covariance, fixnan, nanfixVal);
     int numRows = myCifti->getNumberOfRows();
     CiftiXMLOld newXML = myCifti->getCiftiXMLOld();
     newXML.applyColumnMapToRows();
@@ -288,14 +300,15 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
 AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                                      const MetricFile* leftRoi, const MetricFile* rightRoi, const MetricFile* cerebRoi,
                                                      const VolumeFile* volRoi, const vector<float>* weights, const bool& fisherZ, const float& memLimitGB,
-                                                     const bool& noDemean, const bool& covariance) : AbstractAlgorithm(myProgObj)
+                                                     const bool& noDemean, const bool& covariance,
+                                                     const bool& fixnan, const float& nanfixVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (covariance)
     {
         if (fisherZ) throw AlgorithmException("cannot apply fisher z transformation to covariance");
     }
-    init(myCifti, weights, noDemean, covariance);
+    init(myCifti, weights, noDemean, covariance, fixnan, nanfixVal);
     const CiftiXMLOld& origXML = myCifti->getCiftiXMLOld();
     if (origXML.getColumnMappingType() != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
@@ -476,7 +489,8 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
 
 AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut, const CiftiFile* ciftiRoi,
                                                      const vector<float>* weights, const bool& fisherZ, const float& memLimitGB,
-                                                     const bool& noDemean, const bool& covariance): AbstractAlgorithm(NULL)//HACK: get around the sentinel by passing a null, because this implementation calls another
+                                                     const bool& noDemean, const bool& covariance,
+                                                     const bool& fixnan, const float& nanfixVal): AbstractAlgorithm(NULL)//HACK: get around the sentinel by passing a null, because this implementation calls another
 {
     const CiftiXML& roiXML = ciftiRoi->getCiftiXML();//roi is not optional in this variant
     if (roiXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("cifti roi does not have brain models mapping along column");
@@ -514,7 +528,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
         AlgorithmCiftiSeparate(NULL, ciftiRoi, CiftiXML::ALONG_COLUMN, &volRoi, offsetOut, NULL, false);//don't crop, because it needs to match the original volume space in the input
         volRoiPtr = &volRoi;
     }
-    AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoiPtr, rightRoiPtr, cerebRoiPtr, volRoiPtr, weights, fisherZ, memLimitGB, noDemean, covariance);//HACK: pass through our progress object
+    AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoiPtr, rightRoiPtr, cerebRoiPtr, volRoiPtr, weights, fisherZ, memLimitGB, noDemean, covariance, fixnan, nanfixVal);//HACK: pass through our progress object
 }
 
 float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2, const bool& fisherZ)
@@ -561,14 +575,21 @@ float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1,
             if (r < -1.0) r = -1.0;
         }
     }
+    if (m_fixnan && MathFunctions::isNaN(r))
+    {
+        r = m_nanfixVal;
+    }
     return r;
 }
 
-void AlgorithmCiftiCorrelation::init(const CiftiFile* input, const vector<float>* weights, const bool& noDemean, const bool& covariance)
+void AlgorithmCiftiCorrelation::init(const CiftiFile* input, const vector<float>* weights, const bool& noDemean, const bool& covariance,
+                                     const bool& fixnan, const float& nanfixVal)
 {
     m_noDemean = noDemean;
     m_covariance = covariance;
     m_inputCifti = input;
+    m_fixnan = fixnan;
+    m_nanfixVal = nanfixVal;
     m_rowInfo.resize(m_inputCifti->getNumberOfRows());
     m_cacheUsed = 0;
     m_numCols = m_inputCifti->getNumberOfColumns();
