@@ -27,6 +27,7 @@
 #include "CiftiFile.h"
 #include "dot_wrapper.h"
 #include "FileInformation.h"
+#include "MathFunctions.h"
 
 #include <cmath>
 #include <fstream>
@@ -60,6 +61,9 @@ OperationParameters* AlgorithmCiftiCrossCorrelation::getParameters()
     
     ret->createOptionalParameter(7, "-covariance", "compute covariance instead of correlation");
     
+    OptionalParameter* fixnanOpt = ret->createOptionalParameter(8, "-fixnan", "replace NaN results with a value");
+    fixnanOpt->addDoubleParameter(1, "value", "value to replace NaN with");
+
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(6, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
@@ -105,6 +109,14 @@ void AlgorithmCiftiCrossCorrelation::useParameters(OperationParameters* myParams
     }
     bool fisherZ = myParams->getOptionalParameter(5)->m_present;
     bool covariance = myParams->getOptionalParameter(7)->m_present;
+    OptionalParameter* fixnanOpt = myParams->getOptionalParameter(8);
+    bool fixnan = false;
+    float nanfixVal = -1.0f;
+    if (fixnanOpt->m_present)
+    {
+        fixnan = true;
+        nanfixVal = float(fixnanOpt->getDouble(1));
+    }
     float memLimitGB = -1.0f;
     OptionalParameter* memLimitOpt = myParams->getOptionalParameter(6);
     if (memLimitOpt->m_present)
@@ -115,18 +127,20 @@ void AlgorithmCiftiCrossCorrelation::useParameters(OperationParameters* myParams
             throw AlgorithmException("memory limit cannot be negative");
         }
     }
-    AlgorithmCiftiCrossCorrelation(myProgObj, myCiftiA, myCiftiB, myCiftiOut, weights, fisherZ, covariance, memLimitGB);
+    AlgorithmCiftiCrossCorrelation(myProgObj, myCiftiA, myCiftiB, myCiftiOut, weights, fisherZ, covariance, memLimitGB, fixnan, nanfixVal);
 }
 
-AlgorithmCiftiCrossCorrelation::AlgorithmCiftiCrossCorrelation(ProgressObject* myProgObj, const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, CiftiFile* myCiftiOut,
-                                                               const vector<float>* weights, const bool& fisherZ, const bool& covariance, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiCrossCorrelation::AlgorithmCiftiCrossCorrelation(ProgressObject* myProgObj, const CiftiFile* myCiftiA, const CiftiFile* myCiftiB,
+                                                               CiftiFile* myCiftiOut, const vector<float>* weights, const bool& fisherZ,
+                                                               const bool& covariance, const float& memLimitGB,
+                                                               const bool& fixnan, const float& nanfixVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (covariance)
     {
         if (fisherZ) throw AlgorithmException("cannot apply fisher z transformation to covariance");
     }
-    init(myCiftiA, myCiftiB, myCiftiOut, weights, covariance);
+    init(myCiftiA, myCiftiB, myCiftiOut, weights, covariance, fixnan, nanfixVal);
     CiftiXML outXML = myCiftiA->getCiftiXML();
     outXML.setMap(CiftiXML::ALONG_ROW, *(myCiftiB->getCiftiXML().getMap(CiftiXML::ALONG_COLUMN)));
     myCiftiOut->setCiftiXML(outXML);
@@ -168,9 +182,13 @@ AlgorithmCiftiCrossCorrelation::AlgorithmCiftiCrossCorrelation(ProgressObject* m
     }
 }
 
-void AlgorithmCiftiCrossCorrelation::init(const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, const CiftiFile* myCiftiOut, const vector<float>* weights, const bool covarianceMode)
+void AlgorithmCiftiCrossCorrelation::init(const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, const CiftiFile* myCiftiOut, const vector<float>* weights,
+                                          const bool covarianceMode,
+                                          const bool& fixnan, const float& nanfixVal)
 {
     m_covariance = covarianceMode;
+    m_fixnan = fixnan;
+    m_nanfixVal = nanfixVal;
     m_numCols = myCiftiA->getNumberOfColumns();
     if (myCiftiB->getNumberOfColumns() != m_numCols) throw AlgorithmException("input cifti files have different row lengths");
     m_numRowsA = myCiftiA->getNumberOfRows();
@@ -284,15 +302,17 @@ float AlgorithmCiftiCrossCorrelation::correlate(const float* row1, const float& 
         {
             if (r > 0.999999) r = 0.999999;//prevent inf
             if (r < -0.999999) r = -0.999999;//prevent -inf
-            return 0.5 * log((1 + r) / (1 - r));
+            r = 0.5 * log((1 + r) / (1 - r));
         } else {
             if (r > 1.0) r = 1.0;//don't output anything silly
             if (r < -1.0) r = -1.0;
-            return r;
         }
-    } else {
-        return r;
     }
+    if (m_fixnan && MathFunctions::isNaN(r))
+    {
+        r = m_nanfixVal;
+    }
+    return r;
 }
 
 const float* AlgorithmCiftiCrossCorrelation::getCachedRowA(const int64_t& ciftiIndex, float& rootResidSqr)

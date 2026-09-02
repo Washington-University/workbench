@@ -178,23 +178,23 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
     bool noDemean = myParams->getOptionalParameter(7)->m_present;
     bool covariance = myParams->getOptionalParameter(8)->m_present;
     OptionalParameter* fixnanOpt = myParams->getOptionalParameter(9);
-    bool fixNan = false;
+    bool fixnan = false;
     float nanfixVal = -1.0f;
     if (fixnanOpt->m_present)
     {
-        fixNan = true;
+        fixnan = true;
         nanfixVal = float(fixnanOpt->getDouble(1));
     }
     if (roiOverrideMode)
     {
         if (ciftiRoiMode)
         {
-            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, ciftiRoi, weights, fisherZ, memLimitGB, noDemean, covariance, fixNan, nanfixVal);
+            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, ciftiRoi, weights, fisherZ, memLimitGB, noDemean, covariance, fixnan, nanfixVal);
         } else {
-            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, weights, fisherZ, memLimitGB, noDemean, covariance, fixNan, nanfixVal);
+            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, weights, fisherZ, memLimitGB, noDemean, covariance, fixnan, nanfixVal);
         }
     } else {
-        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, weights, fisherZ, memLimitGB, noDemean, covariance, fixNan, nanfixVal);
+        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, weights, fisherZ, memLimitGB, noDemean, covariance, fixnan, nanfixVal);
     }
 }
 

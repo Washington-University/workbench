@@ -54,10 +54,12 @@ namespace caret {
         std::vector<CaretArray<float> > m_tempRowsB;//reuse return values in getRowB instead of reallocating
         std::vector<float> m_weights, m_sqrtWeights;
         std::vector<int> m_weightIndexes;
-        bool m_binaryWeights, m_weightedMode, m_covariance;
+        bool m_binaryWeights, m_weightedMode, m_covariance, m_fixnan;
+        float m_nanfixVal;
         double m_weightSum;
         AlgorithmCiftiCrossCorrelation();
-        void init(const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, const CiftiFile* myCiftiOut, const std::vector<float>* weights, const bool covarianceMode);
+        void init(const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, const CiftiFile* myCiftiOut, const std::vector<float>* weights,
+                  const bool covarianceMode, const bool& fixnan, const float& nanfixVal);
         int64_t numRowsForMem(const float& memLimitGB);//call after init()
         float* getTempRowB();//only used for getRowB, A rows are pulled from cache
         const float* getCachedRowA(const int64_t& ciftiIndex, float& rootResidSqr);//retrieve already cached rows
@@ -70,7 +72,8 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmCiftiCrossCorrelation(ProgressObject* myProgObj, const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, CiftiFile* myCiftiOut,
-                                       const std::vector<float>* weights, const bool& fisherZ, const bool& covariance, const float& memLimitGB);
+                                       const std::vector<float>* weights = NULL, const bool& fisherZ = false, const bool& covariance = false,
+                                       const float& memLimitGB = -1.0f, const bool& fixnan = false, const float& nanfixVal = -1.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
