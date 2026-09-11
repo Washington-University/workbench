@@ -62,7 +62,7 @@ OperationParameters* AlgorithmCiftiVectorOperation::getParameters()
     
     AString myText =
         AString("Does a vector operation on two cifti files (that must have a multiple of 3 columns).  ") +
-        "Either of the inputs may have multiple vectors (more than 3 columns), but not both (at least one must have exactly 3 columns).  " +
+        "Either of the inputs may have multiple vectors (more than 3 columns), but not both (at least one must have exactly 3 columns), unless -match-maps is used (which requires the inputs to have the same number of columns).  " +
         "The -magnitude and -normalize-output options may not be specified together, or with an operation that returns a scalar (dot product).  " +
         "The <operation> parameter must be one of the following:\n";
     vector<VectorOperation::Operation> opList = VectorOperation::getAllOperations();
@@ -146,7 +146,7 @@ AlgorithmCiftiVectorOperation::AlgorithmCiftiVectorOperation(ProgressObject* myP
     for (int64_t row = 0; row < numRows; ++row)
     {
         ciftiA->getRow(rowA.data(), row);
-        ciftiA->getRow(rowB.data(), row);
+        ciftiB->getRow(rowB.data(), row);
         for (int64_t v = 0; v < numInVecs; ++v)
         {
             Vector3D vecA, vecB;
