@@ -283,7 +283,7 @@ LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
     if ( ! text.isEmpty()) {
         if (m_logMismatchedLabelsFlag) {
             text.insert(0, (m_fileAndMapName + "\n"));
-            CaretLogInfo(text);
+            CaretLogFine(text);
         }
     }
 

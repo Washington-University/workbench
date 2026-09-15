@@ -78,6 +78,12 @@ namespace
         volOut.setMapName(0, "x displacement");
         volOut.setMapName(1, "y displacement");
         volOut.setMapName(2, "z displacement");
+        //gradunwarp up to at least v1.2.3 writes xyzt_units = 0, fix it
+        NiftiHeader* thisHeader = dynamic_cast<NiftiHeader*>(volOut.m_header.getPointer());
+        if (thisHeader != NULL)
+        {
+            thisHeader->setTimeStep(1.0);
+        }
     }
 }
 
