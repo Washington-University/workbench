@@ -43,7 +43,7 @@ namespace caret {
     class CaretPreferences;
     class ChartTwoCartesianAxis;
     class ChartTwoOverlaySet;
-    class CiftiConnectivityMatrixDataFileManager;
+    class DynamicConnectivityFileLoadingManager;
     class CiftiFiberTrajectoryManager;
     class DataToolTipsManager;
     class DrawingViewportContentManager;
@@ -74,9 +74,9 @@ namespace caret {
         
         CaretPreferences* getCaretPreferences();
         
-        CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager();
+        DynamicConnectivityFileLoadingManager* getDynamicConnectivityFileLoadingManager();
         
-        const CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager() const;
+        const DynamicConnectivityFileLoadingManager* getDynamicConnectivityFileLoadingManager() const;
         
         CiftiFiberTrajectoryManager* getCiftiFiberTrajectoryManager();
         
@@ -183,7 +183,7 @@ namespace caret {
         CaretPreferences* m_caretPreferences;
         
         /** Loads connectivity matrix data */
-        CiftiConnectivityMatrixDataFileManager* m_ciftiConnectivityMatrixDataFileManager;
+        DynamicConnectivityFileLoadingManager* m_dynamicConnectivityFileLoadingManager;
         
         /** Loads fiber trajectory data */
         CiftiFiberTrajectoryManager* m_ciftiFiberTrajectoryManager;

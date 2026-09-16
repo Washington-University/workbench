@@ -1848,54 +1848,6 @@ Brain::getVolumeFile(const int32_t volumeFileIndex)
 }
 
 /**
- * Get the volume dynamic connecivity files
- *
- * @param volumeDynamicConnectivityFilesOut
- *     Output with volume dynamic connectivity files
- */
-void
-Brain::getVolumeDynamicConnectivityFiles(std::vector<VolumeDynamicConnectivityFile*>& volumeDynamicConnectivityFilesOut) const
-{
-    volumeDynamicConnectivityFilesOut.clear();
-    
-    for (auto vf : m_volumeFiles) {
-        CaretAssert(vf);
-        VolumeDynamicConnectivityFile* volDynConn = vf->getVolumeDynamicConnectivityFile();
-        if (volDynConn != NULL) {
-            if (volDynConn->isDataValid()) {
-                volumeDynamicConnectivityFilesOut.push_back(volDynConn);
-            }
-        }
-    }
-}
-
-/**
- * Get the metric dynamic connecivity files
- *
- * @param metricDynamicConnectivityFilesOut
- *     Output with metric dynamic connectivity files
- */
-void
-Brain::getMetricDynamicConnectivityFiles(std::vector<MetricDynamicConnectivityFile*>& metricDynamicConnectivityFilesOut) const
-{
-    metricDynamicConnectivityFilesOut.clear();
-    
-    for (auto bs : m_brainStructures) {
-        std::vector<MetricFile*> metricFiles;
-        bs->getMetricFiles(metricFiles);
-        
-        for (auto mf : metricFiles) {
-            MetricDynamicConnectivityFile* metricDynConn = mf->getMetricDynamicConnectivityFile();
-            if (metricDynConn != NULL) {
-                if (metricDynConn->isDataValid()) {
-                    metricDynamicConnectivityFilesOut.push_back(metricDynConn);
-                }
-            }
-        }
-    }
-}
-
-/**
  * Initialize a volume file.  If it is functional data and contains more than one timepoint
  * setup its volume dynamic connectivity file.
  */
@@ -5286,24 +5238,47 @@ Brain::getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityM
 }
 
 /**
- * @return All CIFTI dynamic loading data files
+ * @return All connectivity files
  */
-std::vector<CiftiFileDynamicLoadingInterface*>
-Brain::getAllCiftiDynamicLoadingFiles() const
+std::vector<ConnectivityFileInterface*>
+Brain::getAllConnectivityFiles() const
 {
-    std::vector<CiftiFileDynamicLoadingInterface*> dynFilesOut;
+    std::vector<ConnectivityFileInterface*> connFilesOut;
     
     std::vector<CaretDataFile*> allFiles;
     getAllDataFiles(allFiles);
     for (auto& file : allFiles) {
-        CiftiFileDynamicLoadingInterface* dynFile(dynamic_cast<CiftiFileDynamicLoadingInterface*>(file));
-        if (dynFile != NULL) {
-            dynFilesOut.push_back(dynFile);
+        ConnectivityFileInterface* connFile(dynamic_cast<ConnectivityFileInterface*>(file));
+        if (connFile != NULL) {
+            connFilesOut.push_back(connFile);
         }
     }
     
+    return connFilesOut;
+}
+
+/**
+ * @return All dynamic connectivity files
+ */
+std::vector<DynamicConnectivityFileInterface*>
+Brain::getAllDynamicConnectivityFiles() const
+{
+    std::vector<DynamicConnectivityFileInterface*> dynFilesOut;
+    
+    /*
+     * DynamicConnectivityFileInterface extends ConnectivityFileInterface
+     */
+    std::vector<ConnectivityFileInterface*> connFiles(getAllConnectivityFiles());
+    for (ConnectivityFileInterface* cf : connFiles) {
+        DynamicConnectivityFileInterface* dcf(dynamic_cast<DynamicConnectivityFileInterface*>(cf));
+        if (dcf != NULL) {
+            dynFilesOut.push_back(dcf);
+        }
+    }
+
     return dynFilesOut;
 }
+
 
 /**
  * @return Number of dense sparse files
@@ -9323,6 +9298,116 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
 }
 
 /**
+ * Get all loaded data files but exclude any dynamic connectivity files that are a child of a data file.
+ * As of 15 Sep 2026, they are Dense Dynamic, Metric Dynamic, Parcel Dynamic, Volume Dynamic
+ * @param allDataFilesOut
+ *    Data files are loaded into this parameter.
+ * @param includeSpecFile
+ *    If true, the spec file is included as the first file.
+ */
+void
+Brain::getAllDataFilesExcludingChildDynamicConnectivityFiles(std::vector<CaretDataFile*>& allDataFilesOut,
+                                                             const bool includeSpecFile) const
+{
+    allDataFilesOut.clear();
+    
+    std::vector<CaretDataFile*> allFiles;
+    getAllDataFiles(allFiles,
+                    includeSpecFile);
+    
+    for (CaretDataFile* cdf : allFiles) {
+        bool includeFileFlag(true);
+        switch (cdf->getDataFileType()) {
+            case DataFileTypeEnum::ANNOTATION:
+                break;
+            case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+                break;
+            case DataFileTypeEnum::BORDER:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                includeFileFlag = false;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                includeFileFlag = false;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                break;
+            case DataFileTypeEnum::CZI_IMAGE_FILE:
+                break;
+            case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::HISTOLOGY_SLICES:
+                break;
+            case DataFileTypeEnum::IMAGE:
+                break;
+            case DataFileTypeEnum::LABEL:
+                break;
+            case DataFileTypeEnum::META_VOLUME:
+                break;
+            case DataFileTypeEnum::METRIC:
+                break;
+            case DataFileTypeEnum::METRIC_DYNAMIC:
+                includeFileFlag = false;
+                break;
+            case DataFileTypeEnum::FEATURE:
+                break;
+            case DataFileTypeEnum::OME_ZARR_IMAGE:
+                break;
+            case DataFileTypeEnum::PALETTE:
+                break;
+            case DataFileTypeEnum::RGBA:
+                break;
+            case DataFileTypeEnum::SAMPLES:
+                break;
+            case DataFileTypeEnum::SCENE:
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                break;
+            case DataFileTypeEnum::SURFACE:
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                break;
+            case DataFileTypeEnum::VOLUME:
+                break;
+            case DataFileTypeEnum::VOLUME_DYNAMIC:
+                includeFileFlag = false;
+                break;
+        }
+        if (includeFileFlag) {
+            allDataFilesOut.push_back(cdf);
+        }
+    }
+}
+
+/**
  * Determine if a file is still valid (pointer is for an existing data
  * of the same DataFileType.
  */
@@ -10176,9 +10261,10 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
     
     /*
      * Get all data files
+     * Exclude dynamic connectivity files that are restored by their parent file
      */
     std::vector<CaretDataFile*> allCaretDataFiles;
-    getAllDataFiles(allCaretDataFiles);
+    getAllDataFilesExcludingChildDynamicConnectivityFiles(allCaretDataFiles);
     
     /*
      * Save data files into an array.
@@ -10410,7 +10496,7 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
      * Get all data files
      */
     std::vector<CaretDataFile*> allCaretDataFiles;
-    getAllDataFiles(allCaretDataFiles);
+    getAllDataFilesExcludingChildDynamicConnectivityFiles(allCaretDataFiles);
     
     /*
      * Restore data files.  Try to restore "V2" and if not found, restore older version

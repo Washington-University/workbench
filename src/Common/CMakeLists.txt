@@ -146,6 +146,7 @@ FileInformation.h
 FileOpenFromOpSysTypeEnum.h
 FloatMatrix.h
 FunctionResult.h
+GeneralYokingGroupEnum.h
 GuiDarkLightColorSchemeModeEnum.h
 HemisphereEnum.h
 Histogram.h
@@ -323,6 +324,7 @@ FileAdapter.cxx
 FileInformation.cxx
 FileOpenFromOpSysTypeEnum.cxx
 FloatMatrix.cxx
+GeneralYokingGroupEnum.cxx
 GuiDarkLightColorSchemeModeEnum.cxx
 HemisphereEnum.cxx
 Histogram.cxx

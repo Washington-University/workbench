@@ -212,6 +212,22 @@ CiftiConnectivityMatrixParcelDynamicFile::getDataForColumn(float* /*dataOut*/,
  *     Index of the row.
  */
 void
+CiftiConnectivityMatrixParcelDynamicFile::getDataForRow(std::vector<float>& dataOut,
+                                                       const int64_t& index) const
+{
+    dataOut.resize(m_numberOfTimePoints);
+    m_parentParcelSeriesCiftiFile->getRow(dataOut.data(),
+                                          index);
+}
+/**
+ * Load data for the given row.
+ *
+ * @param dataOut
+ *     Output with data.
+ * @param index
+ *     Index of the row.
+ */
+void
 CiftiConnectivityMatrixParcelDynamicFile::getDataForRow(float* dataOut,
                                                        const int64_t& index) const
 {
@@ -268,6 +284,38 @@ CiftiConnectivityMatrixParcelDynamicFile::getProcessedDataForRow(std::vector<flo
         CaretAssert(static_cast<int32_t>(dataVector.size()) == m_numberOfParcels);
     }
     dataOut = dataVector;
+}
+
+/**
+ * Correlate data in this file with the given data set
+ * @param dataSet
+ *    The correlation two data set
+ * @param dataLoadedOut
+ *    Output with data loaded
+ * @return True if successful, else false.
+ */
+bool
+CiftiConnectivityMatrixParcelDynamicFile::correlateWithDataSetProtected(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                                        std::vector<float>& dataLoadedOut) const
+{
+    bool validFlag(false);
+    
+    dataLoadedOut.resize(m_numberOfTimePoints);
+    const ConnectivityCorrelationTwo* connCoorTwo(getConnectivityCorrelationTwo());
+    if (connCoorTwo != NULL) {
+        connCoorTwo->computeForDataSet(dataSet,
+                                       dataLoadedOut);
+        validFlag = true;
+    }
+    
+    if ( ! validFlag) {
+        dataLoadedOut.resize(m_numberOfTimePoints);
+        std::fill(dataLoadedOut.begin(),
+                  dataLoadedOut.end(),
+                  0.0f);
+    }
+    
+    return validFlag;
 }
 
 /**

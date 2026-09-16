@@ -51,7 +51,7 @@ using namespace caret;
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
-#include "CiftiConnectivityMatrixDataFileManager.h"
+#include "DynamicConnectivityFileLoadingManager.h"
 #include "CiftiDenseSparseFile.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiBrainordinateLabelFile.h"

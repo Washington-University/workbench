@@ -26,6 +26,8 @@
 #include "CaretAssert.h"
 #include "CiftiFile.h"
 #include "CaretLogger.h"
+#include "CiftiConnectivityMatrixDenseDynamicFile.h"
+#include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "ChartableMatrixParcelInterface.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileException.h"
@@ -52,6 +54,8 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
 : CiftiMappableDataFile(dataFileType)
 {
     m_connectivityDataLoaded = new ConnectivityDataLoaded();
+    m_connectivityCorrelationSettings.reset(new ConnectivityCorrelationSettings());
+    
     
     /*
      * This method initializes some members
@@ -62,8 +66,14 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded);
+    m_sceneAssistant->add("m_connectivityCorrelationSettings",
+                          "ConnectivityCorrelationSettings",
+                          m_connectivityCorrelationSettings.get());
+    
     m_sceneAssistant->add("+",
                            &m_dataLoadingEnabled);
+    m_sceneAssistant->add<GeneralYokingGroupEnum, GeneralYokingGroupEnum::Enum>("m_dynamicYokingGroup",
+                                                                                &m_dynamicYokingGroup);
 }
 
 /**
@@ -106,6 +116,7 @@ CiftiMappableConnectivityMatrixDataFile::clearPrivate()
     if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC) {
         m_chartLoadingDimension = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
     }
+    m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
 }
 
 /**
@@ -164,7 +175,7 @@ CiftiMappableConnectivityMatrixDataFile::isEmpty() const
  * so that it can still be displayed but not updated.
  */
 bool
-CiftiMappableConnectivityMatrixDataFile::isMapDataLoadingEnabled(const int32_t /*mapIndex*/) const
+CiftiMappableConnectivityMatrixDataFile::isMapDataLoadingEnabled() const
 {
     return m_dataLoadingEnabled;
 }
@@ -178,11 +189,31 @@ CiftiMappableConnectivityMatrixDataFile::isMapDataLoadingEnabled(const int32_t /
  *   New data loading enabled status.
  */
 void
-CiftiMappableConnectivityMatrixDataFile::setMapDataLoadingEnabled(const int32_t /*mapIndex*/,
-                                                          const bool dataLoadingEnabled)
+CiftiMappableConnectivityMatrixDataFile::setMapDataLoadingEnabled(const bool dataLoadingEnabled)
 {
     m_dataLoadingEnabled = dataLoadingEnabled;
 }
+
+/**
+ * @return The selected yoking grouo
+ */
+GeneralYokingGroupEnum::Enum
+CiftiMappableConnectivityMatrixDataFile::getDynamicConnectivityYokingGroup() const
+{
+    return m_dynamicYokingGroup;
+}
+
+/**
+ * Set the yoking group
+ * @param yokingGroup
+ *    New yoking group
+ */
+void
+CiftiMappableConnectivityMatrixDataFile::setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup)
+{
+    m_dynamicYokingGroup = yokingGroup;
+}
+
 
 /**
  * Get the data for the given map index.
@@ -603,6 +634,24 @@ CiftiMappableConnectivityMatrixDataFile::getDataForRow(float* dataOut, const int
 }
 
 /**
+ * Correlate data in this file with the given data set
+ * @param dataSet
+ *    The correlation two data set
+ * @param dataLoadedOut
+ *    Output with data loaded
+ * @return True if successful, else false.
+ */
+bool
+CiftiMappableConnectivityMatrixDataFile::correlateWithDataSetProtected(const ConnectivityCorrelationTwo::DataSet& /*dataSet*/,
+                                                                       std::vector<float>& /*dataLoadedOut*/) const
+{
+    /*
+     * Overridden by subclasses
+     */
+    return false;
+}
+
+/**
  * Load PROCESSED data for the given column.
  *
  * Some file types may have special processing for a column.  This method can be
@@ -649,6 +698,23 @@ CiftiMappableConnectivityMatrixDataFile::processRowAverageData(std::vector<float
     /* This method may be overridden by subclasses */
 }
 
+/**
+ * @return The connectivity correlation settings
+ */
+ConnectivityCorrelationSettings*
+CiftiMappableConnectivityMatrixDataFile::getCorrelationSettings()
+{
+    return m_connectivityCorrelationSettings.get();
+}
+
+/**
+ * @return The connectivity correlation settings
+ */
+const ConnectivityCorrelationSettings*
+CiftiMappableConnectivityMatrixDataFile::getCorrelationSettings() const
+{
+    return m_connectivityCorrelationSettings.get();
+}
 
 /**
  * Load the given row from the file even if the file is disabled.
@@ -684,7 +750,9 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIn
             
             CaretLogFine("Read row " + AString::number(rowIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI));
             m_connectivityDataLoaded->setRowColumnLoading(rowIndex,
-                                                          -1);
+                                                          -1,
+                                                          m_loadedRowData.data(),
+                                                          m_loadedRowData.size());
         }
     }
     
@@ -725,7 +793,9 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t co
             
             CaretLogFine("Read column " + AString::number(columnIndex + CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI));
             m_connectivityDataLoaded->setRowColumnLoading(-1,
-                                                          columnIndex);
+                                                          columnIndex,
+                                                          m_loadedRowData.data(),
+                                                          m_loadedRowData.size());
         }
     }
     
@@ -733,10 +803,57 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t co
 }
 
 /**
+ * Correlate data in this file with the given data set
+ * @param dataSet
+ *    The correlation two data set
+ * @param dataSetName
+ *    Name of the data set
+ * @return True if successful, else false.
+ */
+bool
+CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                              const AString& dataSetName)
+{
+    if (m_ciftiFile == NULL) {
+        setLoadedRowDataToAllZeros();
+        return false;
+    }
+    
+    /*
+     * If not enabled as a layer, clear any previous
+     * loaded data and do not load any new data
+     */
+    if ( ! isEnabledAsLayer()) {
+        setLoadedRowDataToAllZeros();
+        return false;
+    }
+    
+    /*
+     * Loading of data disabled?
+     */
+    if (m_dataLoadingEnabled == false) {
+        return false;
+    }
+
+    if (correlateWithDataSetProtected(dataSet,
+                                      m_loadedRowData)) {
+        m_rowLoadedTextForMapName = dataSetName;
+        m_rowLoadedText           = dataSetName;
+        
+        m_connectivityDataLoaded->setCorrelationLoading(m_loadedRowData.data(),
+                                                        m_loadedRowData.size(),
+                                                        dataSetName);
+        return true;
+    }
+    
+    updateForChangeInMapDataWithMapIndex(0);
+    
+    return false;
+}
+
+/**
  * Load connectivity data for the surface's node.
  *
- * @param mapIndex
- *    Index of map.
  * @param surfaceNumberOfNodes
  *    Number of nodes in surface.
  * @param structure
@@ -744,28 +861,32 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t co
  * @param nodeIndex
  *    Index of node number.
  * @param rowIndexOut
- *    Index of row corresponding to node or -1 if no row in the
- *    matrix corresponds to the node.
+ *    Row data that was loaded, not always set
  * @param columnIndexOut
- *    Index of column corresponding to node or -1 if no column in the
- *    matrix corresponds to the node.
- * @throw
- *    DataFileException if there is an error.
+ *    Column data that was loaded, not always set
+ * @param brainordinateRawDataSeriesOut
+ *    Output with series data for brainordinate typically from the parent connectivity file
+ *    Only set by dynamic connectivity files and will sometimes be empty.  It is used
+ *    for computing connectivity on multiple dynamic connectivity files.
+ * @return
+ *    True if data was loaded, else false.
  */
-void
-CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
-                                                                   const int32_t surfaceNumberOfNodes,
+bool
+CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
                                                                    const StructureEnum::Enum structure,
                                                                    const int32_t nodeIndex,
                                                                    int64_t& rowIndexOut,
-                                                                   int64_t& columnIndexOut)
+                                                                   int64_t& columnIndexOut,
+                                                                   std::vector<float>& brainordinateRawDataSeriesOut)
 {
+    brainordinateRawDataSeriesOut.clear();
+    
     rowIndexOut    = -1;
     columnIndexOut = -1;
     
     if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
-        return;
+        return false;
     }
   
     /*
@@ -774,14 +895,14 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
      */
     if ( ! isEnabledAsLayer()) {
         setLoadedRowDataToAllZeros();
-        return;
+        return false;
     }
     
     /*
      * Loading of data disabled?
      */
     if (m_dataLoadingEnabled == false) {
-        return;
+        return false;
     }
     
     ElapsedTimer timer;
@@ -796,8 +917,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     int64_t rowIndex = -1;
     int64_t columnIndex = -1;
     
+    bool dataWasLoaded = false;
     try {
-        bool dataWasLoaded = false;
         
         getRowColumnIndexForNodeWhenLoading(structure,
                                             surfaceNumberOfNodes,
@@ -814,6 +935,19 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                  * Number of columns is number of time points
                  */
                 dataCount = m_ciftiFile->getNumberOfRows();
+                
+                if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+                    CiftiConnectivityMatrixDenseDynamicFile* mdf(dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(this));
+                    CaretAssert(mdf);
+                    mdf->getDataForRow(brainordinateRawDataSeriesOut,
+                                       rowIndex);
+                }
+                else if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC) {
+                    CiftiConnectivityMatrixParcelDynamicFile* pdf(dynamic_cast<CiftiConnectivityMatrixParcelDynamicFile*>(this));
+                    CaretAssert(pdf);
+                    pdf->getDataForRow(brainordinateRawDataSeriesOut,
+                                       rowIndex);
+                }
             }
             
             if (dataCount > 0) {
@@ -841,7 +975,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                                                                 surfaceNumberOfNodes,
                                                                 nodeIndex,
                                                                 rowIndex,
-                                                                -1);
+                                                                -1,
+                                                                m_loadedRowData.data(),
+                                                                m_loadedRowData.size());
                 
                 rowIndexOut = rowIndex;
                 dataWasLoaded = true;
@@ -874,7 +1010,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                                                                 surfaceNumberOfNodes,
                                                                 nodeIndex,
                                                                 -1,
-                                                                columnIndex);
+                                                                columnIndex,
+                                                                m_loadedRowData.data(),
+                                                                m_loadedRowData.size());
                 columnIndexOut = columnIndex;
                 dataWasLoaded = true;
             }
@@ -898,6 +1036,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                    + AString::number(timer.getElapsedTimeSeconds())
                    + " seconds.");
     CaretLogFine(msg);
+    
+    return dataWasLoaded;
 }
 
 
@@ -905,28 +1045,28 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
 /**
  * Load connectivity data for the surface's nodes and then average the data.
  *
- * @param mapIndex
- *    Index of map.
- * @param surfaceFile
- *    Surface file used for structure.
  * @param surfaceNumberOfNodes
  *    Number of nodes in surface.
  * @param structure
  *    Surface's structure.
  * @param nodeIndices
  *    Indices of nodes.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
  * @throw
  *    DataFileException if there is an error.
  */
-void
-CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex*/,
-                                                                           const int32_t surfaceNumberOfNodes,
+bool
+CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
                                                                            const StructureEnum::Enum structure,
-                                                                           const std::vector<int32_t>& nodeIndices)
+                                                                           const std::vector<int32_t>& nodeIndices,
+                                                                           std::vector<float>& correlationDataOut)
 {
+    correlationDataOut.clear();
+    
     if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
-        return;
+        return false;
     }
     
     /*
@@ -935,14 +1075,14 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
      */
     if ( ! isEnabledAsLayer()) {
         setLoadedRowDataToAllZeros();
-        return;
+        return false;
     }
 
     /*
      * Loading of data disabled?
      */
     if (m_dataLoadingEnabled == false) {
-        return;
+        return false;
     }
     
     /*
@@ -954,7 +1094,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
     
     const int32_t numberOfNodeIndices = static_cast<int32_t>(nodeIndices.size());
     if (numberOfNodeIndices <= 0) {
-        return;
+        return false;
     }
     
     std::vector<int64_t> rowIndices, columnIndices;
@@ -1008,9 +1148,13 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
 
     if (dataWasLoadedFlag) {
         m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
-                                                                surfaceNumberOfNodes,
-                                                                nodeIndices);
+                                                               surfaceNumberOfNodes,
+                                                               nodeIndices,
+                                                               m_loadedRowData.data(),
+                                                               m_loadedRowData.size());
     }
+    
+    return dataWasLoadedFlag;
 }
 
 /**
@@ -1026,22 +1170,26 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
  * @param columnIndexOut
  *    Index of column corresponding to voxel or -1 if no column in the
  *    matrix corresponds to the voxel.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
  * @throw
  *    DataFileException if there is an error.
  */
-void
+bool
 CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                                          const float xyz[3],
                                                                          int64_t& rowIndexOut,
-                                                                         int64_t& columnIndexOut)
+                                                                         int64_t& columnIndexOut,
+                                                                         std::vector<float>& correlationDataOut)
 {
+    correlationDataOut.clear();
     rowIndexOut    = -1;
     columnIndexOut = -1;
     
     if (mapIndex != 0) {
         setLoadedRowDataToAllZeros();
         CaretAssertMessage(0, "Map index must be zero.");
-        return;
+        return false;
     }
     
     /*
@@ -1050,19 +1198,19 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
      */
     if ( ! isEnabledAsLayer()) {
         setLoadedRowDataToAllZeros();
-        return;
+        return false;
     }
 
     if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
-        return;
+        return false;
     }
     
     /*
      * Loading of data disabled?
      */
     if (m_dataLoadingEnabled == false) {
-        return;
+        return false;
     }
     
     /*
@@ -1146,7 +1294,11 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
     
     m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
                                                   rowIndex,
-                                                  columnIndex);
+                                                  columnIndex,
+                                                  m_loadedRowData.data(),
+                                                  m_loadedRowData.size());
+    
+    return dataWasLoaded;
 }
 
 /**
@@ -1213,19 +1365,18 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndicesForVoxelsWhenLoading
  *    Dimensions of the volume.
  * @param voxelIndices
  *    Indices of voxels.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
  * @throw
  *    DataFileException if there is an error.
  */
 bool
 CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
                                                                            const int64_t volumeDimensionIJK[3],
-                                                                           const std::vector<VoxelIJK>& voxelIndices)
+                                                                           const std::vector<VoxelIJK>& voxelIndices,
+                                                                           std::vector<float>& correlationDataOut)
 {
-    
-    if (mapIndex != 0) { // eliminates compilation warning when compiled for release
-        CaretAssert(mapIndex == 0);
-        setLoadedRowDataToAllZeros();
-    }
+    correlationDataOut.clear();
     
     if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
@@ -1283,7 +1434,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
                             + AString::number(numberOfVoxelIndices));
         
         m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
-                                                               voxelIndices);
+                                                               voxelIndices,
+                                                               m_loadedRowData.data(),
+                                                               m_loadedRowData.size());
     }
     
     updateForChangeInMapDataWithMapIndex(0);
@@ -1482,14 +1635,21 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
      * restore the status.
      */
     const int32_t mapIndex = 0;
-    const bool loadingEnabledStatus = isMapDataLoadingEnabled(mapIndex);
+    const bool loadingEnabledStatus = isMapDataLoadingEnabled();
     
-    setMapDataLoadingEnabled(mapIndex, true);
+    setMapDataLoadingEnabled(true);
     
     try {
         switch (m_connectivityDataLoaded->getMode()) {
             case ConnectivityDataLoaded::MODE_NONE:
                 setLoadedRowDataToAllZeros();
+                break;
+            case ConnectivityDataLoaded::MODE_CORRELATION:
+                if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                    m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+                    const int32_t mapIndex(0);
+                    updateForChangeInMapDataWithMapIndex(mapIndex);
+                }
                 break;
             case ConnectivityDataLoaded::MODE_ROW:
             {
@@ -1497,7 +1657,12 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
                 int64_t columnIndex;
                 m_connectivityDataLoaded->getRowColumnLoading(rowIndex,
                                                               columnIndex);
-                loadDataForRowIndex(rowIndex);
+                if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                    m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+                }
+                else {
+                    loadDataForRowIndex(rowIndex);
+                }
             }
                 break;
             case ConnectivityDataLoaded::MODE_COLUMN:
@@ -1506,7 +1671,12 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
                 int64_t columnIndex;
                 m_connectivityDataLoaded->getRowColumnLoading(rowIndex,
                                                               columnIndex);
-                loadDataForColumnIndex(columnIndex);
+                if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                    m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+                }
+                else {
+                    loadDataForColumnIndex(columnIndex);
+                }
             }
                 break;
             case ConnectivityDataLoaded::MODE_SURFACE_NODE:
@@ -1521,12 +1691,18 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
                                                                 surfaceNodeIndex,
                                                                 rowIndex,
                                                                 columnIndex);
-                loadMapDataForSurfaceNode(mapIndex,
-                                          surfaceNumberOfNodes,
-                                          structure,
-                                          surfaceNodeIndex,
-                                          rowIndex,
-                                          columnIndex);
+                if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                    m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+                }
+                else {
+                    std::vector<float> correlationData;
+                    loadMapDataForSurfaceNode(surfaceNumberOfNodes,
+                                              structure,
+                                              surfaceNodeIndex,
+                                              rowIndex,
+                                              columnIndex,
+                                              correlationData);
+                }
             }
                 break;
             case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
@@ -1537,10 +1713,16 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
                 m_connectivityDataLoaded->getSurfaceAverageNodeLoading(structure,
                                                                        surfaceNumberOfNodes,
                                                                        surfaceNodeIndices);
-                loadMapAverageDataForSurfaceNodes(mapIndex,
-                                                  surfaceNumberOfNodes,
-                                                  structure,
-                                                  surfaceNodeIndices);
+                if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                    m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+                }
+                else {
+                    std::vector<float> correlationData;
+                    loadMapAverageDataForSurfaceNodes(surfaceNumberOfNodes,
+                                                      structure,
+                                                      surfaceNodeIndices,
+                                                      correlationData);
+                }
             }
                 break;
             case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
@@ -1551,10 +1733,17 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
                 m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ,
                                                               rowIndex,
                                                               columnIndex);
-                loadMapDataForVoxelAtCoordinate(mapIndex,
-                                                volumeXYZ,
-                                                rowIndex,
-                                                columnIndex);
+                if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                    m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+                }
+                else {
+                    std::vector<float> correlationData;
+                    loadMapDataForVoxelAtCoordinate(mapIndex,
+                                                    volumeXYZ,
+                                                    rowIndex,
+                                                    columnIndex,
+                                                    correlationData);
+                }
             }
                 break;
             case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
@@ -1563,9 +1752,16 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
                 std::vector<VoxelIJK> voxelIndicesIJK;
                 m_connectivityDataLoaded->getVolumeAverageVoxelLoading(volumeDimensionsIJK,
                                                                        voxelIndicesIJK);
-                loadMapAverageDataForVoxelIndices(mapIndex,
-                                                  volumeDimensionsIJK,
-                                                  voxelIndicesIJK);
+                if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                    m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+                }
+                else {
+                    std::vector<float> correlationData;
+                    loadMapAverageDataForVoxelIndices(mapIndex,
+                                                      volumeDimensionsIJK,
+                                                      voxelIndicesIJK,
+                                                      correlationData);
+                }
             }
                 break;
         }
@@ -1574,8 +1770,7 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
         sceneAttributes->addToErrorMessage(dfe.whatString());
     }
     
-    setMapDataLoadingEnabled(mapIndex,
-                             loadingEnabledStatus);
+    setMapDataLoadingEnabled(loadingEnabledStatus);
 }
 
 /**

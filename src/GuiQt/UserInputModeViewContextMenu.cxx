@@ -43,7 +43,7 @@
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "CiftiBrainordinateLabelFile.h"
-#include "CiftiConnectivityMatrixDataFileManager.h"
+#include "DynamicConnectivityFileLoadingManager.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
@@ -65,7 +65,6 @@
 #include "MapFileDataSelector.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
-#include "MetricDynamicConnectivityFile.h"
 #include "Model.h"
 #include "ModelChartTwo.h"
 #include "ProgressReportingDialog.h"
@@ -81,7 +80,6 @@
 #include "Surface.h"
 #include "UserInputModeFociWidget.h"
 #include "UserInputModeViewContextTileTabsSubMenu.h"
-#include "VolumeDynamicConnectivityFile.h"
 #include "VolumeFile.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
@@ -439,16 +437,16 @@ UserInputModeViewContextMenu::createBorderRegionOfInterestMenu()
     QList<QAction*> borderActions;
     
     if (borderID->isValid()) {
+        bool hasConnectivityFile(false);
         Brain* brain = borderID->getBrain();
-        std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-        brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
-        bool hasConnectivityFile = (ciftiMatrixFiles.empty() == false);
-        
-        std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
-        brain->getMetricDynamicConnectivityFiles(metricDynConnFiles);
-        for (auto mdc : metricDynConnFiles) {
-            if (mdc->isDataLoadingEnabled()) {
-                hasConnectivityFile = true;
+        std::vector<ConnectivityFileInterface*> allConnFiles(brain->getAllConnectivityFiles());
+        for (ConnectivityFileInterface* cf : allConnFiles) {
+            CaretMappableDataFile* cmdf(dynamic_cast<CaretMappableDataFile*>(cf));
+            if (cmdf != NULL) {
+                if (cmdf->isSurfaceMappable()) {
+                    hasConnectivityFile = true;
+                    break;
+                }
             }
         }
         
@@ -669,7 +667,7 @@ UserInputModeViewContextMenu::createParcelConnectivities()
                                                                                             labelNodeNumber,
                                                                                             volumeDimensions,
                                                                                             brain->getChartingDataManager(),
-                                                                                            SessionManager::get()->getCiftiConnectivityMatrixDataFileManager(),
+                                                                                            SessionManager::get()->getDynamicConnectivityFileLoadingManager(),
                                                                                             SessionManager::get()->getCiftiFiberTrajectoryManager());
                             this->parcelConnectivities.push_back(parcelConnectivity);
                         }
@@ -739,7 +737,7 @@ UserInputModeViewContextMenu::createParcelConnectivities()
                                                                                                 labelNodeNumber,
                                                                                                 volumeDimensions,
                                                                                                 brain->getChartingDataManager(),
-                                                                                                SessionManager::get()->getCiftiConnectivityMatrixDataFileManager(),
+                                                                                                SessionManager::get()->getDynamicConnectivityFileLoadingManager(),
                                                                                                 SessionManager::get()->getCiftiFiberTrajectoryManager());
                                 this->parcelConnectivities.push_back(parcelConnectivity);
                             }
@@ -762,11 +760,9 @@ UserInputModeViewContextMenu::createLabelRegionOfInterestMenu()
     /*
      * File types of interest
      */
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     std::vector<CiftiFiberTrajectoryFile*> ciftiFiberTrajectoryFiles;
     std::vector<ChartableLineSeriesBrainordinateInterface*> chartableFiles;
-    std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
-    std::vector<VolumeDynamicConnectivityFile*> volDynConnFiles;
+    std::vector<DynamicConnectivityFileInterface*> dynConnFiles;
     /*
      * Get all files in displayed overlays
      */
@@ -781,11 +777,10 @@ UserInputModeViewContextMenu::createLabelRegionOfInterestMenu()
         CaretMappableDataFile* mapFile = mapFileAndIndex.m_mapFile;
         CaretAssert(mapFile);
         
-        CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(mapFile);
-        if (matrixFile != NULL) {
-            ciftiMatrixFiles.push_back(matrixFile);
+        DynamicConnectivityFileInterface* dfi(dynamic_cast<DynamicConnectivityFileInterface*>(mapFile));
+        if (dfi != NULL) {
+            dynConnFiles.push_back(dfi);
         }
-        
         CiftiFiberTrajectoryFile* fiberTrajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(mapFile);
         if (fiberTrajFile != NULL) {
             ciftiFiberTrajectoryFiles.push_back(fiberTrajFile);
@@ -795,20 +790,8 @@ UserInputModeViewContextMenu::createLabelRegionOfInterestMenu()
         if (lineSeriesFile != NULL) {
             chartableFiles.push_back(lineSeriesFile);
         }
-        
-        MetricDynamicConnectivityFile* metricDynConnFile = dynamic_cast<MetricDynamicConnectivityFile*>(mapFile);
-        if (metricDynConnFile != NULL) {
-            metricDynConnFiles.push_back(metricDynConnFile);
-        }
-        
-        VolumeDynamicConnectivityFile* volDynnFile = dynamic_cast<VolumeDynamicConnectivityFile*>(mapFile);
-        if (volDynnFile != NULL) {
-            volDynConnFiles.push_back(volDynnFile);
-        }
     }
-    const bool hasDynamicConnectivity = ( ( ! ciftiMatrixFiles.empty())
-                                         || ( ! metricDynConnFiles.empty())
-                                         || ( ! volDynConnFiles.empty()) );
+    const bool hasDynamicConnectivity( ! dynConnFiles.empty());
     const bool haveCiftiFiberTrajectoryFiles = ( ! ciftiFiberTrajectoryFiles.empty());
     const bool haveChartableFiles = ( ! chartableFiles.empty());
 
@@ -840,27 +823,26 @@ UserInputModeViewContextMenu::createLabelRegionOfInterestMenu()
         if (hasDynamicConnectivity) {
             bool matchFlag = false;
             if (parcelType == ParcelType::PARCEL_TYPE_SURFACE_NODES) {
-                matchFlag = true;
-            }
-            else if (parcelType == ParcelType::PARCEL_TYPE_VOLUME_VOXELS) {
-                for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
-                     iter != ciftiMatrixFiles.end();
-                     iter++) {
-                    const CiftiMappableConnectivityMatrixDataFile* ciftiFile = *iter;
-                    if (ciftiFile->matchesDimensions(parcelConnectivity->volumeDimensions[0],
-                                                     parcelConnectivity->volumeDimensions[1],
-                                                     parcelConnectivity->volumeDimensions[2])) {
-                        matchFlag = true;
-                        break;
+                for (auto dcf : dynConnFiles) {
+                    CaretMappableDataFile* cmdf(dynamic_cast<CaretMappableDataFile*>(dcf));
+                    if (cmdf != NULL) {
+                        if (cmdf->isSurfaceMappable()) {
+                            matchFlag = true;
+                            break;
+                        }
                     }
                 }
-                
-                for (auto volDynFile : volDynConnFiles) {
-                    if (volDynFile->matchesDimensions(parcelConnectivity->volumeDimensions[0],
-                                                      parcelConnectivity->volumeDimensions[1],
-                                                      parcelConnectivity->volumeDimensions[2])) {
-                        matchFlag = true;
-                        break;
+            }
+            else if (parcelType == ParcelType::PARCEL_TYPE_VOLUME_VOXELS) {
+                for (auto dcf : dynConnFiles) {
+                    VolumeMappableInterface* vmi(dynamic_cast<VolumeMappableInterface*>(dcf));
+                    if (vmi != NULL) {
+                        if (vmi->matchesDimensions(parcelConnectivity->volumeDimensions[0],
+                                                   parcelConnectivity->volumeDimensions[1],
+                                                   parcelConnectivity->volumeDimensions[2])) {
+                            matchFlag = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -1178,7 +1160,7 @@ UserInputModeViewContextMenu::connectivityActionSelected(QAction* action)
                 return;
             }
             
-            if (pc->ciftiConnectivityManager->hasNetworkFiles(pc->brain)) {
+            if (pc->dynConnFileLoadingManager->hasNetworkFiles(pc->brain)) {
                 if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size()) == false) {
                     return;
                 }
@@ -1191,7 +1173,7 @@ UserInputModeViewContextMenu::connectivityActionSelected(QAction* action)
                                        "No voxels match label " + pc->labelName);
                 return;
             }
-            if (pc->ciftiConnectivityManager->hasNetworkFiles(pc->brain)) {
+            if (pc->dynConnFileLoadingManager->hasNetworkFiles(pc->brain)) {
                 if (warnIfNetworkBrainordinateCountIsLarge(voxelIndices.size()) == false) {
                     return;
                 }
@@ -1213,32 +1195,14 @@ UserInputModeViewContextMenu::connectivityActionSelected(QAction* action)
             case ParcelType::PARCEL_TYPE_INVALID:
                 break;
             case ParcelType::PARCEL_TYPE_SURFACE_NODES:
-                pc->ciftiConnectivityManager->loadAverageDataForSurfaceNodes(pc->brain,
+                pc->dynConnFileLoadingManager->loadAverageDataForSurfaceNodes(pc->brain,
                                                                              pc->surface,
                                                                              nodeIndices);
-            {
-                std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
-                pc->brain->getMetricDynamicConnectivityFiles(metricDynConnFiles);
-                for (auto mdcf : metricDynConnFiles) {
-                    mdcf->loadAverageDataForSurfaceNodes(pc->surface->getNumberOfNodes(),
-                                                         pc->surface->getStructure(),
-                                                         nodeIndices);
-                }
-            }
                 break;
             case ParcelType::PARCEL_TYPE_VOLUME_VOXELS:
-                pc->ciftiConnectivityManager->loadAverageDataForVoxelIndices(pc->brain,
+                pc->dynConnFileLoadingManager->loadAverageDataForVoxelIndices(pc->brain,
                                                                              pc->volumeDimensions,
                                                                              voxelIndices);
-                
-            {
-                std::vector<VolumeDynamicConnectivityFile*> volDynConnFiles;
-                pc->brain->getVolumeDynamicConnectivityFiles(volDynConnFiles);
-                for (auto vdcf : volDynConnFiles) {
-                    vdcf->loadMapAverageDataForVoxelIndices(pc->volumeDimensions,
-                                                            voxelIndices);
-                }
-            }
                 break;
         }
     }
@@ -1370,21 +1334,10 @@ UserInputModeViewContextMenu::borderCiftiConnectivitySelected()
                                                    this);
             progressDialog.setValue(0);
 
-            CiftiConnectivityMatrixDataFileManager* ciftiConnMann = SessionManager::get()->getCiftiConnectivityMatrixDataFileManager();
+            DynamicConnectivityFileLoadingManager* ciftiConnMann = SessionManager::get()->getDynamicConnectivityFileLoadingManager();
             ciftiConnMann->loadAverageDataForSurfaceNodes(borderID->getBrain(),
                                                           surface,
-                                                          nodeIndices);
-            
-            {
-                Brain* brain = GuiManager::get()->getBrain();
-                std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
-                brain->getMetricDynamicConnectivityFiles(metricDynConnFiles);
-                for (auto mdcf : metricDynConnFiles) {
-                    mdcf->loadAverageDataForSurfaceNodes(surface->getNumberOfNodes(),
-                                                         surface->getStructure(),
-                                                         nodeIndices);
-                }
-            }
+                                                          nodeIndices);            
         }
         catch (const DataFileException& e) {
             cursor.restoreCursor();
@@ -1993,7 +1946,7 @@ UserInputModeViewContextMenu::ParcelConnectivity::ParcelConnectivity(Brain* brai
                                                                      const int32_t nodeNumber,
                                                                      const int64_t volumeDimensions[3],
                                                                      ChartingDataManager* chartingDataManager,
-                                                                     CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager,
+                                                                     DynamicConnectivityFileLoadingManager* dynConnFileLoadingManager,
                                                                      CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager) {
     this->brain = brain;
     this->parcelType = parcelType;
@@ -2008,7 +1961,7 @@ UserInputModeViewContextMenu::ParcelConnectivity::ParcelConnectivity(Brain* brai
     this->volumeDimensions[1] = volumeDimensions[1];
     this->volumeDimensions[2] = volumeDimensions[2];
     this->chartingDataManager = chartingDataManager;
-    this->ciftiConnectivityManager = ciftiConnectivityManager;
+    this->dynConnFileLoadingManager = dynConnFileLoadingManager;
     this->ciftiFiberTrajectoryManager = ciftiFiberTrajectoryManager;
 }
 

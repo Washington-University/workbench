@@ -25,6 +25,8 @@
 
 #include <memory>
 
+#include "DynamicConnectivityFileInterface.h"
+#include "GeneralYokingGroupEnum.h"
 #include "MetricFile.h"
 
 
@@ -35,7 +37,7 @@ namespace caret {
     class ConnectivityCorrelationSettings;
     class ConnectivityDataLoaded;
     
-    class MetricDynamicConnectivityFile : public MetricFile {
+    class MetricDynamicConnectivityFile : public MetricFile, public DynamicConnectivityFileInterface {
         
     public:
         MetricDynamicConnectivityFile(MetricFile* parentMetricFile);
@@ -64,36 +66,58 @@ namespace caret {
         
         bool isDataValid() const;
         
-        bool isEnabledAsLayer() const;
+        virtual bool isEnabledAsLayer() const override;
         
-        void setEnabledAsLayer(const bool enabled);
+        virtual void setEnabledAsLayer(const bool enabled) override;
         
-        bool loadConnectivityForVoxelXYZ(const float xyz[3]);
+        virtual GeneralYokingGroupEnum::Enum getDynamicConnectivityYokingGroup() const override;
         
-        bool loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
-                                               const std::vector<VoxelIJK>& voxelIndices);
+        virtual void setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup) override;
         
-        bool isDataLoadingEnabled() const;
+        virtual bool loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
+                                                     const float xyz[3],
+                                                     int64_t& rowIndexOut,
+                                                     int64_t& columnIndexOut,
+                                                     std::vector<float>& correlationDataOut);
         
-        void setDataLoadingEnabled(const bool enabled);
+
+        virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
+                                                       const int64_t volumeDimensionIJK[3],
+                                                       const std::vector<VoxelIJK>& voxelIndices,
+                                                       std::vector<float>& correlationDataOut) override;
+        
+        virtual bool isMapDataLoadingEnabled() const override;
+        
+        virtual void setMapDataLoadingEnabled(const bool enabled) override;
         
         const ConnectivityDataLoaded* getConnectivityDataLoaded() const;
 
-        bool loadDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
-                                    const StructureEnum::Enum structure,
-                                    const int32_t nodeIndex);
-        
-        bool loadAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
-                                            const StructureEnum::Enum structure,
-                                            const std::vector<int32_t>& nodeIndices);
+        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                          const AString& dataSetName) override;
 
+        virtual bool loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
+                                            const StructureEnum::Enum structure,
+                                            const int32_t nodeIndex,
+                                            int64_t& rowIndexOut,
+                                               int64_t& columnIndexOut,
+                                               std::vector<float>& brainordinateRawDataSeriesOut) override;
+        
+        virtual bool loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
+                                                    const StructureEnum::Enum structure,
+                                                       const std::vector<int32_t>& nodeIndices,
+                                                       std::vector<float>& correlationDataOut) override;
+
+        virtual void loadDataForColumnIndex(const int64_t columnIndex) override;
+        
+        virtual void loadDataForRowIndex(const int64_t rowIndex) override;
+        
         MetricFile* newMetricFileFromLoadedData(const AString& directoryName,
                                                 AString& errorMessageOut);
         
-        ConnectivityCorrelationSettings* getCorrelationSettings();
+        virtual ConnectivityCorrelationSettings* getCorrelationSettings() override;
         
-        const ConnectivityCorrelationSettings* getCorrelationSettings() const;
-        
+        virtual const ConnectivityCorrelationSettings* getCorrelationSettings() const override;
+
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -124,6 +148,8 @@ namespace caret {
         bool m_validDataFlag = false;
         
         bool m_enabledAsLayer = true;
+        
+        GeneralYokingGroupEnum::Enum m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
         
         bool m_dataLoadingEnabledFlag = true;
         

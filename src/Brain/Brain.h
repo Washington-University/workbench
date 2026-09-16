@@ -71,13 +71,13 @@ namespace caret {
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
     class CiftiFiberTrajectoryMapFile;
-    class CiftiFileDynamicLoadingInterface;
     class CiftiMappableDataFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiParcelLabelFile;
     class CiftiParcelSeriesFile;
     class CiftiParcelScalarFile;
     class CiftiScalarDataSeriesFile;
+    class ConnectivityFileInterface;
     class CziImageFile;
     class DisplayProperties;
     class DisplayPropertiesAnnotation;
@@ -92,6 +92,7 @@ namespace caret {
     class DisplayPropertiesSurface;
     class DisplayPropertiesSamples;
     class DisplayPropertiesVolume;
+    class DynamicConnectivityFileInterface;
     class EventDataFileRead;
     class EventDataFileReload;
     class EventDataFileReloadAll;
@@ -270,10 +271,6 @@ namespace caret {
         
         const MetaVolumeFile* getMetaVolumeFile(const int32_t volumeFileIndex) const;
         
-        void getVolumeDynamicConnectivityFiles(std::vector<VolumeDynamicConnectivityFile*>& volumeDynamicConnectivityFilesOut) const;
-        
-        void getMetricDynamicConnectivityFiles(std::vector<MetricDynamicConnectivityFile*>& metricDynamicConnectivityFilesOut) const;
-        
         void resetBrain();
         
         void resetBrainKeepSceneFiles();
@@ -432,7 +429,9 @@ namespace caret {
         
         void getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityMatrixDataFile*>& allCiftiConnectivityMatrixFiles) const;
         
-        std::vector<CiftiFileDynamicLoadingInterface*> getAllCiftiDynamicLoadingFiles() const;
+        std::vector<ConnectivityFileInterface*> getAllConnectivityFiles() const;
+        
+        std::vector<DynamicConnectivityFileInterface*> getAllDynamicConnectivityFiles() const;
         
         int32_t getNumberOfConnectivityDataSeriesFiles() const;
         
@@ -464,6 +463,9 @@ namespace caret {
         
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                              const bool includeSpecFile = false) const;
+        
+        void getAllDataFilesExcludingChildDynamicConnectivityFiles(std::vector<CaretDataFile*>& allDataFilesOut,
+                                                                   const bool includeSpecFile = false) const;
         
         void getAllDataFilesWithDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
                                              std::vector<CaretDataFile*>& caretDataFilesOut) const;

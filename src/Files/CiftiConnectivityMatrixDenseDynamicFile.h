@@ -51,10 +51,12 @@ namespace caret {
         
         const CiftiBrainordinateDataSeriesFile* getParentBrainordinateDataSeriesFile() const;
         
-        ConnectivityCorrelationSettings* getCorrelationSettings();
+        virtual ConnectivityCorrelationSettings* getCorrelationSettings() override;
         
-        const ConnectivityCorrelationSettings* getCorrelationSettings() const;
-
+        virtual const ConnectivityCorrelationSettings* getCorrelationSettings() const override;
+        
+        void getDataForRow(std::vector<float>& dataOut, const int64_t& index) const;
+        
     private:
         CiftiConnectivityMatrixDenseDynamicFile(const CiftiConnectivityMatrixDenseDynamicFile&);
 
@@ -68,6 +70,9 @@ namespace caret {
         virtual void getProcessedDataForColumn(float* dataOut, const int64_t& index) const;
         
         virtual void getProcessedDataForRow(std::vector<float>& dataOut, const int64_t& index) const override;
+        
+        virtual bool correlateWithDataSetProtected(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                   std::vector<float>& dataLoadedOut) const override;
         
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);

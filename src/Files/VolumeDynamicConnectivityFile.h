@@ -25,6 +25,8 @@
 
 #include <memory>
 
+#include "GeneralYokingGroupEnum.h"
+#include "DynamicConnectivityFileInterface.h"
 #include "VolumeFile.h"
 
 namespace caret {
@@ -32,7 +34,7 @@ namespace caret {
     class ConnectivityCorrelationSettings;
     class ConnectivityDataLoaded;
     
-    class VolumeDynamicConnectivityFile : public VolumeFile {
+    class VolumeDynamicConnectivityFile : public VolumeFile, public DynamicConnectivityFileInterface {
         
     public:
         VolumeDynamicConnectivityFile(const VolumeFile* parentVolumeFile);
@@ -65,14 +67,44 @@ namespace caret {
         
         void setEnabledAsLayer(const bool enabled);
         
-        bool loadConnectivityForVoxelXYZ(const float xyz[3]);
+        GeneralYokingGroupEnum::Enum getDynamicConnectivityYokingGroup() const;
         
-        bool loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
-                                               const std::vector<VoxelIJK>& voxelIndices);
+        void setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup);
+
+        virtual bool loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
+                                                     const float xyz[3],
+                                                     int64_t& rowIndexOut,
+                                                     int64_t& columnIndexOut,
+                                                     std::vector<float>& correlationDataOut);
         
-        bool isDataLoadingEnabled() const;
         
-        void setDataLoadingEnabled(const bool enabled);
+        virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
+                                                       const int64_t volumeDimensionIJK[3],
+                                                       const std::vector<VoxelIJK>& voxelIndices,
+                                                       std::vector<float>& correlationDataOut) override;
+        
+        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                          const AString& dataSetName) override;
+
+        virtual bool loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
+                                               const StructureEnum::Enum structure,
+                                               const int32_t nodeIndex,
+                                               int64_t& rowIndexOut,
+                                               int64_t& columnIndexOut,
+                                               std::vector<float>& brainordinateRawDataSeriesOut) override;
+        
+        virtual bool loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
+                                                       const StructureEnum::Enum structure,
+                                                       const std::vector<int32_t>& nodeIndices,
+                                                       std::vector<float>& correlationDataOut)override;
+        
+        virtual void loadDataForColumnIndex(const int64_t columnIndex) override;
+        
+        virtual void loadDataForRowIndex(const int64_t rowIndex) override;
+        
+        bool isMapDataLoadingEnabled() const;
+        
+        void setMapDataLoadingEnabled(const bool enabled);
         
         const ConnectivityDataLoaded* getConnectivityDataLoaded() const;
         
@@ -83,9 +115,9 @@ namespace caret {
         VolumeFile* newVolumeFileFromLoadedData(const AString& directoryName,
                                                 AString& errorMessageOut);
         
-        ConnectivityCorrelationSettings* getCorrelationSettings();
+        virtual ConnectivityCorrelationSettings* getCorrelationSettings() override;
         
-        const ConnectivityCorrelationSettings* getCorrelationSettings() const;
+        virtual const ConnectivityCorrelationSettings* getCorrelationSettings() const override;
         
         // ADD_NEW_METHODS_HERE
 
@@ -101,28 +133,15 @@ namespace caret {
         
         void clearVoxels();
         
-        void getTimePointsForVoxel(const int64_t i,
-                                   const int64_t j,
-                                   const int64_t k,
-                                   std::vector<float>& dataOut) const;
-
-//        inline int64_t getVoxelOffset(const int64_t i,
-//                                      const int64_t j,
-//                                      const int64_t k,
-//                                      const int64_t timePointIndex) const {
-//            const int64_t offset = (i
-//                                    + (j * m_dimI)
-//                                    + (k * m_sliceStride)
-//                                    + (timePointIndex * m_timePointIndexStride));
-//            return offset;
-//        }
-        
         bool loadConnectivityForVoxelIndex(const int64_t ijk[3]);
         
         bool getConnectivityForVoxelIndex(const int64_t ijk[3],
                                           std::vector<float>& voxelsOut) ;
         
         ConnectivityCorrelationTwo* getConnectivityCorrelationTwo() const;
+        
+        void getParentTimepointsForIJK(const int64_t ijk[0],
+                                       std::vector<float>& timepointsOut) const;
         
         const VolumeFile* m_parentVolumeFile;
         
@@ -148,6 +167,8 @@ namespace caret {
         
         int64_t m_dimTime = 0;
         
+        int64_t m_parentVolumeFileNumberOfTimePoints = 0;
+        
         AString m_dataLoadedName;
         
         bool m_validDataFlag = false;
@@ -155,6 +176,8 @@ namespace caret {
         bool m_enabledAsLayer = true;
         
         bool m_dataLoadingEnabledFlag = true;
+        
+        GeneralYokingGroupEnum::Enum m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
         
         std::unique_ptr<ConnectivityDataLoaded> m_connectivityDataLoaded;
         

@@ -42,7 +42,7 @@
 #include "CaretPreferences.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlaySet.h"
-#include "CiftiConnectivityMatrixDataFileManager.h"
+#include "DynamicConnectivityFileLoadingManager.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "DataToolTipsManager.h"
 #include "DrawingViewportContentManager.h"
@@ -113,7 +113,7 @@ SessionManager::SessionManager()
     QImageReader::setAllocationLimit(0);
 #endif
     
-    m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
+    m_dynamicConnectivityFileLoadingManager = new DynamicConnectivityFileLoadingManager();
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
     m_dataToolTipsManager.reset(new DataToolTipsManager(m_caretPreferences->isShowDataToolTipsEnabled()));
     m_drawingViewportContentManager.reset(new DrawingViewportContentManager());
@@ -202,7 +202,7 @@ SessionManager::~SessionManager()
     
     EventManager::get()->removeAllEventsFromListener(this);
     
-    delete m_ciftiConnectivityMatrixDataFileManager;
+    delete m_dynamicConnectivityFileLoadingManager;
     delete m_ciftiFiberTrajectoryManager;
     
     delete m_imageCaptureDialogSettings;
@@ -1372,19 +1372,19 @@ SessionManager::resetBrains(const bool keepSceneFiles)
 /**
  * @param The CIFTI connectivity matrix data file manager
  */
-CiftiConnectivityMatrixDataFileManager*
-SessionManager::getCiftiConnectivityMatrixDataFileManager()
+DynamicConnectivityFileLoadingManager*
+SessionManager::getDynamicConnectivityFileLoadingManager()
 {
-    return m_ciftiConnectivityMatrixDataFileManager;
+    return m_dynamicConnectivityFileLoadingManager;
 }
 
 /**
  * @param The CIFTI connectivity matrix data file manager
  */
-const CiftiConnectivityMatrixDataFileManager*
-SessionManager::getCiftiConnectivityMatrixDataFileManager() const
+const DynamicConnectivityFileLoadingManager*
+SessionManager::getDynamicConnectivityFileLoadingManager() const
 {
-    return m_ciftiConnectivityMatrixDataFileManager;
+    return m_dynamicConnectivityFileLoadingManager;
 }
 
 /**

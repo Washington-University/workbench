@@ -1,5 +1,5 @@
-#ifndef __CIFTI_FILE_DYNAMIC_LOADING_INTERFACE_H__
-#define __CIFTI_FILE_DYNAMIC_LOADING_INTERFACE_H__
+#ifndef __CONNECTIVITY_FILE_INTERFACE_H__
+#define __CONNECTIVITY_FILE_INTERFACE_H__
 
 /*LICENSE_START*/
 /*
@@ -26,42 +26,43 @@
 
 namespace caret {
 
-    class CiftiFileDynamicLoadingInterface {
+    class ConnectivityFileInterface {
         
     public:
-        CiftiFileDynamicLoadingInterface() { };
+        ConnectivityFileInterface() { };
         
-        virtual ~CiftiFileDynamicLoadingInterface() { };
+        virtual ~ConnectivityFileInterface() { };
         
-        CiftiFileDynamicLoadingInterface(const CiftiFileDynamicLoadingInterface&) = delete;
+        ConnectivityFileInterface(const ConnectivityFileInterface&) = delete;
 
-        CiftiFileDynamicLoadingInterface& operator=(const CiftiFileDynamicLoadingInterface&) = delete;
+        ConnectivityFileInterface& operator=(const ConnectivityFileInterface&) = delete;
         
-        virtual bool isMapDataLoadingEnabled(const int32_t mapIndex) const = 0;
+        virtual bool isMapDataLoadingEnabled() const = 0;
         
-        virtual void setMapDataLoadingEnabled(const int32_t mapIndex,
-                                              const bool enabled) = 0;
+        virtual void setMapDataLoadingEnabled(const bool enabled) = 0;
 
-        virtual void loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
-                                               const int32_t surfaceNumberOfNodes,
+        virtual bool loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
                                                const StructureEnum::Enum structure,
                                                const int32_t nodeIndex,
                                                int64_t& rowIndexOut,
-                                               int64_t& columnIndexOut) = 0;
+                                               int64_t& columnIndexOut,
+                                               std::vector<float>& brainordinateRawDataSeriesOut) = 0;
         
-        virtual void loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex*/,
-                                                       const int32_t surfaceNumberOfNodes,
+        virtual bool loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
                                                        const StructureEnum::Enum structure,
-                                                       const std::vector<int32_t>& nodeIndices) = 0;
+                                                       const std::vector<int32_t>& nodeIndices,
+                                                       std::vector<float>& correlationDataOut) = 0;
         
-        virtual void loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
+        virtual bool loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                      const float xyz[3],
                                                      int64_t& rowIndexOut,
-                                                     int64_t& columnIndexOut) = 0;
+                                                     int64_t& columnIndexOut,
+                                                     std::vector<float>& correlationDataOut) = 0;
         
         virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
                                                        const int64_t volumeDimensionIJK[3],
-                                                       const std::vector<VoxelIJK>& voxelIndices) = 0;
+                                                       const std::vector<VoxelIJK>& voxelIndices,
+                                                       std::vector<float>& correlationDataOut) = 0;
         
         virtual void loadDataForRowIndex(const int64_t rowIndex) = 0;
         
@@ -75,9 +76,9 @@ namespace caret {
 
     };
     
-#ifdef __CIFTI_FILE_DYNAMIC_LOADING_INTERFACE_DECLARE__
+#ifdef __CONNECTIVITY_FILE_INTERFACE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CIFTI_FILE_DYNAMIC_LOADING_INTERFACE_DECLARE__
+#endif // __CONNECTIVITY_FILE_INTERFACE_DECLARE__
 
 } // namespace
-#endif  //__CIFTI_FILE_DYNAMIC_LOADING_INTERFACE_H__
+#endif  //__CONNECTIVITY_FILE_INTERFACE_H__

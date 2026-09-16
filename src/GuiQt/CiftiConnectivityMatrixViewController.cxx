@@ -57,6 +57,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FiberTrajectoryMapProperties.h"
 #include "FilePathNamePrefixCompactor.h"
+#include "GeneralYokingGroupComboBox.h"
 #include "GuiManager.h"
 #include "MetricDynamicConnectivityFile.h"
 #include "VolumeDynamicConnectivityFile.h"
@@ -93,6 +94,7 @@ m_objectNamePrefix(parentObjectName
     m_gridLayout->setColumnStretch(COLUMN_LAYER_CHECKBOX, 0);
     m_gridLayout->setColumnStretch(COLUMN_COPY_BUTTON, 0);
     m_gridLayout->setColumnStretch(COLUMN_OPTIONS_BUTTON, 0);
+    m_gridLayout->setColumnStretch(COLUMN_YOKING_COMBO_BOX, 0);
     m_gridLayout->setColumnStretch(COLUMN_NAME_LINE_EDIT, 100);
     m_gridLayout->setColumnStretch(COLUMN_ORIENTATION_FILE_COMBO_BOX, 100);
     const int titleRow = m_gridLayout->rowCount();
@@ -104,6 +106,8 @@ m_objectNamePrefix(parentObjectName
                             titleRow, COLUMN_COPY_BUTTON);
     m_gridLayout->addWidget(new QLabel("Options"),
                             titleRow, COLUMN_OPTIONS_BUTTON);
+    m_gridLayout->addWidget(new QLabel("Yoking"),
+                            titleRow, COLUMN_YOKING_COMBO_BOX);
     m_gridLayout->addWidget(new QLabel("Connectivity File"),
                             titleRow, COLUMN_NAME_LINE_EDIT);
     m_gridLayout->addWidget(new QLabel("Fiber Orientation File"),
@@ -181,64 +185,64 @@ CiftiConnectivityMatrixViewController::updateViewController()
 {
     Brain* brain = GuiManager::get()->getBrain();
     
-    std::vector<CaretMappableDataFile*> files;
+    std::set<CaretMappableDataFile*> uniqueFiles;
     
     std::vector<CiftiFiberTrajectoryFile*> trajFiles;
     brain->getConnectivityFiberTrajectoryFiles(trajFiles);
     for (std::vector<CiftiFiberTrajectoryFile*>::iterator trajIter = trajFiles.begin();
          trajIter != trajFiles.end();
          trajIter++) {
-        files.push_back(*trajIter);
+        uniqueFiles.insert(*trajIter);
     }
 
     std::vector<CiftiFiberTrajectoryMapFile*> trajMapFiles;
     brain->getConnectivityFiberTrajectoryMapFiles(trajMapFiles);
     for (CiftiFiberTrajectoryMapFile* cftmf : trajMapFiles) {
-        files.push_back(cftmf);
+        uniqueFiles.insert(cftmf);
     }
 
+    const std::vector<ConnectivityFileInterface*> connectivityFiles(brain->getAllConnectivityFiles());
+    for (auto& cf : connectivityFiles) {
+        CaretMappableDataFile* cmdf(dynamic_cast<CaretMappableDataFile*>(cf));
+        uniqueFiles.insert(cmdf);
+    }
+    
     std::vector<CiftiMappableConnectivityMatrixDataFile*> matrixFiles;
     brain->getAllCiftiConnectivityMatrixFiles(matrixFiles);
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator matrixIter = matrixFiles.begin();
          matrixIter != matrixFiles.end();
          matrixIter++) {
-        files.push_back(*matrixIter);
+        uniqueFiles.insert(*matrixIter);
     }
 
     std::vector<CiftiDenseSparseFile*> denseSparseFiles(brain->getAllDenseSparseFiles());
-    files.insert(files.end(),
-                 denseSparseFiles.begin(),
-                 denseSparseFiles.end());
-    
-    std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
-    brain->getMetricDynamicConnectivityFiles(metricDynConnFiles);
-    files.insert(files.end(),
-                 metricDynConnFiles.begin(), metricDynConnFiles.end());
-    
-    std::vector<VolumeDynamicConnectivityFile*> volumeDynConnFiles;
-    brain->getVolumeDynamicConnectivityFiles(volumeDynConnFiles);
-    files.insert(files.end(),
-                 volumeDynConnFiles.begin(), volumeDynConnFiles.end());
+    uniqueFiles.insert(denseSparseFiles.begin(),
+                       denseSparseFiles.end());
     
     WuQMacroManager* macroManager = WuQMacroManager::instance();
+    
+    std::vector<CaretMappableDataFile*> files(uniqueFiles.begin(),
+                                              uniqueFiles.end());
     
     const int32_t numFiles = static_cast<int32_t>(files.size());
 
     for (int32_t i = 0; i < numFiles; i++) {
-        QCheckBox* checkBox = NULL;
+        QCheckBox* dataLoadingEnabledCheckBox = NULL;
         QCheckBox* layerCheckBox = NULL;
         QLineEdit* lineEdit = NULL;
         QToolButton* copyToolButton = NULL;
         QToolButton* optionsToolButton = NULL;
         QComboBox* comboBox = NULL;
+        GeneralYokingGroupComboBox* yokingComboBox(NULL);
         
         if (i < static_cast<int32_t>(m_fileEnableCheckBoxes.size())) {
-            checkBox          = m_fileEnableCheckBoxes[i];
+            dataLoadingEnabledCheckBox    = m_fileEnableCheckBoxes[i];
             layerCheckBox     = m_layerCheckBoxes[i];
             lineEdit          = m_fileNameLineEdits[i];
             copyToolButton    = m_fileCopyToolButtons[i];
             optionsToolButton = m_optionsToolButtons[i];
             comboBox          = m_fiberOrientationFileComboBoxes[i];
+            yokingComboBox    = m_yokingComboBoxes[i];
         }
         else {
             
@@ -247,13 +251,13 @@ CiftiConnectivityMatrixViewController::updateViewController()
                                            + ":");
             const QString descriptivePrefix("connectivity file " + QString::number(i+1));
             
-            checkBox = new QCheckBox("");
-            checkBox->setToolTip("When selected, load data during\n"
+            dataLoadingEnabledCheckBox = new QCheckBox("");
+            dataLoadingEnabledCheckBox->setToolTip("When selected, load data during\n"
                                  "an identification operation");
-            m_fileEnableCheckBoxes.push_back(checkBox);
-            checkBox->setObjectName(objectNamePrefix
+            m_fileEnableCheckBoxes.push_back(dataLoadingEnabledCheckBox);
+            dataLoadingEnabledCheckBox->setObjectName(objectNamePrefix
                                          + "Enable");
-            macroManager->addMacroSupportToObject(checkBox,
+            macroManager->addMacroSupportToObject(dataLoadingEnabledCheckBox,
                                                   "Enable " + descriptivePrefix);
             
             const AString dynToolTip("This option is enabled only for dynamic connectivity files.  "
@@ -282,6 +286,7 @@ CiftiConnectivityMatrixViewController::updateViewController()
             macroManager->addMacroSupportToObject(copyToolButton,
                                                   "Copy load row to new CIFTI scalar or Volume file for " + descriptivePrefix);
             
+            
             optionsToolButton = new QToolButton();
             optionsToolButton->setText("Opts");
             optionsToolButton->setToolTip("Dynamic connectivity options for correlation and covariance");
@@ -299,6 +304,14 @@ CiftiConnectivityMatrixViewController::updateViewController()
             macroManager->addMacroSupportToObject(comboBox,
                                                   "Select fiber orientation for " + descriptivePrefix);
             
+            yokingComboBox = new GeneralYokingGroupComboBox(GeneralYokingGroupComboBox::TextMode::LOWER_CASE_ROMAN_NUMERAL,
+                                                            this);
+            m_yokingComboBoxes.push_back(yokingComboBox);
+            yokingComboBox->setToolTip("Select yoking");
+            yokingComboBox->setObjectName(objectNamePrefix
+                                          + "YokingSelection");
+            macroManager->addMacroSupportToObject(yokingComboBox, "Select yoking for " + descriptivePrefix);
+            
             QObject::connect(copyToolButton, SIGNAL(clicked()),
                              m_signalMapperFileCopyToolButton, SLOT(map()));
             m_signalMapperFileCopyToolButton->setMapping(copyToolButton, i);
@@ -307,9 +320,9 @@ CiftiConnectivityMatrixViewController::updateViewController()
                              m_signalMapperOptionsToolButton, SLOT(map()));
             m_signalMapperOptionsToolButton->setMapping(optionsToolButton, i);
             
-            QObject::connect(checkBox, SIGNAL(clicked(bool)),
+            QObject::connect(dataLoadingEnabledCheckBox, SIGNAL(clicked(bool)),
                              m_signalMapperFileEnableCheckBox, SLOT(map()));
-            m_signalMapperFileEnableCheckBox->setMapping(checkBox, i);
+            m_signalMapperFileEnableCheckBox->setMapping(dataLoadingEnabledCheckBox, i);
             
             QObject::connect(layerCheckBox, SIGNAL(clicked(bool)),
                              m_signalMapperLayerCheckBox, SLOT(map()));
@@ -319,8 +332,13 @@ CiftiConnectivityMatrixViewController::updateViewController()
                              m_signalMapperFiberOrientationFileComboBox, SLOT(map()));
             m_signalMapperFiberOrientationFileComboBox->setMapping(comboBox, i);
             
+            QObject::connect(yokingComboBox, &GeneralYokingGroupComboBox::yokingGroupSelected,
+                             [=](const GeneralYokingGroupEnum::Enum yokingGroup) {
+                yokingGroupSelected(i, yokingGroup);
+            });
+            
             const int row = m_gridLayout->rowCount();
-            m_gridLayout->addWidget(checkBox,
+            m_gridLayout->addWidget(dataLoadingEnabledCheckBox,
                                     row, COLUMN_ENABLE_CHECKBOX);
             m_gridLayout->addWidget(layerCheckBox,
                                     row, COLUMN_LAYER_CHECKBOX);
@@ -328,6 +346,8 @@ CiftiConnectivityMatrixViewController::updateViewController()
                                     row, COLUMN_COPY_BUTTON);
             m_gridLayout->addWidget(optionsToolButton,
                                     row, COLUMN_OPTIONS_BUTTON);
+            m_gridLayout->addWidget(yokingComboBox,
+                                    row, COLUMN_YOKING_COMBO_BOX);
             m_gridLayout->addWidget(lineEdit,
                                     row, COLUMN_NAME_LINE_EDIT);
             m_gridLayout->addWidget(comboBox,
@@ -339,120 +359,74 @@ CiftiConnectivityMatrixViewController::updateViewController()
         const CiftiFiberTrajectoryMapFile* trajMapFile = dynamic_cast<const CiftiFiberTrajectoryMapFile*>(files[i]);
         const VolumeDynamicConnectivityFile* volDynConnFile = dynamic_cast<VolumeDynamicConnectivityFile*>(files[i]);
         const MetricDynamicConnectivityFile* metricDynConnFile = dynamic_cast<MetricDynamicConnectivityFile*>(files[i]);
-        const CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<const CiftiConnectivityMatrixDenseDynamicFile*>(files[i]);
+        const CiftiConnectivityMatrixDenseDynamicFile* dynDenseConnFile = dynamic_cast<const CiftiConnectivityMatrixDenseDynamicFile*>(files[i]);
         const CiftiConnectivityMatrixParcelDynamicFile* parcelDynConnFile = dynamic_cast<const CiftiConnectivityMatrixParcelDynamicFile*>(files[i]);
         const CiftiDenseSparseFile* denseSparseFile(dynamic_cast<CiftiDenseSparseFile*>(files[i]));
         
-        bool checkStatus = false;
-        if (dynConnFile != NULL) {
-            checkStatus = dynConnFile->isMapDataLoadingEnabled(0);
-        }
-        else if (parcelDynConnFile != NULL) {
-            checkStatus = parcelDynConnFile->isMapDataLoadingEnabled(0);
-        }
-        else if (matrixFile != NULL) {
-            checkStatus = matrixFile->isMapDataLoadingEnabled(0);
+        const ConnectivityFileInterface* connFile(dynamic_cast<const ConnectivityFileInterface*>(files[i]));
+        const DynamicConnectivityFileInterface* dynConnFile(dynamic_cast<const DynamicConnectivityFileInterface*>(files[i]));
+        
+        bool enableDataLoadingCheckedStatus = false;
+        layerCheckBox->setEnabled(false);
+        yokingComboBox->setEnabled(false);
+        optionsToolButton->setEnabled(false);
+        dataLoadingEnabledCheckBox->setEnabled(false);
+        
+        if (connFile != NULL) {
+            dataLoadingEnabledCheckBox->setChecked(connFile->isMapDataLoadingEnabled());
+            dataLoadingEnabledCheckBox->setEnabled(true);
+            
+            /*
+             * dynConnFile derived from connFile
+             */
+            if (dynConnFile != NULL) {
+                yokingComboBox->setYokingGroup(dynConnFile->getDynamicConnectivityYokingGroup());
+                yokingComboBox->setEnabled(true);
+                layerCheckBox->setChecked(dynConnFile->isEnabledAsLayer());
+                layerCheckBox->setEnabled(true);
+                optionsToolButton->setEnabled(true);
+            }
         }
         else if (trajFile != NULL) {
-            checkStatus = trajFile->isDataLoadingEnabled();
+            dataLoadingEnabledCheckBox->setChecked(trajFile->isDataLoadingEnabled());
+            dataLoadingEnabledCheckBox->setEnabled(true);
         }
         else if (trajMapFile != NULL) {
             /* nothing, does not use checkbox */
         }
-        else if (volDynConnFile != NULL) {
-            checkStatus = volDynConnFile->isDataLoadingEnabled();
-        }
-        else if (metricDynConnFile != NULL) {
-            checkStatus = metricDynConnFile->isDataLoadingEnabled();
-        }
         else if (denseSparseFile != NULL) {
-            checkStatus = denseSparseFile->isMapDataLoadingEnabled(0);
+            dataLoadingEnabledCheckBox->setChecked(denseSparseFile->isMapDataLoadingEnabled());
+            dataLoadingEnabledCheckBox->setEnabled(true);
         }
         else {
             CaretAssertMessage(0, "Has a new file type been added?");
         }
         
-        checkBox->setChecked(checkStatus);
-        checkBox->setProperty(FILE_POINTER_PROPERTY_NAME,
-                              QVariant::fromValue((void*)files[i]));
+        dataLoadingEnabledCheckBox->setProperty(FILE_POINTER_PROPERTY_NAME,
+                                                QVariant::fromValue((void*)files[i]));
 
-        bool dynFileFlag(false);
-        if (dynConnFile != NULL) {
-            dynFileFlag = true;
-            layerCheckBox->setChecked(dynConnFile->isEnabledAsLayer());
-        }
-        else if (volDynConnFile != NULL) {
-            dynFileFlag = true;
-            layerCheckBox->setChecked(volDynConnFile->isEnabledAsLayer());
-        }
-        else if (metricDynConnFile != NULL) {
-            dynFileFlag = true;
-            layerCheckBox->setChecked(metricDynConnFile->isEnabledAsLayer());
-        }
-        else if (parcelDynConnFile != NULL) {
-            dynFileFlag = true;
-            layerCheckBox->setChecked(parcelDynConnFile->isEnabledAsLayer());
-        }
-        else if (matrixFile != NULL) {
-            layerCheckBox->setChecked(matrixFile->isEnabledAsLayer());
-        }
-        else if (denseSparseFile != NULL) {
-            layerCheckBox->setChecked(denseSparseFile->isEnabledAsLayer());
-        }
-        else {
-            layerCheckBox->setChecked(false);
-        }
-        
         lineEdit->setText(files[i]->getFileName());
-        optionsToolButton->setEnabled(dynFileFlag);
     }
 
 
     const int32_t numItems = static_cast<int32_t>(m_fileEnableCheckBoxes.size());
-    for (int32_t i = 0; i < numItems; i++) {
-        bool copyButtonEnabled(true);
-        bool layerCheckBoxValid = false;
-        bool enableCheckBoxValid = true;
-        bool optionsButtonEnabled = true;
-        bool showRow = false;
-        bool showOrientationComboBox = false;
-        if (i < numFiles) {
-            showRow = true;
-            if (dynamic_cast<CiftiFiberTrajectoryFile*>(files[i]) != NULL) {
-                showOrientationComboBox = true;
-            }
-            else if (dynamic_cast<CiftiFiberTrajectoryMapFile*>(files[i]) != NULL) {
-                showOrientationComboBox = true;
-                copyButtonEnabled       = false;
-                enableCheckBoxValid     = false;
-                layerCheckBoxValid      = false;
-                optionsButtonEnabled    = false;
-            }
-            
-            if (dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(files[i]) != NULL) {
-                layerCheckBoxValid = true;
-            }
-            else if (dynamic_cast<MetricDynamicConnectivityFile*>(files[i]) != NULL) {
-                layerCheckBoxValid = true;
-            }
-            else if (dynamic_cast<VolumeDynamicConnectivityFile*>(files[i]) != NULL) {
-                layerCheckBoxValid = true;
-            }
-        }
-        
-        m_fileEnableCheckBoxes[i]->setVisible(showRow);
-        m_fileEnableCheckBoxes[i]->setEnabled(enableCheckBoxValid);
-        m_layerCheckBoxes[i]->setVisible(showRow);
-        m_layerCheckBoxes[i]->setEnabled(layerCheckBoxValid);
-        m_fileCopyToolButtons[i]->setVisible(showRow);
-        m_fileCopyToolButtons[i]->setEnabled(copyButtonEnabled);
-        m_fileNameLineEdits[i]->setVisible(showRow);
-        m_fiberOrientationFileComboBoxes[i]->setVisible(showOrientationComboBox);
-        m_fiberOrientationFileComboBoxes[i]->setEnabled(showOrientationComboBox);
-        m_optionsToolButtons[i]->setVisible(showRow);
-        m_optionsToolButtons[i]->setEnabled(optionsButtonEnabled);
-    }
     
+    for (int32_t i = 0; i < numItems; i++) {
+        const bool showRow(i < numFiles);
+        m_fileEnableCheckBoxes[i]->setVisible(showRow);
+        m_layerCheckBoxes[i]->setVisible(showRow);
+        m_fileCopyToolButtons[i]->setVisible(showRow);
+        m_fileNameLineEdits[i]->setVisible(showRow);
+        bool showOrientationComboBox(false);
+        if (i < numFiles) {
+            showOrientationComboBox = ((dynamic_cast<CiftiFiberTrajectoryFile*>(files[i]) != NULL)
+                                       || (dynamic_cast<CiftiFiberTrajectoryMapFile*>(files[i])));
+        }
+        m_fiberOrientationFileComboBoxes[i]->setVisible(showOrientationComboBox);
+        m_optionsToolButtons[i]->setVisible(showRow);
+        m_yokingComboBoxes[i]->setVisible(showRow);
+    }
+        
     updateFiberOrientationComboBoxes();
 }
 
@@ -478,7 +452,8 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
         MetricDynamicConnectivityFile* metricDynConnFile(NULL);
         VolumeDynamicConnectivityFile* volDynConnFile = NULL;
         
-        if (comboBox->isEnabled()) {
+        if (comboBox->isVisible()
+            && comboBox->isEnabled()) {
             getFileAtIndex(i,
                            matrixFile,
                            ciftiDenseDynConnFile,
@@ -554,49 +529,20 @@ CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
     CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
     const bool newStatus = m_fileEnableCheckBoxes[indx]->isChecked();
     
-    CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
-    CiftiConnectivityMatrixDenseDynamicFile* ciftiDenseDynConnFile = NULL;
+    ConnectivityFileInterface* connFile(NULL);
+    DynamicConnectivityFileInterface* dynConFile(NULL);
     CiftiDenseSparseFile* ciftiDenseSparseFile(NULL);
-    CiftiConnectivityMatrixParcelDynamicFile* ciftiParcelDynConnFile(NULL);
     CiftiFiberTrajectoryFile* trajFile = NULL;
     CiftiFiberTrajectoryMapFile* trajMapFile = NULL;
-    VolumeDynamicConnectivityFile* volDynConnFile(NULL);
-    MetricDynamicConnectivityFile* metricDynConnFile(NULL);
-
     getFileAtIndex(indx,
-                   matrixFile,
-                   ciftiDenseDynConnFile,
+                   connFile,
+                   dynConFile,
                    ciftiDenseSparseFile,
-                   ciftiParcelDynConnFile,
                    trajFile,
-                   trajMapFile,
-                   metricDynConnFile,
-                   volDynConnFile);
-    
-    if (matrixFile != NULL) {
-        matrixFile->setMapDataLoadingEnabled(0,
-                                             newStatus);
-    }
-    else if (metricDynConnFile != NULL) {
-        metricDynConnFile->setDataLoadingEnabled(newStatus);
-    }
-    else if (trajFile != NULL) {
-        trajFile->setDataLoadingEnabled(newStatus);
-    }
-    else if (trajMapFile != NULL) {
-        /* nothing, does not do data loading */
-    }
-    else if (volDynConnFile != NULL) {
-        volDynConnFile->setDataLoadingEnabled(newStatus);
-    }
-    else if (trajMapFile != NULL) {
-        CaretAssertMessage(0, "Enable not supported for Traj Map File");
-    }
-    else if (ciftiDenseSparseFile != NULL) {
-        ciftiDenseSparseFile->setMapDataLoadingEnabled(0, newStatus);
-    }
-    else {
-        CaretAssertMessage(0, "Has a new file type been added?");
+                   trajMapFile);
+
+    if (connFile != NULL) {
+        connFile->setMapDataLoadingEnabled(newStatus);
     }
     
     updateOtherCiftiConnectivityMatrixViewControllers();
@@ -614,52 +560,89 @@ CiftiConnectivityMatrixViewController::layerCheckBoxClicked(int indx)
     CaretAssertVectorIndex(m_layerCheckBoxes, indx);
     const bool newStatus = m_layerCheckBoxes[indx]->isChecked();
     
-    CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
-    CiftiConnectivityMatrixDenseDynamicFile* ciftiDenseDynConnFile = NULL;
+    ConnectivityFileInterface* connFile(NULL);
+    DynamicConnectivityFileInterface* dynConFile(NULL);
     CiftiDenseSparseFile* ciftiDenseSparseFile(NULL);
-    CiftiConnectivityMatrixParcelDynamicFile* ciftiParcelDynConnFile(NULL);
     CiftiFiberTrajectoryFile* trajFile = NULL;
     CiftiFiberTrajectoryMapFile* trajMapFile = NULL;
-    MetricDynamicConnectivityFile* metricDynConnFile(NULL);
-    VolumeDynamicConnectivityFile* volDynConnFile(NULL);
-
     getFileAtIndex(indx,
-                   matrixFile,
-                   ciftiDenseDynConnFile,
+                   connFile,
+                   dynConFile,
                    ciftiDenseSparseFile,
-                   ciftiParcelDynConnFile,
                    trajFile,
-                   trajMapFile,
-                   metricDynConnFile,
-                   volDynConnFile);
-    
-    if (matrixFile != NULL) {
-        CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(matrixFile);
-        if (dynConnFile != NULL) {
-            dynConnFile->setEnabledAsLayer(newStatus);
-        }
-        CiftiConnectivityMatrixParcelDynamicFile* parcelDynConnFile(dynamic_cast<CiftiConnectivityMatrixParcelDynamicFile*>(matrixFile));
-        if (parcelDynConnFile != NULL) {
-            parcelDynConnFile->setEnabledAsLayer(newStatus);
-        }
-    }
-    else if (metricDynConnFile != NULL) {
-        metricDynConnFile->setEnabledAsLayer(newStatus);
-    }
-    else if (volDynConnFile != NULL) {
-        volDynConnFile->setEnabledAsLayer(newStatus);
-    }
-    else if (trajFile != NULL) {
-        CaretAssertMessage(0, "Should never get caled for fiber trajectory file");
-    }
-    else {
-        CaretAssertMessage(0, "Has a new file type been added?");
+                   trajMapFile);
+
+    if (dynConFile != NULL) {
+        dynConFile->setEnabledAsLayer(newStatus);
     }
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
+
+/**
+ * Get the file associated with the given index.  One of the output files
+ * will be NULL and the other will be non-NULL.
+ *
+ * @param indx
+ *    The index.
+ * @param connFileOut
+ *    If there is a ConnectivityFileInterface matrix file at the given index, this will be non-NULL.
+ * @param dynConFileOut
+ *    If there is a DynamicConnectivityFileInterface dense dyn conn file at the given index, this will be non-NULL
+ * @param ciftiDenseSparseFileOut
+ *    If ther eis a CIFTI dense sparse file at the given index, this will be non-NULL
+ * @param ciftiTrajFileOut
+ *    If there is a CIFTI trajectory file at the given index, this will be non-NULL.
+ * @param ciftiTrajMapFileOut
+ *    If there is a Metric Dynamic file at the given index, this will be non-NULL
+ */
+void
+CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
+                                                      ConnectivityFileInterface* &connFileOut,
+                                                      DynamicConnectivityFileInterface* &dynConFileOut,
+                                                      CiftiDenseSparseFile* &ciftiDenseSparseFileOut,
+                                                      CiftiFiberTrajectoryFile* &ciftiTrajFileOut,
+                                                      CiftiFiberTrajectoryMapFile* &ciftiTrajMapFileOut)
+{
+    CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
+    void* ptr = m_fileEnableCheckBoxes[indx]->property(FILE_POINTER_PROPERTY_NAME).value<void*>();
+    CaretMappableDataFile* mapFilePointer = (CaretMappableDataFile*)ptr;
+    
+    connFileOut  = dynamic_cast<ConnectivityFileInterface*>(mapFilePointer);
+    dynConFileOut = dynamic_cast<DynamicConnectivityFileInterface*>(mapFilePointer);
+    ciftiDenseSparseFileOut = dynamic_cast<CiftiDenseSparseFile*>(mapFilePointer);
+    ciftiTrajFileOut    = dynamic_cast<CiftiFiberTrajectoryFile*>(mapFilePointer);
+    ciftiTrajMapFileOut = dynamic_cast<CiftiFiberTrajectoryMapFile*>(mapFilePointer);
+    
+    AString name = "";
+    if (mapFilePointer != NULL) {
+        name = mapFilePointer->getFileNameNoPath();
+    }
+    
+    if (connFileOut != NULL) {
+        /* OK */
+    }
+    else if (dynConFileOut != NULL) {
+        /* OK */
+    }
+    else if (ciftiDenseSparseFileOut != NULL) {
+        /* OK */
+    }
+    else if (ciftiTrajFileOut != NULL) {
+        /* OK */
+    }
+    else if (ciftiTrajMapFileOut != NULL) {
+        /* OK */
+    }
+    else {
+        CaretAssertMessage(0,
+                           "Has a new file type been added?");
+    }
+
+}
+
 
 /**
  * Get the file associated with the given index.  One of the output files
@@ -750,24 +733,17 @@ CiftiConnectivityMatrixViewController::fiberOrientationFileComboBoxActivated(int
 {
     CaretAssertVectorIndex(m_fiberOrientationFileComboBoxes, indx);
     
-    CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
-    CiftiConnectivityMatrixDenseDynamicFile* ciftiDenseDynConnFile = NULL;
-    CiftiConnectivityMatrixParcelDynamicFile* ciftiParcelDynConnFile(NULL);
+    ConnectivityFileInterface* connFile(NULL);
+    DynamicConnectivityFileInterface* dynConFile(NULL);
     CiftiDenseSparseFile* ciftiDenseSparseFile(NULL);
     CiftiFiberTrajectoryFile* trajFile = NULL;
     CiftiFiberTrajectoryMapFile* trajMapFile = NULL;
-    MetricDynamicConnectivityFile* metricDynConnFile(NULL);
-    VolumeDynamicConnectivityFile* volDynConnFile(NULL);
-    
     getFileAtIndex(indx,
-                   matrixFile,
-                   ciftiDenseDynConnFile,
+                   connFile,
+                   dynConFile,
                    ciftiDenseSparseFile,
-                   ciftiParcelDynConnFile,
                    trajFile,
-                   trajMapFile,
-                   metricDynConnFile,
-                   volDynConnFile);
+                   trajMapFile);
     
     CaretAssertMessage(((trajFile != NULL)
                        || (trajMapFile != NULL)),
@@ -974,40 +950,21 @@ CiftiConnectivityMatrixViewController::optionsButtonClicked(int indx)
     CaretAssertVectorIndex(m_optionsToolButtons, indx);
     QToolButton* toolButton(m_optionsToolButtons[indx]);
 
-    CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
-    CiftiConnectivityMatrixDenseDynamicFile* ciftiDenseDynConnFile = NULL;
+    ConnectivityFileInterface* connFile(NULL);
+    DynamicConnectivityFileInterface* dynConFile(NULL);
     CiftiDenseSparseFile* ciftiDenseSparseFile(NULL);
-    CiftiConnectivityMatrixParcelDynamicFile* ciftiParcelDynConnFile(NULL);
     CiftiFiberTrajectoryFile* trajFile = NULL;
     CiftiFiberTrajectoryMapFile* trajMapFile = NULL;
-    MetricDynamicConnectivityFile* metricDynConnFile(NULL);
-    VolumeDynamicConnectivityFile* volDynConnFile(NULL);
-    
     getFileAtIndex(indx,
-                   matrixFile,
-                   ciftiDenseDynConnFile,
+                   connFile,
+                   dynConFile,
                    ciftiDenseSparseFile,
-                   ciftiParcelDynConnFile,
                    trajFile,
-                   trajMapFile,
-                   metricDynConnFile,
-                   volDynConnFile);
+                   trajMapFile);
+    
     ConnectivityCorrelationSettings* settings(NULL);
-    if (ciftiDenseDynConnFile != NULL) {
-        settings = ciftiDenseDynConnFile->getCorrelationSettings();
-    }
-    else if (ciftiParcelDynConnFile != NULL) {
-        settings = ciftiParcelDynConnFile->getCorrelationSettings();
-    }
-    else if (metricDynConnFile != NULL) {
-        settings = metricDynConnFile->getCorrelationSettings();
-    }
-    else if (volDynConnFile != NULL) {
-        settings = volDynConnFile->getCorrelationSettings();
-    }
-    else if (trajMapFile != NULL) {
-        CaretAssertMessage(0,
-                           "Traj map file not supported for options");
+    if (dynConFile != NULL) {
+        settings = dynConFile->getCorrelationSettings();
     }
     
     if (settings != NULL) {
@@ -1016,6 +973,35 @@ CiftiConnectivityMatrixViewController::optionsButtonClicked(int indx)
         menu.exec(toolButton->mapToGlobal(QPoint(0,0)));
     }
 }
+
+/**
+ * Called when yoking group selected in the row with the given index
+ * @param index
+ *    Index of row selected
+ * @param yokingGroup
+ *    Yoking group that was selected by user
+ */
+void
+CiftiConnectivityMatrixViewController::yokingGroupSelected(const int32_t index,
+                                           const GeneralYokingGroupEnum::Enum yokingGroup)
+{
+    ConnectivityFileInterface* connFile(NULL);
+    DynamicConnectivityFileInterface* dynConFile(NULL);
+    CiftiDenseSparseFile* ciftiDenseSparseFile(NULL);
+    CiftiFiberTrajectoryFile* trajFile = NULL;
+    CiftiFiberTrajectoryMapFile* trajMapFile = NULL;
+    getFileAtIndex(index,
+                   connFile,
+                   dynConFile,
+                   ciftiDenseSparseFile,
+                   trajFile,
+                   trajMapFile);
+    
+    if (dynConFile != NULL) {
+        dynConFile->setDynamicConnectivityYokingGroup(yokingGroup);
+    }
+}
+
 
 /**
  * Update other connectivity view controllers other than 'this' instance

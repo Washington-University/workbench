@@ -27,8 +27,9 @@
 #include "BrainConstants.h"
 #include "CaretMappableDataFile.h"
 #include "CaretSparseFile.h"
-#include "CiftiFileDynamicLoadingInterface.h"
+#include "DynamicConnectivityFileInterface.h"
 #include "DisplayGroupEnum.h"
+#include "GeneralYokingGroupEnum.h"
 #include "FunctionResult.h"
 #include "SceneClassAssistant.h"
 #include "VolumeMappableInterface.h"
@@ -44,7 +45,7 @@ namespace caret {
 
     class CiftiDenseSparseFile :
     public CaretMappableDataFile,
-    public CiftiFileDynamicLoadingInterface,
+    public DynamicConnectivityFileInterface,
     public VolumeMappableInterface {
         
     public:
@@ -147,35 +148,43 @@ namespace caret {
                                           float voxelXYZOut[3],
                                           bool& voxelValidOut) const;
         
-        virtual void loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
-                                               const int32_t surfaceNumberOfNodes,
+        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                          const AString& dataSetName) override;
+        
+        virtual bool loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
                                                const StructureEnum::Enum structure,
                                                const int32_t nodeIndex,
                                                int64_t& rowIndexOut,
-                                               int64_t& columnIndexOut) override;
+                                               int64_t& columnIndexOut,
+                                               std::vector<float>& brainordinateRawDataSeriesOut) override;
         
-        virtual void loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex*/,
-                                                      const int32_t surfaceNumberOfNodes,
+        virtual bool loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
                                                       const StructureEnum::Enum structure,
-                                                      const std::vector<int32_t>& nodeIndices) override;
+                                                       const std::vector<int32_t>& nodeIndices,
+                                                       std::vector<float>& correlationDataOut) override;
         
-        virtual void loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
+        virtual bool loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                      const float xyz[3],
                                                      int64_t& rowIndexOut,
-                                                     int64_t& columnIndexOut) override;
+                                                     int64_t& columnIndexOut,
+                                                     std::vector<float>& correlationDataOut) override;
         
         virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
                                                        const int64_t volumeDimensionIJK[3],
-                                                       const std::vector<VoxelIJK>& voxelIndices) override;
+                                                       const std::vector<VoxelIJK>& voxelIndices,
+                                                       std::vector<float>& correlationDataOut) override;
         
         virtual void loadDataForRowIndex(const int64_t rowIndex) override;
         
         virtual void loadDataForColumnIndex(const int64_t columnIndex) override;
         
-        virtual bool isMapDataLoadingEnabled(const int32_t mapIndex) const override;
+        virtual ConnectivityCorrelationSettings* getCorrelationSettings();
         
-        virtual void setMapDataLoadingEnabled(const int32_t mapIndex,
-                                              const bool enabled) override;
+        virtual const ConnectivityCorrelationSettings* getCorrelationSettings() const;
+        
+        virtual bool isMapDataLoadingEnabled() const override;
+        
+        virtual void setMapDataLoadingEnabled(const bool enabled) override;
         
         void finishRestorationOfScene();
         
@@ -211,6 +220,10 @@ namespace caret {
         bool isEnabledAsLayer() const;
         
         void setEnabledAsLayer(const bool enabled);
+        
+        GeneralYokingGroupEnum::Enum getDynamicConnectivityYokingGroup() const;
+        
+        void setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup);
         
         virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                         std::vector<float>& dataOut) const override;
@@ -434,6 +447,10 @@ namespace caret {
         int64_t m_fileNumberOfColumns = 0;
         
         bool m_enabledAsLayerFlag = true;
+        
+        GeneralYokingGroupEnum::Enum m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
+        
+        std::unique_ptr<ConnectivityCorrelationSettings> m_connectivityCorrelationSettings;
         
         mutable BoundingBox m_boundingBox;
         

@@ -67,6 +67,8 @@ CiftiDenseSparseFile::CiftiDenseSparseFile()
 : CaretMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE)
 {
     m_connectivityDataLoaded.reset(new ConnectivityDataLoaded());
+    m_connectivityCorrelationSettings.reset(new ConnectivityCorrelationSettings());
+    
     m_fileMetadata.reset(new GiftiMetaData());
     m_sparseFile.reset();
     m_dataLoadingEnabled = true;
@@ -84,10 +86,15 @@ CiftiDenseSparseFile::CiftiDenseSparseFile()
     m_sceneAssistant.reset(new SceneClassAssistant());
     m_sceneAssistant->add("m_dataLoadingEnabled",
                           &m_dataLoadingEnabled);
+    m_sceneAssistant->add<GeneralYokingGroupEnum, GeneralYokingGroupEnum::Enum>("m_dynamicYokingGroup",
+                                                                                &m_dynamicYokingGroup);
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded.get());
-    
+    m_sceneAssistant->add("m_connectivityCorrelationSettings",
+                          "ConnectivityCorrelationSettings",
+                          m_connectivityCorrelationSettings.get());
+
     m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
 
     clearPrivate();
@@ -135,6 +142,7 @@ CiftiDenseSparseFile::clearPrivate()
     m_boundingBox.resetZeros();
     m_boundingBoxValidFlag = false;
     m_graphicsPrimitiveManager->clear();
+    m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
 }
 
 
@@ -149,11 +157,9 @@ CiftiDenseSparseFile::isEmpty() const
 
 /**
  * @return Is data loading enabled?
- * @param mapIndex
- *    Index of map
  */
 bool
-CiftiDenseSparseFile::isMapDataLoadingEnabled(const int32_t /*mapIndex*/) const
+CiftiDenseSparseFile::isMapDataLoadingEnabled() const
 {
     return m_dataLoadingEnabled;
 }
@@ -161,14 +167,11 @@ CiftiDenseSparseFile::isMapDataLoadingEnabled(const int32_t /*mapIndex*/) const
 /**
  * Set data loading enabled.
  *
- * @param mapIndex
- *    Index of map
  * @param loadingEnabled
  *    New status of data loading.
  */
 void
-CiftiDenseSparseFile::setMapDataLoadingEnabled(const int32_t /*mapIndex*/,
-                                               const bool enabled)
+CiftiDenseSparseFile::setMapDataLoadingEnabled(const bool enabled)
 {
     m_dataLoadingEnabled = enabled;
 }
@@ -1333,10 +1336,26 @@ CiftiDenseSparseFile::getVolumeVoxelIdentificationForMaps(const std::vector<int3
 }
 
 /**
+ * Correlate data in this file with the given data set
+ * @param dataSet
+ *    The correlation two data set
+ * @param dataSetName
+ *    Name of the data set
+ * @return True if successful, else false.
+ */
+bool
+CiftiDenseSparseFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& /*dataSet*/,
+                                           const AString& /*dataSetName*/)
+{
+    /*
+     * Data is already processed so cannot correlate
+     */
+    return false;
+}
+
+/**
  * Load connectivity data for the surface's node.
  *
- * @param mapIndex
- *    Index of map.
  * @param surfaceNumberOfNodes
  *    Number of nodes in surface.
  * @param structure
@@ -1344,31 +1363,34 @@ CiftiDenseSparseFile::getVolumeVoxelIdentificationForMaps(const std::vector<int3
  * @param nodeIndex
  *    Index of node number.
  * @param rowIndexOut
- *    Index of row corresponding to node or -1 if no row in the
- *    matrix corresponds to the node.
+ *    Row data that was loaded, not always set
  * @param columnIndexOut
- *    Index of column corresponding to node or -1 if no column in the
- *    matrix corresponds to the node.
- * @throw
- *    DataFileException if there is an error.
+ *    Column data that was loaded, not always set
+ * @param brainordinateRawDataSeriesOut
+ *    Output with series data for brainordinate typically from the parent connectivity file
+ *    Only set by dynamic connectivity files and will sometimes be empty.  It is used
+ *    for computing connectivity on multiple dynamic connectivity files.
+ * @return
+ *    True if data was loaded, else false.
  */
-void
-CiftiDenseSparseFile::loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
-                                                const int32_t surfaceNumberOfNodes,
+bool
+CiftiDenseSparseFile::loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
                                                 const StructureEnum::Enum structure,
                                                 const int32_t nodeIndex,
                                                 int64_t& rowIndexOut,
-                                                int64_t& columnIndexOut)
+                                                int64_t& columnIndexOut,
+                                                std::vector<float>& brainordinateRawDataSeriesOut)
 {
+    brainordinateRawDataSeriesOut.clear();
     rowIndexOut    = -1;
     columnIndexOut = -1;
     
     if ( ! isEnabledAsLayer()) {
         clearLoadedData();
-        return;
+        return false;
     }
     if ( ! m_dataLoadingEnabled) {
-        return;
+        return false;
     }
     
     clearLoadedData();
@@ -1378,14 +1400,14 @@ CiftiDenseSparseFile::loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
     if ( ! brainMap.hasSurfaceData(structure)) {
         CaretLogFine("No data for structure "
                       + StructureEnum::toGuiName(structure));
-        return;
+        return false;
     }
     if (brainMap.getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) {
         CaretLogFine("Structure has wrong number of nodes="
                                              + AString::number(brainMap.getSurfaceNumberOfNodes(structure))
                                              + ", number of nodes should be "
                                              + AString::number(surfaceNumberOfNodes));
-        return;
+        return false;
     }
     
     const int64_t rowIndex = brainMap.getIndexForNode(nodeIndex,
@@ -1407,45 +1429,50 @@ CiftiDenseSparseFile::loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
                                                             surfaceNumberOfNodes,
                                                             nodeIndex,
                                                             rowIndex,
-                                                            -1);
+                                                            -1,
+                                                            m_loadedRowData.data(),
+                                                            m_loadedRowData.size());
         }
         else {
             clearLoadedData();
             CaretLogFine(loadRowResult.getErrorMessage());
-            return;
+            return false;
         }
     }
     else {
         clearLoadedData();
+        return false;
     }
     
     rowIndexOut = rowIndex;
+    return true;
 }
 
 /**
  * Load average data for the given surface nodes.
  *
- * @param mapIndex
- *    Index of the map
- * @param structure
- *    Structure in which surface node is located.
  * @param surfaceNumberOfNodes
  *    Number of nodes in surface.
+ * @param structure
+ *    Structure in which surface node is located.
  * @param nodeIndices
  *    Indices of the surface nodes.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
  */
-void
-CiftiDenseSparseFile::loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex*/,
-                                                        const int32_t surfaceNumberOfNodes,
+bool
+CiftiDenseSparseFile::loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
                                                         const StructureEnum::Enum structure,
-                                                        const std::vector<int32_t>& nodeIndices)
+                                                        const std::vector<int32_t>& nodeIndices,
+                                                        std::vector<float>& correlationDataOut)
 {
+    correlationDataOut.clear();
     if ( ! isEnabledAsLayer()) {
         clearLoadedData();
-        return;
+        return false;
     }
     if ( ! m_dataLoadingEnabled) {
-        return;
+        return false;
     }
     
     clearLoadedData();
@@ -1455,14 +1482,14 @@ CiftiDenseSparseFile::loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex
     if ( ! brainMap.hasSurfaceData(structure)) {
         CaretLogFine("No data for structure "
                      + StructureEnum::toGuiName(structure));
-        return;
+        return false;
     }
     if (brainMap.getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) {
         CaretLogFine("Structure has wrong number of nodes="
                      + AString::number(brainMap.getSurfaceNumberOfNodes(structure))
                      + ", number of nodes should be "
                      + AString::number(surfaceNumberOfNodes));
-        return;
+        return false;
     }
 
     std::vector<int64_t> rowIndices;
@@ -1483,8 +1510,13 @@ CiftiDenseSparseFile::loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex
                                               + AString::number(nodeIndices.size()));
         m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
                                                                surfaceNumberOfNodes,
-                                                               nodeIndices);
+                                                               nodeIndices,
+                                                               m_loadedRowData.data(),
+                                                               m_loadedRowData.size());
+        return true;
     }
+    
+    return false;
 }
 
 /**
@@ -1544,15 +1576,17 @@ CiftiDenseSparseFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndice
  * @param columnIndexOut
  *    Index of column corresponding to voxel or -1 if no column in the
  *    matrix corresponds to the voxel.
- * @throw
- *    DataFileException if there is an error.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
  */
-void
+bool
 CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/,
                                                       const float xyz[3],
                                                       int64_t& rowIndexOut,
-                                                      int64_t& columnIndexOut)
+                                                      int64_t& columnIndexOut,
+                                                      std::vector<float>& correlationDataOut)
 {
+    correlationDataOut.clear();
     rowIndexOut = -1;
     columnIndexOut = -1;
     
@@ -1560,11 +1594,11 @@ CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/
     
     if ( ! isEnabledAsLayer()) {
         clearLoadedData();
-        return;
+        return false;
         
     }
     if ( ! m_dataLoadingEnabled) {
-        return;
+        return false;
     }
     
     clearLoadedData();
@@ -1572,7 +1606,7 @@ CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/
     const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
     const CiftiBrainModelsMap& colMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
     if ( ! colMap.hasVolumeData()) {
-        return;
+        return false;
     }
     const VolumeSpace& colSpace = colMap.getVolumeSpace();
     int64_t ijk[3];
@@ -1590,10 +1624,14 @@ CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/
                                                   + AString::number(rowIndex+1));
             m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
                                                           rowIndex,
-                                                          -1);
+                                                          -1,
+                                                          m_loadedRowData.data(),
+                                                          m_loadedRowData.size());
             rowIndexOut = rowIndex;
+            return true;
         }
     }
+    return false;
 }
 
 /**
@@ -1603,14 +1641,18 @@ CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/
  *    Dimensions of the volume.
  * @param voxelIndices
  *    Indices of voxels.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
  * @throw
  *    DataFileException if there is an error.
  */
 bool
 CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int32_t /*mapIndex*/,
                                                         const int64_t volumeDimensionIJK[3],
-                                                        const std::vector<VoxelIJK>& voxelIndices)
+                                                        const std::vector<VoxelIJK>& voxelIndices,
+                                                        std::vector<float>& correlationDataOut)
 {
+    correlationDataOut.clear();
     if ( ! isEnabledAsLayer()) {
         clearLoadedData();
         return false;
@@ -1641,7 +1683,9 @@ CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int32_t /*mapIndex
     if ( ! rowIndices.empty()) {
         if (loadRowsForAveraging(rowIndices)) {
             m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
-                                                                   voxelIndices);
+                                                                   voxelIndices,
+                                                                   m_loadedRowData.data(),
+                                                                   m_loadedRowData.size());
             
             m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
                                                  + AString::number(rowIndices.size()));
@@ -1673,7 +1717,9 @@ CiftiDenseSparseFile::loadDataForRowIndex(const int64_t rowIndex)
                                               + AString::number(rowIndex+1));
         
         m_connectivityDataLoaded->setRowColumnLoading(rowIndex,
-                                                      -1);
+                                                      -1,
+                                                      m_loadedRowData.data(),
+                                                      m_loadedRowData.size());
     }
     else {
         throw DataFileException(loadResult.getErrorMessage());
@@ -1693,6 +1739,24 @@ CiftiDenseSparseFile::loadDataForColumnIndex(const int64_t /*columnIndex*/)
 {
     clearLoadedData();
     CaretLogFine("Loading by column index not supported");
+}
+
+/**
+ * @return The connectivity correlation settings
+ */
+ConnectivityCorrelationSettings*
+CiftiDenseSparseFile::getCorrelationSettings()
+{
+    return m_connectivityCorrelationSettings.get();
+}
+
+/**
+ * @return The connectivity correlation settings
+ */
+const ConnectivityCorrelationSettings*
+CiftiDenseSparseFile::getCorrelationSettings() const
+{
+    return m_connectivityCorrelationSettings.get();
 }
 
 /**
@@ -1864,11 +1928,20 @@ CiftiDenseSparseFile::finishRestorationOfScene()
      * restore the status.
      */
     const int32_t mapIndex(0);
-    const bool loadingEnabledStatus = isMapDataLoadingEnabled(mapIndex);
-    setMapDataLoadingEnabled(mapIndex, true);
+    const bool loadingEnabledStatus = isMapDataLoadingEnabled();
+    setMapDataLoadingEnabled(true);
     
     switch (m_connectivityDataLoaded->getMode()) {
         case ConnectivityDataLoaded::MODE_NONE:
+            break;
+        case ConnectivityDataLoaded::MODE_CORRELATION:
+        {
+            /*
+             * Never load by column !!!
+             */
+            CaretAssertMessage(0,
+                               "Dense Sparse never loads CORRELATION.");
+        }
             break;
         case ConnectivityDataLoaded::MODE_ROW:
         {
@@ -1876,7 +1949,12 @@ CiftiDenseSparseFile::finishRestorationOfScene()
             int64_t columnIndex;
             m_connectivityDataLoaded->getRowColumnLoading(rowIndex,
                                                           columnIndex);
-            loadDataForRowIndex(rowIndex);
+            if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+            }
+            else {
+                loadDataForRowIndex(rowIndex);
+            }
         }
             break;
         case ConnectivityDataLoaded::MODE_COLUMN:
@@ -1900,12 +1978,18 @@ CiftiDenseSparseFile::finishRestorationOfScene()
                                                             surfaceNodeIndex,
                                                             rowIndex,
                                                             columnIndex);
-            loadMapDataForSurfaceNode(mapIndex,
-                                      surfaceNumberOfNodes,
-                                      structure,
-                                      surfaceNodeIndex,
-                                      rowIndex,
-                                      columnIndex);
+            if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+            }
+            else {
+                std::vector<float> brainordinateRawDataSeriesOut;
+                loadMapDataForSurfaceNode(surfaceNumberOfNodes,
+                                          structure,
+                                          surfaceNodeIndex,
+                                          rowIndex,
+                                          columnIndex,
+                                          brainordinateRawDataSeriesOut);
+            }
         }
             break;
         case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
@@ -1916,10 +2000,16 @@ CiftiDenseSparseFile::finishRestorationOfScene()
             m_connectivityDataLoaded->getSurfaceAverageNodeLoading(structure,
                                                             surfaceNumberOfNodes,
                                                             surfaceNodeIndices);
-            loadMapAverageDataForSurfaceNodes(mapIndex,
-                                              surfaceNumberOfNodes,
-                                              structure,
-                                              surfaceNodeIndices);
+            if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+            }
+            else {
+                std::vector<float> correlationData;
+                loadMapAverageDataForSurfaceNodes(surfaceNumberOfNodes,
+                                                  structure,
+                                                  surfaceNodeIndices,
+                                                  correlationData);
+            }
         }
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
@@ -1930,10 +2020,17 @@ CiftiDenseSparseFile::finishRestorationOfScene()
             m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ,
                                                           rowIndex,
                                                           columnIndex);
-            loadMapDataForVoxelAtCoordinate(mapIndex,
-                                            volumeXYZ,
-                                            rowIndex,
-                                            columnIndex);
+            if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+            }
+            else {
+                std::vector<float> correlationData;
+                loadMapDataForVoxelAtCoordinate(mapIndex,
+                                                volumeXYZ,
+                                                rowIndex,
+                                                columnIndex,
+                                                correlationData);
+            }
         }
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
@@ -1942,15 +2039,21 @@ CiftiDenseSparseFile::finishRestorationOfScene()
             std::vector<VoxelIJK> voxelIndicesIJK;
             m_connectivityDataLoaded->getVolumeAverageVoxelLoading(volumeDimensionsIJK,
                                                                    voxelIndicesIJK);
-            loadMapAverageDataForVoxelIndices(mapIndex,
-                                              volumeDimensionsIJK,
-                                              voxelIndicesIJK);
+            if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
+            }
+            else {
+                std::vector<float> correlationData;
+                loadMapAverageDataForVoxelIndices(mapIndex,
+                                                  volumeDimensionsIJK,
+                                                  voxelIndicesIJK,
+                                                  correlationData);
+            }
         }
             break;
     }
     
-    setMapDataLoadingEnabled(mapIndex,
-                             loadingEnabledStatus);
+    setMapDataLoadingEnabled(loadingEnabledStatus);
 }
 
 /**
@@ -2104,8 +2207,25 @@ CiftiDenseSparseFile::setEnabledAsLayer(const bool enabled)
     m_enabledAsLayerFlag = enabled;
 }
 
+/**
+ * @return The selected yoking grouo
+ */
+GeneralYokingGroupEnum::Enum
+CiftiDenseSparseFile::getDynamicConnectivityYokingGroup() const
+{
+    return m_dynamicYokingGroup;
+}
 
-
+/**
+ * Set the yoking group
+ * @param yokingGroup
+ *    New yoking group
+ */
+void
+CiftiDenseSparseFile::setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup)
+{
+    m_dynamicYokingGroup = yokingGroup;
+}
 
 /**
  * @return Instance cast to a Volume Mappable CaretMappableDataFile

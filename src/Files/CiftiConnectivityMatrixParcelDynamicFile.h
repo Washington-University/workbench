@@ -51,10 +51,13 @@ namespace caret {
         
         const CiftiParcelSeriesFile* getParentParcelSeriesFile() const;
         
-        ConnectivityCorrelationSettings* getCorrelationSettings();
+        virtual ConnectivityCorrelationSettings* getCorrelationSettings() override;
         
-        const ConnectivityCorrelationSettings* getCorrelationSettings() const;
-
+        virtual const ConnectivityCorrelationSettings* getCorrelationSettings() const override;
+        
+        void getDataForRow(std::vector<float>& dataOut,
+                           const int64_t& index) const;
+        
     private:
         CiftiConnectivityMatrixParcelDynamicFile(const CiftiConnectivityMatrixParcelDynamicFile&);
 
@@ -68,6 +71,9 @@ namespace caret {
         virtual void getProcessedDataForColumn(float* dataOut, const int64_t& index) const;
         
         virtual void getProcessedDataForRow(std::vector<float>& dataOut, const int64_t& index) const override;
+        
+        virtual bool correlateWithDataSetProtected(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                   std::vector<float>& dataLoadedOut) const;
         
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);

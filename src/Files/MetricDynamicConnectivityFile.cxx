@@ -60,6 +60,8 @@ m_parentMetricFile(parentMetricFile)
                           &m_dataLoadingEnabledFlag);
     m_sceneAssistant->add("m_enabledAsLayer",
                           &m_enabledAsLayer);
+    m_sceneAssistant->add<GeneralYokingGroupEnum, GeneralYokingGroupEnum::Enum>("m_dynamicYokingGroup",
+                                                                                &m_dynamicYokingGroup);
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded.get());
@@ -95,6 +97,7 @@ MetricDynamicConnectivityFile::clearPrivateData()
     m_validDataFlag = false;
     m_enabledAsLayer = false;
     m_connectivityDataLoaded->reset();
+    m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
 }
 
 /**
@@ -135,7 +138,7 @@ MetricDynamicConnectivityFile::setEnabledAsLayer(const bool enabled)
  * @return True if data loading enabled.
  */
 bool
-MetricDynamicConnectivityFile::isDataLoadingEnabled() const
+MetricDynamicConnectivityFile::isMapDataLoadingEnabled() const
 {
     return m_dataLoadingEnabledFlag;
 }
@@ -146,11 +149,30 @@ MetricDynamicConnectivityFile::isDataLoadingEnabled() const
  * @param True if data loading enabled.
  */
 void
-MetricDynamicConnectivityFile::setDataLoadingEnabled(const bool enabled)
+MetricDynamicConnectivityFile::setMapDataLoadingEnabled(const bool enabled)
 {
     m_dataLoadingEnabledFlag = enabled;
 }
 
+/**
+ * @return The selected yoking grouo
+ */
+GeneralYokingGroupEnum::Enum
+MetricDynamicConnectivityFile::getDynamicConnectivityYokingGroup() const
+{
+    return m_dynamicYokingGroup;
+}
+
+/**
+ * Set the yoking group
+ * @param yokingGroup
+ *    New yoking group
+ */
+void
+MetricDynamicConnectivityFile::setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup)
+{
+    m_dynamicYokingGroup = yokingGroup;
+}
 /**
  * Initialize the file using information from parent volume file
  */
@@ -274,6 +296,76 @@ MetricDynamicConnectivityFile::clearVertexValues()
 }
 
 /**
+ * Correlate data in this file with the given data set
+ * @param dataSet
+ *    The correlation two data set
+ * @param dataSetName
+ *    Name of the data set
+ * @return True if successful, else false.
+ */
+bool
+MetricDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                    const AString& dataSetName)
+{
+    if (isDataValid()
+        && isEnabledAsLayer()
+        && (dataSet.m_numDataElements == m_parentMetricFile->getNumberOfColumns())) {
+        /* OK */
+    }
+    else {
+        clearVertexValues();
+        m_connectivityDataLoaded->reset();
+        return false;
+    }
+    
+    if ( ! m_dataLoadingEnabledFlag) {
+        /* keep any loaded data */
+        return false;
+    }
+    
+    bool validFlag(false);
+    
+    clearVertexValues();
+    m_connectivityDataLoaded->reset();
+
+    std::vector<float> correlatedData(m_numberOfVertices);
+    const ConnectivityCorrelationTwo* connCoorTwo(getConnectivityCorrelationTwo());
+    if (connCoorTwo != NULL) {
+        connCoorTwo->computeForDataSet(dataSet,
+                                       correlatedData);
+        validFlag = true;
+    }
+    
+    if ( ! validFlag) {
+        correlatedData.resize(m_numberOfVertices);
+        std::fill(correlatedData.begin(),
+                  correlatedData.end(),
+                  0.0f);
+    }
+    
+    CaretAssert(m_numberOfVertices == static_cast<int64_t>(correlatedData.size()));
+    float* dataPointer = const_cast<float*>(getValuePointerForColumn(0));
+    CaretAssert(dataPointer);
+    std::copy(correlatedData.begin(),
+              correlatedData.end(),
+              dataPointer);
+    
+    const int32_t mapIndex(0);
+    setMapName(mapIndex,
+               dataSetName);
+    m_dataLoadedName = dataSetName;
+    
+    m_connectivityDataLoaded->setCorrelationLoading(correlatedData.data(),
+                                                    correlatedData.size(),
+                                                    dataSetName);
+    
+    updateAfterFileDataChanges();
+    invalidateHistogramChartColoring();
+    
+    return validFlag;
+}
+
+/**
  * Load connectivity data for the surface's node.
  *
  * @param surfaceNumberOfNodes
@@ -282,14 +374,29 @@ MetricDynamicConnectivityFile::clearVertexValues()
  *    Surface's structure.
  * @param nodeIndex
  *    Index of node number.
+ * @param rowIndexOut
+ *    Row data that was loaded, not always set
+ * @param columnIndexOut
+ *    Column data that was loaded, not always set
+ * @param brainordinateRawDataSeriesOut
+ *    Output with series data for brainordinate typically from the parent connectivity file
+ *    Only set by dynamic connectivity files and will sometimes be empty.  It is used
+ *    for computing connectivity on multiple dynamic connectivity files.
  * @return
  *    True if data was loaded, else false.
  */
 bool
-MetricDynamicConnectivityFile::loadDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
-                                                      const StructureEnum::Enum structure,
-                                                      const int32_t nodeIndex)
+MetricDynamicConnectivityFile::loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
+                                                         const StructureEnum::Enum structure,
+                                                         const int32_t nodeIndex,
+                                                         int64_t& rowIndexOut,
+                                                         int64_t& columnIndexOut,
+                                                         std::vector<float>& brainordinateRawDataSeriesOut)
 {
+    brainordinateRawDataSeriesOut.clear();
+    rowIndexOut = -1;
+    columnIndexOut = -1;
+    
     if (isDataValid()
         && isEnabledAsLayer()
         && (getStructure() == structure)
@@ -326,8 +433,16 @@ MetricDynamicConnectivityFile::loadDataForSurfaceNode(const int32_t surfaceNumbe
         m_connectivityDataLoaded->setSurfaceNodeLoading(getStructure(),
                                                         getNumberOfNodes(),
                                                         nodeIndex,
-                                                        -1, -
-                                                        1);
+                                                        -1,
+                                                        -1,
+                                                        data.data(),
+                                                        data.size());
+        
+        const int32_t numCols(m_parentMetricFile->getNumberOfColumns());
+        brainordinateRawDataSeriesOut.resize(numCols);
+        for (int32_t jCol = 0; jCol < numCols; jCol++) {
+            brainordinateRawDataSeriesOut[jCol] = m_parentMetricFile->getValue(nodeIndex, jCol);
+        }
     }
     
     const int32_t mapIndex(0);
@@ -356,14 +471,18 @@ MetricDynamicConnectivityFile::loadDataForSurfaceNode(const int32_t surfaceNumbe
  *    Surface's structure.
  * @param nodeIndices
  *    Indices of nodes.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
  * @return
  *    True if data was loaded, else false.
  */
 bool
-MetricDynamicConnectivityFile::loadAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
-                                                              const StructureEnum::Enum structure,
-                                                              const std::vector<int32_t>& nodeIndices)
+MetricDynamicConnectivityFile::loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
+                                                                 const StructureEnum::Enum structure,
+                                                                 const std::vector<int32_t>& nodeIndices,
+                                                                 std::vector<float>& correlationDataOut)
 {
+    correlationDataOut.clear();
     if (isDataValid()
         && isEnabledAsLayer()
         && (getStructure() == structure)
@@ -407,7 +526,9 @@ MetricDynamicConnectivityFile::loadAverageDataForSurfaceNodes(const int32_t surf
     
     m_connectivityDataLoaded->setSurfaceAverageNodeLoading(getStructure(),
                                                            getNumberOfNodes(),
-                                                           nodeIndices);
+                                                           nodeIndices,
+                                                           dataPointer,
+                                                           numData);
 
     const AString mapName("Average_Vertex_Count_"
                           + AString::number(static_cast<int32_t>(nodeIndices.size())));
@@ -421,6 +542,91 @@ MetricDynamicConnectivityFile::loadAverageDataForSurfaceNodes(const int32_t surf
 
     return validFlag;
 }
+
+/**
+ * Load data for a voxel at the given coordinate.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param xyz
+ *    Coordinate of voxel.
+ * @param rowIndexOut
+ *    Index of row corresponding to voxel or -1 if no row in the
+ *    matrix corresponds to the voxel.
+ * @param columnIndexOut
+ *    Index of column corresponding to voxel or -1 if no column in the
+ *    matrix corresponds to the voxel.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
+ */
+bool
+MetricDynamicConnectivityFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/,
+                                                                         const float* /*xyz[3]*/,
+                                                                         int64_t& /*rowIndexOut*/,
+                                                               int64_t& /*columnIndexOut*/,
+                                                               std::vector<float>& /*correlationDataOut*/)
+{
+    return false;
+}
+
+/**
+ * Load connectivity data for the voxel indices and then average the data.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param volumeDimensionIJK
+ *    Dimensions of the volume.
+ * @param voxelIndices
+ *    Indices of voxels.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
+ * @throw
+ *    DataFileException if there is an error.
+ */
+bool
+MetricDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int32_t /*mapIndex*/,
+                                                                           const int64_t* /*volumeDimensionIJK[3]*/,
+                                                                           const std::vector<VoxelIJK>& /*voxelIndices*/,
+                                                                 std::vector<float>& correlationDataOut)
+{
+    correlationDataOut.clear();
+    return false;
+}
+
+/**
+ * Load the given row from the file even if the file is disabled.
+ *
+ * NOTE: Afterwards, it will be necessary to update this file's color mapping
+ * with updateScalarColoringForMap().
+ *
+ *
+ * @param rowIndex
+ *    Index of row that is loaded.
+ * @throw DataFileException
+ *    If an error occurs.
+ */
+void
+MetricDynamicConnectivityFile::loadDataForRowIndex(const int64_t rowIndex)
+{
+}
+
+/**
+ * Load the given column from the file even if the file is disabled.
+ *
+ * NOTE: Afterwards, it will be necessary to update this file's color mapping
+ * with updateScalarColoringForMap().
+ *
+ *
+ * @param columnIndex
+ *    Index of row that is loaded.
+ * @throw DataFileException
+ *    If an error occurs.
+ */
+void
+MetricDynamicConnectivityFile::loadDataForColumnIndex(const int64_t columnIndex)
+{
+}
+
 
 /**
  * Get the connectivity for the given vertex index.
@@ -549,6 +755,9 @@ MetricDynamicConnectivityFile::newMetricFileFromLoadedData(const AString& direct
     switch (m_connectivityDataLoaded->getMode()) {
         case ConnectivityDataLoaded::MODE_COLUMN:
             break;
+        case ConnectivityDataLoaded::MODE_CORRELATION:
+            validDataFlag = true;
+            break;
         case ConnectivityDataLoaded::MODE_NONE:
             break;
         case ConnectivityDataLoaded::MODE_ROW:
@@ -666,6 +875,7 @@ void
 MetricDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                         const SceneClass* sceneClass)
 {
+    clearVertexValues();
     m_connectivityDataLoaded->reset();
     
     MetricFile::restoreFileDataFromScene(sceneAttributes,
@@ -676,6 +886,22 @@ MetricDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
     
     switch (m_connectivityDataLoaded->getMode()) {
         case ConnectivityDataLoaded::MODE_COLUMN:
+            break;
+        case ConnectivityDataLoaded::MODE_CORRELATION:
+            if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                const std::vector<float>& d(m_connectivityDataLoaded->getDataLoaded());
+                if (static_cast<int32_t>(d.size()) == getNumberOfNodes()) {
+                    float* dataPointer = const_cast<float*>(getValuePointerForColumn(0));
+                    CaretAssert(dataPointer);
+                    std::copy(d.begin(),
+                              d.end(),
+                              dataPointer);
+                    const int32_t mapIndex(0);
+                    setMapName(mapIndex,
+                               m_connectivityDataLoaded->getDataLoadedName());
+                    m_dataLoadedName = m_connectivityDataLoaded->getDataLoadedName();
+                }
+            }
             break;
         case ConnectivityDataLoaded::MODE_NONE:
             break;
@@ -694,9 +920,25 @@ MetricDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
                                                             rowIndex,
                                                             columnIndex);
             if (vertexIndex >= 0) {
-                loadDataForSurfaceNode(surfaceNumberOfVertices,
-                                       structure,
-                                       vertexIndex);
+                if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                    const std::vector<float>& d(m_connectivityDataLoaded->getDataLoaded());
+                    if (static_cast<int32_t>(d.size()) == getNumberOfNodes()) {
+                        float* dataPointer = const_cast<float*>(getValuePointerForColumn(0));
+                        CaretAssert(dataPointer);
+                        std::copy(d.begin(),
+                                  d.end(),
+                                  dataPointer);
+                    }
+                }
+                else {
+                    std::vector<float> brainordinateRawDataSeriesOut;
+                    loadMapDataForSurfaceNode(surfaceNumberOfVertices,
+                                              structure,
+                                              vertexIndex,
+                                              rowIndex,
+                                              columnIndex,
+                                              brainordinateRawDataSeriesOut);
+                }
             }
         }
             break;
@@ -709,9 +951,23 @@ MetricDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
                                                                    surfaceNumberOfVertices,
                                                                    vertexIndices);
             if ( ! vertexIndices.empty()) {
-                loadAverageDataForSurfaceNodes(surfaceNumberOfVertices,
-                                               structure,
-                                               vertexIndices);
+                if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                    const std::vector<float>& d(m_connectivityDataLoaded->getDataLoaded());
+                    if (static_cast<int32_t>(d.size()) == getNumberOfNodes()) {
+                        float* dataPointer = const_cast<float*>(getValuePointerForColumn(0));
+                        CaretAssert(dataPointer);
+                        std::copy(d.begin(),
+                                  d.end(),
+                                  dataPointer);
+                    }
+                }
+                else {
+                    std::vector<float> correlationData;
+                    loadMapAverageDataForSurfaceNodes(surfaceNumberOfVertices,
+                                                      structure,
+                                                      vertexIndices,
+                                                      correlationData);
+                }
             }
         }
             break;

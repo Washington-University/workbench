@@ -26,6 +26,7 @@
 #include <QWidget>
 
 #include "EventListenerInterface.h"
+#include "GeneralYokingGroupEnum.h"
 
 class QCheckBox;
 class QComboBox;
@@ -42,6 +43,9 @@ namespace caret {
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiFiberTrajectoryFile;
     class CiftiFiberTrajectoryMapFile;
+    class ConnectivityFileInterface;
+    class DynamicConnectivityFileInterface;
+    class GeneralYokingGroupComboBox;
     class MetricDynamicConnectivityFile;
     class VolumeDynamicConnectivityFile;
     
@@ -68,12 +72,12 @@ namespace caret {
         
         void optionsButtonClicked(int);
         
+        void yokingGroupSelected(const int32_t index,
+                                 const GeneralYokingGroupEnum::Enum yokingGroup);
     private:
         CiftiConnectivityMatrixViewController(const CiftiConnectivityMatrixViewController&);
 
         CiftiConnectivityMatrixViewController& operator=(const CiftiConnectivityMatrixViewController&);
-        
-//        void updateUserInterfaceAndGraphicsWindow();
         
         void updateViewController();
         
@@ -91,11 +95,20 @@ namespace caret {
                             MetricDynamicConnectivityFile* &metricDynConnFileOut,
                             VolumeDynamicConnectivityFile* &volDynConnFileOut);
         
+        void getFileAtIndex(const int32_t indx,
+                            ConnectivityFileInterface* &connFileOut,
+                            DynamicConnectivityFileInterface* &dynConFileOut,
+                            CiftiDenseSparseFile* &ciftiDenseSparseFileOut,
+                            CiftiFiberTrajectoryFile* &ciftiTrajFileOut,
+                            CiftiFiberTrajectoryMapFile* &ciftiTrajMapFileOut);
+        
         const QString m_objectNamePrefix;
         
         std::vector<QCheckBox*> m_fileEnableCheckBoxes;
         
         std::vector<QCheckBox*> m_layerCheckBoxes;
+        
+        std::vector<GeneralYokingGroupComboBox*> m_yokingComboBoxes;
         
         std::vector<QLineEdit*> m_fileNameLineEdits;
         
@@ -123,6 +136,7 @@ namespace caret {
         static int COLUMN_LAYER_CHECKBOX;
         static int COLUMN_COPY_BUTTON;
         static int COLUMN_OPTIONS_BUTTON;
+        static int COLUMN_YOKING_COMBO_BOX;
         static int COLUMN_NAME_LINE_EDIT;
         static int COLUMN_ORIENTATION_FILE_COMBO_BOX;
         
@@ -130,12 +144,13 @@ namespace caret {
     
 #ifdef __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
     std::set<CiftiConnectivityMatrixViewController*> CiftiConnectivityMatrixViewController::s_allCiftiConnectivityMatrixViewControllers;
-    int CiftiConnectivityMatrixViewController::COLUMN_ENABLE_CHECKBOX = 0;
-    int CiftiConnectivityMatrixViewController::COLUMN_LAYER_CHECKBOX  = 1;
-    int CiftiConnectivityMatrixViewController::COLUMN_COPY_BUTTON     = 2;
-    int CiftiConnectivityMatrixViewController::COLUMN_OPTIONS_BUTTON  = 3;
-    int CiftiConnectivityMatrixViewController::COLUMN_NAME_LINE_EDIT  = 4;
-    int CiftiConnectivityMatrixViewController::COLUMN_ORIENTATION_FILE_COMBO_BOX = 5;
+    int CiftiConnectivityMatrixViewController::COLUMN_ENABLE_CHECKBOX  = 0;
+    int CiftiConnectivityMatrixViewController::COLUMN_LAYER_CHECKBOX   = 1;
+    int CiftiConnectivityMatrixViewController::COLUMN_COPY_BUTTON      = 2;
+    int CiftiConnectivityMatrixViewController::COLUMN_OPTIONS_BUTTON   = 3;
+    int CiftiConnectivityMatrixViewController::COLUMN_YOKING_COMBO_BOX = 4;
+    int CiftiConnectivityMatrixViewController::COLUMN_NAME_LINE_EDIT   = 5;
+    int CiftiConnectivityMatrixViewController::COLUMN_ORIENTATION_FILE_COMBO_BOX = 6;
 #endif // __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

@@ -94,7 +94,6 @@ ChartTwoOverlayActiveModeEnum.h
 ChartTwoOverlaySet.h
 ChartTwoOverlaySetArray.h
 ChartingDataManager.h
-CiftiConnectivityMatrixDataFileManager.h
 CiftiFiberTrajectoryManager.h
 ClippingPlaneGroup.h
 ClippingPlanePanningModeEnum.h
@@ -121,6 +120,7 @@ DrawingViewportContentSurface.h
 DrawingViewportContentTypeEnum.h
 DrawingViewportContentVolumeSlice.h
 DummyFontTextRenderer.h
+DynamicConnectivityFileLoadingManager.h
 EventAnnotationBarsGet.h
 EventAnnotationGetBeingDrawnInWindow.h
 EventBrainReset.h
@@ -343,7 +343,6 @@ ChartTwoOverlayActiveModeEnum.cxx
 ChartTwoOverlaySet.cxx
 ChartTwoOverlaySetArray.cxx
 ChartingDataManager.cxx
-CiftiConnectivityMatrixDataFileManager.cxx
 CiftiFiberTrajectoryManager.cxx
 ClippingPlaneGroup.cxx
 ClippingPlanePanningModeEnum.cxx
@@ -369,6 +368,7 @@ DrawingViewportContentSurface.cxx
 DrawingViewportContentTypeEnum.cxx
 DrawingViewportContentVolumeSlice.cxx
 DummyFontTextRenderer.cxx
+DynamicConnectivityFileLoadingManager.cxx
 EventAnnotationBarsGet.cxx
 EventAnnotationGetBeingDrawnInWindow.cxx
 EventBrainReset.cxx

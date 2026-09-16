@@ -218,7 +218,6 @@ CiftiFiberTrajectoryFile::setMatchingFiberOrientationFile(CiftiFiberOrientationF
 {
     m_matchingFiberOrientationFile = matchingFiberOrientationFile;
     if (m_matchingFiberOrientationFile != NULL) {
-//        m_matchingFiberOrientationFileName = m_matchingFiberOrientationFile->getFileNameNoPath();
         m_matchingFiberOrientationFileName = m_matchingFiberOrientationFile->getFileName();
         
         switch (m_fiberTrajectoryFileType) {
@@ -287,12 +286,6 @@ CiftiFiberTrajectoryFile::updateMatchingFiberOrientationFileFromList(std::vector
                     }
                 }
             }
-//            if (orientationFile->getFileNameNoPath() == m_matchingFiberOrientationFileNameFromRestoredScene) {
-//                if (isFiberOrientationFileCombatible(orientationFile)) {
-//                    setMatchingFiberOrientationFile(orientationFile);
-//                    matched = true;
-//                }
-//            }
         }
         
         if (matchedOrientFileCount > 0) {
@@ -983,12 +976,6 @@ CiftiFiberTrajectoryFile::writeLoadedDataToFile(const AString& filename) const
         ff.fiberFractions = proportions;
         fiberIndices.push_back(fot->getFiberOrientationIndex());
         fiberFractions.push_back(ff);
-//        
-//        for (int64_t i = 0; i < 3; i++) {
-//            if (vec[i] < -0.002f) {
-//                std::cout << "Fiber " << ctr << vec[i] << std::endl;
-//            }
-//        }
     }
     
     /*
@@ -1260,11 +1247,15 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
         m_loadedDataDescriptionForFileCopy = ("Row_"
                                               + AString::number(rowIndex));
         
+        const float* dataLoaded(NULL);
+        const int32_t dataLoadedLength(0);
         m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
                                                         surfaceNumberOfNodes,
                                                         nodeIndex,
                                                         rowIndex,
-                                                        -1);
+                                                        -1,
+                                                        dataLoaded,
+                                                        dataLoadedLength);
     }
     else {
         m_connectivityDataLoaded->reset();
@@ -1354,9 +1345,13 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
     }
     
     if (loadRowsForAveraging(rowIndicesToLoad)) {
+        const float* dataLoaded(NULL);
+        const int32_t dataLoadedLength(0);
         m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
                                                                surfaceNumberOfNodes,
-                                                               nodeIndices);
+                                                               nodeIndices,
+                                                               dataLoaded,
+                                                               dataLoadedLength);
         
         m_loadedDataDescriptionForMapName = ("Structure: "
                                              + StructureEnum::toName(structure)
@@ -1527,9 +1522,13 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3])
                                              + ", Structure: ");
         m_loadedDataDescriptionForFileCopy = ("Row_"
                                               + AString::number(rowIndex));
+        const float* invalidLoadedData(NULL);
+        const int32_t invalidLoadedDataLength(0);
         m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
                                                       rowIndex,
-                                                      -1);
+                                                      -1,
+                                                      invalidLoadedData,
+                                                      invalidLoadedDataLength);
     }
     else {
         return -1;
@@ -1588,8 +1587,12 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
     }
     
     if (loadRowsForAveraging(rowIndicesToLoad)) {
+        const float* invalidLoadedData(NULL);
+        const int32_t invalidLoadedDataLength(0);
         m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
-                                                               voxelIndices);
+                                                               voxelIndices,
+                                                               invalidLoadedData,
+                                                               invalidLoadedDataLength);
         
         m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
                                              + AString::number(numberOfVoxels));
@@ -1647,8 +1650,12 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex)
         m_loadedDataDescriptionForFileCopy = ("Row_"
                                               + AString::number(rowIndex));
         
+        const float* invalidLoadedData(NULL);
+        const int32_t invalidLoadedDataLength(0);
         m_connectivityDataLoaded->setRowColumnLoading(rowIndex,
-                                                      -1);
+                                                      -1,
+                                                      invalidLoadedData,
+                                                      invalidLoadedDataLength);
     }
     else {
         throw DataFileException(getFileName(),
@@ -1679,6 +1686,15 @@ CiftiFiberTrajectoryFile::finishRestorationOfScene()
     
     switch (m_connectivityDataLoaded->getMode()) {
         case ConnectivityDataLoaded::MODE_NONE:
+            break;
+        case ConnectivityDataLoaded::MODE_CORRELATION:
+        {
+            /*
+             * Never load by column !!!
+             */
+            CaretAssertMessage(0,
+                               "FiberTrajectory never loads by CORRELATION.");
+        }
             break;
         case ConnectivityDataLoaded::MODE_ROW:
         {
@@ -1852,9 +1868,6 @@ CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInforma
         const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
         const CiftiBrainModelsMap& colMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
         
-        //ciftiXML.getVoxelInfoInDataFileContentInformation(CiftiXML::ALONG_COLUMN,
-        //                                                  dataFileInformation);
-        
         if (colMap.hasVolumeData()) {
             VolumeSpace volumeSpace = colMap.getVolumeSpace();//TSC: copied/reimplemented from CiftiXML Old - I don't think it belongs in CiftiXML or CiftiBrainModelsMap
             const int64_t* dims = volumeSpace.getDims();
@@ -1872,25 +1885,6 @@ CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInforma
                                                      + AString::number(i)),
                                                     AString::fromNumbers(sform[i], ","));
             }
-            //TSC: old debug code, too spammy
-            /*std::vector<StructureEnum::Enum> volStructs = colMap.getVolumeStructureList();
-            for (int i = 0; i < (int)volStructs.size(); ++i)
-            {
-                std::vector<CiftiBrainModelsMap::VolumeMap> voxels = colMap.getVolumeStructureMap(volStructs[i]);
-                for (int j = 0; j < (int)voxels.size(); ++j)
-                {
-                    float xyz[3];
-                    volumeSpace.indexToSpace(voxels[i].m_ijk, xyz);
-                    const AString msg = ("ijk=("
-                                         + AString::fromNumbers(voxels[j].m_ijk, 3, ", ")
-                                         + "), xyz=("
-                                         + AString::fromNumbers(xyz, 3, ", ")
-                                         + "), row="
-                                         + AString::number(voxels[j].m_ciftiIndex)
-                                         + "  ");//TSC: huh?
-                    dataFileInformation.addNameAndValue(StructureEnum::toGuiName(volStructs[i]), msg);//TSC: huh?
-                }
-            }//*/
         }
 
         CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,

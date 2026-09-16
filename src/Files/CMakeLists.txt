@@ -92,7 +92,6 @@ CiftiDenseSparseFile.h
 CiftiFiberOrientationFile.h
 CiftiFiberTrajectoryFile.h
 CiftiFiberTrajectoryMapFile.h
-CiftiFileDynamicLoadingInterface.h
 CiftiMappableDataFile.h
 CiftiMappableConnectivityMatrixDataFile.h
 CiftiParcelColoringModeEnum.h
@@ -107,6 +106,7 @@ ConnectivityCorrelationTwo.h
 ConnectivityCorrelationModeEnum.h
 ConnectivityCorrelationSettings.h
 ConnectivityDataLoaded.h
+ConnectivityFileInterface.h
 ControlPointFile.h
 CziDistanceFile.h
 CziImage.h
@@ -124,6 +124,7 @@ DataFileEditorItem.h
 DataFileEditorItemTypeEnum.h
 DataFileEditorModel.h
 DingOntologyTermsFile.h
+DynamicConnectivityFileInterface.h
 EventCaretDataFilesGet.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
 EventCaretMappableDataFilesGet.h

@@ -5663,6 +5663,9 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                         case ConnectivityDataLoaded::MODE_NONE:
                             return false;
                             break;
+                        case ConnectivityDataLoaded::MODE_CORRELATION:
+                            CaretAssertToDoFatal();
+                            break;
                         case ConnectivityDataLoaded::MODE_COLUMN:
                         case ConnectivityDataLoaded::MODE_ROW:
                         case ConnectivityDataLoaded::MODE_SURFACE_NODE:
@@ -5776,6 +5779,9 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                     switch (dataLoaded->getMode()) {
                         case ConnectivityDataLoaded::MODE_NONE:
                             return false;
+                            break;
+                        case ConnectivityDataLoaded::MODE_CORRELATION:
+                            CaretAssertToDoFatal();
                             break;
                         case ConnectivityDataLoaded::MODE_COLUMN:
                         case ConnectivityDataLoaded::MODE_ROW:
@@ -6888,6 +6894,9 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
                                 switch (dataLoaded->getMode()) {
                                     case ConnectivityDataLoaded::MODE_NONE:
                                         return false;
+                                        break;
+                                    case ConnectivityDataLoaded::MODE_CORRELATION:
+                                        CaretAssertToDoFatal();
                                         break;
                                     case ConnectivityDataLoaded::MODE_COLUMN:
                                     case ConnectivityDataLoaded::MODE_ROW:

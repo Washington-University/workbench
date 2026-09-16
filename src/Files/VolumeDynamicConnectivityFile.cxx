@@ -62,6 +62,8 @@ m_parentVolumeFile(parentVolumeFile)
                           &m_dataLoadingEnabledFlag);
     m_sceneAssistant->add("m_enabledAsLayer",
                           &m_enabledAsLayer);
+    m_sceneAssistant->add<GeneralYokingGroupEnum, GeneralYokingGroupEnum::Enum>("m_dynamicYokingGroup",
+                                                                                &m_dynamicYokingGroup);
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded.get());
@@ -99,6 +101,8 @@ VolumeDynamicConnectivityFile::clearPrivateData()
     m_enabledAsLayer = false;
     m_connectivityCorrelationTwo.reset();
     m_connectivityDataLoaded->reset();
+    m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
+    m_parentVolumeFileNumberOfTimePoints = 0;
 }
 
 /**
@@ -138,7 +142,7 @@ VolumeDynamicConnectivityFile::setEnabledAsLayer(const bool enabled)
  * @return True if data loading enabled.
  */
 bool
-VolumeDynamicConnectivityFile::isDataLoadingEnabled() const
+VolumeDynamicConnectivityFile::isMapDataLoadingEnabled() const
 {
     return m_dataLoadingEnabledFlag;
 }
@@ -149,11 +153,30 @@ VolumeDynamicConnectivityFile::isDataLoadingEnabled() const
  * @param True if data loading enabled.
  */
 void
-VolumeDynamicConnectivityFile::setDataLoadingEnabled(const bool enabled)
+VolumeDynamicConnectivityFile::setMapDataLoadingEnabled(const bool enabled)
 {
     m_dataLoadingEnabledFlag = enabled;
 }
 
+/**
+ * @return The selected yoking grouo
+ */
+GeneralYokingGroupEnum::Enum
+VolumeDynamicConnectivityFile::getDynamicConnectivityYokingGroup() const
+{
+    return m_dynamicYokingGroup;
+}
+
+/**
+ * Set the yoking group
+ * @param yokingGroup
+ *    New yoking group
+ */
+void
+VolumeDynamicConnectivityFile::setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup)
+{
+    m_dynamicYokingGroup = yokingGroup;
+}
 /**
  * Initialize the file using information from parent volume file
  */
@@ -192,6 +215,13 @@ VolumeDynamicConnectivityFile::initializeFile()
         m_sliceStride          = m_dimI * m_dimJ;
         m_timePointIndexStride = m_numberOfVoxels;
     }
+    
+    int64_t pDimI(0), pDimJ(0), pDimK(0), pDimComp(0);
+    m_parentVolumeFile->getDimensions(pDimI,
+                                      pDimJ,
+                                      pDimK,
+                                      m_parentVolumeFileNumberOfTimePoints,
+                                      pDimComp);
     
     clearVoxels();
     
@@ -291,37 +321,6 @@ VolumeDynamicConnectivityFile::clearVoxels()
 }
 
 /**
- * Get the timepoints for a given voxel
- *
- * @param i
- *    index "I"
- * @param j
- *    index "J"
- * @param k
- *    index "K"
- * @param dataOut
- *     Output with time points
- */
-void
-VolumeDynamicConnectivityFile::getTimePointsForVoxel(const int64_t i,
-                                                     const int64_t j,
-                                                     const int64_t k,
-                                                     std::vector<float>& dataOut) const
-{
-    CaretAssert(indexValid(i, j, k));
-    
-    const int64_t ijk[3] { i, j, k };
-    const int64_t componentIndex(0);
-    
-    dataOut.resize(m_dimTime);
-    for (int64_t iTime = 0; iTime < m_dimTime; iTime++) {
-        dataOut[iTime] = m_parentVolumeFile->getValue(ijk,
-                                                      iTime,
-                                                      componentIndex);
-    }
-}
-
-/**
  * Load connectivity data for the voxel indices and then average the data.
  *
  * @param volumeDimensionIJK
@@ -332,9 +331,12 @@ VolumeDynamicConnectivityFile::getTimePointsForVoxel(const int64_t i,
  *    True if data was loaded, else false
  */
 bool
-VolumeDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
-                                                                 const std::vector<VoxelIJK>& voxelIndices)
+VolumeDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
+                                                                 const int64_t volumeDimensionIJK[3],
+                                                                 const std::vector<VoxelIJK>& voxelIndices,
+                                                                 std::vector<float>& correlationDataOut)
 {
+    correlationDataOut.clear();
     if (isDataValid()
         && isEnabledAsLayer()
         && matchesDimensions(volumeDimensionIJK[0],
@@ -347,7 +349,7 @@ VolumeDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int64_t v
         return false;
     }
 
-    if ( ! isDataLoadingEnabled()) {
+    if ( ! isMapDataLoadingEnabled()) {
         /* Keep any loaded data */
         return false;
     }
@@ -391,6 +393,10 @@ VolumeDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int64_t v
         
         const int32_t mapIndex(0);
         const int64_t validDataCount(static_cast<int64_t>(brainordinateIndices.size()));
+        m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
+                                                               voxelIndices,
+                                                               m_voxelData,
+                                                               m_numberOfVoxels);
         setMapName(mapIndex,
                    ("Average Voxel Count: "
                     + AString::number(validDataCount, 'f', 0)));
@@ -406,26 +412,124 @@ VolumeDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int64_t v
 }
 
 /**
- * Load the connectivity for the voxel at the given coordinate.
- * The loaded data will be in the voxels inside this volume.
- * If the voxel index at the coordinate is invalid, zeros are loaded into all voxels.
- *
- * @param xyz
- *     The voxel XYZ.
- * @return
- *     True if data was loaded, else false.
+ * Get the timepoints for a voxel IJK
+ * @param ijk
+ *    Voxel IJK
+ * @param timepointsOut
+ *    Output with timepoints
+ */
+void
+VolumeDynamicConnectivityFile::getParentTimepointsForIJK(const int64_t ijk[0],
+                                                         std::vector<float>& timepointsOut) const
+{
+    timepointsOut.resize(m_parentVolumeFileNumberOfTimePoints);
+    for (int64_t tp = 0; tp < m_parentVolumeFileNumberOfTimePoints; tp++) {
+        CaretAssertVectorIndex(timepointsOut, tp);
+        timepointsOut[tp] = m_parentVolumeFile->getValue(ijk[0], ijk[1], ijk[2], tp);
+    }
+}
+
+/**
+ * Correlate data in this file with the given data set
+ * @param dataSet
+ *    The correlation two data set
+ * @param dataSetName
+ *    Name of the data set
+ * @return True if successful, else false.
  */
 bool
-VolumeDynamicConnectivityFile::loadConnectivityForVoxelXYZ(const float xyz[3])
+VolumeDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                    const AString& dataSetName)
+{
+    if (isDataValid()
+        && isEnabledAsLayer()) {
+        /* OK */
+    }
+    else {
+        clearVoxels();
+        return false;
+    }
+    
+    if ( ! isMapDataLoadingEnabled()) {
+        /* Keep any loaded data */
+        return false;
+    }
+    
+    clearVoxels();
+    
+    if (dataSet.m_numDataElements != m_parentVolumeFileNumberOfTimePoints) {
+        return false;
+    }
+    const ConnectivityCorrelationTwo* connCorrelationTwo(getConnectivityCorrelationTwo());
+    if (connCorrelationTwo == NULL) {
+        return false;
+    }
+    
+    bool validFlag(false);
+    
+    const ConnectivityCorrelationTwo* connCoorTwo(getConnectivityCorrelationTwo());
+    if (connCoorTwo != NULL) {
+        std::vector<float> dataLoaded(m_numberOfVoxels);
+        connCoorTwo->computeForDataSet(dataSet,
+                                       dataLoaded);
+        std::memcpy(m_voxelData, dataLoaded.data(), (m_numberOfVoxels * sizeof(float)));
+        
+        m_connectivityDataLoaded->setCorrelationLoading(dataLoaded.data(),
+                                                        dataLoaded.size(),
+                                                        dataSetName);
+        setMapName(0, dataSetName);
+        m_dataLoadedName = dataSetName;
+        
+        const int32_t mapIndex(0);
+        updateScalarColoringForMap(mapIndex);
+        
+        validFlag = true;
+    }
+    
+    if ( ! validFlag) {
+        std::fill(m_voxelData,
+                  &m_voxelData[m_numberOfVoxels],
+                  0.0);
+    }
+    
+    return validFlag;
+}
+
+/**
+ * Load data for a voxel at the given coordinate.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param xyz
+ *    Coordinate of voxel.
+ * @param rowIndexOut
+ *    Index of row corresponding to voxel or -1 if no row in the
+ *    matrix corresponds to the voxel.
+ * @param columnIndexOut
+ *    Index of column corresponding to voxel or -1 if no column in the
+ *    matrix corresponds to the voxel.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
+ */
+bool
+VolumeDynamicConnectivityFile::loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
+                                                               const float xyz[3],
+                                                               int64_t& rowIndexOut,
+                                                               int64_t& columnIndexOut,
+                                                               std::vector<float>& correlationDataOut)
 {
     int64_t ijk[3];
     enclosingVoxel(xyz, ijk);
 
+    rowIndexOut    = -1;
+    columnIndexOut = -1;
     if (loadConnectivityForVoxelIndex(ijk)) {
         const int32_t invalidRowColumnIndex(-1);
         m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
-                                                      invalidRowColumnIndex,
-                                                      invalidRowColumnIndex);
+                                                      rowIndexOut,
+                                                      columnIndexOut,
+                                                      m_voxelData,
+                                                      m_numberOfVoxels);
         setMapName(0,
                    ("Voxel XYZ: ("
                     + AString::fromNumbers(xyz, 3, ",")
@@ -440,12 +544,104 @@ VolumeDynamicConnectivityFile::loadConnectivityForVoxelXYZ(const float xyz[3])
         const int32_t mapIndex(0);
         updateScalarColoringForMap(mapIndex);
         
+        getParentTimepointsForIJK(ijk,
+                                  correlationDataOut);
+                
         return true;
     }
     
     return false;
 }
 
+/**
+ * Load the given row from the file even if the file is disabled.
+ *
+ * NOTE: Afterwards, it will be necessary to update this file's color mapping
+ * with updateScalarColoringForMap().
+ *
+ *
+ * @param rowIndex
+ *    Index of row that is loaded.
+ * @throw DataFileException
+ *    If an error occurs.
+ */
+void
+VolumeDynamicConnectivityFile::loadDataForRowIndex(const int64_t /*rowIndex*/)
+{
+}
+
+/**
+ * Load connectivity data for the surface's node.
+ *
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in surface.
+ * @param structure
+ *    Surface's structure.
+ * @param nodeIndex
+ *    Index of node number.
+ * @param rowIndexOut
+ *    Row data that was loaded, not always set
+ * @param columnIndexOut
+ *    Column data that was loaded, not always set
+ * @param brainordinateRawDataSeriesOut
+ *    Output with series data for brainordinate typically from the parent connectivity file
+ *    Only set by dynamic connectivity files and will sometimes be empty.  It is used
+ *    for computing connectivity on multiple dynamic connectivity files.
+ * @return
+ *    True if data was loaded, else false.
+ */
+bool
+VolumeDynamicConnectivityFile::loadMapDataForSurfaceNode(const int32_t /*surfaceNumberOfNodes*/,
+                                                         const StructureEnum::Enum /*structure*/,
+                                                         const int32_t /*nodeIndex*/,
+                                                         int64_t& /*rowIndexOut*/,
+                                                         int64_t& /*columnIndexOut*/,
+                                                         std::vector<float>& brainordinateRawDataSeriesOut)
+{
+    brainordinateRawDataSeriesOut.clear();
+    return false;
+}
+
+/**
+ * Load connectivity data for the surface's nodes and then average the data.
+ *
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in surface.
+ * @param structure
+ *    Surface's structure.
+ * @param nodeIndices
+ *    Indices of nodes.
+ * @param correlationDataOut
+ *    Data for correlation with this and other data set
+ * @return
+ *    True if data was loaded, else false.
+ */
+bool
+VolumeDynamicConnectivityFile::loadMapAverageDataForSurfaceNodes(const int32_t /*surfaceNumberOfNodes*/,
+                                                                 const StructureEnum::Enum /*structure*/,
+                                                                 const std::vector<int32_t>& /*nodeIndices*/,
+                                                                 std::vector<float>& correlationDataOut)
+{
+    correlationDataOut.clear();
+    return false;
+}
+
+/**
+ * Load the given column from the file even if the file is disabled.
+ *
+ * NOTE: Afterwards, it will be necessary to update this file's color mapping
+ * with updateScalarColoringForMap().
+ *
+ *
+ * @param columnIndex
+ *    Index of row that is loaded.
+ * @throw DataFileException
+ *    If an error occurs.
+ */
+void
+VolumeDynamicConnectivityFile::loadDataForColumnIndex(const int64_t /*columnIndex*/)
+{
+}
 
 /**
  * Load the connectivity for the given voxel.
@@ -639,6 +835,9 @@ VolumeDynamicConnectivityFile::newVolumeFileFromLoadedData(const AString& direct
     switch (m_connectivityDataLoaded->getMode()) {
         case ConnectivityDataLoaded::MODE_COLUMN:
             break;
+        case ConnectivityDataLoaded::MODE_CORRELATION:
+            validDataFlag = true;
+            break;
         case ConnectivityDataLoaded::MODE_NONE:
             break;
         case ConnectivityDataLoaded::MODE_ROW:
@@ -770,16 +969,20 @@ void
 VolumeDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                         const SceneClass* sceneClass)
 {
-    m_connectivityDataLoaded->reset();
-    
     VolumeFile::restoreFileDataFromScene(sceneAttributes,
                                          sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
     
+    bool loadConnectivityDataFlag(false);
     switch (m_connectivityDataLoaded->getMode()) {
         case ConnectivityDataLoaded::MODE_COLUMN:
+            break;
+        case ConnectivityDataLoaded::MODE_CORRELATION:
+            if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                loadConnectivityDataFlag = true;
+            }
             break;
         case ConnectivityDataLoaded::MODE_NONE:
             break;
@@ -791,16 +994,26 @@ VolumeDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
         {
+            const int32_t mapIndex(0);
             int64_t dimIJK[3];
             std::vector<VoxelIJK> voxelIJKs;
             m_connectivityDataLoaded->getVolumeAverageVoxelLoading(dimIJK,
                                                                    voxelIJKs);
-            loadMapAverageDataForVoxelIndices(dimIJK,
-                                              voxelIJKs);
+            if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                loadConnectivityDataFlag = true;
+            }
+            else {
+                std::vector<float> correlationData;
+                loadMapAverageDataForVoxelIndices(mapIndex,
+                                                  dimIJK,
+                                                  voxelIJKs,
+                                                  correlationData);
+            }
         }
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
         {
+            const int32_t mapIndex(0);
             float xyz[3];
             int64_t rowIndex(-1);
             int64_t columnIndex(-1);
@@ -808,9 +1021,37 @@ VolumeDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
             m_connectivityDataLoaded->getVolumeXYZLoading(xyz,
                                                           rowIndex,
                                                           columnIndex);
-            loadConnectivityForVoxelXYZ(xyz);
+            if (m_connectivityDataLoaded->isDataLoadedValid()) {
+                loadConnectivityDataFlag = true;
+            }
+            else {
+                std::vector<float> correlationData;
+                loadMapDataForVoxelAtCoordinate(mapIndex,
+                                                xyz,
+                                                rowIndex,
+                                                columnIndex,
+                                                correlationData);
+            }
         }
             break;
+    }
+    
+    if (loadConnectivityDataFlag) {
+        /*
+         * Scenes created Sept 2026 save the loaded data to m_connectivityDataLoaded
+         */
+        const std::vector<float>& d(m_connectivityDataLoaded->getDataLoaded());
+        if (static_cast<int64_t>(d.size()) == m_numberOfVoxels) {
+            CaretAssert(m_voxelData);
+            std::copy(d.begin(),
+                      d.end(),
+                      m_voxelData);
+            const int32_t mapIndex(0);
+            setMapName(mapIndex, m_connectivityDataLoaded->getDataLoadedName());
+            m_dataLoadedName = m_connectivityDataLoaded->getDataLoadedName();
+            
+            updateScalarColoringForMap(mapIndex);
+        }
     }
 }
 

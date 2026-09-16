@@ -127,6 +127,7 @@ m_dataStride(dataStride)
         computeMeanAndSumSquared(dataPtr,
                                  numberOfDataElements,
                                  dataStride,
+                                 m_settings.isCorrelationNoDemeanEnabled(),
                                  mean,
                                  sqrtSumSquared);
         
@@ -144,6 +145,49 @@ m_dataStride(dataStride)
 }
 
 /**
+ * Create a data set from the given data
+ * @param dataElements
+ *    Pointer to the data
+ * @param numDataElements
+ *    Number of data elements
+ * @param dataStride
+ *    The offset of each element in one data pointer.  In most cases, the data is contiguous, this value is one.  In instance
+ *    where the data is in the columns of a matrix, this value is the number of columns.
+ * @param correlationNoDemeanEnabled
+ *    If true, do not "demean" the sum-squared (value of m_settings.isCorrelationNoDemeanEnabled())
+ * @return
+ *    The DataSet
+ */
+ConnectivityCorrelationTwo::DataSet
+ConnectivityCorrelationTwo::createDataSet(const float* dataElements,
+                                          const int64_t numberOfDataElements,
+                                          const int64_t dataStride,
+                                          const bool correlationNoDemeanEnabled)
+{
+    float mean(0.0);
+    float sqrtSumSquared(0.0);
+    
+    computeMeanAndSumSquared(dataElements,
+                             numberOfDataElements,
+                             dataStride,
+                             correlationNoDemeanEnabled,
+                             mean,
+                             sqrtSumSquared);
+    
+    const int64_t dataSetIndex(-1);
+    DataSet dataSet(dataSetIndex,
+                    dataElements,
+                    numberOfDataElements,
+                    dataStride,
+                    mean,
+                    sqrtSumSquared);
+
+    return dataSet;
+
+}
+
+
+/**
  * Compute the mean and the square root of sum squared for the given data
  * @param dataPtr
  *    Pointer to data
@@ -152,6 +196,8 @@ m_dataStride(dataStride)
  * @param dataStride
  *    The offset of each element in one data pointer.  In most cases, the data is contiguous, this value is one.  In instance
  *    where the data is in the columns of a matrix, this value is the number of columns.
+ * @param correlationNoDemeanEnabled
+ *    If true, do not "demean" the sum-squared (value of m_settings.isCorrelationNoDemeanEnabled())
  * @param meanOut
  *    Output with mean
  * @param sqrtSumSquaredOut
@@ -161,8 +207,9 @@ void
 ConnectivityCorrelationTwo::computeMeanAndSumSquared(const float* dataPtr,
                                                      const int64_t numberOfDataElements,
                                                      const int64_t dataStride,
+                                                     const bool correlationNoDemeanEnabled,
                                                      float& meanOut,
-                                                     float& sqrtSumSquaredOut) const
+                                                     float& sqrtSumSquaredOut)
 {
     /*
      * NOTE: Do not use OpenMP here.  OpenMP is used
@@ -178,9 +225,9 @@ ConnectivityCorrelationTwo::computeMeanAndSumSquared(const float* dataPtr,
     }
     
     meanOut = (sum / static_cast<float>(numberOfDataElements));
-    const float sumSquared(m_settings.isCorrelationNoDemeanEnabled()
+    const float sumSquared(correlationNoDemeanEnabled 
                            ? sumSQ
-                           : (sumSQ - (m_numberOfDataElements * meanOut * meanOut)));
+                           : (sumSQ - (numberOfDataElements * meanOut * meanOut)));
     sqrtSumSquaredOut = (std::sqrt(sumSquared));
 }
 

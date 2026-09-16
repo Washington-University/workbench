@@ -57,7 +57,7 @@
 #include "ChartingDataManager.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
-#include "CiftiConnectivityMatrixDataFileManager.h"
+#include "DynamicConnectivityFileLoadingManager.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiScalarDataSeriesFile.h"
@@ -226,6 +226,8 @@ GuiManager::initializeGuiManager()
      */
     WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QAction",
                                                     "caret::WorkbenchAction");
+    WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QComboBox",
+                                                    "caret::GeneralYokingGroupComboBox");
     WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QTabWidget",
                                                     "caret::WuQTabWidgetWithSizeHint");
     WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QTabBar",
@@ -3278,7 +3280,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
     cursor.showWaitCursor();
     
     Brain* brain = GuiManager::get()->getBrain();
-    CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager = SessionManager::get()->getCiftiConnectivityMatrixDataFileManager();
+    DynamicConnectivityFileLoadingManager* ciftiConnectivityManager = SessionManager::get()->getDynamicConnectivityFileLoadingManager();
     CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = SessionManager::get()->getCiftiFiberTrajectoryManager();
     ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
     IdentificationManager* identificationManager = brain->getIdentificationManager();
@@ -3364,17 +3366,6 @@ GuiManager::processIdentification(const int32_t tabIndex,
                     chartingDataManager->loadChartForSurfaceNode(surface,
                                                                  nodeIndex);
                     
-                    std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
-                    brain->getMetricDynamicConnectivityFiles(metricDynConnFiles);
-                    
-                    for (auto mdc : metricDynConnFiles) {
-                        if (mdc->isEnabledAsLayer()) {
-                            mdc->loadDataForSurfaceNode(surface->getNumberOfNodes(),
-                                                        surface->getStructure(),
-                                                        nodeIndex);
-                        }
-                    }
-
                     updateGraphicsFlag = true;
                 }
                 catch (const DataFileException& e) {
@@ -3429,28 +3420,14 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 }
             }
         }
-        
-        if (idVoxel->isValid()) {
-            std::vector<VolumeDynamicConnectivityFile*> volumeDynConnFiles;
-            brain->getVolumeDynamicConnectivityFiles(volumeDynConnFiles);
-            
-            for (auto vdc : volumeDynConnFiles) {
-                if (vdc->isEnabledAsLayer()) {
-                    double xyzDouble[3];
-                    idVoxel->getModelXYZ(xyzDouble);
-                    float xyz[3] { static_cast<float>(xyzDouble[0]), static_cast<float>(xyzDouble[1]), static_cast<float>(xyzDouble[2]) };
-                    vdc->loadConnectivityForVoxelXYZ(xyz);
-                }
-            }
-        }
-        
+                
         SelectionItemChartMatrix* idChartOneMatrix = selectionManager->getChartMatrixIdentification();
         if (idChartOneMatrix->isValid()) {
             ChartableMatrixInterface* chartMatrixInterface = idChartOneMatrix->getChartableMatrixInterface();
             if (chartMatrixInterface != NULL) {
                 CiftiConnectivityMatrixParcelFile* ciftiParcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(chartMatrixInterface);
                 if (ciftiParcelFile != NULL) {
-                    if (ciftiParcelFile->isMapDataLoadingEnabled(0)) {
+                    if (ciftiParcelFile->isMapDataLoadingEnabled()) {
                         const int32_t rowIndex = idChartOneMatrix->getMatrixRowIndex();
                         const int32_t columnIndex = idChartOneMatrix->getMatrixColumnIndex();
                         if ((rowIndex >= 0)
@@ -3602,7 +3579,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                         {
                             CiftiConnectivityMatrixParcelFile* ciftiParcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(cmdf);
                             if (ciftiParcelFile != NULL) {
-                                if (ciftiParcelFile->isMapDataLoadingEnabled(0)) {
+                                if (ciftiParcelFile->isMapDataLoadingEnabled()) {
                                     if ((rowIndex >= 0)
                                         && (colIndex >= 0)) {
                                         try {

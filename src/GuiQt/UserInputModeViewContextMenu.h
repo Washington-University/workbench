@@ -40,7 +40,7 @@ namespace caret {
     class BrainOpenGLWidget;
     class BrowserTabContent;
     class CaretMappableDataFile;
-    class CiftiConnectivityMatrixDataFileManager;
+    class DynamicConnectivityFileLoadingManager;
     class CiftiFiberTrajectoryManager;
     class ChartingDataManager;
     class ModelChartTwo;
@@ -121,7 +121,7 @@ namespace caret {
                                const int32_t nodeNumber,
                                const int64_t volumeDimensions[3],
                                ChartingDataManager* chartingDataManager,
-                               CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager,
+                               DynamicConnectivityFileLoadingManager* dynConnFileLoadingManager,
                                CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager);
             
             virtual ~ParcelConnectivity();
@@ -140,7 +140,7 @@ namespace caret {
             Surface* surface;
             int32_t nodeNumber;
             int64_t volumeDimensions[3];
-            CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager;
+            DynamicConnectivityFileLoadingManager* dynConnFileLoadingManager;
             ChartingDataManager* chartingDataManager;
             CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager;
         };

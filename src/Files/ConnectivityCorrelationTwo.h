@@ -33,6 +33,41 @@ namespace caret {
     class ConnectivityCorrelationTwo : public CaretObject {
         
     public:
+        class DataSet {
+        public:
+            DataSet(const int64_t dataSetIndex,
+                    const float* dataElements,
+                    const int64_t numDataElements,
+                    const int64_t dataStride,
+                    const float mean,
+                    const float sqrtSumSquared)
+            : m_dataSetIndex(dataSetIndex),
+            m_dataElements(dataElements),
+            m_numDataElements(numDataElements),
+            m_dataStride(dataStride),
+            m_mean(mean),
+            m_sqrtSumSquared(sqrtSumSquared)
+            { }
+            
+            /** @return data element at given index */
+            const float& get(const int64_t index) const {
+                CaretAssert((index >= 0) && (index < m_numDataElements));
+                return m_dataElements[index * m_dataStride];
+            }
+            
+            const int64_t m_dataSetIndex;
+            const float*  m_dataElements;
+            const int64_t m_numDataElements;
+            const int64_t m_dataStride;
+            const float   m_mean;
+            const float   m_sqrtSumSquared;
+        };
+        
+        static DataSet createDataSet(const float* dataElements,
+                                     const int64_t numberOfDataElements,
+                                     const int64_t dataStride,
+                                     const bool correlationNoDemeanEnabled);
+        
         static ConnectivityCorrelationTwo* newInstance(const AString& ownerName,
                                                        const ConnectivityCorrelationSettings& settings,
                                                        const std::vector<const float*>& dataSetPointers,
@@ -51,41 +86,15 @@ namespace caret {
         void computeAverageForDataSetIndices(const std::vector<int64_t> dataSetIndices,
                                              std::vector<float>& dataOut) const;
         
+        void computeForDataSet(const DataSet& dataSet,
+                               std::vector<float>& dataOut) const;
+        
         void computeForDataSetIndex(const int64_t dataSetIndex,
                                     std::vector<float>& dataOut) const;
         
         // ADD_NEW_METHODS_HERE
 
     private:
-        class DataSet {
-        public:
-            DataSet(const int64_t dataSetIndex,
-                    const float* dataElements,
-                    const int64_t numDataElements,
-                    const int64_t dataStride,
-                    const float mean,
-                    const float sqrtSumSquared)
-            : m_dataSetIndex(dataSetIndex),
-            m_dataElements(dataElements),
-            m_numDataElements(numDataElements),
-            m_dataStride(dataStride),
-            m_mean(mean),
-            m_sqrtSumSquared(sqrtSumSquared)            
-            { }
-            
-            /** @return data element at given index */
-            const float& get(const int64_t index) const {
-                CaretAssert((index >= 0) && (index < m_numDataElements));
-                return m_dataElements[index * m_dataStride];
-            }
-            
-            const int64_t m_dataSetIndex;
-            const float*  m_dataElements;
-            const int64_t m_numDataElements;
-            const int64_t m_dataStride;
-            const float   m_mean;
-            const float   m_sqrtSumSquared;
-        };
         
         ConnectivityCorrelationTwo(const AString& ownerName,
                                    const ConnectivityCorrelationSettings& settings,
@@ -93,18 +102,16 @@ namespace caret {
                                    const int64_t numberOfDataElements,
                                    const int64_t dataStride);
         
-        void computeForDataSet(const DataSet& dataSet,
-                               std::vector<float>& dataOut) const;
-        
         float computeForDataSets(const DataSet& a,
                                  const DataSet& b) const;
         
-        void computeMeanAndSumSquared(const float* dataPtr,
-                                      const int64_t numberOfDataElements,
-                                      const int64_t dataStride,
-                                      float& meanOut,
-                                      float& sqrtSumSquaredOut) const;
-        
+        static void computeMeanAndSumSquared(const float* dataPtr,
+                                             const int64_t numberOfDataElements,
+                                             const int64_t dataStride,
+                                             const bool correlationNoDemeanEnabled,
+                                             float& meanOut,
+                                             float& sqrtSumSquaredOut);
+
         void printDebugData();
         
         const AString m_ownerName;

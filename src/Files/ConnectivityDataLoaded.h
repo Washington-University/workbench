@@ -49,6 +49,7 @@ namespace caret {
             MODE_NONE,
             MODE_ROW,
             MODE_COLUMN,
+            MODE_CORRELATION,
             MODE_SURFACE_NODE,
             MODE_SURFACE_NODE_AVERAGE,
             MODE_VOXEL_XYZ,
@@ -59,11 +60,17 @@ namespace caret {
         
         Mode getMode() const;
         
+        void setCorrelationLoading(const float* dataLoaded,
+                                   const int32_t dataLoadedLength,
+                                   const AString& correlationDataName);
+        
         void getRowColumnLoading(int64_t& rowIndex,
                                  int64_t& columnIndex) const;
         
         void setRowColumnLoading(const int64_t rowIndex,
-                                 const int64_t columnIndex);
+                                 const int64_t columnIndex,
+                                 const float* dataLoaded,
+                                 const int32_t dataLoadedLength);
         
         void getSurfaceNodeLoading(StructureEnum::Enum& structure,
                                    int32_t& surfaceNumberOfNodes,
@@ -75,15 +82,19 @@ namespace caret {
                                    const int32_t surfaceNumberOfNodes,
                                    const int32_t surfaceNodeIndex,
                                    const int64_t rowIndex,
-                                   const int64_t columnIndex);
+                                   const int64_t columnIndex,
+                                   const float* dataLoaded,
+                                   const int32_t dataLoadedLength);
         
         void getSurfaceAverageNodeLoading(StructureEnum::Enum& structure,
-                                   int32_t& surfaceNumberOfNode,
+                                          int32_t& surfaceNumberOfNode,
                                           std::vector<int32_t>& surfaceNodeIndices) const;
         
         void setSurfaceAverageNodeLoading(const StructureEnum::Enum structure,
                                           const int32_t surfaceNumberOfNodes,
-                                          const std::vector<int32_t>& surfaceNodeIndices);
+                                          const std::vector<int32_t>& surfaceNodeIndices,
+                                          const float* dataLoaded,
+                                          const int32_t dataLoadedLength);
         
         void getVolumeXYZLoading(float volumeXYZ[3],
                                  int64_t& rowIndex,
@@ -91,14 +102,24 @@ namespace caret {
         
         void setVolumeXYZLoading(const float volumeXYZ[3],
                                  const int64_t rowIndex,
-                                 const int64_t columnIndex);
+                                 const int64_t columnIndex,
+                                 const float* dataLoaded,
+                                 const int32_t dataLoadedLength);
         
         void getVolumeAverageVoxelLoading(int64_t volumeDimensionsIJK[3],
                                           std::vector<VoxelIJK>& voxelIndicesIJK) const;
         
         void setVolumeAverageVoxelLoading(const int64_t volumeDimensionsIJK[3],
-                                          const std::vector<VoxelIJK>& voxelIndicesIJK);
+                                          const std::vector<VoxelIJK>& voxelIndicesIJK,
+                                          const float* dataLoaded,
+                                          const int32_t dataLoadedLength);
                 
+        bool isDataLoadedValid() const;
+        
+        const std::vector<float>& getDataLoaded() const;
+        
+        AString getDataLoadedName() const;
+        
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
@@ -108,6 +129,9 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
 
+        void setDataLoaded(const float* dataLoaded,
+                           const int32_t dataLoadedLength);
+        
         SceneClassAssistant* m_sceneAssistant;
         
         Mode m_mode;
@@ -127,6 +151,11 @@ namespace caret {
         int32_t m_volumeDimensionsIJK[3];
         
         float m_volumeXYZ[3];
+        
+        std::vector<float> m_dataLoaded;
+        
+        AString m_dataLoadedName;
+        
     };
     
 #ifdef __CONNECTIVITY_DATA_LOADED_DECLARE__

@@ -169,6 +169,7 @@ ELSE()
         FociPropertiesEditorDialog.h
         FociSelectionViewController.h
         GapsAndMarginsDialog.h
+	GeneralYokingGroupComboBox.h
         GiftiLabelTableEditor.h
         GiftiLabelTableSelectionComboBox.h
         GroupAndNameHierarchyViewController.h
@@ -512,6 +513,7 @@ FociPropertiesEditorDialog.h
 FociSelectionViewController.h
 GapsAndMarginsDialog.h
 GestureEvent.h
+GeneralYokingGroupComboBox.h
 GiftiLabelTableEditor.h
 GiftiLabelTableSelectionComboBox.h
 GlobalShortcutEnum.h
@@ -883,6 +885,7 @@ FociPropertiesEditorDialog.cxx
 FociSelectionViewController.cxx
 GapsAndMarginsDialog.cxx
 GestureEvent.cxx
+GeneralYokingGroupComboBox.cxx
 GiftiLabelTableEditor.cxx
 GiftiLabelTableSelectionComboBox.cxx
 GlobalShortcutEnum.cxx

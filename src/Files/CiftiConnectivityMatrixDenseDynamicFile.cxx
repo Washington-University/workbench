@@ -214,6 +214,24 @@ CiftiConnectivityMatrixDenseDynamicFile::getDataForColumn(float* /*dataOut*/,
  *     Index of the row.
  */
 void
+CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(std::vector<float>& dataOut,
+                                                       const int64_t& index) const
+{
+    dataOut.resize(m_numberOfTimePoints);
+    m_parentDataSeriesCiftiFile->getRow(dataOut.data(),
+                                        index);
+}
+
+
+/**
+ * Load data for the given row.
+ *
+ * @param dataOut
+ *     Output with data.
+ * @param index
+ *     Index of the row.
+ */
+void
 CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(float* dataOut,
                                                        const int64_t& index) const
 {
@@ -273,6 +291,38 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(std::vector<floa
 
     connCorrelationTwo->computeForDataSetIndex(index,
                                                dataOut);
+}
+
+/**
+ * Correlate data in this file with the given data set
+ * @param dataSet
+ *    The correlation two data set
+ * @param dataLoadedOut
+ *    Output with data loaded
+ * @return True if successful, else false.
+ */
+bool
+CiftiConnectivityMatrixDenseDynamicFile::correlateWithDataSetProtected(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                                       std::vector<float>& dataLoadedOut) const
+{
+    bool validFlag(false);
+    
+    dataLoadedOut.resize(m_numberOfTimePoints);
+    const ConnectivityCorrelationTwo* connCoorTwo(getConnectivityCorrelationTwo());
+    if (connCoorTwo != NULL) {
+        connCoorTwo->computeForDataSet(dataSet,
+                                       dataLoadedOut);
+        validFlag = true;
+    }
+    
+    if ( ! validFlag) {
+        dataLoadedOut.resize(m_numberOfTimePoints);
+        std::fill(dataLoadedOut.begin(),
+                  dataLoadedOut.end(),
+                  0.0f);
+    }
+    
+    return validFlag;
 }
 
 /**

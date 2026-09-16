@@ -1,5 +1,5 @@
-#ifndef __CIFTI_CONNECTIVITY_MATRIX_DATA_FILE_MANAGER_H__
-#define __CIFTI_CONNECTIVITY_MATRIX_DATA_FILE_MANAGER_H__
+#ifndef __DYNAMIC_CONNECTIVITY_FILE_LOADING_MANAGER_H__
+#define __DYNAMIC_CONNECTIVITY_FILE_LOADING_MANAGER_H__
 
 /*LICENSE_START*/
 /*
@@ -23,6 +23,7 @@
 
 
 #include "CaretObject.h"
+#include "GeneralYokingGroupEnum.h"
 #include "VoxelIJK.h"
 
 namespace caret {
@@ -30,18 +31,19 @@ namespace caret {
     class Brain;
     class CaretMappableDataFile;
     class CiftiConnectivityMatrixParcelFile;
-    class CiftiFileDynamicLoadingInterface;
+    class ConnectivityFileInterface;
+    class DynamicConnectivityFileInterface;
     class HtmlTableBuilder;
     class SurfaceFile;
     
-    class CiftiConnectivityMatrixDataFileManager
+    class DynamicConnectivityFileLoadingManager
     : public CaretObject
     {
         
     public:
-        CiftiConnectivityMatrixDataFileManager();
+        DynamicConnectivityFileLoadingManager();
         
-        virtual ~CiftiConnectivityMatrixDataFileManager();
+        virtual ~DynamicConnectivityFileLoadingManager();
         
         bool loadDataForSurfaceNode(Brain* brain,
                                     const SurfaceFile* surfaceFile,
@@ -70,7 +72,7 @@ namespace caret {
                                            std::vector<AString>& rowColumnInformationOut,
                                            HtmlTableBuilder& htmlTableBuilder);
         
-        bool loadRowOrColumnFromConnectivityMatrixFile(CiftiFileDynamicLoadingInterface* parcelFile,
+        bool loadRowOrColumnFromConnectivityMatrixFile(DynamicConnectivityFileInterface* parcelFile,
                                                        const int32_t rowIndex,
                                                        const int32_t columnIndex,
                                                        std::vector<AString>& rowColumnInformationOut,
@@ -79,24 +81,32 @@ namespace caret {
         bool hasNetworkFiles(Brain* brain) const;
         
     private:
-        CiftiConnectivityMatrixDataFileManager(const CiftiConnectivityMatrixDataFileManager&);
+        DynamicConnectivityFileLoadingManager(const DynamicConnectivityFileLoadingManager&);
 
-        CiftiConnectivityMatrixDataFileManager& operator=(const CiftiConnectivityMatrixDataFileManager&);
+        DynamicConnectivityFileLoadingManager& operator=(const DynamicConnectivityFileLoadingManager&);
         
     public:
 
         // ADD_NEW_METHODS_HERE
 
     private:
-        void getDisplayedConnectivityMatrixFiles(Brain* brain,
-                                                 std::vector<CiftiFileDynamicLoadingInterface*>& ciftiMatrixFilesOut) const;
 
+        std::vector<ConnectivityFileInterface*> getConnectivityFilesWithYokingGroup(Brain* brain,
+                                                                                    const GeneralYokingGroupEnum::Enum yokingGroup) const;
+        
+        void correlateWithOtherFiles(std::vector<ConnectivityFileInterface*> allYokedConnFiles,
+                                     const CaretMappableDataFile* mapFileThatLoadedData,
+                                     std::vector<float>& brainordinateSeriesData);
+        void correlateWithOtherFiles(std::vector<DynamicConnectivityFileInterface*> allYokedDynFiles,
+                                     const CaretMappableDataFile* mapFileThatLoadedData,
+                                     std::vector<float>& brainordinateSeriesData);
+        
         // ADD_NEW_MEMBERS_HERE
     };
     
-#ifdef __CIFTI_CONNECTIVITY_MATRIX_DATA_FILE_MANAGER_DECLARE__
+#ifdef __DYNAMIC_CONNECTIVITY_FILE_LOADING_MANAGER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CIFTI_CONNECTIVITY_MATRIX_DATA_FILE_MANAGER_DECLARE__
+#endif // __DYNAMIC_CONNECTIVITY_FILE_LOADING_MANAGER_DECLARE__
 
 } // namespace
-#endif  //__CIFTI_CONNECTIVITY_MATRIX_DATA_FILE_MANAGER_H__
+#endif  //__DYNAMIC_CONNECTIVITY_FILE_LOADING_MANAGER_H__
