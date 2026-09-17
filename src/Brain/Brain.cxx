@@ -5279,6 +5279,25 @@ Brain::getAllDynamicConnectivityFiles() const
     return dynFilesOut;
 }
 
+/**
+ * @return All dynamic connectivity files that are set to the given yoking group
+ * @param yokingGroup
+ *    The yoking group
+ */
+std::vector<DynamicConnectivityFileInterface*>
+Brain::getAllDynamicConnectivityFilesWithYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup) const
+{
+    std::vector<DynamicConnectivityFileInterface*> yokedFilesOut;
+    const std::vector<DynamicConnectivityFileInterface*> dynFiles(getAllDynamicConnectivityFiles());
+    for (DynamicConnectivityFileInterface* dcf : dynFiles) {
+        if (dcf->getDynamicConnectivityYokingGroup() == yokingGroup) {
+            yokedFilesOut.push_back(dcf);
+        }
+    }
+    
+    return yokedFilesOut;
+}
+
 
 /**
  * @return Number of dense sparse files

@@ -331,8 +331,7 @@ VolumeDynamicConnectivityFile::clearVoxels()
  *    True if data was loaded, else false
  */
 bool
-VolumeDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
-                                                                 const int64_t volumeDimensionIJK[3],
+VolumeDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                                  const std::vector<VoxelIJK>& voxelIndices,
                                                                  std::vector<float>& correlationDataOut)
 {
@@ -430,6 +429,15 @@ VolumeDynamicConnectivityFile::getParentTimepointsForIJK(const int64_t ijk[0],
 }
 
 /**
+ * @return Number of points for correlating with loadDataForCorrelationWithDataSet
+ */
+int64_t
+VolumeDynamicConnectivityFile::getNumberOfCorrelationDataPoints() const
+{
+    return getConnectivityCorrelationTwo()->getNumberOfDataElements();
+}
+
+/**
  * Correlate data in this file with the given data set
  * @param dataSet
  *    The correlation two data set
@@ -498,8 +506,6 @@ VolumeDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const Connectiv
 /**
  * Load data for a voxel at the given coordinate.
  *
- * @param mapIndex
- *    Index of map.
  * @param xyz
  *    Coordinate of voxel.
  * @param rowIndexOut
@@ -512,8 +518,7 @@ VolumeDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const Connectiv
  *    Data for correlation with this and other data set
  */
 bool
-VolumeDynamicConnectivityFile::loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
-                                                               const float xyz[3],
+VolumeDynamicConnectivityFile::loadMapDataForVoxelAtCoordinate(const float xyz[3],
                                                                int64_t& rowIndexOut,
                                                                int64_t& columnIndexOut,
                                                                std::vector<float>& correlationDataOut)
@@ -524,7 +529,6 @@ VolumeDynamicConnectivityFile::loadMapDataForVoxelAtCoordinate(const int32_t map
     rowIndexOut    = -1;
     columnIndexOut = -1;
     if (loadConnectivityForVoxelIndex(ijk)) {
-        const int32_t invalidRowColumnIndex(-1);
         m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
                                                       rowIndexOut,
                                                       columnIndexOut,
@@ -1004,8 +1008,7 @@ VolumeDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
             }
             else {
                 std::vector<float> correlationData;
-                loadMapAverageDataForVoxelIndices(mapIndex,
-                                                  dimIJK,
+                loadMapAverageDataForVoxelIndices(dimIJK,
                                                   voxelIJKs,
                                                   correlationData);
             }
@@ -1013,7 +1016,6 @@ VolumeDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
         {
-            const int32_t mapIndex(0);
             float xyz[3];
             int64_t rowIndex(-1);
             int64_t columnIndex(-1);
@@ -1026,8 +1028,7 @@ VolumeDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
             }
             else {
                 std::vector<float> correlationData;
-                loadMapDataForVoxelAtCoordinate(mapIndex,
-                                                xyz,
+                loadMapDataForVoxelAtCoordinate(xyz,
                                                 rowIndex,
                                                 columnIndex,
                                                 correlationData);

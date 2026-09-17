@@ -875,7 +875,6 @@ FeatureSelectionViewController::updateFeatureItemsWidget()
 void
 FeatureSelectionViewController::featureItemsAllOnOffButtonClicked(const bool onFlag)
 {
-    Brain* brain = GuiManager::get()->getBrain();
     if (m_selectedFeatureItemModel != NULL) {
         m_selectedFeatureItemModel->setCheckedStatusOfAllItems(onFlag);
     }

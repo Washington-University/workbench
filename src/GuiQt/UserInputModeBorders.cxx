@@ -679,7 +679,7 @@ UserInputModeBorders::mouseLeftPress(const MouseEvent& mouseEvent)
  *     Mouse event information.
  */
 void
-UserInputModeBorders::mouseLeftRelease(const MouseEvent& mouseEvent)
+UserInputModeBorders::mouseLeftRelease(const MouseEvent& /*mouseEvent*/)
 {
     m_borderMovePoint = NULL;
     m_borderMovePointIndex = -1;

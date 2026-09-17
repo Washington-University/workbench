@@ -34,6 +34,7 @@
 #include "FiberOrientationSamplesVector.h"
 #include "FileInformation.h"
 #include "FunctionResult.h"
+#include "GeneralYokingGroupEnum.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 #include "UserInputModeEnum.h"
@@ -432,6 +433,8 @@ namespace caret {
         std::vector<ConnectivityFileInterface*> getAllConnectivityFiles() const;
         
         std::vector<DynamicConnectivityFileInterface*> getAllDynamicConnectivityFiles() const;
+        
+        std::vector<DynamicConnectivityFileInterface*> getAllDynamicConnectivityFilesWithYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup) const;
         
         int32_t getNumberOfConnectivityDataSeriesFiles() const;
         

@@ -803,6 +803,18 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t co
 }
 
 /**
+ * @return Number of points for correlating with loadDataForCorrelationWithDataSet
+ */
+int64_t
+CiftiMappableConnectivityMatrixDataFile::getNumberOfCorrelationDataPoints() const
+{
+    /*
+     * Subclasses should override
+     */
+    return 0;
+}
+
+/**
  * Correlate data in this file with the given data set
  * @param dataSet
  *    The correlation two data set
@@ -1160,8 +1172,6 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
 /**
  * Load data for a voxel at the given coordinate.
  *
- * @param mapIndex
- *    Index of map.
  * @param xyz
  *    Coordinate of voxel.
  * @param rowIndexOut
@@ -1170,27 +1180,20 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
  * @param columnIndexOut
  *    Index of column corresponding to voxel or -1 if no column in the
  *    matrix corresponds to the voxel.
- * @param correlationDataOut
+ * @param brainordinateRawDataSeriesOut
  *    Data for correlation with this and other data set
  * @throw
  *    DataFileException if there is an error.
  */
 bool
-CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
-                                                                         const float xyz[3],
+CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const float xyz[3],
                                                                          int64_t& rowIndexOut,
                                                                          int64_t& columnIndexOut,
-                                                                         std::vector<float>& correlationDataOut)
+                                                                         std::vector<float>& brainordinateRawDataSeriesOut)
 {
-    correlationDataOut.clear();
+    brainordinateRawDataSeriesOut.clear();
     rowIndexOut    = -1;
     columnIndexOut = -1;
-    
-    if (mapIndex != 0) {
-        setLoadedRowDataToAllZeros();
-        CaretAssertMessage(0, "Map index must be zero.");
-        return false;
-    }
     
     /*
      * If not enabled as a layer, clear any previous
@@ -1298,6 +1301,21 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
                                                   m_loadedRowData.data(),
                                                   m_loadedRowData.size());
     
+    if (dataWasLoaded) {
+        if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+            CiftiConnectivityMatrixDenseDynamicFile* mdf(dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(this));
+            CaretAssert(mdf);
+            mdf->getDataForRow(brainordinateRawDataSeriesOut,
+                               rowIndex);
+        }
+        else if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC) {
+            CiftiConnectivityMatrixParcelDynamicFile* pdf(dynamic_cast<CiftiConnectivityMatrixParcelDynamicFile*>(this));
+            CaretAssert(pdf);
+            pdf->getDataForRow(brainordinateRawDataSeriesOut,
+                               rowIndex);
+        }
+
+    }
     return dataWasLoaded;
 }
 
@@ -1359,8 +1377,6 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndicesForVoxelsWhenLoading
 /**
  * Load connectivity data for the voxel indices and then average the data.
  *
- * @param mapIndex
- *    Index of map.
  * @param volumeDimensionIJK
  *    Dimensions of the volume.
  * @param voxelIndices
@@ -1371,8 +1387,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndicesForVoxelsWhenLoading
  *    DataFileException if there is an error.
  */
 bool
-CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
-                                                                           const int64_t volumeDimensionIJK[3],
+CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                                            const std::vector<VoxelIJK>& voxelIndices,
                                                                            std::vector<float>& correlationDataOut)
 {
@@ -1738,8 +1753,7 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
                 }
                 else {
                     std::vector<float> correlationData;
-                    loadMapDataForVoxelAtCoordinate(mapIndex,
-                                                    volumeXYZ,
+                    loadMapDataForVoxelAtCoordinate(volumeXYZ,
                                                     rowIndex,
                                                     columnIndex,
                                                     correlationData);
@@ -1757,8 +1771,7 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
                 }
                 else {
                     std::vector<float> correlationData;
-                    loadMapAverageDataForVoxelIndices(mapIndex,
-                                                      volumeDimensionsIJK,
+                    loadMapAverageDataForVoxelIndices(volumeDimensionsIJK,
                                                       voxelIndicesIJK,
                                                       correlationData);
                 }

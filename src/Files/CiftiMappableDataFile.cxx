@@ -5781,7 +5781,7 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                             return false;
                             break;
                         case ConnectivityDataLoaded::MODE_CORRELATION:
-                            CaretAssertToDoFatal();
+                            return false;
                             break;
                         case ConnectivityDataLoaded::MODE_COLUMN:
                         case ConnectivityDataLoaded::MODE_ROW:

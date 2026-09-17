@@ -294,6 +294,15 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(std::vector<floa
 }
 
 /**
+ * @return Number of points for correlating with loadDataForCorrelationWithDataSet
+ */
+int64_t
+CiftiConnectivityMatrixDenseDynamicFile::getNumberOfCorrelationDataPoints() const
+{
+    return getConnectivityCorrelationTwo()->getNumberOfDataElements();
+}
+
+/**
  * Correlate data in this file with the given data set
  * @param dataSet
  *    The correlation two data set

@@ -92,6 +92,8 @@ namespace caret {
         void computeForDataSetIndex(const int64_t dataSetIndex,
                                     std::vector<float>& dataOut) const;
         
+        int64_t getNumberOfDataElements() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

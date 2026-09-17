@@ -2846,8 +2846,8 @@ BorderFile::importFromDataFileEditorModel(const DataFileEditorModel& dataFileEdi
  */
 int32_t
 BorderFile::turnOffMatchingBorders(BorderFile* borderFile,
-                                   const bool matchByNameFlag,
-                                   const bool matchCoordinatesFlag) const
+                                   const bool /*matchByNameFlag*/,
+                                   const bool /*matchCoordinatesFlag*/) const
 {
     int32_t numTurnedOff(0);
     

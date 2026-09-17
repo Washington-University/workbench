@@ -63,6 +63,7 @@
 #include "VolumeDynamicConnectivityFile.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
+#include "WuQMessageBoxTwo.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -354,19 +355,13 @@ CiftiConnectivityMatrixViewController::updateViewController()
                                     row, COLUMN_ORIENTATION_FILE_COMBO_BOX);
         }
         
-        const CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(files[i]);
         const CiftiFiberTrajectoryFile* trajFile = dynamic_cast<const CiftiFiberTrajectoryFile*>(files[i]);
         const CiftiFiberTrajectoryMapFile* trajMapFile = dynamic_cast<const CiftiFiberTrajectoryMapFile*>(files[i]);
-        const VolumeDynamicConnectivityFile* volDynConnFile = dynamic_cast<VolumeDynamicConnectivityFile*>(files[i]);
-        const MetricDynamicConnectivityFile* metricDynConnFile = dynamic_cast<MetricDynamicConnectivityFile*>(files[i]);
-        const CiftiConnectivityMatrixDenseDynamicFile* dynDenseConnFile = dynamic_cast<const CiftiConnectivityMatrixDenseDynamicFile*>(files[i]);
-        const CiftiConnectivityMatrixParcelDynamicFile* parcelDynConnFile = dynamic_cast<const CiftiConnectivityMatrixParcelDynamicFile*>(files[i]);
         const CiftiDenseSparseFile* denseSparseFile(dynamic_cast<CiftiDenseSparseFile*>(files[i]));
         
         const ConnectivityFileInterface* connFile(dynamic_cast<const ConnectivityFileInterface*>(files[i]));
         const DynamicConnectivityFileInterface* dynConnFile(dynamic_cast<const DynamicConnectivityFileInterface*>(files[i]));
         
-        bool enableDataLoadingCheckedStatus = false;
         layerCheckBox->setEnabled(false);
         yokingComboBox->setEnabled(false);
         optionsToolButton->setEnabled(false);
@@ -983,8 +978,10 @@ CiftiConnectivityMatrixViewController::optionsButtonClicked(int indx)
  */
 void
 CiftiConnectivityMatrixViewController::yokingGroupSelected(const int32_t index,
-                                           const GeneralYokingGroupEnum::Enum yokingGroup)
+                                           const GeneralYokingGroupEnum::Enum yokingGroupIn)
 {
+    GeneralYokingGroupEnum::Enum yokingGroup(yokingGroupIn);
+    
     ConnectivityFileInterface* connFile(NULL);
     DynamicConnectivityFileInterface* dynConFile(NULL);
     CiftiDenseSparseFile* ciftiDenseSparseFile(NULL);
@@ -998,7 +995,28 @@ CiftiConnectivityMatrixViewController::yokingGroupSelected(const int32_t index,
                    trajMapFile);
     
     if (dynConFile != NULL) {
+        if (yokingGroup != GeneralYokingGroupEnum::OFF) {
+            Brain* brain(GuiManager::get()->getBrain());
+            CaretAssert(brain);
+            const auto yokedDynConnFiles(brain->getAllDynamicConnectivityFilesWithYokingGroup(yokingGroup));
+            if ( ! yokedDynConnFiles.empty()) {
+                const int64_t numCorrelationPoints(dynConFile->getNumberOfCorrelationDataPoints());
+                for (auto ydcf : yokedDynConnFiles) {
+                    if (ydcf->getNumberOfCorrelationDataPoints() != numCorrelationPoints) {
+                        const AString msg("Cannot yoke.  This file contains "
+                                          + AString::number(numCorrelationPoints)
+                                          + " series points but yoke group file(s) contain "
+                                          + AString::number(ydcf->getNumberOfCorrelationDataPoints())
+                                          + " points.");
+                        WuQMessageBoxTwo::critical(this, "ERROR", msg);
+                        yokingGroup = GeneralYokingGroupEnum::OFF;
+                    }
+                }
+            }
+        }
+        
         dynConFile->setDynamicConnectivityYokingGroup(yokingGroup);
+        updateViewController(); /* if yoking rejected need to update yoking combo box */
     }
 }
 

@@ -353,37 +353,22 @@ void
 ConnectivityCorrelationTwo::computeForDataSet(const DataSet& dataSet,
                                               std::vector<float>& dataOut) const
 {
-    if (m_numberOfDataSets < static_cast<int64_t>(dataOut.size())) {
-        CaretAssertMessage(0, "Shrinking dataOut, this is probably wrong");
-    }
-        
     dataOut.resize(m_numberOfDataSets);
     std::fill(dataOut.begin(),
               dataOut.end(),
               0.0);
      
-    bool correlationModeFlag(false);
-    switch (m_settings.getMode()) {
-        case ConnectivityCorrelationModeEnum::CORRELATION:
-            correlationModeFlag = true;
-            break;
-        case ConnectivityCorrelationModeEnum::COVARIANCE:
-            break;
+    if (getNumberOfDataElements() != dataSet.m_numDataElements) {
+        CaretLogWarning("Attempt to compute correlation for incompatible number of elements");
+        return;
     }
-
+    
 #pragma omp CARET_PARFOR schedule(dynamic)
     for (int64_t i = 0; i < m_numberOfDataSets; i++) {
-        if (correlationModeFlag
-            && (i == dataSet.m_dataSetIndex)) {
-            /* Don't need to compute correlation with 'self' */
-            dataOut[i] = 1.0;
-        }
-        else {
-            const DataSet* otherDataSet(m_dataSets[i]);
-            CaretAssert(otherDataSet);
-            dataOut[i] = computeForDataSets(dataSet,
-                                            *otherDataSet);
-        }
+        const DataSet* otherDataSet(m_dataSets[i]);
+        CaretAssert(otherDataSet);
+        dataOut[i] = computeForDataSets(dataSet,
+                                        *otherDataSet);
     }
 }
 
@@ -461,6 +446,15 @@ ConnectivityCorrelationTwo::computeForDataSets(const DataSet& a,
     }
     
     return value;
+}
+
+/**
+ * @return The number of data elements in the data sets
+ */
+int64_t
+ConnectivityCorrelationTwo::getNumberOfDataElements() const
+{
+    return m_numberOfDataElements;
 }
 
 void

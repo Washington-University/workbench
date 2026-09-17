@@ -509,8 +509,7 @@ DynamicConnectivityFileLoadingManager::loadDataForVoxelAtCoordinate(Brain* brain
                 int64_t rowIndex;
                 int64_t columnIndex;
                 std::vector<float> correlationData;
-                if (connFile->loadMapDataForVoxelAtCoordinate(mapIndex,
-                                                              xyz,
+                if (connFile->loadMapDataForVoxelAtCoordinate(xyz,
                                                               rowIndex,
                                                               columnIndex,
                                                               correlationData)) {
@@ -543,31 +542,6 @@ DynamicConnectivityFileLoadingManager::loadDataForVoxelAtCoordinate(Brain* brain
                                                 (mapFile->getFileNameNoPath() + voxelInfo));
                     }
                     else {
-                        if (yokingGroup == GeneralYokingGroupEnum::OFF) {
-                            /*
-                             * Look for nearby surface nodes
-                             * 'maxDist' is maximum distance a coordinate may be
-                             * from the query (XYZ).
-                             */
-                            const float maxDist(2.0);
-                            EventSurfaceNodesGetNearXYZ nearbyNodesEvent(xyz,
-                                                                         maxDist);
-                            EventManager::get()->sendEvent(nearbyNodesEvent.getPointer());
-                            const int32_t numNearbyNodes(nearbyNodesEvent.getNumberOfNearbyNodes());
-                            for (int32_t i = 0; i < numNearbyNodes; i++) {
-                                const EventSurfaceNodesGetNearXYZ::NodeInfo nodeInfo(nearbyNodesEvent.getNearbyNode(i));
-                                
-                                const bool dataValidFlag = loadDataForSurfaceNode(brain,
-                                                                                  nodeInfo.getSurfaceFile(),
-                                                                                  nodeInfo.getNodeIndex(),
-                                                                                  mapFile, /* only try loading data for this file */
-                                                                                  rowColumnInformationOut,
-                                                                                  htmlTableBuilder);
-                                if (dataValidFlag) {
-                                    break;
-                                }
-                            }
-                        }
                     }
                     
                     if (dataLoadedForThisYokingGroupFlag) {
@@ -584,6 +558,34 @@ DynamicConnectivityFileLoadingManager::loadDataForVoxelAtCoordinate(Brain* brain
                             break;
                         }
                     }
+                }
+                else {
+                    if (yokingGroup == GeneralYokingGroupEnum::OFF) {
+                        /*
+                         * Look for nearby surface nodes
+                         * 'maxDist' is maximum distance a coordinate may be
+                         * from the query (XYZ).
+                         */
+                        const float maxDist(2.0);
+                        EventSurfaceNodesGetNearXYZ nearbyNodesEvent(xyz,
+                                                                     maxDist);
+                        EventManager::get()->sendEvent(nearbyNodesEvent.getPointer());
+                        const int32_t numNearbyNodes(nearbyNodesEvent.getNumberOfNearbyNodes());
+                        for (int32_t i = 0; i < numNearbyNodes; i++) {
+                            const EventSurfaceNodesGetNearXYZ::NodeInfo nodeInfo(nearbyNodesEvent.getNearbyNode(i));
+                            
+                            const bool dataValidFlag = loadDataForSurfaceNode(brain,
+                                                                              nodeInfo.getSurfaceFile(),
+                                                                              nodeInfo.getNodeIndex(),
+                                                                              mapFile, /* only try loading data for this file */
+                                                                              rowColumnInformationOut,
+                                                                              htmlTableBuilder);
+                            if (dataValidFlag) {
+                                break;
+                            }
+                        }
+                    }
+
                 }
             }
         }
@@ -628,8 +630,7 @@ DynamicConnectivityFileLoadingManager::loadAverageDataForVoxelIndices(Brain* bra
             if (mapFile->isEmpty() == false) {
                 const int32_t mapIndex = 0;
                 std::vector<float> correlationData;
-                if (connFile->loadMapAverageDataForVoxelIndices(mapIndex,
-                                                                volumeDimensionIJK,
+                if (connFile->loadMapAverageDataForVoxelIndices(volumeDimensionIJK,
                                                                 voxelIndices,
                                                                 correlationData)) {
                     dataLoadedForThisYokingGroupFlag = true;

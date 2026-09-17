@@ -53,6 +53,8 @@ namespace caret {
         virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
                                                        const AString& dataSetName) = 0;
          
+        virtual int64_t getNumberOfCorrelationDataPoints() const = 0;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

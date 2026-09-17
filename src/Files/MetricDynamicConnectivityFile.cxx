@@ -296,6 +296,15 @@ MetricDynamicConnectivityFile::clearVertexValues()
 }
 
 /**
+ * @return Number of points for correlating with loadDataForCorrelationWithDataSet
+ */
+int64_t
+MetricDynamicConnectivityFile::getNumberOfCorrelationDataPoints() const
+{
+    return getConnectivityCorrelationTwo()->getNumberOfDataElements();
+}
+
+/**
  * Correlate data in this file with the given data set
  * @param dataSet
  *    The correlation two data set
@@ -560,9 +569,8 @@ MetricDynamicConnectivityFile::loadMapAverageDataForSurfaceNodes(const int32_t s
  *    Data for correlation with this and other data set
  */
 bool
-MetricDynamicConnectivityFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/,
-                                                                         const float* /*xyz[3]*/,
-                                                                         int64_t& /*rowIndexOut*/,
+MetricDynamicConnectivityFile::loadMapDataForVoxelAtCoordinate(const float* /*xyz[3]*/,
+                                                               int64_t& /*rowIndexOut*/,
                                                                int64_t& /*columnIndexOut*/,
                                                                std::vector<float>& /*correlationDataOut*/)
 {
@@ -572,8 +580,6 @@ MetricDynamicConnectivityFile::loadMapDataForVoxelAtCoordinate(const int32_t /*m
 /**
  * Load connectivity data for the voxel indices and then average the data.
  *
- * @param mapIndex
- *    Index of map.
  * @param volumeDimensionIJK
  *    Dimensions of the volume.
  * @param voxelIndices
@@ -584,9 +590,8 @@ MetricDynamicConnectivityFile::loadMapDataForVoxelAtCoordinate(const int32_t /*m
  *    DataFileException if there is an error.
  */
 bool
-MetricDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int32_t /*mapIndex*/,
-                                                                           const int64_t* /*volumeDimensionIJK[3]*/,
-                                                                           const std::vector<VoxelIJK>& /*voxelIndices*/,
+MetricDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int64_t* /*volumeDimensionIJK[3]*/,
+                                                                 const std::vector<VoxelIJK>& /*voxelIndices*/,
                                                                  std::vector<float>& correlationDataOut)
 {
     correlationDataOut.clear();
@@ -606,7 +611,7 @@ MetricDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int32_t /
  *    If an error occurs.
  */
 void
-MetricDynamicConnectivityFile::loadDataForRowIndex(const int64_t rowIndex)
+MetricDynamicConnectivityFile::loadDataForRowIndex(const int64_t /*rowIndex*/)
 {
 }
 
@@ -623,7 +628,7 @@ MetricDynamicConnectivityFile::loadDataForRowIndex(const int64_t rowIndex)
  *    If an error occurs.
  */
 void
-MetricDynamicConnectivityFile::loadDataForColumnIndex(const int64_t columnIndex)
+MetricDynamicConnectivityFile::loadDataForColumnIndex(const int64_t /*columnIndex*/)
 {
 }
 

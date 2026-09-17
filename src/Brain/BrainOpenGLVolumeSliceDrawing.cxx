@@ -5050,7 +5050,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
 void
 BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                            const BrowserTabContent* browserTabContent,
-                                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                           const VolumeSliceViewPlaneEnum::Enum /*sliceViewPlane*/,
                                                            const int32_t viewport[4],
                                                            const Vector3D sliceXYZ,
                                                            const float sliceOffset)

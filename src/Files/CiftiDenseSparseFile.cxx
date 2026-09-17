@@ -1336,6 +1336,15 @@ CiftiDenseSparseFile::getVolumeVoxelIdentificationForMaps(const std::vector<int3
 }
 
 /**
+ * @return Number of points for correlating with loadDataForCorrelationWithDataSet
+ */
+int64_t
+CiftiDenseSparseFile::getNumberOfCorrelationDataPoints() const
+{
+    return 0;
+}
+
+/**
  * Correlate data in this file with the given data set
  * @param dataSet
  *    The correlation two data set
@@ -1566,8 +1575,6 @@ CiftiDenseSparseFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndice
 /**
  * Load data for a voxel at the given coordinate.
  *
- * @param mapIndex
- *    Index of map.
  * @param xyz
  *    Coordinate of voxel.
  * @param rowIndexOut
@@ -1580,8 +1587,7 @@ CiftiDenseSparseFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndice
  *    Data for correlation with this and other data set
  */
 bool
-CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/,
-                                                      const float xyz[3],
+CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const float xyz[3],
                                                       int64_t& rowIndexOut,
                                                       int64_t& columnIndexOut,
                                                       std::vector<float>& correlationDataOut)
@@ -1647,8 +1653,7 @@ CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const int32_t /*mapIndex*/
  *    DataFileException if there is an error.
  */
 bool
-CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int32_t /*mapIndex*/,
-                                                        const int64_t volumeDimensionIJK[3],
+CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                         const std::vector<VoxelIJK>& voxelIndices,
                                                         std::vector<float>& correlationDataOut)
 {
@@ -2025,8 +2030,7 @@ CiftiDenseSparseFile::finishRestorationOfScene()
             }
             else {
                 std::vector<float> correlationData;
-                loadMapDataForVoxelAtCoordinate(mapIndex,
-                                                volumeXYZ,
+                loadMapDataForVoxelAtCoordinate(volumeXYZ,
                                                 rowIndex,
                                                 columnIndex,
                                                 correlationData);
@@ -2044,8 +2048,7 @@ CiftiDenseSparseFile::finishRestorationOfScene()
             }
             else {
                 std::vector<float> correlationData;
-                loadMapAverageDataForVoxelIndices(mapIndex,
-                                                  volumeDimensionsIJK,
+                loadMapAverageDataForVoxelIndices(volumeDimensionsIJK,
                                                   voxelIndicesIJK,
                                                   correlationData);
             }

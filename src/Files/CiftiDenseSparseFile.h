@@ -148,6 +148,8 @@ namespace caret {
                                           float voxelXYZOut[3],
                                           bool& voxelValidOut) const;
         
+        virtual int64_t getNumberOfCorrelationDataPoints() const override;
+        
         virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
                                           const AString& dataSetName) override;
         
@@ -163,14 +165,12 @@ namespace caret {
                                                        const std::vector<int32_t>& nodeIndices,
                                                        std::vector<float>& correlationDataOut) override;
         
-        virtual bool loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
-                                                     const float xyz[3],
+        virtual bool loadMapDataForVoxelAtCoordinate(const float xyz[3],
                                                      int64_t& rowIndexOut,
                                                      int64_t& columnIndexOut,
                                                      std::vector<float>& correlationDataOut) override;
         
-        virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
-                                                       const int64_t volumeDimensionIJK[3],
+        virtual bool loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                        const std::vector<VoxelIJK>& voxelIndices,
                                                        std::vector<float>& correlationDataOut) override;
         

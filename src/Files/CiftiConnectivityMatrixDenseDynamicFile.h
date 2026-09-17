@@ -71,6 +71,8 @@ namespace caret {
         
         virtual void getProcessedDataForRow(std::vector<float>& dataOut, const int64_t& index) const override;
         
+        virtual int64_t getNumberOfCorrelationDataPoints() const override;
+        
         virtual bool correlateWithDataSetProtected(const ConnectivityCorrelationTwo::DataSet& dataSet,
                                                    std::vector<float>& dataLoadedOut) const override;
         
