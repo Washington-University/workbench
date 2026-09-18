@@ -62,7 +62,9 @@ OperationParameters* AlgorithmVolumeLabelResample::getParameters()
     smoothOpt->addDoubleParameter(1, "kernel-size", "smoothing amount to use, gaussian sigma in mm");
     smoothOpt->createOptionalParameter(2, "-fwhm", "use specified kernel size as full width at half maximum, rather than sigma");
     
-    ret->createOptionalParameter(9, "-unlabeled-mask", "instead of treating the 'unlabeled' voxels as just another label, treat them as a mask");
+    OptionalParameter* maskOpt = ret->createOptionalParameter(9, "-unlabeled-mask", "instead of treating the 'unlabeled' voxels as just another label, treat them as a mask (but still apply -smooth-edges kernel to it if specified)");
+    OptionalParameter* maskThreshOpt = maskOpt->createOptionalParameter(1, "-threshold", "be more generous or conservative with the mask threshold, default 0.5");
+    maskThreshOpt->addDoubleParameter(1, "value", "a value between 0 and 1, to get more labeled voxels, use a larger value");
 
     ParameterComponent* affineOpt = ret->createRepeatableParameter(5, "-affine", "add an affine transform");
     affineOpt->addStringParameter(1, "affine", "the affine file to use");
@@ -112,7 +114,17 @@ void AlgorithmVolumeLabelResample::useParameters(OperationParameters* myParams, 
             smoothVal = smoothVal / (2.0f * sqrt(2.0f * log(2.0f)));
         }
     }
-    bool unlabeledMask = myParams->getOptionalParameter(9)->m_present;
+    OptionalParameter* maskOpt = myParams->getOptionalParameter(9);
+    bool unlabeledMask = maskOpt->m_present;
+    float maskThresh = 0.5f;
+    if (maskOpt->m_present)
+    {
+        OptionalParameter* maskThreshOpt = maskOpt->getOptionalParameter(1);
+        if (maskThreshOpt->m_present)
+        {
+            maskThresh = float(maskThreshOpt->getDouble(1));
+        }
+    }
     VolumeSpace refSpace;
     {
         NiftiIO myIO;
@@ -174,14 +186,15 @@ void AlgorithmVolumeLabelResample::useParameters(OperationParameters* myParams, 
                 throw AlgorithmException("internal error, tell the developers what you just tried to do");
         }
     }
-    AlgorithmVolumeLabelResample(myProgObj, inVol, myStack, refSpace, outVol, smoothVal, unlabeledMask);
+    AlgorithmVolumeLabelResample(myProgObj, inVol, myStack, refSpace, outVol, smoothVal, unlabeledMask, maskThresh);
 }
 
 AlgorithmVolumeLabelResample::AlgorithmVolumeLabelResample(ProgressObject* myProgObj, const VolumeFile* inVol, const XfmStack& myStack, const VolumeSpace refSpace,
-                                                           VolumeFile* outVol, const float smoothVal, const bool unlabeledMask) : AbstractAlgorithm(myProgObj)
+                                                           VolumeFile* outVol, const float smoothVal, const bool unlabeledMask, const float unlabeledMaskThresh) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (!(smoothVal >= 0.0f) || MathFunctions::isInf(smoothVal)) throw AlgorithmException("smoothing kernel size must be numeric and not negative");
+    if (unlabeledMask && !(unlabeledMaskThresh > 0.0f && unlabeledMaskThresh < 1.0f)) throw AlgorithmException("unlabeled mask threshold must be between 0 and 1, exclusive");
     const vector<int64_t> inDims = inVol->getDimensions();
     const int64_t* refDims = refSpace.getDims();
     if (inVol->getType() != SubvolumeAttributes::LABEL) throw AlgorithmException("input to volume label resample must be a label volume, see -volume-label-import");
@@ -221,9 +234,14 @@ AlgorithmVolumeLabelResample::AlgorithmVolumeLabelResample(ProgressObject* myPro
         for (int64_t i = 0; i < outFrameVoxels; ++i)
         { //don't need to test against outBestValue, this is before any other labels
             outScratchFrame[i] = unlabeledKey; //initialize output to unlabeled even if we have "mask" behavior enabled
-            if (unlabeledMask && toUseFrame[i] < 0.5f)
+            if (unlabeledMask)
             {
-                outBestValue[i] = -1.0f; //if we are using mask behavior and "unlabeled" is below threshold, use a value that will lose to any other label
+                if(toUseFrame[i] < unlabeledMaskThresh)
+                {
+                    outBestValue[i] = -1.0f; //if we are using mask behavior and "unlabeled" is below threshold, use a value that will lose to any other label
+                } else {
+                    outBestValue[i] = 2.0f; //ditto, beat everything
+                }
             } else {
                 outBestValue[i] = toUseFrame[i];
             }
