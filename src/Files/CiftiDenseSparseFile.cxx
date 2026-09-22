@@ -67,7 +67,6 @@ CiftiDenseSparseFile::CiftiDenseSparseFile()
 : CaretMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SPARSE)
 {
     m_connectivityDataLoaded.reset(new ConnectivityDataLoaded());
-    m_connectivityCorrelationSettings.reset(new ConnectivityCorrelationSettings());
     
     m_fileMetadata.reset(new GiftiMetaData());
     m_sparseFile.reset();
@@ -86,14 +85,9 @@ CiftiDenseSparseFile::CiftiDenseSparseFile()
     m_sceneAssistant.reset(new SceneClassAssistant());
     m_sceneAssistant->add("m_dataLoadingEnabled",
                           &m_dataLoadingEnabled);
-    m_sceneAssistant->add<GeneralYokingGroupEnum, GeneralYokingGroupEnum::Enum>("m_dynamicYokingGroup",
-                                                                                &m_dynamicYokingGroup);
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded.get());
-    m_sceneAssistant->add("m_connectivityCorrelationSettings",
-                          "ConnectivityCorrelationSettings",
-                          m_connectivityCorrelationSettings.get());
 
     m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
 
@@ -142,7 +136,6 @@ CiftiDenseSparseFile::clearPrivate()
     m_boundingBox.resetZeros();
     m_boundingBoxValidFlag = false;
     m_graphicsPrimitiveManager->clear();
-    m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
     
     m_hasSurfaceDataFlag = false;
     m_hasVolumeDataFlag  = false;
@@ -1344,33 +1337,6 @@ CiftiDenseSparseFile::getVolumeVoxelIdentificationForMaps(const std::vector<int3
 }
 
 /**
- * @return Number of points for correlating with loadDataForCorrelationWithDataSet
- */
-int64_t
-CiftiDenseSparseFile::getNumberOfCorrelationDataPoints() const
-{
-    return 0;
-}
-
-/**
- * Correlate data in this file with the given data set
- * @param dataSet
- *    The correlation two data set
- * @param dataSetName
- *    Name of the data set
- * @return True if successful, else false.
- */
-bool
-CiftiDenseSparseFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& /*dataSet*/,
-                                           const AString& /*dataSetName*/)
-{
-    /*
-     * Data is already processed so cannot correlate
-     */
-    return false;
-}
-
-/**
  * Load connectivity data for the surface's node.
  *
  * @param surfaceNumberOfNodes
@@ -1402,10 +1368,6 @@ CiftiDenseSparseFile::loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNod
     rowIndexOut    = -1;
     columnIndexOut = -1;
     
-    if ( ! isEnabledAsLayer()) {
-        clearLoadedData();
-        return false;
-    }
     if ( ! m_dataLoadingEnabled) {
         return false;
     }
@@ -1484,10 +1446,6 @@ CiftiDenseSparseFile::loadMapAverageDataForSurfaceNodes(const int32_t surfaceNum
                                                         std::vector<float>& correlationDataOut)
 {
     correlationDataOut.clear();
-    if ( ! isEnabledAsLayer()) {
-        clearLoadedData();
-        return false;
-    }
     if ( ! m_dataLoadingEnabled) {
         return false;
     }
@@ -1606,11 +1564,6 @@ CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const float xyz[3],
     
     m_connectivityDataLoaded->reset();
     
-    if ( ! isEnabledAsLayer()) {
-        clearLoadedData();
-        return false;
-        
-    }
     if ( ! m_dataLoadingEnabled) {
         return false;
     }
@@ -1666,10 +1619,6 @@ CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDime
                                                         std::vector<float>& correlationDataOut)
 {
     correlationDataOut.clear();
-    if ( ! isEnabledAsLayer()) {
-        clearLoadedData();
-        return false;
-    }
     
     if ( ! m_dataLoadingEnabled) {
         return false;
@@ -1752,24 +1701,6 @@ CiftiDenseSparseFile::loadDataForColumnIndex(const int64_t /*columnIndex*/)
 {
     clearLoadedData();
     CaretLogFine("Loading by column index not supported");
-}
-
-/**
- * @return The connectivity correlation settings
- */
-ConnectivityCorrelationSettings*
-CiftiDenseSparseFile::getCorrelationSettings()
-{
-    return m_connectivityCorrelationSettings.get();
-}
-
-/**
- * @return The connectivity correlation settings
- */
-const ConnectivityCorrelationSettings*
-CiftiDenseSparseFile::getCorrelationSettings() const
-{
-    return m_connectivityCorrelationSettings.get();
 }
 
 /**
@@ -2200,46 +2131,6 @@ CaretMappableDataFile::BrainordinateMappingMatch
 CiftiDenseSparseFile::getBrainordinateMappingMatchImplementation(const CaretMappableDataFile* /*mapFile*/) const
 {
     return BrainordinateMappingMatch::NO;
-}
-
-/**
- * @return True if this file is enabled as a layer
- */
-bool
-CiftiDenseSparseFile::isEnabledAsLayer() const
-{
-    return m_enabledAsLayerFlag;
-}
-
-/**
- * Set this file enabled as a layer
- * @param enabled
- *    New status
- */
-void
-CiftiDenseSparseFile::setEnabledAsLayer(const bool enabled)
-{
-    m_enabledAsLayerFlag = enabled;
-}
-
-/**
- * @return The selected yoking grouo
- */
-GeneralYokingGroupEnum::Enum
-CiftiDenseSparseFile::getDynamicConnectivityYokingGroup() const
-{
-    return m_dynamicYokingGroup;
-}
-
-/**
- * Set the yoking group
- * @param yokingGroup
- *    New yoking group
- */
-void
-CiftiDenseSparseFile::setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup)
-{
-    m_dynamicYokingGroup = yokingGroup;
 }
 
 /**

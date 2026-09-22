@@ -27,9 +27,8 @@
 #include "BrainConstants.h"
 #include "CaretMappableDataFile.h"
 #include "CaretSparseFile.h"
-#include "DynamicConnectivityFileInterface.h"
+#include "ConnectivityFileInterface.h"
 #include "DisplayGroupEnum.h"
-#include "GeneralYokingGroupEnum.h"
 #include "FunctionResult.h"
 #include "SceneClassAssistant.h"
 #include "VolumeMappableInterface.h"
@@ -45,7 +44,7 @@ namespace caret {
 
     class CiftiDenseSparseFile :
     public CaretMappableDataFile,
-    public DynamicConnectivityFileInterface,
+    public ConnectivityFileInterface,
     public VolumeMappableInterface {
         
     public:
@@ -148,11 +147,6 @@ namespace caret {
                                           float voxelXYZOut[3],
                                           bool& voxelValidOut) const;
         
-        virtual int64_t getNumberOfCorrelationDataPoints() const override;
-        
-        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
-                                          const AString& dataSetName) override;
-        
         virtual bool loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
                                                const StructureEnum::Enum structure,
                                                const int32_t nodeIndex,
@@ -177,10 +171,6 @@ namespace caret {
         virtual void loadDataForRowIndex(const int64_t rowIndex) override;
         
         virtual void loadDataForColumnIndex(const int64_t columnIndex) override;
-        
-        virtual ConnectivityCorrelationSettings* getCorrelationSettings();
-        
-        virtual const ConnectivityCorrelationSettings* getCorrelationSettings() const;
         
         virtual bool isMapDataLoadingEnabled() const override;
         
@@ -216,14 +206,6 @@ namespace caret {
         bool hasCiftiXML() const;
         
         const CiftiXML getCiftiXML() const;
-        
-        bool isEnabledAsLayer() const;
-        
-        void setEnabledAsLayer(const bool enabled);
-        
-        GeneralYokingGroupEnum::Enum getDynamicConnectivityYokingGroup() const;
-        
-        void setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup);
         
         virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                         std::vector<float>& dataOut) const override;
@@ -445,12 +427,6 @@ namespace caret {
         int64_t m_fileNumberOfRows = 0;
         
         int64_t m_fileNumberOfColumns = 0;
-        
-        bool m_enabledAsLayerFlag = true;
-        
-        GeneralYokingGroupEnum::Enum m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
-        
-        std::unique_ptr<ConnectivityCorrelationSettings> m_connectivityCorrelationSettings;
         
         mutable BoundingBox m_boundingBox;
         
