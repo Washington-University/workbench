@@ -143,6 +143,9 @@ CiftiDenseSparseFile::clearPrivate()
     m_boundingBoxValidFlag = false;
     m_graphicsPrimitiveManager->clear();
     m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
+    
+    m_hasSurfaceDataFlag = false;
+    m_hasVolumeDataFlag  = false;
 }
 
 
@@ -220,7 +223,7 @@ CiftiDenseSparseFile::getFileMetaData() const
 bool
 CiftiDenseSparseFile::isSurfaceMappable() const
 {
-    return true;
+    return m_hasSurfaceDataFlag;
 }
 
 /**
@@ -229,7 +232,7 @@ CiftiDenseSparseFile::isSurfaceMappable() const
 bool
 CiftiDenseSparseFile::isVolumeMappable() const
 {
-    return true;
+    return m_hasVolumeDataFlag;
 }
 
 /**
@@ -975,7 +978,12 @@ CiftiDenseSparseFile::readFile(const AString& filename)
             m_volumeMappingDimensions[2] = dims[2];
             m_volumeMappingDimensions[3] = 1;  /* time */
             m_volumeMappingDimensions[4] = 1;  /* components */
-
+            
+            m_hasVolumeDataFlag = true;
+        }
+        
+        if ( ! alongRowMap.getSurfaceStructureList().empty()) {
+            m_hasSurfaceDataFlag = true;
         }
 
         clearLoadedData();
@@ -2057,6 +2065,8 @@ CiftiDenseSparseFile::finishRestorationOfScene()
     }
     
     setMapDataLoadingEnabled(loadingEnabledStatus);
+    
+    invalidateColoringInAllMaps();
 }
 
 /**
@@ -2101,6 +2111,8 @@ void
 CiftiDenseSparseFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                        const SceneClass* sceneClass)
 {
+    clearLoadedData();
+    
     m_connectivityDataLoaded->reset();
 
     CaretMappableDataFile::restoreFileDataFromScene(sceneAttributes,

@@ -536,7 +536,7 @@ ConnectivityDataLoaded::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
-    if (sceneClass->getVersionNumber() >= 2) {
+    if (sceneClass->getVersionNumber() == 2) {
         const int32_t uncompressedFloatCount(sceneClass->getIntegerValue("uncompressedFloatCount"));
         if (uncompressedFloatCount > 0) {
             const int32_t uncompressedByteCount(uncompressedFloatCount * sizeof(float));
@@ -563,6 +563,18 @@ ConnectivityDataLoaded::restoreFromScene(const SceneAttributes* sceneAttributes,
             }
         }
     }
+    else if (sceneClass->getVersionNumber() >= 3) {
+        m_dataLoaded = sceneClass->getFloatVector("m_loadedData");
+        const int64_t uncompressedFloatCount(sceneClass->getIntegerValue("uncompressedFloatCount"));
+        if (uncompressedFloatCount != static_cast<int64_t>(m_dataLoaded.size())) {
+            CaretLogSevere("Failed to uncompress ConnectivityDataLoaded.  "
+                           "Uncompressed number of floats="
+                           + AString::number(uncompressedFloatCount)
+                           + " but got "
+                           + AString::number(m_dataLoaded.size()));
+            reset();
+        }
+    }
     else {
         m_dataLoaded.clear();
     }
@@ -586,7 +598,7 @@ ConnectivityDataLoaded::saveToScene(const SceneAttributes* sceneAttributes,
 {
     int32_t sceneVersion(1);
     if ( ! m_dataLoaded.empty()) {
-        sceneVersion = 2;
+        sceneVersion = 3;
     }
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ConnectivityDataLoaded",
@@ -645,7 +657,7 @@ ConnectivityDataLoaded::saveToScene(const SceneAttributes* sceneAttributes,
                                     indices.size());
     }
     
-    if (sceneVersion >= 2) {
+    if (sceneVersion == 2) {
         const int32_t uncompressedFloatCount(m_dataLoaded.size());
         const int32_t uncompressedByteCount(uncompressedFloatCount * sizeof(float));
         sceneClass->addInteger("uncompressedFloatCount",
@@ -661,6 +673,13 @@ ConnectivityDataLoaded::saveToScene(const SceneAttributes* sceneAttributes,
         sceneClass->addString("loadedDataString",
                               QString(base64Data));
     }
+    else if (sceneVersion >= 3) {
+        sceneClass->addInteger("uncompressedFloatCount",
+                               m_dataLoaded.size());
+        sceneClass->addFloatVector("m_loadedData",
+                                   m_dataLoaded);
+    }
+    
     return sceneClass;
 }
 

@@ -464,6 +464,10 @@ namespace caret {
         
         std::unique_ptr<VolumeGraphicsPrimitiveManager> m_graphicsPrimitiveManager;
 
+        bool m_hasSurfaceDataFlag = false;
+        
+        bool m_hasVolumeDataFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
         
     };
