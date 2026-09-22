@@ -28,6 +28,7 @@
 
 namespace caret {
 
+    class SceneBinaryData;
     class SceneClass;
     class SceneEnumeratedType;
     class SceneObjectArray;
@@ -65,6 +66,10 @@ namespace caret {
         
         /// Should be overridden by any sub-classes that have children
         virtual std::vector<SceneObject*> getDescendants() const;
+        
+        virtual SceneBinaryData* castToSceneBinaryData();
+        
+        virtual const SceneBinaryData* castToSceneBinaryData() const;
         
         virtual SceneClass* castToSceneClass();
         
@@ -128,6 +133,7 @@ namespace caret {
         mutable bool m_restoredFlag;
         
     private:
+        friend class SceneBinaryData;
         friend class SceneClass;
         friend class SceneClassArray;
         friend class SceneObjectMapIntegerKey;

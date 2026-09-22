@@ -51,6 +51,8 @@ namespace caret {
         
         static const AString ELEMENT_OBJECT;
         
+        static const AString ATTRIBUTE_OBJECT_BINARY_DATA_ENCODING;
+        static const AString ATTRIBUTE_OBJECT_BINARY_DATA_NUMBER_OF_BYTES;
         static const AString ATTRIBUTE_OBJECT_CLASS;
         static const AString ATTRIBUTE_OBJECT_NAME;
         static const AString ATTRIBUTE_OBJECT_TYPE;
@@ -97,6 +99,8 @@ namespace caret {
     
     const AString SceneXmlStreamBase::ELEMENT_OBJECT = "Object";
     
+    const AString SceneXmlStreamBase::ATTRIBUTE_OBJECT_BINARY_DATA_ENCODING = "BinaryEncoding";
+    const AString SceneXmlStreamBase::ATTRIBUTE_OBJECT_BINARY_DATA_NUMBER_OF_BYTES = "BinaryDataNumberOfBytes";
     const AString SceneXmlStreamBase::ATTRIBUTE_OBJECT_CLASS   = "Class";
     const AString SceneXmlStreamBase::ATTRIBUTE_OBJECT_NAME    = "Name";
     const AString SceneXmlStreamBase::ATTRIBUTE_OBJECT_TYPE    = "Type";

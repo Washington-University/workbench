@@ -217,6 +217,30 @@ SceneObject::toString() const
 }
 
 /**
+ * Cast an instance of SceneObject to a SceneBinaryData.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneBinaryData
+ */
+SceneBinaryData*
+SceneObject::castToSceneBinaryData()
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneBinaryData.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneBinaryData
+ */
+const SceneBinaryData*
+SceneObject::castToSceneBinaryData() const
+{
+    return NULL;
+}
+
+/**
  * Cast an instance of SceneObject to a SceneClass.
  * Is used to avoid dynamic casting and overridden by the class.
  *

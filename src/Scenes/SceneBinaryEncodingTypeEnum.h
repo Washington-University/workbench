@@ -1,9 +1,9 @@
-#ifndef __SCENE_OBJECT_DATA_TYPE_ENUM__H_
-#define __SCENE_OBJECT_DATA_TYPE_ENUM__H_
+#ifndef __SCENE_BINARY_ENCODING_TYPE_ENUM_H__
+#define __SCENE_BINARY_ENCODING_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2026 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class SceneObjectDataTypeEnum {
+class SceneBinaryEncodingTypeEnum {
 
 public:
     /**
@@ -36,31 +36,13 @@ public:
      */
     enum Enum {
         /** Invalid */
-        SCENE_INVALID,
-        /** Binary data */
-        SCENE_BINARY_DATA,
-        /** Boolean */
-        SCENE_BOOLEAN,
-        /** Class instance */
-        SCENE_CLASS,
-        /** Enumerated type value */
-        SCENE_ENUMERATED_TYPE,
-        /** Float */
-        SCENE_FLOAT,
-        /** Integer 32-bit */
-        SCENE_INTEGER,
-        /** Integer 64-bit */
-        SCENE_LONG_INTEGER,
-        /** Pathname (path to file) */
-        SCENE_PATH_NAME,
-        /** String */
-        SCENE_STRING,
-        /** Unsigned Byte */
-        SCENE_UNSIGNED_BYTE
+        INVALID,
+        /** Gzip Base64 */
+        GZIP_BASE64
     };
 
 
-    ~SceneObjectDataTypeEnum();
+    ~SceneBinaryEncodingTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -69,10 +51,6 @@ public:
     static AString toGuiName(Enum enumValue);
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
-    
-    static AString toXmlName(Enum enumValue);
-    
-    static Enum fromXmlName(const AString& xmlName, bool* isValidOut);
     
     static int32_t toIntegerCode(Enum enumValue);
     
@@ -84,18 +62,15 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
-    static void getAllXmlNames(std::vector<AString>& allXmlNames, const bool isSorted);
-    
 private:
-    SceneObjectDataTypeEnum(const Enum enumValue, 
+    SceneBinaryEncodingTypeEnum(const Enum enumValue, 
                  const AString& name,
-                 const AString& guiName,
-                            const AString& xmlName);
+                 const AString& guiName);
 
-    static const SceneObjectDataTypeEnum* findData(const Enum enumValue);
+    static const SceneBinaryEncodingTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<SceneObjectDataTypeEnum> enumData;
+    static std::vector<SceneBinaryEncodingTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -117,16 +92,13 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
-    
-    /** Name used in XML */
-    AString xmlName;
 };
 
-#ifdef __SCENE_OBJECT_DATA_TYPE_ENUM_DECLARE__
-std::vector<SceneObjectDataTypeEnum> SceneObjectDataTypeEnum::enumData;
-bool SceneObjectDataTypeEnum::initializedFlag = false;
-int32_t SceneObjectDataTypeEnum::integerCodeCounter = 0; 
-#endif // __SCENE_OBJECT_DATA_TYPE_ENUM_DECLARE__
+#ifdef __SCENE_BINARY_ENCODING_TYPE_ENUM_DECLARE__
+std::vector<SceneBinaryEncodingTypeEnum> SceneBinaryEncodingTypeEnum::enumData;
+bool SceneBinaryEncodingTypeEnum::initializedFlag = false;
+int32_t SceneBinaryEncodingTypeEnum::integerCodeCounter = 0; 
+#endif // __SCENE_BINARY_ENCODING_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__SCENE_OBJECT_DATA_TYPE_ENUM__H_
+#endif  //__SCENE_BINARY_ENCODING_TYPE_ENUM_H__

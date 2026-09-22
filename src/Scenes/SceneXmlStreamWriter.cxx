@@ -26,9 +26,11 @@
 #include <QXmlStreamWriter>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "FileInformation.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
+#include "SceneBinaryData.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneEnumeratedType.h"
@@ -126,6 +128,49 @@ SceneXmlStreamWriter::writeXML(QXmlStreamWriter* xmlWriter,
 }
 
 /**
+ * Write the given scene binary using the xml stream writer
+ *
+ * @param sceneBinaryData
+ *     Scene binary data to write
+ */
+void
+SceneXmlStreamWriter::writeBinaryData(const SceneBinaryData* sceneBinaryData)
+{
+    CaretAssert(sceneBinaryData);
+    if (sceneBinaryData == NULL) {
+        return;
+    }
+    
+    const int64_t binaryDataNumberOfBytes(sceneBinaryData->getBinaryUncompressedNumberOfBytes());
+    if (binaryDataNumberOfBytes <= 0) {
+        return;
+    }
+    
+    const AString& objectTypeName = SceneObjectDataTypeEnum::toXmlName(sceneBinaryData->getDataType());
+    
+    SceneBinaryEncodingTypeEnum::Enum binaryEncodingName(sceneBinaryData->getBinaryEncoding());
+    if (binaryEncodingName == SceneBinaryEncodingTypeEnum::INVALID) {
+        CaretLogWarning("Binary encoding is INVALID, scene may not restore correctly for object named="
+                        + sceneBinaryData->getName());
+    }
+
+    m_xmlWriter->writeStartElement(ELEMENT_OBJECT);
+    m_xmlWriter->writeAttribute(ATTRIBUTE_OBJECT_TYPE,
+                                objectTypeName);
+    m_xmlWriter->writeAttribute(ATTRIBUTE_OBJECT_NAME,
+                                sceneBinaryData->getName());
+    m_xmlWriter->writeAttribute(ATTRIBUTE_OBJECT_BINARY_DATA_ENCODING,
+                                SceneBinaryEncodingTypeEnum::toName(binaryEncodingName));
+    m_xmlWriter->writeAttribute(ATTRIBUTE_OBJECT_BINARY_DATA_NUMBER_OF_BYTES,
+                                AString::number(sceneBinaryData->getBinaryUncompressedNumberOfBytes()));
+
+    m_xmlWriter->writeCharacters(sceneBinaryData->getBinaryDataEncodedAsText());
+
+    m_xmlWriter->writeEndElement();
+}
+
+
+/**
  * Write the given scene class using the xml stream writer
  *
  * @param sceneClass
@@ -185,6 +230,8 @@ SceneXmlStreamWriter::writeSceneObject(const SceneObject* sceneObject)
     }
     
     switch (sceneObject->getDataType()) {
+        case SceneObjectDataTypeEnum::SCENE_BINARY_DATA:
+            break;
         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
             break;
         case SceneObjectDataTypeEnum::SCENE_CLASS:
@@ -223,6 +270,9 @@ SceneXmlStreamWriter::writeArrayObject(const SceneObjectArray* objectArray)
     }
     
     switch (objectArray->getDataType()) {
+        case SceneObjectDataTypeEnum::SCENE_BINARY_DATA:
+            CaretAssert(0);
+            break;
         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
             writeArrayPrimitiveType(objectArray->castToScenePrimitiveArray());
             break;
@@ -289,6 +339,13 @@ SceneXmlStreamWriter::writeMapIntegerKeyObject(const SceneObjectMapIntegerKey* o
         
         const SceneObject* valueObject = iter.second;
         switch (dataType) {
+            case SceneObjectDataTypeEnum::SCENE_BINARY_DATA:
+            {
+                const SceneBinaryData* value(valueObject->castToSceneBinaryData());
+                CaretAssert(value);
+                writeBinaryData(value);
+            }
+                break;
             case SceneObjectDataTypeEnum::SCENE_INVALID:
                 CaretAssert(0);
                 break;
@@ -397,6 +454,13 @@ SceneXmlStreamWriter::writeMapStringKeyObject(const SceneObjectMapStringKey* obj
         
         const SceneObject* valueObject = iter.second;
         switch (dataType) {
+            case SceneObjectDataTypeEnum::SCENE_BINARY_DATA:
+            {
+                const SceneBinaryData* value(valueObject->castToSceneBinaryData());
+                CaretAssert(value);
+                writeBinaryData(value);
+            }
+                break;
             case SceneObjectDataTypeEnum::SCENE_INVALID:
                 CaretAssert(0);
                 break;
@@ -488,6 +552,9 @@ SceneXmlStreamWriter::writeSingleObject(const SceneObject* sceneObject)
     }
     
     switch (sceneObject->getDataType()) {
+        case SceneObjectDataTypeEnum::SCENE_BINARY_DATA:
+            writeBinaryData(sceneObject->castToSceneBinaryData());
+            break;
         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
             writePrimitive(sceneObject->castToScenePrimitive());
             break;

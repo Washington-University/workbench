@@ -245,6 +245,9 @@ namespace caret {
                              const AString values[],
                              const int32_t arrayNumberOfElements);
         
+        void addFloatVector(const AString& name,
+                            const std::vector<float>& floatVector);
+        
         void addChild(SceneObject* sceneObject);
         
         bool replaceChild(const SceneObject* sceneObjectToReplace,
@@ -309,6 +312,8 @@ namespace caret {
                                      AString values[],
                                      const int32_t arrayNumberOfElements,
                                      const AString& defaultValue = "") const;
+        
+        std::vector<float> getFloatVector(const AString& name) const;
         
         const ScenePathNameArray* getPathNameArray(const AString& name) const;
         

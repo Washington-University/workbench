@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "SceneBinaryData.h"
 #include "SceneBoolean.h"
 #include "SceneBooleanArray.h"
 #include "SceneClassArray.h"
@@ -474,6 +475,43 @@ SceneClass::addStringArray(const AString& name,
                                   values,
                                   arrayNumberOfElements));
 }
+
+/**
+ * Add a float vector to the class
+ * @param name
+ *    Name associated with value.
+ * @param floatVector
+ *    The float vector containing the values.
+ */
+void
+SceneClass::addFloatVector(const AString& name,
+                           const std::vector<float>& floatVector)
+{
+    if ( ! floatVector.empty()) {
+        addChild(new SceneBinaryData(name,
+                                     floatVector));
+    }
+}
+
+/**
+ * @return Float vector with the given name.  Empty if error or not found.
+ */
+std::vector<float>
+SceneClass::getFloatVector(const AString& name) const
+{
+    std::vector<float> valuesOut;
+ 
+    const SceneObject* so = getObjectWithName(name);
+    if (so != NULL) {
+        const SceneBinaryData* sbd(so->castToSceneBinaryData());
+        if (sbd != NULL) {
+            valuesOut = sbd->getAsFloatVector();
+        }
+    }
+
+    return valuesOut;
+}
+
 
 /**
  * Find and return the child boolean value with the given name.

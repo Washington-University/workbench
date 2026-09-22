@@ -32,6 +32,7 @@ class QXmlStreamWriter;
 namespace caret {
 
     class Scene;
+    class SceneBinaryData;
     class SceneClass;
     class SceneClassArray;
     class SceneEnumeratedType;
@@ -69,6 +70,8 @@ namespace caret {
         void writeSceneObject(const SceneObject* sceneObject);
         
         void writeArrayObject(const SceneObjectArray* objectArray);
+        
+        void writeBinaryData(const SceneBinaryData* sceneBinaryData);
         
         void writeMapIntegerKeyObject(const SceneObjectMapIntegerKey* objectMap);
         

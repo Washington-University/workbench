@@ -41,6 +41,8 @@ BackgroundAndForegroundColorsSceneHelper.h
 DisplayGroupAndTabItemHelper.h
 Scene.h
 SceneAttributes.h
+SceneBinaryData.h
+SceneBinaryEncodingTypeEnum.h
 SceneBoolean.h
 SceneBooleanArray.h
 SceneClass.h
@@ -86,6 +88,8 @@ BackgroundAndForegroundColorsSceneHelper.cxx
 DisplayGroupAndTabItemHelper.cxx
 Scene.cxx
 SceneAttributes.cxx
+SceneBinaryData.cxx
+SceneBinaryEncodingTypeEnum.cxx
 SceneBoolean.cxx
 SceneBooleanArray.cxx
 SceneClass.cxx

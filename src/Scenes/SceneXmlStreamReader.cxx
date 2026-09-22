@@ -32,6 +32,7 @@
 #include "CaretLogger.h"
 #include "DataFile.h"
 #include "Scene.h"
+#include "SceneBinaryData.h"
 #include "SceneBoolean.h"
 #include "SceneBooleanArray.h"
 #include "SceneClass.h"
@@ -289,6 +290,29 @@ SceneXmlStreamReader::readSceneObjectSingle(QXmlStreamReader& xmlReader)
     
     SceneClass* sceneClass(NULL);
     switch (dataType) {
+        case SceneObjectDataTypeEnum::SCENE_BINARY_DATA:
+        {
+            const QString encodingName(attributes.value(ATTRIBUTE_OBJECT_BINARY_DATA_ENCODING).toString());
+            const int64_t numBytes(attributes.value(ATTRIBUTE_OBJECT_BINARY_DATA_NUMBER_OF_BYTES).toLong());
+
+            bool validEncodingFlag(false);
+            const SceneBinaryEncodingTypeEnum::Enum encodingType(SceneBinaryEncodingTypeEnum::fromName(encodingName,
+                                                                                                       &validEncodingFlag));
+            if (validEncodingFlag) {
+                sceneObject = new SceneBinaryData(name,
+                                                  xmlReader.readElementText(),
+                                                  encodingType,
+                                                  numBytes);
+            }
+            else {
+                CaretLogSevere("Invalid scene binary encoding name="
+                               + encodingName
+                               + " for object named="
+                               + name
+                               + ".  Object not restored.");
+            }
+        }
+            break;
         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
             sceneObject = new SceneBoolean(name,
                                            AString(xmlReader.readElementText()).toBool());
@@ -464,9 +488,6 @@ SceneXmlStreamReader::readSceneObjectArray(QXmlStreamReader& xmlReader)
                                           + " is invalid on "
                                           + ELEMENT_OBJECT_ARRAY);
         }
-//        else if (arrayLength == 0) {
-//            return NULL;
-//        }
     }
     
     if ( ! errorString.isEmpty()) {
@@ -485,6 +506,11 @@ SceneXmlStreamReader::readSceneObjectArray(QXmlStreamReader& xmlReader)
     SceneStringArray* stringArray(NULL);
     SceneUnsignedByteArray* unsignedByteArray(NULL);
     switch (dataType) {
+        case SceneObjectDataTypeEnum::SCENE_BINARY_DATA:
+            CaretLogSevere("Arrays of scene binary data not supported.");
+            CaretAssert(0);
+            return NULL;
+            break;
         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
             booleanArray = new SceneBooleanArray(name,
                                                  arrayLength);
@@ -577,6 +603,10 @@ SceneXmlStreamReader::readSceneObjectArray(QXmlStreamReader& xmlReader)
                     }
 
                     switch (dataType) {
+                        case SceneObjectDataTypeEnum::SCENE_BINARY_DATA:
+                            CaretLogSevere("Arrays of scene binary data not supported.");
+                            CaretAssert(0);
+                            break;
                         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
                             CaretAssert(booleanArray);
                             booleanArray->setValue(elementIndex,
@@ -644,7 +674,6 @@ SceneXmlStreamReader::readSceneObjectArray(QXmlStreamReader& xmlReader)
                     SceneObject* elementObject = readSceneObject(xmlReader);
                     if (elementObject != NULL) {
                         SceneClass* elementClass = elementObject->castToSceneClass();
-                        //CaretAssert(elementClass);
                         if (elementClass == NULL) {
                             xmlReader.raiseError("Failed to cast "
                                                  + elementObject->getName()
@@ -772,6 +801,11 @@ SceneXmlStreamReader::readSceneObjectMap(QXmlStreamReader& xmlReader)
                     }
                     
                     switch (dataType) {
+                        case SceneObjectDataTypeEnum::SCENE_BINARY_DATA:
+                            CaretLogSevere("Maps of scene binary data not supported.");
+                            CaretAssert(0);
+                            return NULL;
+                            break;
                         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
                             sceneMap->addBoolean(keyIndex,
                                                    AString(xmlReader.readElementText()).toBool());
@@ -947,6 +981,10 @@ SceneXmlStreamReader::readSceneObjectMapStringKey(QXmlStreamReader& xmlReader)
                     }
                     
                     switch (dataType) {
+                        case SceneObjectDataTypeEnum::SCENE_BINARY_DATA:
+                            CaretLogSevere("Maps of scene binary data not supported.");
+                            CaretAssert(0);
+                            break;
                         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
                             sceneMap->addBoolean(keyString,
                                                  AString(xmlReader.readElementText()).toBool());
