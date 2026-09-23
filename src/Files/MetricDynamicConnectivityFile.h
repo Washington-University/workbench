@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "ConnectivityFileInterface.h"
 #include "DynamicConnectivityFileInterface.h"
 #include "GeneralYokingGroupEnum.h"
 #include "MetricFile.h"
@@ -37,7 +38,10 @@ namespace caret {
     class ConnectivityCorrelationSettings;
     class ConnectivityDataLoaded;
     
-    class MetricDynamicConnectivityFile : public MetricFile, public DynamicConnectivityFileInterface {
+    class MetricDynamicConnectivityFile
+    : public MetricFile,
+    public ConnectivityFileInterface,
+    public DynamicConnectivityFileInterface {
         
     public:
         MetricDynamicConnectivityFile(MetricFile* parentMetricFile);

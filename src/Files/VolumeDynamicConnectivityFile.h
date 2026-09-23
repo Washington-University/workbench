@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "ConnectivityFileInterface.h"
 #include "GeneralYokingGroupEnum.h"
 #include "DynamicConnectivityFileInterface.h"
 #include "VolumeFile.h"
@@ -34,7 +35,10 @@ namespace caret {
     class ConnectivityCorrelationSettings;
     class ConnectivityDataLoaded;
     
-    class VolumeDynamicConnectivityFile : public VolumeFile, public DynamicConnectivityFileInterface {
+    class VolumeDynamicConnectivityFile
+    : public VolumeFile,
+    public ConnectivityFileInterface,
+    public DynamicConnectivityFileInterface {
         
     public:
         VolumeDynamicConnectivityFile(const VolumeFile* parentVolumeFile);

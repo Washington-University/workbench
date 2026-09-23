@@ -76,6 +76,8 @@ m_enabledAsLayer(true)
     m_sceneAssistant->add("m_correlationSettings",
                           "ConnectivityCorrelationSettings",
                           m_correlationSettings.get());
+    m_sceneAssistant->add<GeneralYokingGroupEnum, GeneralYokingGroupEnum::Enum>("m_dynamicYokingGroup",
+                                                                                &m_dynamicYokingGroup);
 }
 
 /**
@@ -296,38 +298,6 @@ CiftiConnectivityMatrixParcelDynamicFile::getNumberOfCorrelationDataPoints() con
 }
 
 /**
- * Correlate data in this file with the given data set
- * @param dataSet
- *    The correlation two data set
- * @param dataLoadedOut
- *    Output with data loaded
- * @return True if successful, else false.
- */
-bool
-CiftiConnectivityMatrixParcelDynamicFile::correlateWithDataSetProtected(const ConnectivityCorrelationTwo::DataSet& dataSet,
-                                                                        std::vector<float>& dataLoadedOut) const
-{
-    bool validFlag(false);
-    
-    dataLoadedOut.resize(m_numberOfTimePoints);
-    const ConnectivityCorrelationTwo* connCoorTwo(getConnectivityCorrelationTwo());
-    if (connCoorTwo != NULL) {
-        connCoorTwo->computeForDataSet(dataSet,
-                                       dataLoadedOut);
-        validFlag = true;
-    }
-    
-    if ( ! validFlag) {
-        dataLoadedOut.resize(m_numberOfTimePoints);
-        std::fill(dataLoadedOut.begin(),
-                  dataLoadedOut.end(),
-                  0.0f);
-    }
-    
-    return validFlag;
-}
-
-/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes
@@ -446,4 +416,75 @@ CiftiConnectivityMatrixParcelDynamicFile::getCorrelationSettings() const
     return m_correlationSettings.get();
 }
 
+/**
+ * @return The selected yoking group
+ */
+GeneralYokingGroupEnum::Enum
+CiftiConnectivityMatrixParcelDynamicFile::getDynamicConnectivityYokingGroup() const
+{
+    return m_dynamicYokingGroup;
+}
+
+/**
+ * Set the yoking group
+ * @param yokingGroup
+ *    New yoking group
+ */
+void
+CiftiConnectivityMatrixParcelDynamicFile::setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup)
+{
+    m_dynamicYokingGroup = yokingGroup;
+}
+
+/**
+ * Correlate data in this file with the given data set
+ * @param dataSet
+ *    The correlation two data set
+ * @param dataSetName
+ *    Name of the data set
+ * @return True if successful, else false.
+ */
+bool
+CiftiConnectivityMatrixParcelDynamicFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                                           const AString& dataSetName)
+{
+    /*
+     * Needs to start in the parent data file (CiftiMappableConnectivityMatrixDataFile)
+     * since that is where the data gets stored
+     */
+    return loadDataForCorrelationParentImplementation(dataSet,
+                                                      dataSetName);
+}
+
+/**
+ * Correlate data in this file with the given data set
+ * @param dataSet
+ *    The correlation two data set
+ * @param dataLoadedOut
+ *    Output with data loaded
+ * @return True if successful, else false.
+ */
+bool
+CiftiConnectivityMatrixParcelDynamicFile::loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                                                      std::vector<float>& dataLoadedOut) const
+{
+    bool validFlag(false);
+    
+    dataLoadedOut.resize(m_numberOfTimePoints);
+    const ConnectivityCorrelationTwo* connCoorTwo(getConnectivityCorrelationTwo());
+    if (connCoorTwo != NULL) {
+        connCoorTwo->computeForDataSet(dataSet,
+                                       dataLoadedOut);
+        validFlag = true;
+    }
+    
+    if ( ! validFlag) {
+        dataLoadedOut.resize(m_numberOfTimePoints);
+        std::fill(dataLoadedOut.begin(),
+                  dataLoadedOut.end(),
+                  0.0f);
+    }
+    
+    return validFlag;
+}
 

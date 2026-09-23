@@ -25,7 +25,8 @@
 
 #include "BrainConstants.h"
 #include "ChartMatrixLoadingDimensionEnum.h"
-#include "DynamicConnectivityFileInterface.h"
+#include "ConnectivityCorrelationTwo.h"
+#include "ConnectivityFileInterface.h"
 #include "CiftiMappableDataFile.h"
 #include "GeneralYokingGroupEnum.h"
 #include "VoxelIJK.h"
@@ -36,7 +37,7 @@ namespace caret {
     class SceneClassAssistant;
     
     class CiftiMappableConnectivityMatrixDataFile :
-    public CiftiMappableDataFile, public DynamicConnectivityFileInterface
+    public CiftiMappableDataFile, public ConnectivityFileInterface
     {
     protected:
         CiftiMappableConnectivityMatrixDataFile(const DataFileTypeEnum::Enum dataFileType);
@@ -47,11 +48,6 @@ namespace caret {
         virtual bool isMapDataLoadingEnabled() const override;
         
         virtual void setMapDataLoadingEnabled(const bool enabled) override;
-        
-        virtual int64_t getNumberOfCorrelationDataPoints() const override;
-        
-        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
-                                          const AString& dataSetName) override;
         
         virtual bool loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
                                                   const StructureEnum::Enum structure,
@@ -101,12 +97,6 @@ namespace caret {
         
         ChartMatrixLoadingDimensionEnum::Enum getChartMatrixLoadingDimension() const;
         
-        //TSC: HACK to expose dynconn enabled as layer status
-        virtual bool isEnabledAsLayer() const override { return true; }
-        
-        /* Must override */
-        virtual void setEnabledAsLayer(const bool /* enabled */) override { }
-        
         GeneralYokingGroupEnum::Enum getDynamicConnectivityYokingGroup() const;
         
         void setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup);
@@ -121,6 +111,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     protected:
+        virtual bool isEnabledAsLayerProtected() const;
+        
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);
         
@@ -137,10 +129,6 @@ namespace caret {
         
         void setChartMatrixLoadingDimension(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType);
         
-        virtual ConnectivityCorrelationSettings* getCorrelationSettings() override;
-        
-        virtual const ConnectivityCorrelationSettings* getCorrelationSettings() const override;
-        
         virtual void getProcessedDataForColumn(float* dataOut, const int64_t& index) const;
         
         virtual void getProcessedDataForRow(std::vector<float>& dataOut, const int64_t& index) const;
@@ -151,16 +139,19 @@ namespace caret {
         
         virtual void processRowAverageData(std::vector<float>& rowAverageData);
 
+        virtual bool loadDataForCorrelationParentImplementation(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                                const AString& dataSetName);
+        
         /**
-         * Correlate data in this file with the given data set
+         * Implemented by dynamic connectivity subclasses
          * @param dataSet
          *    The correlation two data set
          * @param dataSetName
          *    Name of the data set
          * @return True if successful, else false.
          */
-        virtual bool correlateWithDataSetProtected(const ConnectivityCorrelationTwo::DataSet& dataSet,
-                                                   std::vector<float>& dataLoadedOut) const;
+        virtual bool loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                                 std::vector<float>& dataLoadedOut) const;
 
     protected:
         void setLoadedRowDataToAllZeros();
@@ -212,8 +203,6 @@ namespace caret {
         AString m_rowLoadedText;
         
         ConnectivityDataLoaded* m_connectivityDataLoaded;
-        
-        std::unique_ptr<ConnectivityCorrelationSettings> m_connectivityCorrelationSettings;
         
         /*
          * This is really a member of parcel file since it the parcel

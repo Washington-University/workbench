@@ -72,7 +72,7 @@ namespace caret {
                                            std::vector<AString>& rowColumnInformationOut,
                                            HtmlTableBuilder& htmlTableBuilder);
         
-        bool loadRowOrColumnFromConnectivityMatrixFile(DynamicConnectivityFileInterface* parcelFile,
+        bool loadRowOrColumnFromConnectivityMatrixFile(ConnectivityFileInterface* parcelFile,
                                                        const int32_t rowIndex,
                                                        const int32_t columnIndex,
                                                        std::vector<AString>& rowColumnInformationOut,

@@ -195,8 +195,7 @@ DynamicConnectivityFileLoadingManager::loadRowOrColumnFromParcelFile(Brain* brai
 }
 
 bool
-DynamicConnectivityFileLoadingManager::loadRowOrColumnFromConnectivityMatrixFile(
-                                                                                  DynamicConnectivityFileInterface* ciftiConnMatrixFile,
+DynamicConnectivityFileLoadingManager::loadRowOrColumnFromConnectivityMatrixFile(ConnectivityFileInterface* ciftiConnMatrixFile,
                                                                                   const int32_t rowIndex,
                                                                                   const int32_t columnIndex,
                                                                                   std::vector<AString>& rowColumnInformationOut,

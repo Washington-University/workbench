@@ -23,6 +23,7 @@
 
 #include "CaretPointer.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "DynamicConnectivityFileInterface.h"
 
 namespace caret {
     class CiftiParcelSeriesFile;
@@ -30,7 +31,9 @@ namespace caret {
     class ConnectivityCorrelationSettings;
     class SceneClassAssistant;
     
-    class CiftiConnectivityMatrixParcelDynamicFile : public CiftiMappableConnectivityMatrixDataFile {
+    class CiftiConnectivityMatrixParcelDynamicFile
+    : public CiftiMappableConnectivityMatrixDataFile,
+      public DynamicConnectivityFileInterface {
         
     public:
         CiftiConnectivityMatrixParcelDynamicFile(CiftiParcelSeriesFile* parentParcelSeriesFile);
@@ -55,6 +58,13 @@ namespace caret {
         
         virtual const ConnectivityCorrelationSettings* getCorrelationSettings() const override;
         
+        virtual GeneralYokingGroupEnum::Enum getDynamicConnectivityYokingGroup() const override;
+        
+        virtual void setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup) override;
+        
+        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                       const AString& dataSetName) override;
+        
         void getDataForRow(std::vector<float>& dataOut,
                            const int64_t& index) const;
         
@@ -74,8 +84,8 @@ namespace caret {
         
         virtual int64_t getNumberOfCorrelationDataPoints() const override;
         
-        virtual bool correlateWithDataSetProtected(const ConnectivityCorrelationTwo::DataSet& dataSet,
-                                                   std::vector<float>& dataLoadedOut) const;
+        virtual bool loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                                 std::vector<float>& dataLoadedOut) const;
         
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
@@ -121,6 +131,8 @@ namespace caret {
 
         mutable std::unique_ptr<ConnectivityCorrelationSettings> m_correlationSettings;
                 
+        GeneralYokingGroupEnum::Enum m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
+        
         mutable std::vector<float> m_dataSeriesMatrixData;
         
         bool m_testConnectivityCorrelationFlag = true;

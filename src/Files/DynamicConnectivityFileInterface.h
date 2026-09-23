@@ -22,12 +22,11 @@
 /*LICENSE_END*/
 
 #include "ConnectivityCorrelationTwo.h"
-#include "ConnectivityFileInterface.h"
 #include "GeneralYokingGroupEnum.h"
 
 namespace caret {
 
-    class DynamicConnectivityFileInterface : public ConnectivityFileInterface {
+    class DynamicConnectivityFileInterface {
         
     public:
         DynamicConnectivityFileInterface() { };

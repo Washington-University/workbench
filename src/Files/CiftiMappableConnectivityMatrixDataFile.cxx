@@ -54,7 +54,6 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
 : CiftiMappableDataFile(dataFileType)
 {
     m_connectivityDataLoaded = new ConnectivityDataLoaded();
-    m_connectivityCorrelationSettings.reset(new ConnectivityCorrelationSettings());
     
     
     /*
@@ -66,9 +65,6 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded);
-    m_sceneAssistant->add("m_connectivityCorrelationSettings",
-                          "ConnectivityCorrelationSettings",
-                          m_connectivityCorrelationSettings.get());
     
     m_sceneAssistant->add("+",
                            &m_dataLoadingEnabled);
@@ -224,14 +220,27 @@ CiftiMappableConnectivityMatrixDataFile::setDynamicConnectivityYokingGroup(const
  *     A vector that will contain the data for the map upon exit.
  */
 void
-CiftiMappableConnectivityMatrixDataFile::getMapData(const int32_t /*mapIndex*/,
-                                  std::vector<float>& dataOut) const
+CiftiMappableConnectivityMatrixDataFile::getMapData(const int32_t mapIndex,
+                                                    std::vector<float>& dataOut) const
 {
-    if (!isEnabledAsLayer())
-    {//TSC: HACK to make identification show empty string instead of number when dynconn is used, then set to not load, not layer
-        dataOut.clear();
-    } else {
-        dataOut = m_loadedRowData;
+    const ConnectivityFileInterface* connFile(dynamic_cast<const ConnectivityFileInterface*>(this));
+    if (connFile != NULL) {
+        /*
+         * Connectivity files provide the loaded data
+         */
+        if (isEnabledAsLayerProtected()) {
+            dataOut = m_loadedRowData;
+        }
+        else {
+            dataOut.clear();
+        }
+    }
+    else {
+        /*
+         * Let parent CIFTI file provide the data
+         */
+        CiftiMappableDataFile::getMapData(mapIndex,
+                                          dataOut);
     }
 }
 
@@ -634,24 +643,6 @@ CiftiMappableConnectivityMatrixDataFile::getDataForRow(float* dataOut, const int
 }
 
 /**
- * Correlate data in this file with the given data set
- * @param dataSet
- *    The correlation two data set
- * @param dataLoadedOut
- *    Output with data loaded
- * @return True if successful, else false.
- */
-bool
-CiftiMappableConnectivityMatrixDataFile::correlateWithDataSetProtected(const ConnectivityCorrelationTwo::DataSet& /*dataSet*/,
-                                                                       std::vector<float>& /*dataLoadedOut*/) const
-{
-    /*
-     * Overridden by subclasses
-     */
-    return false;
-}
-
-/**
  * Load PROCESSED data for the given column.
  *
  * Some file types may have special processing for a column.  This method can be
@@ -696,24 +687,6 @@ void
 CiftiMappableConnectivityMatrixDataFile::processRowAverageData(std::vector<float>& /*rowAverageData*/)
 {
     /* This method may be overridden by subclasses */
-}
-
-/**
- * @return The connectivity correlation settings
- */
-ConnectivityCorrelationSettings*
-CiftiMappableConnectivityMatrixDataFile::getCorrelationSettings()
-{
-    return m_connectivityCorrelationSettings.get();
-}
-
-/**
- * @return The connectivity correlation settings
- */
-const ConnectivityCorrelationSettings*
-CiftiMappableConnectivityMatrixDataFile::getCorrelationSettings() const
-{
-    return m_connectivityCorrelationSettings.get();
 }
 
 /**
@@ -803,19 +776,8 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t co
 }
 
 /**
- * @return Number of points for correlating with loadDataForCorrelationWithDataSet
- */
-int64_t
-CiftiMappableConnectivityMatrixDataFile::getNumberOfCorrelationDataPoints() const
-{
-    /*
-     * Subclasses should override
-     */
-    return 0;
-}
-
-/**
- * Correlate data in this file with the given data set
+ * Correlate data in this file with the given data set.
+ * This must start in the parent since this is where the loaded data is stored.
  * @param dataSet
  *    The correlation two data set
  * @param dataSetName
@@ -823,8 +785,8 @@ CiftiMappableConnectivityMatrixDataFile::getNumberOfCorrelationDataPoints() cons
  * @return True if successful, else false.
  */
 bool
-CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
-                                                              const AString& dataSetName)
+CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationParentImplementation(const ConnectivityCorrelationTwo::DataSet& dataSet,
+                                                                                    const AString& dataSetName)
 {
     if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
@@ -835,7 +797,7 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationWithDataSet(const
      * If not enabled as a layer, clear any previous
      * loaded data and do not load any new data
      */
-    if ( ! isEnabledAsLayer()) {
+    if ( ! isEnabledAsLayerProtected()) {
         setLoadedRowDataToAllZeros();
         return false;
     }
@@ -847,8 +809,11 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationWithDataSet(const
         return false;
     }
 
-    if (correlateWithDataSetProtected(dataSet,
-                                      m_loadedRowData)) {
+    /*
+     * The dynamic connectivity sub-classes implement this method
+     */
+    if (loadDataForCorrelationDynamicSubclassHelper(dataSet,
+                                                    m_loadedRowData)) {
         m_rowLoadedTextForMapName = dataSetName;
         m_rowLoadedText           = dataSetName;
         
@@ -862,6 +827,25 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationWithDataSet(const
     
     return false;
 }
+
+/**
+ * Correlate data in this file with the given data set
+ * @param dataSet
+ *    The correlation two data set
+ * @param dataLoadedOut
+ *    Output with data loaded
+ * @return True if successful, else false.
+ */
+bool
+CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSet& /*dataSet*/,
+                                                                                     std::vector<float>& /*dataLoadedOut*/) const
+{
+    /*
+     * Overridden by subclasses that implement the DynamicConnectivityFileInterface
+     */
+    return false;
+}
+
 
 /**
  * Load connectivity data for the surface's node.
@@ -905,7 +889,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
      * If not enabled as a layer, clear any previous
      * loaded data and do not load any new data
      */
-    if ( ! isEnabledAsLayer()) {
+    if ( ! isEnabledAsLayerProtected()) {
         setLoadedRowDataToAllZeros();
         return false;
     }
@@ -1085,7 +1069,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
      * If not enabled as a layer, clear any previous
      * loaded data and do not load any new data
      */
-    if ( ! isEnabledAsLayer()) {
+    if ( ! isEnabledAsLayerProtected()) {
         setLoadedRowDataToAllZeros();
         return false;
     }
@@ -1199,7 +1183,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const f
      * If not enabled as a layer, clear any previous
      * loaded data and do not load any new data
      */
-    if ( ! isEnabledAsLayer()) {
+    if ( ! isEnabledAsLayerProtected()) {
         setLoadedRowDataToAllZeros();
         return false;
     }
@@ -1402,7 +1386,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
      * If not enabled as a layer, clear any previous
      * loaded data and do not load any new data
      */
-    if ( ! isEnabledAsLayer()) {
+    if ( ! isEnabledAsLayerProtected()) {
         setLoadedRowDataToAllZeros();
         return false;
     }
@@ -1824,3 +1808,13 @@ CiftiMappableConnectivityMatrixDataFile::restoreSubClassDataFromScene(const Scen
     /* This method is intended only for subclasses to override */
 }
 
+bool
+CiftiMappableConnectivityMatrixDataFile::isEnabledAsLayerProtected() const
+{
+    const DynamicConnectivityFileInterface* dynConnFile(dynamic_cast<const DynamicConnectivityFileInterface*>(this));
+    if (dynConnFile != NULL) {
+        return dynConnFile->isEnabledAsLayer();
+    }
+
+    return true;
+}

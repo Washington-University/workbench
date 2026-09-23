@@ -43,6 +43,7 @@
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "CiftiBrainordinateLabelFile.h"
+#include "DynamicConnectivityFileInterface.h"
 #include "DynamicConnectivityFileLoadingManager.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiFiberTrajectoryManager.h"
