@@ -124,19 +124,22 @@ m_dataStride(dataStride)
         float mean(0.0);
         float sqrtSumSquared(0.0);
         
+        bool allZerosFlag(false);
         computeMeanAndSumSquared(dataPtr,
                                  numberOfDataElements,
                                  dataStride,
                                  m_settings.isCorrelationNoDemeanEnabled(),
                                  mean,
-                                 sqrtSumSquared);
+                                 sqrtSumSquared,
+                                 allZerosFlag);
         
         m_dataSets[dataSetIndex] = new DataSet(dataSetIndex,
                                                dataPtr,
                                                m_numberOfDataElements,
                                                m_dataStride,
                                                mean,
-                                               sqrtSumSquared);
+                                               sqrtSumSquared,
+                                               allZerosFlag);
     }
 
     if (m_debugFlag) {
@@ -167,12 +170,14 @@ ConnectivityCorrelationTwo::createDataSet(const float* dataElements,
     float mean(0.0);
     float sqrtSumSquared(0.0);
     
+    bool allZerosFlag(false);
     computeMeanAndSumSquared(dataElements,
                              numberOfDataElements,
                              dataStride,
                              correlationNoDemeanEnabled,
                              mean,
-                             sqrtSumSquared);
+                             sqrtSumSquared,
+                             allZerosFlag);
     
     const int64_t dataSetIndex(-1);
     DataSet dataSet(dataSetIndex,
@@ -180,10 +185,55 @@ ConnectivityCorrelationTwo::createDataSet(const float* dataElements,
                     numberOfDataElements,
                     dataStride,
                     mean,
-                    sqrtSumSquared);
+                    sqrtSumSquared,
+                    allZerosFlag);
 
     return dataSet;
 
+}
+
+/**
+ * Create a data set pointer from the given data
+ * @param dataElements
+ *    Pointer to the data
+ * @param numDataElements
+ *    Number of data elements
+ * @param dataStride
+ *    The offset of each element in one data pointer.  In most cases, the data is contiguous, this value is one.  In instance
+ *    where the data is in the columns of a matrix, this value is the number of columns.
+ * @param correlationNoDemeanEnabled
+ *    If true, do not "demean" the sum-squared (value of m_settings.isCorrelationNoDemeanEnabled())
+ * @return
+ *    The DataSet
+ */
+ConnectivityCorrelationTwo::DataSet*
+ConnectivityCorrelationTwo::createDataSetPtr(const float* dataElements,
+                                             const int64_t numberOfDataElements,
+                                             const int64_t dataStride,
+                                             const bool correlationNoDemeanEnabled)
+{
+    float mean(0.0);
+    float sqrtSumSquared(0.0);
+    
+    bool allZerosFlag(false);
+    computeMeanAndSumSquared(dataElements,
+                             numberOfDataElements,
+                             dataStride,
+                             correlationNoDemeanEnabled,
+                             mean,
+                             sqrtSumSquared,
+                             allZerosFlag);
+    
+    const int64_t dataSetIndex(-1);
+    DataSet* dataSet(new DataSet(dataSetIndex,
+                                 dataElements,
+                                 numberOfDataElements,
+                                 dataStride,
+                                 mean,
+                                 sqrtSumSquared,
+                                 allZerosFlag));
+
+    return dataSet;    
 }
 
 
@@ -202,6 +252,8 @@ ConnectivityCorrelationTwo::createDataSet(const float* dataElements,
  *    Output with mean
  * @param sqrtSumSquaredOut
  *    Output with square root of sum squared
+ * @param allZerosFlagOut
+ *    Output will be true if all data elements are zero.
  */
 void
 ConnectivityCorrelationTwo::computeMeanAndSumSquared(const float* dataPtr,
@@ -209,7 +261,8 @@ ConnectivityCorrelationTwo::computeMeanAndSumSquared(const float* dataPtr,
                                                      const int64_t dataStride,
                                                      const bool correlationNoDemeanEnabled,
                                                      float& meanOut,
-                                                     float& sqrtSumSquaredOut)
+                                                     float& sqrtSumSquaredOut,
+                                                     bool& allZerosFlagOut)
 {
     /*
      * NOTE: Do not use OpenMP here.  OpenMP is used
@@ -217,11 +270,15 @@ ConnectivityCorrelationTwo::computeMeanAndSumSquared(const float* dataPtr,
      */
     double sum(0.0);
     double sumSQ(0.0);
+    allZerosFlagOut = true;
     for (int64_t j = 0; j < numberOfDataElements; j++) {
         const int64_t offset(j * dataStride);
         const float d(dataPtr[offset]);
         sum   += d;
         sumSQ += (d * d);
+        if (d != 0.0) {
+            allZerosFlagOut = false;
+        }
     }
     
     meanOut = (sum / static_cast<float>(numberOfDataElements));
@@ -342,6 +399,53 @@ ConnectivityCorrelationTwo::computeForDataSetIndex(const int64_t dataSetIndex,
 }
 
 /**
+ * Compute correlation/covariance for the given data set group (data set average) to all other data sets
+ * @param dataSetGroup
+ *    The data set group
+ * @param dataOut
+ *    Output with computed data.  Number of elements is same length as the
+ *    Number of data sets.
+ */
+void
+ConnectivityCorrelationTwo::computeForDataSetGroup(const DataSetGroup& dataSetGroup,
+                                                   std::vector<float>& dataOut) const
+{
+    dataOut.resize(m_numberOfDataSets);
+    std::fill(dataOut.begin(),
+              dataOut.end(),
+              0.0);
+    
+    if (getNumberOfDataElements() != dataSetGroup.getNumberOfElements()) {
+        CaretLogWarning("Attempt to compute correlation for incompatible number of elements");
+        return;
+    }
+    
+    const int32_t numDSG(dataSetGroup.getNumberOfDataSets());
+    
+    
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int64_t i = 0; i < m_numberOfDataSets; i++) {
+        const DataSet* otherDataSet(m_dataSets[i]);
+        CaretAssert(otherDataSet);
+        
+        double dataSum(0.0);
+        for (int32_t iDSG = 0; iDSG < numDSG; iDSG++) {
+            std::vector<float> corrData(m_numberOfDataSets);
+            const float corrValue(computeForDataSets(*otherDataSet,
+                                                     dataSetGroup.getDataSetRef(iDSG)));
+            dataSum += corrValue;
+        }
+        
+        if (numDSG >= 1) {
+            dataSum /= static_cast<double>(numDSG);
+        }
+        
+        CaretAssertVectorIndex(dataOut, i);
+        dataOut[i] = dataSum;
+    }
+}
+
+/**
  * Compute correlation/covariance for the given data set to all other data sets
  * @param dataSet
  *    The data set
@@ -395,7 +499,15 @@ ConnectivityCorrelationTwo::computeForDataSets(const DataSet& a,
         {
             double xySum(0.0);
             
-            if ((a.m_dataStride == 1)
+            if (a.m_allZerosFlag
+                || b.m_allZerosFlag) {
+                /*
+                 * If either (or both) data sets are all zeros,
+                 * then the dot product is zero.
+                 */
+                xySum = 0.0;
+            }
+            else if ((a.m_dataStride == 1)
                 && (b.m_dataStride == 1)) {
                 /*
                  * "dsdot" requires contiguous data

@@ -40,13 +40,15 @@ namespace caret {
                     const int64_t numDataElements,
                     const int64_t dataStride,
                     const float mean,
-                    const float sqrtSumSquared)
+                    const float sqrtSumSquared,
+                    const bool allZerosFlag)
             : m_dataSetIndex(dataSetIndex),
             m_dataElements(dataElements),
             m_numDataElements(numDataElements),
             m_dataStride(dataStride),
             m_mean(mean),
-            m_sqrtSumSquared(sqrtSumSquared)
+            m_sqrtSumSquared(sqrtSumSquared),
+            m_allZerosFlag(allZerosFlag)
             { }
             
             /** @return data element at given index */
@@ -61,12 +63,58 @@ namespace caret {
             const int64_t m_dataStride;
             const float   m_mean;
             const float   m_sqrtSumSquared;
+            const bool    m_allZerosFlag;
+        };
+        
+        class DataSetGroup {
+        public:
+            DataSetGroup() { }
+            
+            void addDataSet(DataSet* dataSet) {
+                if (m_dataSets.empty()) {
+                    m_dataSets.emplace_back(dataSet);
+                }
+                else {
+                    if (m_dataSets[0]->m_numDataElements == dataSet->m_numDataElements) {
+                        m_dataSets.emplace_back(dataSet);
+                    }
+                }
+            }
+            
+            int32_t getNumberOfDataSets() const { return m_dataSets.size(); }
+            
+            int64_t getNumberOfElements() const {
+                if ( ! m_dataSets.empty()) {
+                    return m_dataSets[0]->m_numDataElements;
+                }
+                return 0;
+            }
+            
+            void setNumberOfDataSets(const int32_t numDataSets) {
+                m_dataSets.resize(numDataSets);
+            }
+            
+            void setDataSet(const int32_t index,
+                            DataSet* dataSet) {
+                m_dataSets[index].reset(dataSet);
+            }
+            
+            DataSet* getDataSetPtr(const int32_t index) const { return m_dataSets[index].get(); }
+            
+            DataSet& getDataSetRef(const int32_t index) const { return *m_dataSets[index].get(); }
+            
+            std::vector<std::unique_ptr<DataSet>> m_dataSets;
         };
         
         static DataSet createDataSet(const float* dataElements,
                                      const int64_t numberOfDataElements,
                                      const int64_t dataStride,
                                      const bool correlationNoDemeanEnabled);
+        
+        static DataSet* createDataSetPtr(const float* dataElements,
+                                         const int64_t numberOfDataElements,
+                                         const int64_t dataStride,
+                                         const bool correlationNoDemeanEnabled);
         
         static ConnectivityCorrelationTwo* newInstance(const AString& ownerName,
                                                        const ConnectivityCorrelationSettings& settings,
@@ -85,6 +133,9 @@ namespace caret {
         
         void computeAverageForDataSetIndices(const std::vector<int64_t> dataSetIndices,
                                              std::vector<float>& dataOut) const;
+        
+        void computeForDataSetGroup(const DataSetGroup& dataSetGroup,
+                                    std::vector<float>& dataOut) const;
         
         void computeForDataSet(const DataSet& dataSet,
                                std::vector<float>& dataOut) const;
@@ -112,7 +163,8 @@ namespace caret {
                                              const int64_t dataStride,
                                              const bool correlationNoDemeanEnabled,
                                              float& meanOut,
-                                             float& sqrtSumSquaredOut);
+                                             float& sqrtSumSquaredOut,
+                                             bool& allZerosOutFlag);
 
         void printDebugData();
         
