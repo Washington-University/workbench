@@ -60,7 +60,7 @@ OperationParameters* OperationSpecFileModify::getParameters()
     
     AString myText = AString("The input spec file is overwritten with the new version.  If the spec file does not exist, it is created with default metadata.\n\n") +
         "Removals are done before additions, so that you can remove files with a pattern, and then add new files even if they match that removal pattern.\n\n" +
-        "The <structure> argument of -add must match one of the following strings (you can use INVALID for cifti or volume files):";
+        "The <structure> argument of -add must match one of the following strings (you can use INVALID for cifti or volume files):\n\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
