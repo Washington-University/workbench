@@ -333,7 +333,7 @@ VolumeDynamicConnectivityFile::clearVoxels()
 bool
 VolumeDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                                  const std::vector<VoxelIJK>& voxelIndices,
-                                                                 std::vector<float>& correlationDataOut)
+                                                                 std::vector<std::vector<float>>& correlationDataOut)
 {
     correlationDataOut.clear();
     if (isDataValid()
@@ -404,6 +404,12 @@ VolumeDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int64_t v
         
         updateScalarColoringForMap(mapIndex);
         
+        for (const VoxelIJK& ijk : voxelIndices) {
+            std::vector<float> voxelData;
+            getParentTimepointsForIJK(ijk.m_ijk,
+                                      voxelData);
+            correlationDataOut.push_back(voxelData);
+        }
         return true;
     }
     
@@ -446,7 +452,7 @@ VolumeDynamicConnectivityFile::getNumberOfCorrelationDataPoints() const
  * @return True if successful, else false.
  */
 bool
-VolumeDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+VolumeDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                                     const AString& dataSetName)
 {
     if (isDataValid()
@@ -465,7 +471,11 @@ VolumeDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const Connectiv
     
     clearVoxels();
     
-    if (dataSet.m_numDataElements != m_parentVolumeFileNumberOfTimePoints) {
+    if (dataSetGroup.getNumberOfDataSets() <= 0) {
+        return false;
+    }
+
+    if (dataSetGroup.getNumberOfElements() != m_parentVolumeFileNumberOfTimePoints) {
         return false;
     }
     const ConnectivityCorrelationTwo* connCorrelationTwo(getConnectivityCorrelationTwo());
@@ -478,8 +488,8 @@ VolumeDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const Connectiv
     const ConnectivityCorrelationTwo* connCoorTwo(getConnectivityCorrelationTwo());
     if (connCoorTwo != NULL) {
         std::vector<float> dataLoaded(m_numberOfVoxels);
-        connCoorTwo->computeForDataSet(dataSet,
-                                       dataLoaded);
+        connCoorTwo->computeForDataSetGroup(dataSetGroup,
+                                            dataLoaded);
         std::memcpy(m_voxelData, dataLoaded.data(), (m_numberOfVoxels * sizeof(float)));
         
         m_connectivityDataLoaded->setCorrelationLoading(dataLoaded.data(),
@@ -624,7 +634,7 @@ bool
 VolumeDynamicConnectivityFile::loadMapAverageDataForSurfaceNodes(const int32_t /*surfaceNumberOfNodes*/,
                                                                  const StructureEnum::Enum /*structure*/,
                                                                  const std::vector<int32_t>& /*nodeIndices*/,
-                                                                 std::vector<float>& correlationDataOut)
+                                                                 std::vector<std::vector<float>>& correlationDataOut)
 {
     correlationDataOut.clear();
     return false;
@@ -1007,7 +1017,7 @@ VolumeDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
                 loadConnectivityDataFlag = true;
             }
             else {
-                std::vector<float> correlationData;
+                std::vector<std::vector<float>> correlationData;
                 loadMapAverageDataForVoxelIndices(dimIJK,
                                                   voxelIJKs,
                                                   correlationData);

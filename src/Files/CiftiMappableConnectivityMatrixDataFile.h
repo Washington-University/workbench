@@ -59,7 +59,7 @@ namespace caret {
         virtual bool loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
                                                        const StructureEnum::Enum structure,
                                                        const std::vector<int32_t>& nodeIndices,
-                                                       std::vector<float>& correlationDataOut) override;
+                                                       std::vector<std::vector<float>>& correlationDataOut) override;
         
         virtual bool loadMapDataForVoxelAtCoordinate(const float xyz[3],
                                                      int64_t& rowIndexOut,
@@ -68,7 +68,7 @@ namespace caret {
 
         virtual bool loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                        const std::vector<VoxelIJK>& voxelIndices,
-                                                       std::vector<float>& correlationDataOut) override;
+                                                       std::vector<std::vector<float>>& correlationDataOut) override;
         
         void loadDataForRowIndex(const int64_t rowIndex) override;
         
@@ -139,7 +139,7 @@ namespace caret {
         
         virtual void processRowAverageData(std::vector<float>& rowAverageData);
 
-        virtual bool loadDataForCorrelationParentImplementation(const ConnectivityCorrelationTwo::DataSet& dataSet,
+        virtual bool loadDataForCorrelationParentImplementation(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                                                 const AString& dataSetName);
         
         /**
@@ -150,7 +150,7 @@ namespace caret {
          *    Name of the data set
          * @return True if successful, else false.
          */
-        virtual bool loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSet& dataSet,
+        virtual bool loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                                                  std::vector<float>& dataLoadedOut) const;
 
     protected:

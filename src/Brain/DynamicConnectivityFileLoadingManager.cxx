@@ -28,6 +28,7 @@
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "DynamicConnectivityFileInterface.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "ElapsedTimer.h"
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
@@ -252,6 +253,9 @@ DynamicConnectivityFileLoadingManager::loadDataForSurfaceNode(Brain* brain,
                                                                std::vector<AString>& rowColumnInformationOut,
                                                                HtmlTableBuilder& htmlTableBuilder)
 {
+    ElapsedTimer timer;
+    timer.start();
+    
     CaretAssert(surfaceFile);
     const AString structureAndVertexInfo(+ " "
                                          + StructureEnum::toGuiName(surfaceFile->getStructure())
@@ -277,13 +281,13 @@ DynamicConnectivityFileLoadingManager::loadDataForSurfaceNode(Brain* brain,
                 const int32_t mapIndex = 0;
                 int64_t rowIndex = -1;
                 int64_t columnIndex = -1;
-                std::vector<float> brainordinateRawDataSeriesOut;
+                std::vector<float> brainordinateRawDataSeries;
                 if (connFile->loadMapDataForSurfaceNode(surfaceFile->getNumberOfNodes(),
                                                         surfaceFile->getStructure(),
                                                         nodeIndex,
                                                         rowIndex,
                                                         columnIndex,
-                                                        brainordinateRawDataSeriesOut)) {
+                                                        brainordinateRawDataSeries)) {
                     mapFile->updateScalarColoringForMap(mapIndex);
                     dataLoadedForThisYokingGroupFlag = true;
                     dataWasLoadedForAnyFileFlag = true;
@@ -319,9 +323,11 @@ DynamicConnectivityFileLoadingManager::loadDataForSurfaceNode(Brain* brain,
                         /*
                          * Only dynamic connectivity files will have a "non-OFF" yoking group
                          */
+                        std::vector<std::vector<float>> correlationGroup;
+                        correlationGroup.push_back(brainordinateRawDataSeries);
                         correlateWithOtherFiles(allYokedConnFiles,
                                                 mapFile,
-                                                brainordinateRawDataSeriesOut);
+                                                correlationGroup);
                         
                         /*
                          * Get out of dyn file loop
@@ -336,6 +342,10 @@ DynamicConnectivityFileLoadingManager::loadDataForSurfaceNode(Brain* brain,
     if (dataWasLoadedForAnyFileFlag) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
+    
+    std::cout << std::endl;
+    std::cout << "TIME TO LOAD DATA: " << timer.getElapsedTimeSeconds() << " seconds." << std::endl;
+    std::cout << std::endl;
     
     return dataWasLoadedForAnyFileFlag;
 }
@@ -352,7 +362,7 @@ DynamicConnectivityFileLoadingManager::loadDataForSurfaceNode(Brain* brain,
 void
 DynamicConnectivityFileLoadingManager::correlateWithOtherFiles(std::vector<ConnectivityFileInterface*> allYokedConnFiles,
                                                                const CaretMappableDataFile* mapFileThatLoadedData,
-                                                               std::vector<float>& brainordinateSeriesData)
+                                                               std::vector<std::vector<float>>& brainordinateSeriesData)
 {
     std::vector<DynamicConnectivityFileInterface*> allYokedDynFiles;
     for (ConnectivityFileInterface* cf : allYokedConnFiles) {
@@ -361,6 +371,15 @@ DynamicConnectivityFileLoadingManager::correlateWithOtherFiles(std::vector<Conne
             allYokedDynFiles.push_back(dcf);
         }
     }
+    
+    const bool testFlag(false);
+    if (testFlag) {
+        CaretAssertToDoWarning();
+        if (brainordinateSeriesData.size() > 5) {
+            brainordinateSeriesData.resize(5);
+        }
+    }
+    
     if ( ! allYokedDynFiles.empty()) {
         correlateWithOtherFiles(allYokedDynFiles,
                                 mapFileThatLoadedData,
@@ -380,7 +399,7 @@ DynamicConnectivityFileLoadingManager::correlateWithOtherFiles(std::vector<Conne
 void
 DynamicConnectivityFileLoadingManager::correlateWithOtherFiles(std::vector<DynamicConnectivityFileInterface*> allYokedDynFiles,
                                                                const CaretMappableDataFile* mapFileThatLoadedData,
-                                                               std::vector<float>& brainordinateSeriesData)
+                                                               std::vector<std::vector<float>>& brainordinateSeriesData)
 {
     if (brainordinateSeriesData.empty()) {
         return;
@@ -391,13 +410,31 @@ DynamicConnectivityFileLoadingManager::correlateWithOtherFiles(std::vector<Dynam
     const DynamicConnectivityFileInterface* dcfi(dynamic_cast<const DynamicConnectivityFileInterface*>(mapFileThatLoadedData));
     CaretAssert(dcfi);
     const bool noDemeanFlag(dcfi->getCorrelationSettings()->isCorrelationNoDemeanEnabled());
-    ConnectivityCorrelationTwo::DataSet dataSet(ConnectivityCorrelationTwo::createDataSet(brainordinateSeriesData.data(),
-                                                                                          brainordinateSeriesData.size(),
-                                                                                          dataStride,
-                                                                                          noDemeanFlag));
+
+    ConnectivityCorrelationTwo::DataSetGroup dataSetGroup;
+    const bool parallelFlag(true);
+    if (parallelFlag) {
+        const int32_t numBrainordinateSeriesData(brainordinateSeriesData.size());
+        dataSetGroup.setNumberOfDataSets(numBrainordinateSeriesData);
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int32_t i = 0; i < numBrainordinateSeriesData; i++) {
+            dataSetGroup.setDataSet(i, ConnectivityCorrelationTwo::createDataSetPtr(brainordinateSeriesData[i].data(),
+                                                                                    brainordinateSeriesData[i].size(),
+                                                                                    dataStride,
+                                                                                    noDemeanFlag));
+        }
+    }
+    else {
+        for (auto& floatVector : brainordinateSeriesData) {
+            dataSetGroup.addDataSet(ConnectivityCorrelationTwo::createDataSetPtr(floatVector.data(),
+                                                                                 floatVector.size(),
+                                                                                 dataStride,
+                                                                                 noDemeanFlag));
+        }
+    }
     for (DynamicConnectivityFileInterface* yokedDynFile : allYokedDynFiles) {
         if (yokedDynFile != dcfi) {
-            yokedDynFile->loadDataForCorrelationWithDataSet(dataSet, "Correlation");
+            yokedDynFile->loadDataForCorrelationWithDataSet(dataSetGroup, "Correlation");
         }
     }
 
@@ -418,6 +455,9 @@ DynamicConnectivityFileLoadingManager::loadAverageDataForSurfaceNodes(Brain* bra
                                                                        const SurfaceFile* surfaceFile,
                                                                        const std::vector<int32_t>& nodeIndices)
 {
+    ElapsedTimer timer;
+    timer.start();
+    
     bool dataWasLoadedForAnyFileFlag(false);
     std::vector<GeneralYokingGroupEnum::Enum> allYokingGroups;
     GeneralYokingGroupEnum::getAllEnums(allYokingGroups);
@@ -430,7 +470,7 @@ DynamicConnectivityFileLoadingManager::loadAverageDataForSurfaceNodes(Brain* bra
             CaretAssert(mapFile);
             if ( ! mapFile->isEmpty()) {
                 const int32_t mapIndex = 0;
-                std::vector<float> correlationData;
+                std::vector<std::vector<float>> correlationData;
                 if (connFile->loadMapAverageDataForSurfaceNodes(surfaceFile->getNumberOfNodes(),
                                                                surfaceFile->getStructure(),
                                                                nodeIndices,
@@ -443,9 +483,9 @@ DynamicConnectivityFileLoadingManager::loadAverageDataForSurfaceNodes(Brain* bra
                     
                 if (dataLoadedForThisYokingGroupFlag) {
                     /*
-                     * Not sure how to correlate with average
+                     * Not sure how to correlate with average ???
                      */
-                    const bool correlateWithOthersFlag(false);
+                    const bool correlateWithOthersFlag(true);
                     if (correlateWithOthersFlag) {
                         if (yokingGroup != GeneralYokingGroupEnum::OFF) {
                             /*
@@ -468,6 +508,10 @@ DynamicConnectivityFileLoadingManager::loadAverageDataForSurfaceNodes(Brain* bra
     if (dataWasLoadedForAnyFileFlag) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
+    
+    std::cout << std::endl;
+    std::cout << "TIME TO LOAD AVERAGE DATA: " << timer.getElapsedTimeSeconds() << " seconds." << std::endl;
+    std::cout << std::endl;
     
     return dataWasLoadedForAnyFileFlag;
 }
@@ -548,9 +592,11 @@ DynamicConnectivityFileLoadingManager::loadDataForVoxelAtCoordinate(Brain* brain
                             /*
                              * Correlate with other files using same yoking group
                              */
+                            std::vector<std::vector<float>> correlationGroup;
+                            correlationGroup.push_back(correlationData);
                             correlateWithOtherFiles(allYokedConnFiles,
                                                     mapFile,
-                                                    correlationData);
+                                                    correlationGroup);
                             /*
                              * Get out of allYokedDynFiles loop and move on to next yoking group
                              */
@@ -628,7 +674,7 @@ DynamicConnectivityFileLoadingManager::loadAverageDataForVoxelIndices(Brain* bra
             CaretAssert(mapFile);
             if (mapFile->isEmpty() == false) {
                 const int32_t mapIndex = 0;
-                std::vector<float> correlationData;
+                std::vector<std::vector<float>> correlationData;
                 if (connFile->loadMapAverageDataForVoxelIndices(volumeDimensionIJK,
                                                                 voxelIndices,
                                                                 correlationData)) {
@@ -640,9 +686,9 @@ DynamicConnectivityFileLoadingManager::loadAverageDataForVoxelIndices(Brain* bra
                 
                 if (dataLoadedForThisYokingGroupFlag) {
                     /*
-                     * Not sure how to correlate with average
+                     * Not sure how to correlate with average ???
                      */
-                    const bool correlateWithOthersFlag(false);
+                    const bool correlateWithOthersFlag(true);
                     if (correlateWithOthersFlag) {
                         if (yokingGroup != GeneralYokingGroupEnum::OFF) {
                             /*

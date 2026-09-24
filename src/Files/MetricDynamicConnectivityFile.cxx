@@ -313,12 +313,12 @@ MetricDynamicConnectivityFile::getNumberOfCorrelationDataPoints() const
  * @return True if successful, else false.
  */
 bool
-MetricDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+MetricDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                                     const AString& dataSetName)
 {
     if (isDataValid()
         && isEnabledAsLayer()
-        && (dataSet.m_numDataElements == m_parentMetricFile->getNumberOfColumns())) {
+        && (dataSetGroup.getNumberOfElements() == m_parentMetricFile->getNumberOfColumns())) {
         /* OK */
     }
     else {
@@ -337,11 +337,15 @@ MetricDynamicConnectivityFile::loadDataForCorrelationWithDataSet(const Connectiv
     clearVertexValues();
     m_connectivityDataLoaded->reset();
 
+    if (dataSetGroup.getNumberOfDataSets() <= 0) {
+        return false;
+    }
+
     std::vector<float> correlatedData(m_numberOfVertices);
     const ConnectivityCorrelationTwo* connCoorTwo(getConnectivityCorrelationTwo());
     if (connCoorTwo != NULL) {
-        connCoorTwo->computeForDataSet(dataSet,
-                                       correlatedData);
+        connCoorTwo->computeForDataSetGroup(dataSetGroup,
+                                            correlatedData);
         validFlag = true;
     }
     
@@ -489,7 +493,7 @@ bool
 MetricDynamicConnectivityFile::loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
                                                                  const StructureEnum::Enum structure,
                                                                  const std::vector<int32_t>& nodeIndices,
-                                                                 std::vector<float>& correlationDataOut)
+                                                                 std::vector<std::vector<float>>& correlationDataOut)
 {
     correlationDataOut.clear();
     if (isDataValid()
@@ -538,6 +542,15 @@ MetricDynamicConnectivityFile::loadMapAverageDataForSurfaceNodes(const int32_t s
                                                            nodeIndices,
                                                            dataPointer,
                                                            numData);
+    
+    for (int32_t nodeIndex : nodeIndices) {
+        const int32_t numCols(m_parentMetricFile->getNumberOfColumns());
+        std::vector<float> vertexData(numCols);
+        for (int32_t jCol = 0; jCol < numCols; jCol++) {
+            vertexData[jCol] = m_parentMetricFile->getValue(nodeIndex, jCol);
+        }
+        correlationDataOut.push_back(vertexData);
+    }
 
     const AString mapName("Average_Vertex_Count_"
                           + AString::number(static_cast<int32_t>(nodeIndices.size())));
@@ -592,7 +605,7 @@ MetricDynamicConnectivityFile::loadMapDataForVoxelAtCoordinate(const float* /*xy
 bool
 MetricDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int64_t* /*volumeDimensionIJK[3]*/,
                                                                  const std::vector<VoxelIJK>& /*voxelIndices*/,
-                                                                 std::vector<float>& correlationDataOut)
+                                                                 std::vector<std::vector<float>>& correlationDataOut)
 {
     correlationDataOut.clear();
     return false;
@@ -967,7 +980,7 @@ MetricDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
                     }
                 }
                 else {
-                    std::vector<float> correlationData;
+                    std::vector<std::vector<float>> correlationData;
                     loadMapAverageDataForSurfaceNodes(surfaceNumberOfVertices,
                                                       structure,
                                                       vertexIndices,

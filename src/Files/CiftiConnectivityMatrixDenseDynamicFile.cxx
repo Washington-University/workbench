@@ -216,8 +216,8 @@ CiftiConnectivityMatrixDenseDynamicFile::getDataForColumn(float* /*dataOut*/,
  *     Index of the row.
  */
 void
-CiftiConnectivityMatrixDenseDynamicFile::getDataForRow(std::vector<float>& dataOut,
-                                                       const int64_t& index) const
+CiftiConnectivityMatrixDenseDynamicFile::getParentFileDataForRow(std::vector<float>& dataOut,
+                                                                 const int64_t& index) const
 {
     dataOut.resize(m_numberOfTimePoints);
     m_parentDataSeriesCiftiFile->getRow(dataOut.data(),
@@ -452,14 +452,14 @@ CiftiConnectivityMatrixDenseDynamicFile::setDynamicConnectivityYokingGroup(const
  * @return True if successful, else false.
  */
 bool
-CiftiConnectivityMatrixDenseDynamicFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+CiftiConnectivityMatrixDenseDynamicFile::loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                                                            const AString& dataSetName)
 {
     /*
      * Needs to start in the parent data file (CiftiMappableConnectivityMatrixDataFile)
      * since that is where the data gets stored
      */
-    return loadDataForCorrelationParentImplementation(dataSet,
+    return loadDataForCorrelationParentImplementation(dataSetGroup,
                                                       dataSetName);
 }
 
@@ -472,7 +472,7 @@ CiftiConnectivityMatrixDenseDynamicFile::loadDataForCorrelationWithDataSet(const
  * @return True if successful, else false.
  */
 bool
-CiftiConnectivityMatrixDenseDynamicFile::loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSet& dataSet,
+CiftiConnectivityMatrixDenseDynamicFile::loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                                                                      std::vector<float>& dataLoadedOut) const
 {
     bool validFlag(false);
@@ -480,8 +480,8 @@ CiftiConnectivityMatrixDenseDynamicFile::loadDataForCorrelationDynamicSubclassHe
     dataLoadedOut.resize(m_numberOfTimePoints);
     const ConnectivityCorrelationTwo* connCoorTwo(getConnectivityCorrelationTwo());
     if (connCoorTwo != NULL) {
-        connCoorTwo->computeForDataSet(dataSet,
-                                       dataLoadedOut);
+        connCoorTwo->computeForDataSetGroup(dataSetGroup,
+                                            dataLoadedOut);
         validFlag = true;
     }
     

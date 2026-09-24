@@ -96,10 +96,10 @@ namespace caret {
         
         void correlateWithOtherFiles(std::vector<ConnectivityFileInterface*> allYokedConnFiles,
                                      const CaretMappableDataFile* mapFileThatLoadedData,
-                                     std::vector<float>& brainordinateSeriesData);
+                                     std::vector<std::vector<float>>& brainordinateSeriesData);
         void correlateWithOtherFiles(std::vector<DynamicConnectivityFileInterface*> allYokedDynFiles,
                                      const CaretMappableDataFile* mapFileThatLoadedData,
-                                     std::vector<float>& brainordinateSeriesData);
+                                     std::vector<std::vector<float>>& brainordinateSeriesData);
         
         // ADD_NEW_MEMBERS_HERE
     };

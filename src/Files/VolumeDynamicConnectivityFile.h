@@ -83,11 +83,11 @@ namespace caret {
         
         virtual bool loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                        const std::vector<VoxelIJK>& voxelIndices,
-                                                       std::vector<float>& correlationDataOut) override;
+                                                       std::vector<std::vector<float>>& correlationDataOut) override;
         
         virtual int64_t getNumberOfCorrelationDataPoints() const override;
         
-        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                           const AString& dataSetName) override;
 
         virtual bool loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
@@ -100,7 +100,7 @@ namespace caret {
         virtual bool loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
                                                        const StructureEnum::Enum structure,
                                                        const std::vector<int32_t>& nodeIndices,
-                                                       std::vector<float>& correlationDataOut)override;
+                                                       std::vector<std::vector<float>>& correlationDataOut)override;
         
         virtual void loadDataForColumnIndex(const int64_t columnIndex) override;
         

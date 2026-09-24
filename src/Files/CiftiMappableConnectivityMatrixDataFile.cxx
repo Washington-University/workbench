@@ -785,7 +785,7 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t co
  * @return True if successful, else false.
  */
 bool
-CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationParentImplementation(const ConnectivityCorrelationTwo::DataSet& dataSet,
+CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationParentImplementation(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                                                                     const AString& dataSetName)
 {
     if (m_ciftiFile == NULL) {
@@ -812,7 +812,7 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationParentImplementat
     /*
      * The dynamic connectivity sub-classes implement this method
      */
-    if (loadDataForCorrelationDynamicSubclassHelper(dataSet,
+    if (loadDataForCorrelationDynamicSubclassHelper(dataSetGroup,
                                                     m_loadedRowData)) {
         m_rowLoadedTextForMapName = dataSetName;
         m_rowLoadedText           = dataSetName;
@@ -837,7 +837,7 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationParentImplementat
  * @return True if successful, else false.
  */
 bool
-CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSet& /*dataSet*/,
+CiftiMappableConnectivityMatrixDataFile::loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSetGroup& /*dataSetGroup*/,
                                                                                      std::vector<float>& /*dataLoadedOut*/) const
 {
     /*
@@ -935,14 +935,14 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                 if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
                     CiftiConnectivityMatrixDenseDynamicFile* mdf(dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(this));
                     CaretAssert(mdf);
-                    mdf->getDataForRow(brainordinateRawDataSeriesOut,
-                                       rowIndex);
+                    mdf->getParentFileDataForRow(brainordinateRawDataSeriesOut,
+                                                 rowIndex);
                 }
                 else if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC) {
                     CiftiConnectivityMatrixParcelDynamicFile* pdf(dynamic_cast<CiftiConnectivityMatrixParcelDynamicFile*>(this));
                     CaretAssert(pdf);
-                    pdf->getDataForRow(brainordinateRawDataSeriesOut,
-                                       rowIndex);
+                    pdf->getParentFileDataForRow(brainordinateRawDataSeriesOut,
+                                                 rowIndex);
                 }
             }
             
@@ -1056,7 +1056,7 @@ bool
 CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
                                                                            const StructureEnum::Enum structure,
                                                                            const std::vector<int32_t>& nodeIndices,
-                                                                           std::vector<float>& correlationDataOut)
+                                                                           std::vector<std::vector<float>>& correlationDataOut)
 {
     correlationDataOut.clear();
     
@@ -1108,6 +1108,24 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
          * Number of columns is number of time points
          */
         dataCount = m_ciftiFile->getNumberOfRows();
+        
+        const int64_t numRowIndices(rowIndices.size());
+        for (int64_t iRow = 0; iRow < numRowIndices; iRow++) {
+            std::vector<float> rowData;
+            if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+                CiftiConnectivityMatrixDenseDynamicFile* mdf(dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(this));
+                CaretAssert(mdf);
+                mdf->getParentFileDataForRow(rowData,
+                                             rowIndices[iRow]);
+            }
+            else if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC) {
+                CiftiConnectivityMatrixParcelDynamicFile* pdf(dynamic_cast<CiftiConnectivityMatrixParcelDynamicFile*>(this));
+                CaretAssert(pdf);
+                pdf->getParentFileDataForRow(rowData,
+                                             rowIndices[iRow]);
+            }
+            correlationDataOut.push_back(rowData);
+        }
     }
 
     m_loadedRowData.resize(dataCount);
@@ -1289,14 +1307,14 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const f
         if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
             CiftiConnectivityMatrixDenseDynamicFile* mdf(dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(this));
             CaretAssert(mdf);
-            mdf->getDataForRow(brainordinateRawDataSeriesOut,
-                               rowIndex);
+            mdf->getParentFileDataForRow(brainordinateRawDataSeriesOut,
+                                         rowIndex);
         }
         else if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC) {
             CiftiConnectivityMatrixParcelDynamicFile* pdf(dynamic_cast<CiftiConnectivityMatrixParcelDynamicFile*>(this));
             CaretAssert(pdf);
-            pdf->getDataForRow(brainordinateRawDataSeriesOut,
-                               rowIndex);
+            pdf->getParentFileDataForRow(brainordinateRawDataSeriesOut,
+                                         rowIndex);
         }
 
     }
@@ -1373,7 +1391,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndicesForVoxelsWhenLoading
 bool
 CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                                            const std::vector<VoxelIJK>& voxelIndices,
-                                                                           std::vector<float>& correlationDataOut)
+                                                                           std::vector<std::vector<float>>& correlationDataOut)
 {
     correlationDataOut.clear();
     
@@ -1423,6 +1441,31 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
     if (dataWasLoadedFlag) {
         processRowAverageData(dataAverage);
         m_loadedRowData = dataAverage;
+
+        if ((getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC)
+            || (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC)) {
+            /*
+             * Dense dynamic is special case where number of rows equals number of brainordinates.
+             * Number of columns is number of time points
+             */
+            const int64_t numRowIndices(rowIndices.size());
+            for (int64_t iRow = 0; iRow < numRowIndices; iRow++) {
+                std::vector<float> rowData;
+                if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+                    CiftiConnectivityMatrixDenseDynamicFile* mdf(dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(this));
+                    CaretAssert(mdf);
+                    mdf->getParentFileDataForRow(rowData,
+                                                 rowIndices[iRow]);
+                }
+                else if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC) {
+                    CiftiConnectivityMatrixParcelDynamicFile* pdf(dynamic_cast<CiftiConnectivityMatrixParcelDynamicFile*>(this));
+                    CaretAssert(pdf);
+                    pdf->getParentFileDataForRow(rowData,
+                                                 rowIndices[iRow]);
+                }
+                correlationDataOut.push_back(rowData);
+            }
+        }
     }
 
     if (dataWasLoadedFlag) {
@@ -1716,7 +1759,7 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
                     m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
                 }
                 else {
-                    std::vector<float> correlationData;
+                    std::vector<std::vector<float>> correlationData;
                     loadMapAverageDataForSurfaceNodes(surfaceNumberOfNodes,
                                                       structure,
                                                       surfaceNodeIndices,
@@ -1754,7 +1797,7 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
                     m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
                 }
                 else {
-                    std::vector<float> correlationData;
+                    std::vector<std::vector<float>> correlationData;
                     loadMapAverageDataForVoxelIndices(volumeDimensionsIJK,
                                                       voxelIndicesIJK,
                                                       correlationData);

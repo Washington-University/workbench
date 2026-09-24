@@ -62,11 +62,11 @@ namespace caret {
         
         virtual void setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup) override;
         
-        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                                        const AString& dataSetName) override;
         
-        void getDataForRow(std::vector<float>& dataOut,
-                           const int64_t& index) const;
+        void getParentFileDataForRow(std::vector<float>& dataOut,
+                                     const int64_t& index) const;
         
     private:
         CiftiConnectivityMatrixParcelDynamicFile(const CiftiConnectivityMatrixParcelDynamicFile&);
@@ -84,7 +84,7 @@ namespace caret {
         
         virtual int64_t getNumberOfCorrelationDataPoints() const override;
         
-        virtual bool loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSet& dataSet,
+        virtual bool loadDataForCorrelationDynamicSubclassHelper(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                                                  std::vector<float>& dataLoadedOut) const;
         
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,

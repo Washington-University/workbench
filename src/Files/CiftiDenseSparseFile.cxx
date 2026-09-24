@@ -1443,7 +1443,7 @@ bool
 CiftiDenseSparseFile::loadMapAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
                                                         const StructureEnum::Enum structure,
                                                         const std::vector<int32_t>& nodeIndices,
-                                                        std::vector<float>& correlationDataOut)
+                                                        std::vector<std::vector<float>>& correlationDataOut)
 {
     correlationDataOut.clear();
     if ( ! m_dataLoadingEnabled) {
@@ -1616,7 +1616,7 @@ CiftiDenseSparseFile::loadMapDataForVoxelAtCoordinate(const float xyz[3],
 bool
 CiftiDenseSparseFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                         const std::vector<VoxelIJK>& voxelIndices,
-                                                        std::vector<float>& correlationDataOut)
+                                                        std::vector<std::vector<float>>& correlationDataOut)
 {
     correlationDataOut.clear();
     
@@ -1948,7 +1948,7 @@ CiftiDenseSparseFile::finishRestorationOfScene()
                 m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
             }
             else {
-                std::vector<float> correlationData;
+                std::vector<std::vector<float>> correlationData;
                 loadMapAverageDataForSurfaceNodes(surfaceNumberOfNodes,
                                                   structure,
                                                   surfaceNodeIndices,
@@ -1986,7 +1986,7 @@ CiftiDenseSparseFile::finishRestorationOfScene()
                 m_loadedRowData = m_connectivityDataLoaded->getDataLoaded();
             }
             else {
-                std::vector<float> correlationData;
+                std::vector<std::vector<float>> correlationData;
                 loadMapAverageDataForVoxelIndices(volumeDimensionsIJK,
                                                   voxelIndicesIJK,
                                                   correlationData);

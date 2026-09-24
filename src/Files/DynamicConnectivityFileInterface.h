@@ -49,7 +49,7 @@ namespace caret {
         
         virtual void setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup) = 0;
         
-        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSet& dataSet,
+        virtual bool loadDataForCorrelationWithDataSet(const ConnectivityCorrelationTwo::DataSetGroup& dataSetGroup,
                                                        const AString& dataSetName) = 0;
          
         virtual int64_t getNumberOfCorrelationDataPoints() const = 0;
