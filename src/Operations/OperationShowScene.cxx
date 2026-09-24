@@ -79,9 +79,9 @@ OperationShowScene::getCommandNotAvailableMessage(const AString& commandSwitch)
 {
     AString s(commandSwitch
               + " is not available !\n"
-              "A required library for this command, Mesa3D (software version of OpenGL), was not available when this "
-              "software was created.  This command is not available for the Windows version of this software but should "
-              "always be available in the Linux and MacOS versions.");
+              "A required library for this command, OSMesa (from Mesa3D, a software version of OpenGL), was not available "
+              "when this executable was compiled.  This command is not available for the Windows version of this software "
+              "or when compiled with Mesa3D 25.1.0 or newer (which no longer provides the OSMesa library).");
 
     return s;
 }
