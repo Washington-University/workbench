@@ -342,7 +342,7 @@ CiftiBrainModelsMap AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(const 
         noData = false;
         map<int, StructureEnum::Enum> labelMap;//maps label values to structures
         vector<vector<int64_t> > voxelLists;//voxel lists for each volume component
-        map<StructureEnum::Enum, int> componentMap;//maps structures to indexes in voxelLists
+        map<StructureEnum::Enum, int> componentMap;//maps structures to indices in voxelLists
         const GiftiLabelTable* myLabelTable = myVolLabel->getMapLabelTable(0);
         vector<int32_t> labelKeys;
         myLabelTable->getKeys(labelKeys);
@@ -358,8 +358,16 @@ CiftiBrainModelsMap AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(const 
                 {
                     componentMap[thisStructure] = count;
                     ++count;
+                    if (surfParams.find(thisStructure) != surfParams.end())
+                    {
+                        CaretLogWarning("creating dense cifti mapping with both surface and volume versions of structure " + StructureEnum::toName(thisStructure));
+                    }
                 }
             }
+        }
+        if (count == 0)
+        {
+            CaretLogWarning("structure label volume has no recognized structure names, do you need to -volume-label-import it with different names?");
         }
         voxelLists.resize(count);
         vector<int64_t> mydims;
