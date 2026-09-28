@@ -260,7 +260,8 @@ SceneXmlStreamReader::readSceneObjectSingle(QXmlStreamReader& xmlReader)
                                           + " \""
                                           + typeString
                                           + "\" is invalid on "
-                                          + ELEMENT_OBJECT);
+                                          + ELEMENT_OBJECT
+                                          + ".  Updating Workbench may fix this problem.");
         }
     }
     
@@ -464,7 +465,8 @@ SceneXmlStreamReader::readSceneObjectArray(QXmlStreamReader& xmlReader)
                                           + " \""
                                           + typeString
                                           + "\" is invalid on "
-                                          + ELEMENT_OBJECT_ARRAY);
+                                          + ELEMENT_OBJECT_ARRAY
+                                          + ".  Updating Workbench may fix this problem.");
         }
     }
     if (name.isEmpty()) {
@@ -744,7 +746,8 @@ SceneXmlStreamReader::readSceneObjectMap(QXmlStreamReader& xmlReader)
                                           + " \""
                                           + typeString
                                           + "\" is invalid on "
-                                          + ELEMENT_OBJECT_MAP);
+                                          + ELEMENT_OBJECT_MAP
+                                          + ".  Updating Workbench may fix this problem.");
         }
     }
     if (name.isEmpty()) {
@@ -935,7 +938,8 @@ SceneXmlStreamReader::readSceneObjectMapStringKey(QXmlStreamReader& xmlReader)
                                           + " \""
                                           + typeString
                                           + "\" is invalid on "
-                                          + ELEMENT_OBJECT_MAP);
+                                          + ELEMENT_OBJECT_MAP
+                                          + ".  Updating Workbench may fix this problem.");
         }
     }
     if (name.isEmpty()) {

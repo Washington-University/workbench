@@ -674,10 +674,16 @@ ConnectivityDataLoaded::saveToScene(const SceneAttributes* sceneAttributes,
                               QString(base64Data));
     }
     else if (sceneVersion >= 3) {
-        sceneClass->addInteger("uncompressedFloatCount",
-                               m_dataLoaded.size());
-        sceneClass->addFloatVector("m_loadedData",
-                                   m_dataLoaded);
+        /*
+         * Only write load data if it is no empty to help with compatibility
+         * of older versions of workbench.
+         */
+        if ( ! m_dataLoaded.empty()) {
+            sceneClass->addInteger("uncompressedFloatCount",
+                                   m_dataLoaded.size());
+            sceneClass->addFloatVector("m_loadedData",
+                                       m_dataLoaded);
+        }
     }
     
     return sceneClass;
