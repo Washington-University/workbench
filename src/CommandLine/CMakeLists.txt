@@ -93,6 +93,15 @@ ELSE()
 ENDIF()
 
 #
+# Framework(s) for Apple
+#
+IF (APPLE)
+   TARGET_LINK_LIBRARIES(${EXE_NAME}
+     "-framework Accelerate"
+   )
+ENDIF (APPLE)
+
+#
 # Libraries that are linked
 # Note: GLEW_LIBRARIES and OSMESA library variables will be empty and
 # have no effect if not available

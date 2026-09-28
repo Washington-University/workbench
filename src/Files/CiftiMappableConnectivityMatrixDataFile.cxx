@@ -1093,6 +1093,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
         return false;
     }
     
+    ElapsedTimer timer;
+    timer.start();
+    
     std::vector<int64_t> rowIndices, columnIndices;
     getRowColumnIndicesForNodesWhenLoading(structure,
                                            surfaceNumberOfNodes,
@@ -1168,6 +1171,14 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                                                                m_loadedRowData.size());
     }
     
+    AString msg = ("Time load data for average nodes surface vertex in "
+                   + getFileNameNoPath()
+                   + " was "
+                   + AString::number(timer.getElapsedTimeSeconds())
+                   + " seconds.");
+    std::cout << msg << std::endl;
+    CaretLogFine(msg);
+
     return dataWasLoadedFlag;
 }
 

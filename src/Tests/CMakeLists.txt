@@ -165,6 +165,7 @@ ENDIF (UNIX)
 IF (APPLE)
    #SET (QT_MAC_USE_COCOA TRUE)
    TARGET_LINK_LIBRARIES(test_driver
+     "-framework Accelerate"
      "-framework Cocoa"
      "-framework OpenGL"
    )

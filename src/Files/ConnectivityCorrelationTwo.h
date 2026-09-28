@@ -145,6 +145,8 @@ namespace caret {
         
         int64_t getNumberOfDataElements() const;
         
+        static constexpr bool s_useAppleAccelerateFlag = true;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

@@ -23,6 +23,10 @@
 #include "ConnectivityCorrelationTwo.h"
 #undef __CONNECTIVITY_CORRELATION_TWO_DECLARE__
 
+#ifdef CARET_OS_MACOSX
+#include <Accelerate/Accelerate.h>
+#endif
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -268,9 +272,48 @@ ConnectivityCorrelationTwo::computeMeanAndSumSquared(const float* dataPtr,
      * NOTE: Do not use OpenMP here.  OpenMP is used
      * in the method that calls this method.
      */
+    allZerosFlagOut = true;
+    
+#ifdef CARET_OS_MACOSX
+    if (s_useAppleAccelerateFlag) {
+        float sum(0.0);
+        float sumSQ(0.0);
+        vDSP_Stride stride(dataStride);
+        vDSP_Length length(numberOfDataElements);
+        vDSP_sve(dataPtr,
+                 stride,
+                 &sum,
+                 length);
+        vDSP_svesq(dataPtr,
+                   stride,
+                   &sumSQ,
+                   length);
+        meanOut = (sum / static_cast<float>(numberOfDataElements));
+        const float sumSquared(correlationNoDemeanEnabled
+                               ? sumSQ
+                               : (sumSQ - (numberOfDataElements * meanOut * meanOut)));
+        sqrtSumSquaredOut = (std::sqrt(sumSquared));
+        if ((meanOut != 0.0)
+            || (sum != 0.0)
+            || (sumSQ != 0.0)) {
+            allZerosFlagOut = false;
+        }
+        else {
+            for (int64_t j = 0; j < numberOfDataElements; j++) {
+                const int64_t offset(j * dataStride);
+                if (dataPtr[offset] != 0.0) {
+                    allZerosFlagOut = false;
+                    break;
+                }
+            }
+        }
+        
+        return;
+    }
+#endif
+    
     double sum(0.0);
     double sumSQ(0.0);
-    allZerosFlagOut = true;
     for (int64_t j = 0; j < numberOfDataElements; j++) {
         const int64_t offset(j * dataStride);
         const float d(dataPtr[offset]);
@@ -491,6 +534,7 @@ ConnectivityCorrelationTwo::computeForDataSets(const DataSet& a,
 {
     CaretAssert(a.m_numDataElements == b.m_numDataElements);
     CaretAssert(a.m_numDataElements >= 1);
+    CaretAssert(a.m_numDataElements == m_numberOfDataElements);
 
     float value(0.0);
     
@@ -507,6 +551,25 @@ ConnectivityCorrelationTwo::computeForDataSets(const DataSet& a,
                  */
                 xySum = 0.0;
             }
+#ifdef CARET_OS_MACOSX
+            else if (s_useAppleAccelerateFlag) {
+                /*
+                 * In Apple's Accelerate library
+                 * Alternatives are cblas_sdot and std::inner_product
+                 */
+                float xySumFloat(0.0);
+                vDSP_Stride strideA = a.m_dataStride;
+                vDSP_Stride strideB = b.m_dataStride;
+                vDSP_Length numElements = m_numberOfDataElements;
+                vDSP_dotpr(a.m_dataElements,
+                           strideA,
+                           b.m_dataElements,
+                           strideB,
+                           &xySumFloat,
+                           numElements);
+                xySum = xySumFloat;
+            }
+#endif
             else if ((a.m_dataStride == 1)
                 && (b.m_dataStride == 1)) {
                 /*
@@ -514,7 +577,7 @@ ConnectivityCorrelationTwo::computeForDataSets(const DataSet& a,
                  */
                 xySum = dsdot(a.m_dataElements,
                               b.m_dataElements,
-                              m_numberOfDataElements);
+                              static_cast<int>(m_numberOfDataElements));
             }
             else {
                 for (int64_t i = 0; i < a.m_numDataElements; i++) {
