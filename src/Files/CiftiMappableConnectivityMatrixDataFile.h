@@ -28,7 +28,6 @@
 #include "ConnectivityCorrelationTwo.h"
 #include "ConnectivityFileInterface.h"
 #include "CiftiMappableDataFile.h"
-#include "GeneralYokingGroupEnum.h"
 #include "VoxelIJK.h"
 
 namespace caret {
@@ -96,10 +95,6 @@ namespace caret {
                                                     const StructureEnum::Enum &structure) const;
         
         ChartMatrixLoadingDimensionEnum::Enum getChartMatrixLoadingDimension() const;
-        
-        GeneralYokingGroupEnum::Enum getDynamicConnectivityYokingGroup() const;
-        
-        void setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup);
         
     private:
         CiftiMappableConnectivityMatrixDataFile(const CiftiMappableConnectivityMatrixDataFile&);
@@ -211,8 +206,6 @@ namespace caret {
          * to be restored in this class.
          */
         ChartMatrixLoadingDimensionEnum::Enum m_chartLoadingDimension;
-        
-        GeneralYokingGroupEnum::Enum m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
         
         friend class CiftiBrainordinateScalarFile;
         friend class CiftiParcelScalarFile;

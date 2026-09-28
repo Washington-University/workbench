@@ -68,8 +68,6 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
     
     m_sceneAssistant->add("+",
                            &m_dataLoadingEnabled);
-    m_sceneAssistant->add<GeneralYokingGroupEnum, GeneralYokingGroupEnum::Enum>("m_dynamicYokingGroup",
-                                                                                &m_dynamicYokingGroup);
 }
 
 /**
@@ -112,7 +110,6 @@ CiftiMappableConnectivityMatrixDataFile::clearPrivate()
     if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC) {
         m_chartLoadingDimension = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
     }
-    m_dynamicYokingGroup = GeneralYokingGroupEnum::OFF;
 }
 
 /**
@@ -189,27 +186,6 @@ CiftiMappableConnectivityMatrixDataFile::setMapDataLoadingEnabled(const bool dat
 {
     m_dataLoadingEnabled = dataLoadingEnabled;
 }
-
-/**
- * @return The selected yoking grouo
- */
-GeneralYokingGroupEnum::Enum
-CiftiMappableConnectivityMatrixDataFile::getDynamicConnectivityYokingGroup() const
-{
-    return m_dynamicYokingGroup;
-}
-
-/**
- * Set the yoking group
- * @param yokingGroup
- *    New yoking group
- */
-void
-CiftiMappableConnectivityMatrixDataFile::setDynamicConnectivityYokingGroup(const GeneralYokingGroupEnum::Enum yokingGroup)
-{
-    m_dynamicYokingGroup = yokingGroup;
-}
-
 
 /**
  * Get the data for the given map index.
