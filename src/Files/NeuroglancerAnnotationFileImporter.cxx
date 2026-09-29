@@ -1262,7 +1262,7 @@ NeuroglancerAnnotationFileImporter::readAnnotationFromDataStream(QFile* file,
                 << numberOfObjectIDs << std::endl;
                 
                 for (uint32_t i = 0; i < numberOfObjectIDs; i++) {
-                    uint64_t id;
+                    quint64 id; /* cannot use uint64_t on Linux */
                     relStream >> id;
                     std::cout << " " << id;
                 }
@@ -1428,7 +1428,7 @@ NeuroglancerAnnotationFileImporter::readNeuroglancerAnnotationShardedFiles(const
          */
         std::vector<std::pair<uint64_t, uint64_t>> minishardStartOffsetAndLength;
         for (int64_t i = 0; i < numEntries; i++) {
-            uint64_t startOffset, endOffset;
+            quint64 startOffset, endOffset; /* cannot use uint64_t on Linux */
             dataStream >> startOffset >> endOffset;
             startOffset += shardIndexEnd;
             endOffset   += shardIndexEnd;
@@ -1615,7 +1615,7 @@ NeuroglancerAnnotationFileImporter::processMinishardIndex(QFile& file,
             throw DataFileException("End of stream at dim i=0 iChunk="
                                     + AString::number(iChunk));
         }
-        uint64_t chunkID;
+        quint64 chunkID;  /* cannot use uint64_t on Linux */
         dataStream >> chunkID;
         
         chunkID += previousChunkID;
@@ -1635,7 +1635,7 @@ NeuroglancerAnnotationFileImporter::processMinishardIndex(QFile& file,
             throw DataFileException("End of stream at dim i=1 iChunk="
                                     + AString::number(iChunk));
         }
-        uint64_t chunkOffset;
+        quint64 chunkOffset;  /* cannot use uint64_t on Linux */
         dataStream >> chunkOffset;
         miniShardChunkInfoOut[iChunk].m_relativeOffset = chunkOffset;
     }
@@ -1648,7 +1648,7 @@ NeuroglancerAnnotationFileImporter::processMinishardIndex(QFile& file,
             throw DataFileException("End of stream at dim i=2 iChunk="
                                     + AString::number(iChunk));
         }
-        uint64_t chunkSize;
+        quint64 chunkSize;  /* cannot use uint64_t on Linux */
         dataStream >> chunkSize;
         
         CaretAssertVectorIndex(miniShardChunkInfoOut, iChunk);
@@ -1837,7 +1837,7 @@ NeuroglancerAnnotationFileImporter::readRelationshipsFromDataStream(const QByteA
     dataStream.setByteOrder(QDataStream::LittleEndian);
     dataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
     
-    uint64_t numAnn;
+    uint64_t numAnn;   /* cannot use uint64_t on Linux */
     dataStream >> numAnn;
     if (m_debugFlag) {
         std::cout << "Relation ID=" << relationshipID
@@ -1866,7 +1866,7 @@ NeuroglancerAnnotationFileImporter::readRelationshipsFromDataStream(const QByteA
      * Now read the annotation IDs and assign IDs to annotation
      */
     for (uint64_t i = 0; i < numAnn; i++) {
-        uint64_t annID;
+        quint64 annID;  /* cannot use uint64_t on Linux */
         dataStream >> annID;
         
         CaretAssertVectorIndex(newAnnotationInfo, (int32_t)i);

@@ -144,7 +144,7 @@ namespace caret {
         
         ConnectivityCorrelationTwo* getConnectivityCorrelationTwo() const;
         
-        void getParentTimepointsForIJK(const int64_t ijk[0],
+        void getParentTimepointsForIJK(const int64_t ijk[3],
                                        std::vector<float>& timepointsOut) const;
         
         const VolumeFile* m_parentVolumeFile;

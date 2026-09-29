@@ -424,7 +424,7 @@ VolumeDynamicConnectivityFile::loadMapAverageDataForVoxelIndices(const int64_t v
  *    Output with timepoints
  */
 void
-VolumeDynamicConnectivityFile::getParentTimepointsForIJK(const int64_t ijk[0],
+VolumeDynamicConnectivityFile::getParentTimepointsForIJK(const int64_t ijk[3],
                                                          std::vector<float>& timepointsOut) const
 {
     timepointsOut.resize(m_parentVolumeFileNumberOfTimePoints);
