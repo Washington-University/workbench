@@ -885,8 +885,41 @@ MetaVolumeFile::addToDataFileContentInformation(DataFileContentInformation& data
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     
-    for (auto& vf : m_volumeFiles) {
-        vf->addToDataFileContentInformation(dataFileInformation);
+    const int32_t numFiles(m_volumeFiles.size());
+    for (int32_t i = 0; i < numFiles; i++) {
+        dataFileInformation.addText("file "
+                                    + AString::number(i)
+                                    + " ------------------------------------------------------");
+        if (i >= 1) {
+            CaretAssertVectorIndex(m_volumeFiles, i);
+            BoundingBox bb;
+            m_volumeFiles[i]->getVoxelSpaceBoundingBox(bb);
+            
+            CaretAssertVectorIndex(m_volumeFiles, i - 1);
+            BoundingBox bbPrev;
+            m_volumeFiles[i - 1]->getVoxelSpaceBoundingBox(bbPrev);
+            
+            if (bb.isValid()
+                && bbPrev.isValid()) {
+                Vector3D centerXYZ;
+                bb.getCenter(centerXYZ);
+                
+                Vector3D prevCenterXYZ;
+                bbPrev.getCenter(prevCenterXYZ);
+                
+                const Vector3D diffXYZ(centerXYZ - prevCenterXYZ);
+                const float distance(diffXYZ.length());
+                
+                const Vector3D vectorXYZ(diffXYZ.normal());
+                dataFileInformation.addText("Vector from previous volume: "
+                                            + vectorXYZ.toString()
+                                            + ", Distance: "
+                                            + AString::number(distance));
+            }
+        }
+        
+        CaretAssertVectorIndex(m_volumeFiles, i);
+        m_volumeFiles[i]->addToDataFileContentInformation(dataFileInformation);
     }
 }
 
