@@ -23,6 +23,8 @@
 #include "ConnectivityDataLoaded.h"
 #undef __CONNECTIVITY_DATA_LOADED_DECLARE__
 
+#include <cstring>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "SceneClassAssistant.h"

@@ -24,6 +24,7 @@
 #undef __NEUROGLANCER_ANNOTATION_FILE_IMPORTER_DECLARE__
 
 #include <cmath>
+#include <cstdint>
 
 #include <QDataStream>
 #include <QDir>
@@ -48,6 +49,7 @@
 #include "FeatureLabelModel.h"
 #include "FeatureItemModel.h"
 #include "FeaturePropertyValue.h"
+#include "QtFileHelper.h"
 
 using namespace caret;
 
@@ -1179,7 +1181,10 @@ NeuroglancerAnnotationFileImporter::readAnnotationFromDataStream(QFile* file,
         const int64_t bytesToSkip(file->pos() % 4);
         CaretAssert((bytesToSkip >= 0)
                     && (bytesToSkip <= 3));
-        const int64_t bytesActuallySkipped(file->skip(bytesToSkip));
+        /*
+         * QFile::skip() was added in Qt 5.10.0
+         */
+        const int64_t bytesActuallySkipped(QtFileHelper::safeSkip(file, bytesToSkip));
         if (bytesToSkip != bytesActuallySkipped) {
             CaretLogWarning("Failed to skip bytes at end of reading Neuroglancer Annotation");
         }

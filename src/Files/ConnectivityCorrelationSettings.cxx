@@ -75,7 +75,7 @@ ConnectivityCorrelationSettings::~ConnectivityCorrelationSettings()
  *    Object that is copied.
  */
 ConnectivityCorrelationSettings::ConnectivityCorrelationSettings(const ConnectivityCorrelationSettings& obj)
-: CaretObject(obj)
+: CaretObject(obj), SceneableInterface(obj)
 {
     this->copyHelperConnectivityCorrelationSettings(obj);
 }
