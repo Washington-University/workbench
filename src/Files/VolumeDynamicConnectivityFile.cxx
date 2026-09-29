@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include <cstring>
 
 #define __VOLUME_DYNN_CONN_FILE_DECLARE__
 #include "VolumeDynamicConnectivityFile.h"
