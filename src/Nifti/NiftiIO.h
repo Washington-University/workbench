@@ -237,14 +237,31 @@ namespace caret
         } else {
             if (doScale)
             {
-                for (int64_t i = 0; i < count; ++i)
+                std::numeric_limits<FROM> disklimits; //the actual reason we split based on disk precision here is to get exact zeros through scaled uint16 in nifti-1
+                if (disklimits.is_integer && disklimits.max() < (1LL<<54)) //test directly against float64 odd integer limit to avoid the "digits in radix" morass
                 {
-                    out[i] = (TO)(offset + mult * (long double)in[i]);//we don't always need that much precision, but it will still be faster than hard drives
+                    if (disklimits.max() < (1<<25)) //uint16, int16, etc
+                    {
+                        for (int64_t i = 0; i < count; ++i)
+                        {
+                            out[i] = (TO)(float(offset) + float(mult) * in[i]);
+                        }
+                    } else {
+                        for (int64_t i = 0; i < count; ++i)
+                        {
+                            out[i] = (TO)(offset + mult * in[i]);
+                        }
+                    }
+                } else {
+                    for (int64_t i = 0; i < count; ++i)
+                    {
+                        out[i] = (TO)(offset + mult * (long double)in[i]); //we don't always need that much precision, but it will still be faster than hard drives
+                    }
                 }
             } else {
                 for (int64_t i = 0; i < count; ++i)
                 {
-                    out[i] = (TO)in[i];//explicit cast to make sure the compiler doesn't squawk
+                    out[i] = (TO)in[i]; //explicit cast to make sure the compiler doesn't squawk
                 }
             }
         }

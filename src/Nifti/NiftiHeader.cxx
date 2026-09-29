@@ -612,17 +612,33 @@ namespace
     template<typename T>
     struct Scaling
     {
-        double mult, offset;
+        float mult, offset; //intentionally float, nifti-1 uses float32 for these fields, so for it to work out exact, we need float32 rounding (on reading also, so in NiftiIO.h we use float32 to scale uint16 and below)
         Scaling(const double& minval, const double& maxval)
         {
             typedef std::numeric_limits<T> mylimits;
-            double mymin = mylimits::lowest();
-            mult = (maxval - minval) / ((double)mylimits::max() - mymin);//multiplying is the first step of decoding (after byteswap), so start with the range
+            T mymin = mylimits::lowest(), mymax = mylimits::max();
+            if (mymin < T(0))
+            {
+                mymin = -mymax; //we'd actually prefer to do the math with 32767 to -32767, rather than fenceposting the exact 0 out of existence
+            } else { //unsigned
+                mymax = mylimits::max() - 1; //use an even number of steps so symmetric range can still have an exact zero
+            }
+            mult = (maxval - minval) / (mymax - mymin);//multiplying is the first step of decoding (after byteswap), so start with the range
             offset = minval - mymin * mult;//offset is added after multiplying the encoded value by mult
+            if (minval == -maxval)
+            {
+                if (mymin < T(0)) //signed
+                {
+                    offset = 0.0f; //hardcode the common case rather than hoping for the rounding to work out
+                } else { //unsigned, mymax should be even due to above
+                    offset = -mult * (mymax / 2);
+                }
+            }//when minval == 0, the math is already ideal for signed and unsigned, doesn't need fudging
             if (!(MathFunctions::isNumeric(mult) && MathFunctions::isNumeric(offset)))
             {//don't do something stupid to the header and values
-                mult = 1.0;
-                offset = 0.0;
+                CaretLogWarning("non-numeric values generated during nifti data scaling computation, reverting to identity data scaling");
+                mult = 1.0f;
+                offset = 0.0f;
             }
         }
     };
