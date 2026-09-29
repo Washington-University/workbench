@@ -70,7 +70,7 @@ GeneralYokingGroupComboBox::GeneralYokingGroupComboBox(const TextMode textMode,
     }
     setCurrentIndex(0);
     
-    QObject::connect(this, &QComboBox::activated,
+    QObject::connect(this, QOverload<int>::of(&QComboBox::activated),
                      this, &GeneralYokingGroupComboBox::itemActivated);
 }
 

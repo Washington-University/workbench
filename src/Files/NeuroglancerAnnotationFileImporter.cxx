@@ -1837,7 +1837,7 @@ NeuroglancerAnnotationFileImporter::readRelationshipsFromDataStream(const QByteA
     dataStream.setByteOrder(QDataStream::LittleEndian);
     dataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
     
-    uint64_t numAnn;   /* cannot use uint64_t on Linux */
+    quint64 numAnn;   /* cannot use uint64_t on Linux */
     dataStream >> numAnn;
     if (m_debugFlag) {
         std::cout << "Relation ID=" << relationshipID
