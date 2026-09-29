@@ -1097,6 +1097,16 @@ GuiManager::exitProgram(BrainBrowserWindow* parent)
                                textMsg,
                                QMessageBox::NoButton,
                                parent);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+        /*
+         * Prevents "Message box contains detailed text" from being
+         * logged by Qt to the terminal that is caused by setDetailedText().
+         * The message is Qt reporting that a Qt, not native, dialog is
+         * being used since the native dialog does not support showing
+         * detailed text.
+         */
+        quitDialog.setOption(QMessageBox::Option::DontUseNativeDialog);
+#endif
         if (SceneDialog::isInformUserAboutScenesOnExit()) {
             const AString infoTextMsg("<html>Would you like to save your Workbench windows in scene file "
                                       "so you can easily pick up where you left off?"
