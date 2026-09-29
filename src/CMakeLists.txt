@@ -135,6 +135,11 @@ ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang\\+\\+.*")
 IF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang2\\+\\+.*")
     SET(CLANG_FLAG TRUE)
 ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang2\\+\\+.*")
+IF (${CMAKE_CXX_COMPILER_ID} MATCHES "^.*AppleClang.*")
+    # For mac mini build system
+    SET(CLANG_FLAG TRUE)
+ENDIF()
+message("CLANG_FLAG:  ${CLANG_FLAG}")
 IF (CLANG_FLAG)
     ADD_DEFINITIONS("-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter -Wno-deprecated-declarations -Wno-deprecated-this-capture")
 
