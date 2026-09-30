@@ -237,10 +237,10 @@ namespace caret
         } else {
             if (doScale)
             {
-                std::numeric_limits<FROM> disklimits; //the actual reason we split based on disk precision here is to get exact zeros through scaled uint16 in nifti-1
-                if (disklimits.is_integer && disklimits.max() < (1LL<<54)) //test directly against float64 odd integer limit to avoid the "digits in radix" morass
+                typedef std::numeric_limits<FROM> disklimits; //the actual reason we split based on disk precision here is to get exact zeros through scaled uint16 in nifti-1
+                if (disklimits::is_integer && disklimits::max() < (1LL<<54)) //test directly against float64 odd integer limit to avoid the "digits in radix" morass
                 {
-                    if (disklimits.max() < (1<<25)) //uint16, int16, etc
+                    if (disklimits::max() < (1<<25)) //uint16, int16, etc
                     {
                         for (int64_t i = 0; i < count; ++i)
                         {

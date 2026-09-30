@@ -612,28 +612,32 @@ namespace
     template<typename T>
     struct Scaling
     {
-        float mult, offset; //intentionally float, nifti-1 uses float32 for these fields, so for it to work out exact, we need float32 rounding (on reading also, so in NiftiIO.h we use float32 to scale uint16 and below)
+        double mult, offset;
         Scaling(const double& minval, const double& maxval)
         {
             typedef std::numeric_limits<T> mylimits;
             T mymin = mylimits::lowest(), mymax = mylimits::max();
+            //control the math for common integer cases so that the offset-fixup step doesn't have to round 0.5
             if (mymin < T(0))
-            {
-                mymin = -mymax; //we'd actually prefer to do the math with 32767 to -32767, rather than fenceposting the exact 0 out of existence
+            { //signed
+                mymin = -mymax; //use 32767 to -32767, rather than trying to fencepost the exact 0 out of existence
             } else { //unsigned
                 mymax = mylimits::max() - 1; //use an even number of steps so symmetric range can still have an exact zero
             }
-            mult = (maxval - minval) / (mymax - mymin);//multiplying is the first step of decoding (after byteswap), so start with the range
-            offset = minval - mymin * mult;//offset is added after multiplying the encoded value by mult
-            if (minval == -maxval)
+            mult = (maxval - minval) / (mymax - ((long double)mymin)); //WARNING: signed integer can't encode the difference between its min and max
+            offset = minval - mymin * mult; //offset is added after multiplying the encoded value by mult
+            if (mylimits::is_integer)
             {
-                if (mymin < T(0)) //signed
+                //generically handle exact zero in all cases: find whether there is a 0-ish element, and alter the rounding to make it work in both float and double
+                //int16 works, but nifti-1 int32 can still have rounding error because the header stores offset as float32, but IO converts to double before multiply
+                mult = float(mult); //force multiplier to float to eliminate that difference between nifti-1 and nifti-2 math
+                double zeroish_encoded = floor(0.5 + -offset / mult);
+                if ((zeroish_encoded >= mymin) != (zeroish_encoded >= mymax)) //in case someone likes encoding with a negative multiplier, use xor to test "between two values"
                 {
-                    offset = 0.0f; //hardcode the common case rather than hoping for the rounding to work out
-                } else { //unsigned, mymax should be even due to above
-                    offset = -mult * (mymax / 2);
+                    offset -= float(offset) + float(mult) * T(zeroish_encoded); //fix float32 rounding
+                    offset -= offset + mult * T(zeroish_encoded); //and then remaining double rounding
                 }
-            }//when minval == 0, the math is already ideal for signed and unsigned, doesn't need fudging
+            }
             if (!(MathFunctions::isNumeric(mult) && MathFunctions::isNumeric(offset)))
             {//don't do something stupid to the header and values
                 CaretLogWarning("non-numeric values generated during nifti data scaling computation, reverting to identity data scaling");
