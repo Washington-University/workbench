@@ -127,9 +127,11 @@ main(int argc, char* argv[])
 {
     /*
      * Prints call stack to terminal if there is
-     * a segmentation violation.
+     * a segmentation violation.  Might cause app
+     * to hang if crash is in memory allocation/deallocation
+     * but does not happen on macOS.
      */
-    SystemUtilities::setupSegmentationFaultHandler();
+    //SystemUtilities::setupSegmentationFaultHandler();
 
 #ifdef Q_OS_MAC 
     /*

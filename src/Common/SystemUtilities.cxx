@@ -60,6 +60,8 @@
 
 using namespace caret;
 
+bool SystemUtilities::s_segmentationFaultHandlerEnabled = false;
+
 AString commandLine;//used to store the command line for output by unexpected handler
 
 /**
@@ -162,6 +164,9 @@ SystemUtilities::segmentationFaultHandler(int signalType)
 /**
  * Setup handler that prints backtrace if there is a segmentation fault
  * From: https://stackoverflow.com/questions/77005/how-to-automatically-generate-a-stacktrace-when-my-program-crashes
+ * Calling this function also enables an item in Develop menu that calls
+ * SystemUtilities::causeSegmentationFaultToTestHandler()
+ * to force a crash.
  */
 void
 SystemUtilities::setupSegmentationFaultHandler()
@@ -170,7 +175,37 @@ SystemUtilities::setupSegmentationFaultHandler()
 #else  // CARET_OS_WINDOWS
     std::signal(SIGSEGV,
                 SystemUtilities::segmentationFaultHandler);
+    s_segmentationFaultHandlerEnabled = true;
 #endif // CARET_OS_WINDOWS
+}
+
+/**
+ * Cause a segmentation fault to test the segmentation fault handler.
+ */
+void
+SystemUtilities::causeSegmentationFaultToTestHandler()
+{
+    /*
+     * Crash with bad pointers
+     */
+    int* a = (int*)2937;
+    int* b = (int*)373;
+    *a = *b;
+    
+    /*
+     * Fallback if above fails
+     */
+    std::raise(SIGSEGV);
+}
+
+
+/*
+ * @return True if the segmentation fault handler is enabled
+ */
+bool
+SystemUtilities::isSegmentationFaultHandlerEnabled()
+{
+    return s_segmentationFaultHandlerEnabled;
 }
 
 /**

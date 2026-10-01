@@ -54,6 +54,10 @@ public:
 
     static void setupSegmentationFaultHandler();
     
+    static bool isSegmentationFaultHandlerEnabled();
+    
+    static void causeSegmentationFaultToTestHandler();
+    
     static AString getTempDirectory();
 
     static AString getUserName();
@@ -106,6 +110,9 @@ public:
     
 private:
     static void segmentationFaultHandler(int signalType);
+    
+    /* Note initialized in SystemUtilities.cxx */
+    static bool s_segmentationFaultHandlerEnabled;
 };
 
 } // namespace

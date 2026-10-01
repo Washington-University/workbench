@@ -128,6 +128,7 @@
 #include "Surface.h"
 #include "SurfaceMontageConfigurationAbstract.h"
 #include "SurfaceSelectionViewController.h"
+#include "SystemUtilities.h"
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
 #include "TileTabsGridConfigurationModifier.h"
@@ -2215,6 +2216,7 @@ BrainBrowserWindow::processParallelTest()
 void
 BrainBrowserWindow::developerMenuAboutToShow()
 {
+    m_developerSegmentationBacktraceAction->setEnabled(SystemUtilities::isSegmentationFaultHandlerEnabled());
 }
 
 /**
@@ -3321,14 +3323,7 @@ BrainBrowserWindow::processSegmentationBacktrace()
     const AString text("This will intentionally crash Workbench and\n"
                        "print a call stack in the terminal window.");
     if (WuQMessageBoxTwo::warningOkCancel(this, "Warning", text)) {
-        /*
-         * Crash with bad pointers
-         */
-        int* a = (int*)2937;
-        int* b = (int*)373;
-        *a = *b;
-        
-        std::raise(SIGSEGV);
+        SystemUtilities::causeSegmentationFaultToTestHandler();
     }
 }
 
