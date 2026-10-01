@@ -162,7 +162,7 @@ WorkbenchIconTypeLoader::createPixmapPainter(const int32_t width,
     QColor foregroundColor(255, 255, 255, 255);
     switch (darkLightColorSchemeMode) {
         case GuiDarkLightColorSchemeModeEnum::SYSTEM:
-            CaretAssert(0);
+            //CaretAssert(0); //TSC: why assert?  This (sometimes?) ends up as SYSTEM on linux...
             foregroundColor.setRgb(0, 0, 0, 255);
             break;
         case GuiDarkLightColorSchemeModeEnum::DARK:
@@ -222,7 +222,7 @@ WorkbenchIconTypeLoader::createPixmapForIconType(const WorkbenchIconTypeEnum::En
     bool lightColorSchemeFlag(false);
     switch (darkLightColorSchemeMode) {
         case GuiDarkLightColorSchemeModeEnum::SYSTEM:
-            CaretAssert(0);
+            //CaretAssert(0); //TSC: ditto
             lightColorSchemeFlag = true;
             textColor.setRgb(0, 0, 0, 216);
             break;

@@ -163,6 +163,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_chartOverlaySetViewController     = NULL;
     m_chartToolBoxViewController        = NULL;
     m_connectivityMatrixViewController  = NULL;
+    m_featureSelectionViewController    = NULL;
     m_fiberOrientationViewController    = NULL;
     m_fociSelectionViewController       = NULL;
     m_histologyOverlaySetViewController = NULL;
