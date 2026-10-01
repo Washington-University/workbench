@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <csignal>
 #include <utility>
 
 #include <QActionGroup>
@@ -2060,6 +2061,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processDevelopOpenMPTesting()));
     
+    m_developerSegmentationBacktraceAction =
+    WuQtUtilities::createAction("Test Segmentation Backtrace Handler...",
+                                "Intentionally crash wb_view",
+                                this,
+                                this,
+                                SLOT(processSegmentationBacktrace()));
+    
     m_developerExportVtkFileAction =
     WuQtUtilities::createAction("Export to VTK File",
                                 "Export model(s) to VTK File",
@@ -2165,7 +2173,10 @@ BrainBrowserWindow::createMenuDevelop()
         menu->addSeparator();
     }
     menu->addAction(m_developerOpenMPTestingAction);
-
+#ifdef CARET_OS_WINDOWS
+#else  // CARET_OS_WINDOWS
+    menu->addAction(m_developerSegmentationBacktraceAction);
+#endif
     menu->addSeparator();
     menu->addAction(m_developerGraphicsTimingAction);
     menu->addAction(m_developerGraphicsTimingDurationAction);
@@ -3298,6 +3309,26 @@ BrainBrowserWindow::processDevelopGraphicsTimingDuration()
                            + AString::number(actualDuration, 'f', 3));
         WuQMessageBox::informationOk(this,
                                      text);
+    }
+}
+
+/**
+ * Test segmentation fault backtrace
+ */
+void
+BrainBrowserWindow::processSegmentationBacktrace()
+{
+    const AString text("This will intentionally crash Workbench and\n"
+                       "print a call stack in the terminal window.");
+    if (WuQMessageBoxTwo::warningOkCancel(this, "Warning", text)) {
+        /*
+         * Crash with bad pointers
+         */
+        int* a = (int*)2937;
+        int* b = (int*)373;
+        *a = *b;
+        
+        std::raise(SIGSEGV);
     }
 }
 

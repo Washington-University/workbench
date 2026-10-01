@@ -125,6 +125,11 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
 int 
 main(int argc, char* argv[])
 {
+    /*
+     * Prints call stack to terminal if there is
+     * a segmentation violation.
+     */
+    SystemUtilities::setupSegmentationFaultHandler();
 
 #ifdef Q_OS_MAC 
     /*

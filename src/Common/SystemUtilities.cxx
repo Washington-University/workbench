@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <csignal>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
@@ -139,6 +140,36 @@ void SystemUtilities::getBackTrace(SystemBacktrace& backTraceOut)
             << __LINE__ << " in " << __FILE__ << std::endl;
         }
     }
+#endif // CARET_OS_WINDOWS
+}
+
+/**
+ * Print backtrace to terminal
+ * @param signalType
+ *    Signal sent by std::signal
+ */
+void
+SystemUtilities::segmentationFaultHandler(int signalType)
+{
+#ifdef CARET_OS_WINDOWS
+#else  // CARET_OS_WINDOWS
+    std::cerr << "Workbench crashed with signal: " << signalType << std::endl;
+    std::cerr << SystemUtilities::getBackTrace() << std::endl;
+    std::exit(1);
+#endif // CARET_OS_WINDOWS
+}
+
+/**
+ * Setup handler that prints backtrace if there is a segmentation fault
+ * From: https://stackoverflow.com/questions/77005/how-to-automatically-generate-a-stacktrace-when-my-program-crashes
+ */
+void
+SystemUtilities::setupSegmentationFaultHandler()
+{
+#ifdef CARET_OS_WINDOWS
+#else  // CARET_OS_WINDOWS
+    std::signal(SIGSEGV,
+                SystemUtilities::segmentationFaultHandler);
 #endif // CARET_OS_WINDOWS
 }
 

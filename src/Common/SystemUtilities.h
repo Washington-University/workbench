@@ -52,6 +52,8 @@ public:
 
     static void getBackTrace(SystemBacktrace& backTraceOut);
 
+    static void setupSegmentationFaultHandler();
+    
     static AString getTempDirectory();
 
     static AString getUserName();
@@ -101,6 +103,9 @@ public:
     static std::vector<std::unique_ptr<InfoItem>> getSystemInfo();
     
     static FunctionResultString getEnvironmentVariable(const AString& name);
+    
+private:
+    static void segmentationFaultHandler(int signalType);
 };
 
 } // namespace
