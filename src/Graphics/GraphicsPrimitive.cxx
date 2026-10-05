@@ -550,6 +550,16 @@ GraphicsPrimitive::toString() const
 }
 
 /**
+ * Get a description of this object's content with ALL DATA
+ * @return String describing this object's content.
+ */
+AString
+GraphicsPrimitive::toStringVerbose() const
+{
+    return toStringPrivate(true);
+}
+
+/**
  * @return Type of primitive as text.
  */
 AString

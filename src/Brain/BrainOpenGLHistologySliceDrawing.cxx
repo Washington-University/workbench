@@ -1137,7 +1137,7 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
     const HistologySlice* histologySlice(m_mediaFilesAndDataToDraw[0].m_histologySlice);
     CaretAssert(histologySlice);
     
-    
+    int32_t ctr(0);
     for (auto& vdi : volumeDrawingInfo) {
         Overlay* overlay(vdi.m_overlay);
         VolumeMappableInterface* vmi(vdi.m_volumeMappableInterface);
@@ -1157,6 +1157,9 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
                                                                                                overlay->getVolumeToImageMappingMode(),
                                                                                                overlay->getVolumeToImageMappingThickness(),
                                                                                                errorMessage));
+        /*
+         * Primitives are empty if no intersection
+         */
         if ( ! primitives.empty()) {
             const float alphaValue(overlay->getOpacity());
             glPushAttrib(GL_COLOR_BUFFER_BIT);
@@ -1231,7 +1234,9 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
             }
         }
         else {
-            CaretLogSevere(errorMessage);
+            if ( ! errorMessage.isEmpty()) {
+                CaretLogSevere(errorMessage);
+            }
         }
     }
     

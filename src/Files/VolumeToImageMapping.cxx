@@ -26,6 +26,7 @@
 #include <array>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretOMP.h"
 #include "CiftiMappableDataFile.h"
 #include "DataFileContentInformation.h"
@@ -196,20 +197,24 @@ VolumeToImageMapping::runMapping(AString& errorMessageOut)
         }
         
         if ( ! successFlag) {
-            AString fileMsg;
-            AString volumeFileName("Invalid volume file name");
-            AString mediaFileName("Invalied media file name");
-            if (m_volumeMappableDataFile != NULL) {
-                fileMsg.appendWithNewLine("Volume File Name: " + m_volumeMappableDataFile->getFileName());
-                fileMsg.appendWithNewLine("Media File Name: " + mediaFileName);
-                errorMessageOut = (fileMsg
-                                   + "\n"
-                                   + errorMessageOut);
-                
-                /*
-                 * Exit loop since there is an error
-                 */
-                break;
+            if ( ! errorMessageOut.isEmpty()) {
+                AString fileMsg;
+                AString volumeFileName("Invalid volume file name");
+                AString mediaFileName("Invalied media file name");
+                if (m_volumeMappableDataFile != NULL) {
+                    fileMsg.appendWithNewLine("Volume File Name: " + m_volumeMappableDataFile->getFileName());
+                    if (mediaFile != NULL) {
+                        fileMsg.appendWithNewLine("Media File Name: " + mediaFile->getFileName());
+                    }
+                    errorMessageOut = (fileMsg
+                                       + "\n"
+                                       + errorMessageOut);
+                    
+                    /*
+                     * Exit loop since there is an error
+                     */
+                    break;
+                }
             }
         }
     }
@@ -333,12 +338,10 @@ VolumeToImageMapping::performMapping(const MediaFile* mediaFile,
     }
     if (intensityMappingFlag) {
         resultFlag = performIntensityMapping(mediaFile,
-                                             outputImageFile,
-                                             errorMessageOut);
+                                             outputImageFile);
     }
     else {
-        resultFlag = performRgbaMapping(outputImageFile,
-                                        errorMessageOut);
+        resultFlag = performRgbaMapping(outputImageFile);
     }
     
     if (resultFlag) {
@@ -350,14 +353,10 @@ VolumeToImageMapping::performMapping(const MediaFile* mediaFile,
 
 /**
  * Perform RGBA mapping from volume to image
- * @param outputImageFile
- *    The output image file
- * @param errorMessageOut
- *    Contains error information if error
+ * @return True if the image intersects the volume else false.
  */
 bool
-VolumeToImageMapping::performRgbaMapping(ImageFile* outputImageFile,
-                                         AString& errorMessageOut)
+VolumeToImageMapping::performRgbaMapping(ImageFile* outputImageFile)
 {
     bool cacheValuesFlag(false);
     if (m_ciftiMappableDataFile != NULL) {
@@ -416,12 +415,14 @@ VolumeToImageMapping::performRgbaMapping(ImageFile* outputImageFile,
             Vector3D xyz;
             if (outputImageFile->pixelIndexToStereotaxicXYZ(pixelIndex,
                                                             xyz)) {
-                ++validPixelCounter;
+//                ++validPixelCounter;
                 
                 int64_t ijk[3];
                 m_volumeInterface->enclosingVoxel(xyz,
                                                   ijk);
                 if (m_volumeInterface->indexValid(ijk)) {
+                    ++validPixelCounter;
+                    
                     bool havePixelRgbaFlag(false);
                     const VoxelIJK ijkVoxel(ijk);
                     if (cacheValuesFlag) {
@@ -527,12 +528,7 @@ VolumeToImageMapping::performRgbaMapping(ImageFile* outputImageFile,
         }
     } /* for jRow */
     
-    if (validPixelCounter <= 0) {
-        errorMessageOut.appendWithNewLine("No intersection between image and volume");
-    }
-    
     return (validPixelCounter > 0);
-
 }
 
 /**
@@ -731,13 +727,11 @@ VolumeToImageMapping::toString() const
  *    Media file that is being mapped to volume
  * @param outputImageFile
  *    The output image file
- * @param errorMessageOut
- *    Contains error information if error
+ * @return True if the image intersects the volume else false.
  */
 bool
 VolumeToImageMapping::performIntensityMapping(const MediaFile* mediaFile,
-                                              ImageFile* outputImageFile,
-                                              AString& errorMessageOut)
+                                              ImageFile* outputImageFile)
 {
     Vector3D imageStereotaxicNormalVector(0.0, 0.0, 1.0);
     const Plane* plane = mediaFile->getStereotaxicImagePlane();
@@ -745,7 +739,8 @@ VolumeToImageMapping::performIntensityMapping(const MediaFile* mediaFile,
         imageStereotaxicNormalVector = plane->getNormalVector();
     }
     else {
-        errorMessageOut.appendWithNewLine("Input media file does not have valid stereotaxic normal vector.");
+        CaretLogSevere("Input media file does not have valid stereotaxic normal vector.  "
+                       + mediaFile->getFileName());
         return false;
     }
 
@@ -888,7 +883,6 @@ VolumeToImageMapping::performIntensityMapping(const MediaFile* mediaFile,
                  */
                 if ((jRow == jMiddle)
                     && (iCol == iMiddle)) {
-                    std::cout << "PixelXYZ=" << pixelXYZ.toString() << std::endl;
                 }
                 for (int32_t iPixel = 0; iPixel <= numPixelSteps; iPixel++) {
                     Vector3D xyz = (pixelXYZ
@@ -896,7 +890,6 @@ VolumeToImageMapping::performIntensityMapping(const MediaFile* mediaFile,
                                     + (offsetStepXYZ * static_cast<float>(iPixel)));
                     if ((jRow == jMiddle)
                         && (iCol == iMiddle)) {
-                        std::cout << "   iPixel=" << iPixel << " xyz=" << xyz.toString() << std::endl;
                     }
                     std::array<int64_t, 3> ijk;
                     m_volumeInterface->enclosingVoxel(xyz,
@@ -1015,11 +1008,6 @@ VolumeToImageMapping::performIntensityMapping(const MediaFile* mediaFile,
         }
     } /* for jRow */
     
-    if (validPixelCounter <= 0) {
-        errorMessageOut.appendWithNewLine("No intersection between image and volume");
-    }
-    
     return (validPixelCounter > 0);
-    
 }
 

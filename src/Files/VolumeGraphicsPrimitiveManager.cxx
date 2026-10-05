@@ -900,6 +900,11 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
                 allImageFiles.push_back(imageFile);
             }
         }
+        
+        /*
+         * Even if no intersection, add to cache to avoid trying
+         * to create images again
+         */
         m_mapIntersectionImageFiles.insert(std::make_pair(key,
                                                           allImageFiles));
     }

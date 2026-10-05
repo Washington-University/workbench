@@ -494,6 +494,8 @@ namespace caret {
         void setGraphicsEngineDataForOpenGL(GraphicsEngineDataOpenGL* graphicsEngineDataForOpenGL);
         
         virtual AString toString() const override;
+
+        AString toStringVerbose() const;
         
         virtual void print() const;
         

@@ -86,12 +86,10 @@ namespace caret {
                                const AString errorMessagePrefix,
                                AString& errorMessageInOut);
         
-        bool performRgbaMapping(ImageFile* outputImageFile,
-                                AString& errorMessageOut);
+        bool performRgbaMapping(ImageFile* outputImageFile);
         
         bool performIntensityMapping(const MediaFile* mediaFile,
-                                     ImageFile* outputImageFile,
-                                     AString& errorMessageOut);
+                                     ImageFile* outputImageFile);
         
         int32_t getImageBestDimension(const MediaFile* mediaFile,
                                       const VolumeMappableInterface* volumeInterface) const;
