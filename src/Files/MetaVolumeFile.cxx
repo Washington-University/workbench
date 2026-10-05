@@ -34,9 +34,11 @@
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "Histogram.h"
+#include "MathFunctions.h"
 #include "MetaVolumeFileXmlStreamReader.h"
 #include "MetaVolumeFileXmlStreamWriter.h"
 #include "PaletteColorMapping.h"
+#include "Plane.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -111,9 +113,11 @@ MetaVolumeFile::clear()
     m_fileMapInfo.reset(new MapInfo(this,
                                     -1));
     m_volumeFiles.clear();
-    for (auto& mm : m_mapInfo) {
-        mm->clearModified();
-    }
+    m_mapInfo.clear();
+    
+    m_volumeFileNormalVector.fill(0.0);
+    m_previousNormalVectorNumberOfVolumeFiles = -1;
+    m_volumeFileNormalVectorValidFlag = false;
 }
 
 /**
@@ -230,6 +234,96 @@ MetaVolumeFile::getVolumeFileContainingXYZ(const int32_t mapIndex,
     
     return NULL;
 }
+
+/**
+ * @return VolumeFile nearest and aligned with the given plane (similar normal vectors)
+ * @param plane
+ *    Plane for finding nearest volume file
+ * @param distanceToPlaneOut
+ *    Output with distance of VolumeFile to the plane
+ * @return
+ *    Volume file nearest to the plane or NULL if
+ */
+VolumeFile*
+MetaVolumeFile::getVolumeFileNearestPlane(const Plane& plane,
+                                          float& distanceToPlaneOut) const
+{
+    distanceToPlaneOut = -1.0;
+    
+    if( ! plane.isValidPlane()) {
+        return NULL;
+    }
+    
+    computeVolumeFileNormalVectors();
+    
+    const float maximumAngle(30.0);
+    const Vector3D planeNormalVector(plane.getNormalVector());
+    VolumeFile* nearestVolumeFile(NULL);
+    float nearestVolumeFileDistanceToPlane(std::numeric_limits<float>::max());
+    
+    const int32_t numVolumeFiles(m_volumeFiles.size());
+    for (int32_t iVol = 0; iVol < numVolumeFiles; iVol++) {
+        const float absAngle(std::fabs(MathFunctions::angleInDegreesBetweenVectors(m_volumeFileNormalVector,
+                                                                                   planeNormalVector)));
+        
+        if (absAngle < maximumAngle) {
+            BoundingBox bb;
+            CaretAssertVectorIndex(m_volumeFiles, iVol);
+            m_volumeFiles[iVol]->getVoxelSpaceBoundingBox(bb);
+            Vector3D centerXYZ;
+            bb.getCenter(centerXYZ);
+            const float distToPlane(std::fabs(plane.signedDistanceToPlane(centerXYZ)));
+            if (distToPlane < nearestVolumeFileDistanceToPlane) {
+                nearestVolumeFileDistanceToPlane = distToPlane;
+                nearestVolumeFile = m_volumeFiles[iVol].get();
+            }
+        }
+    }
+    
+    return nearestVolumeFile;
+}
+
+/**
+ * Compute normal vectors for the volume files
+ */
+void
+MetaVolumeFile::computeVolumeFileNormalVectors() const
+{
+    if (static_cast<int32_t>(m_volumeFiles.size()) != m_previousNormalVectorNumberOfVolumeFiles) {
+        m_volumeFileNormalVectorValidFlag = false;
+    }
+    if (m_volumeFileNormalVectorValidFlag) {
+        return;
+    }
+    
+    m_volumeFileNormalVector.set(0.0, 0.0, 0.0);
+    
+    const int32_t numVolumeFiles(m_volumeFiles.size());
+    if (numVolumeFiles >= 2) {
+        /*
+         * Vector from center of first slice to center of last slice
+         */
+        const int32_t lastSliceIndex(numVolumeFiles - 1);
+        BoundingBox bbLast;
+        CaretAssertVectorIndex(m_volumeFiles, lastSliceIndex);
+        m_volumeFiles[lastSliceIndex]->getVoxelSpaceBoundingBox(bbLast);
+        Vector3D lastCenterXYZ;
+        bbLast.getCenter(lastCenterXYZ);
+        
+        BoundingBox bbFirst;
+        CaretAssertVectorIndex(m_volumeFiles, 0);
+        m_volumeFiles[0]->getVoxelSpaceBoundingBox(bbFirst);
+        Vector3D firstCenterXYZ;
+        bbFirst.getCenter(firstCenterXYZ);
+        
+        m_volumeFileNormalVector = (lastCenterXYZ - firstCenterXYZ).normal();
+        
+    }
+    
+    m_previousNormalVectorNumberOfVolumeFiles = numVolumeFiles;
+    m_volumeFileNormalVectorValidFlag = true;
+}
+
 
 /**
  * Read the data file.

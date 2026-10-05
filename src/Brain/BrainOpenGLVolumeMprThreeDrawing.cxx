@@ -65,6 +65,7 @@
 #include "GraphicsUtilitiesOpenGL.h"
 #include "GraphicsViewport.h"
 #include "MathFunctions.h"
+#include "MetaVolumeFile.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "SamplesDrawingSettings.h"
@@ -2816,14 +2817,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
                                                                  const Vector3D& sliceCoordinates,
                                                                  const GraphicsViewport& viewport)
 {
-//    /*
-//     * Intensity drawing can only be performed on a single volume
-//     */
-//    CaretAssert(m_volumeDrawInfo.size() == 1);
-//    if (m_volumeDrawInfo.empty()) {
-//        return;
-//    }
-    
     CaretAssert(m_volumeDrawInfo.size() >= 1);
     CaretAssertVectorIndex(m_volumeDrawInfo, 0);
     const BrainOpenGLFixedPipeline::VolumeDrawInfo& bottomIntensityVolumeDrawInfo(m_volumeDrawInfo[0]);
@@ -3070,7 +3063,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
             break;
         case BrainModelMode::VOLUME_2D:
             drawCrosshairs(bottomIntensityVolumeDrawInfo.volumeFile,
-//                           volumeFile,
                            mprSliceView,
                            sliceViewPlane,
                            sliceCoordinates,
@@ -3151,7 +3143,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
              * Intensity use buffer to average/min/max so drawing
              * is limited to one volume
              */
- //           CaretAssert(numVolumes == 1);
             break;
         case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
             break;
@@ -3202,8 +3193,23 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
     
     bool firstFlag(true);
     for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
-        const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
+        BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
         VolumeMappableInterface* volumeInterface = vdi.volumeFile;
+        if (vdi.metaVolumeFile != NULL) {
+            const Plane plane(mprSliceView.getVirtualPlane());
+            if (plane.isValidPlane()) {
+                float distanceToPlane(0.0);
+                VolumeMappableInterface* nearestVolInter = vdi.metaVolumeFile->getVolumeFileNearestPlane(plane,
+                                                                                                         distanceToPlane);
+                if (nearestVolInter != NULL) {
+                    /*
+                     * Do not set vdi.volumeFile as it could cause a crash when
+                     * drawing of other slice planes unless unset at end of loop
+                     */
+                    volumeInterface = nearestVolInter;
+                }
+            }
+        }
         if (volumeInterface != NULL) {
             if (allViewBlendingFlag) {
                 setupMprBlending(BlendingMode::ALL_VIEW,
@@ -3237,12 +3243,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                         setupMprBlending(BlendingMode::MPR_UNDERLAY_SLICE,
                                          s_INVALID_ALPHA_VALUE,
                                          s_INVALID_NUMBER_OF_SLICES);
-                        /*
-                         * May fix labels on/off when only one layer
-                         * setupMprBlending(BlendingMode::MPR_OVERLAY_SLICE, //JWH 27aug2024
-                         *                1.0,
-                         *                s_INVALID_NUMBER_OF_SLICES);
-                         */
                     }
                 }
                 else {
@@ -3321,7 +3321,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                             /*
                              * Must be a volume file
                              */
-                            const VolumeFile* vf(dynamic_cast<VolumeFile*>(vdi.volumeFile));
+                            const VolumeFile* vf(dynamic_cast<VolumeFile*>(volumeInterface));
                             CaretAssert(vf);
                             switch (vf->getType()) {
                                 case SubvolumeAttributes::ANATOMY:
@@ -5175,6 +5175,7 @@ BrainOpenGLVolumeMprThreeDrawing::setPrimitiveCoordinates(const VolumeMprVirtual
                                                              stereotaxicXYZ,
                                                              textureStr,
                                                              layersDrawingPlaneUnused);
+            const CaretMappableDataFile* mapFile(dynamic_cast<const CaretMappableDataFile*>(volume));
             
             if (validFlag) {
                 const int32_t numVertices(stereotaxicXYZ.size());

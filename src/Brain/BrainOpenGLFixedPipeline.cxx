@@ -3867,9 +3867,6 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangleNormalVectors(const Surface* surfac
     setLineWidth(1.0);
     
     float length(surfaceHeight * (normalVectorLength / 100.0));
-//    if ( ! frontFlag) {
-//        length = -length;
-//    }
     const int32_t numTriangles(surface->getNumberOfTriangles());
     
     glBegin(GL_LINES);
@@ -4929,6 +4926,20 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
 {
     volumeDrawInfoOut.clear();
     
+    bool includeMetaVolumesFlag(false);
+    switch (browserTabContent->getVolumeSliceProjectionType()) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+            includeMetaVolumesFlag = true;
+            break;
+    }
+
+        
     const int32_t tabIndex(browserTabContent->getTabNumber());
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     const int32_t numberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
@@ -4941,93 +4952,94 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                       mapIndex);
             if (mapFile != NULL) {
                 if (mapFile->isVolumeMappable()) {
-                    std::vector<VolumeMappableInterface*> volumeFilesToDraw;
+                    VolumeMappableInterface* volumeFile(NULL);
                     MetaVolumeFile* metaVolumeFile(dynamic_cast<MetaVolumeFile*>(mapFile));
                     if (metaVolumeFile != NULL) {
-                        const int32_t numVolumeFiles(metaVolumeFile->getNumberOfVolumeFiles());
-                        for (int32_t i = 0; i < numVolumeFiles; i++) {
-                            volumeFilesToDraw.push_back(metaVolumeFile->getVolumeFile(i));
+                        if ( ! includeMetaVolumesFlag) {
+                            metaVolumeFile = NULL;
                         }
                     }
                     else {
                         VolumeMappableInterface* vmi = dynamic_cast<VolumeMappableInterface*>(mapFile);
                         if (vmi != NULL) {
-                            volumeFilesToDraw.push_back(vmi);
+                            volumeFile = vmi;
                         }
                     }
                     
-                    for (VolumeMappableInterface* vf : volumeFilesToDraw) {
-                        if (vf != NULL) {
-                            float opacity = overlay->getOpacity();
+                    if ((metaVolumeFile != NULL)
+                        || (volumeFile != NULL)) {
+                        float opacity = overlay->getOpacity();
+                        
+                        WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode = overlay->getWholeBrainVoxelDrawingMode();
+                        
+                        if (mapFile->isMappedWithPalette()) {
+                            FastStatistics* statistics = NULL;
+                            switch (mapFile->getPaletteNormalizationMode()) {
+                                case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                                    statistics = const_cast<FastStatistics*>(mapFile->getFileFastStatistics());
+                                    break;
+                                case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                                    statistics = const_cast<FastStatistics*>(mapFile->getMapFastStatistics(mapIndex));
+                                    break;
+                            }
                             
-                            WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode = overlay->getWholeBrainVoxelDrawingMode();
-                            
-                            if (mapFile->isMappedWithPalette()) {
-                                FastStatistics* statistics = NULL;
-                                switch (mapFile->getPaletteNormalizationMode()) {
-                                    case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                                        statistics = const_cast<FastStatistics*>(mapFile->getFileFastStatistics());
-                                        break;
-                                    case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                                        statistics = const_cast<FastStatistics*>(mapFile->getMapFastStatistics(mapIndex));
-                                        break;
-                                }
-                                
-                                PaletteColorMapping* paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
-                                const PaletteBase* palette = paletteColorMapping->getPalette();
-                                if (palette != NULL) {
-                                    /*
-                                     * Statistics may be NULL for a dense connectome file
-                                     * that does not have any data loaded by user
-                                     * clicking on surface/volume.
-                                     */
-                                    if (statistics != NULL) {
-                                        bool useIt = true;
-                                        
-                                        if (volumeDrawInfoOut.empty() == false) {
-                                            /*
-                                             * If previous volume is the same as this
-                                             * volume, there is no need to draw it twice.
-                                             */
-                                            const VolumeDrawInfo& vdi = volumeDrawInfoOut[volumeDrawInfoOut.size() - 1];
-                                            if ((vdi.volumeFile == vf)
-                                                && (opacity >= 1.0)
-                                                && (mapIndex == vdi.mapIndex)
-                                                && (*paletteColorMapping == *vdi.paletteColorMapping)) {
-                                                useIt = false;
-                                            }
-                                        }
-                                        if (useIt) {
-                                            VolumeDrawInfo vdi(mapFile,
-                                                               vf,
-                                                               brain,
-                                                               paletteColorMapping,
-                                                               statistics,
-                                                               wholeBrainVoxelDrawingMode,
-                                                               mapIndex,
-                                                               tabIndex,
-                                                               opacity);
-                                            volumeDrawInfoOut.push_back(vdi);
+                            PaletteColorMapping* paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
+                            const PaletteBase* palette = paletteColorMapping->getPalette();
+                            if (palette != NULL) {
+                                /*
+                                 * Statistics may be NULL for a dense connectome file
+                                 * that does not have any data loaded by user
+                                 * clicking on surface/volume.
+                                 */
+                                if (statistics != NULL) {
+                                    bool useIt = true;
+                                    
+                                    if (volumeDrawInfoOut.empty() == false) {
+                                        /*
+                                         * If previous volume is the same as this
+                                         * volume, there is no need to draw it twice.
+                                         */
+                                        const VolumeDrawInfo& vdi = volumeDrawInfoOut[volumeDrawInfoOut.size() - 1];
+                                        if ((vdi.volumeFile == volumeFile)
+                                            && (opacity >= 1.0)
+                                            && (mapIndex == vdi.mapIndex)
+                                            && (*paletteColorMapping == *vdi.paletteColorMapping)) {
+                                            useIt = false;
                                         }
                                     }
-                                }
-                                else {
-                                    CaretLogWarning("No valid palette for drawing volume file: "
-                                                    + mapFile->getFileNameNoPath());
+                                    if (useIt) {
+                                        VolumeDrawInfo vdi(mapFile,
+                                                           volumeFile,
+                                                           metaVolumeFile,
+                                                           brain,
+                                                           paletteColorMapping,
+                                                           statistics,
+                                                           wholeBrainVoxelDrawingMode,
+                                                           mapIndex,
+                                                           tabIndex,
+                                                           opacity);
+                                        volumeDrawInfoOut.push_back(vdi);
+                                    }
                                 }
                             }
                             else {
-                                VolumeDrawInfo vdi(mapFile,
-                                                   vf,
-                                                   brain,
-                                                   NULL,
-                                                   NULL,
-                                                   wholeBrainVoxelDrawingMode,
-                                                   mapIndex,
-                                                   tabIndex,
-                                                   opacity);
-                                volumeDrawInfoOut.push_back(vdi);
+                                CaretLogWarning("No valid palette for drawing volume file: "
+                                                + mapFile->getFileNameNoPath());
                             }
+                        }
+                        else {
+                            MetaVolumeFile* metaVolumeFile(NULL);
+                            VolumeDrawInfo vdi(mapFile,
+                                               volumeFile,
+                                               metaVolumeFile,
+                                               brain,
+                                               NULL,
+                                               NULL,
+                                               wholeBrainVoxelDrawingMode,
+                                               mapIndex,
+                                               tabIndex,
+                                               opacity);
+                            volumeDrawInfoOut.push_back(vdi);
                         }
                     }
                 }
@@ -10944,6 +10956,7 @@ BrainOpenGLFixedPipeline::setImageCaptureInProgress(const bool status)
  */
 BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* mapFile,
                                                          VolumeMappableInterface* volumeFile,
+                                                         MetaVolumeFile* metaVolumeFile,
                                                          Brain* brain,
                                                          PaletteColorMapping* paletteColorMapping,
                                                          const FastStatistics* statistics,
@@ -10954,6 +10967,7 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* 
 : statistics(statistics) {
     this->mapFile = mapFile;
     this->volumeFile = volumeFile;
+    this->metaVolumeFile = metaVolumeFile;
     this->brain = brain;
     this->paletteColorMapping = paletteColorMapping;
     this->wholeBrainVoxelDrawingMode = wholeBrainVoxelDrawingMode;

@@ -28,9 +28,11 @@
 #include "CaretMappableDataFile.h"
 #include "CaretObjectTracksModification.h"
 #include "FunctionResult.h"
+#include "Vector3D.h"
 
 namespace caret {
     class DataSliceArray;
+    class Plane;
     class Vector3D;
     class VolumeFile;
 
@@ -147,6 +149,9 @@ namespace caret {
                                                      const Vector3D& xyz,
                                                      float& voxelValueOut) const;
         
+        VolumeFile* getVolumeFileNearestPlane(const Plane& plane,
+                                              float& distanceToPlaneOut) const;
+
         virtual void clearModified() override;
         
         virtual bool isModifiedExcludingPaletteColorMapping() const override;
@@ -247,11 +252,19 @@ namespace caret {
         
         std::array<int64_t, 3> getVolumeFilesMatchingDimension() const;
         
+        void computeVolumeFileNormalVectors() const;
+        
         std::unique_ptr<MapInfo> m_fileMapInfo;
         
         std::vector<std::unique_ptr<VolumeFile>> m_volumeFiles;
         
         std::vector<std::unique_ptr<MapInfo>> m_mapInfo;
+        
+        mutable Vector3D m_volumeFileNormalVector;
+        
+        mutable bool m_volumeFileNormalVectorValidFlag = false;
+        
+        mutable int32_t m_previousNormalVectorNumberOfVolumeFiles = -1;
         
         /** Map index for ALL file data (dfata from ALL maps) */
         static const int32_t s_ALL_FILE_DATA_MAP_INDEX;

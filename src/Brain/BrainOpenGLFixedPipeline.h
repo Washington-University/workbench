@@ -68,6 +68,7 @@ namespace caret {
     class HistologySlice;
     class IdentificationWithColor;
     class ImageFile;
+    class MetaVolumeFile;
     class Model;
     class ModelChart;
     class ModelChartTwo;
@@ -171,6 +172,7 @@ namespace caret {
         public:
             VolumeDrawInfo(CaretMappableDataFile* mapFile,
                            VolumeMappableInterface* volumeFile,
+                           MetaVolumeFile* metaVolumeFile,
                            Brain* brain,
                            PaletteColorMapping* paletteColorMapping,
                            const FastStatistics* statistics,
@@ -181,6 +183,7 @@ namespace caret {
             Brain* brain;
             CaretMappableDataFile* mapFile;
             VolumeMappableInterface* volumeFile;
+            MetaVolumeFile* metaVolumeFile;
             SubvolumeAttributes::VolumeType volumeType;
             PaletteColorMapping* paletteColorMapping;
             WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode;
