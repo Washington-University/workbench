@@ -343,9 +343,11 @@ DynamicConnectivityFileLoadingManager::loadDataForSurfaceNode(Brain* brain,
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
-    std::cout << std::endl;
-    std::cout << "TIME TO LOAD DATA: " << timer.getElapsedTimeSeconds() << " seconds." << std::endl;
-    std::cout << std::endl;
+    if (m_timingTestFlag) {
+        std::cout << std::endl;
+        std::cout << "TIME TO LOAD DATA: " << timer.getElapsedTimeSeconds() << " seconds." << std::endl;
+        std::cout << std::endl;
+    }
     
     return dataWasLoadedForAnyFileFlag;
 }
@@ -509,9 +511,11 @@ DynamicConnectivityFileLoadingManager::loadAverageDataForSurfaceNodes(Brain* bra
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
-    std::cout << std::endl;
-    std::cout << "TIME TO LOAD AVERAGE DATA: " << timer.getElapsedTimeSeconds() << " seconds." << std::endl;
-    std::cout << std::endl;
+    if (m_timingTestFlag) {
+        std::cout << std::endl;
+        std::cout << "TIME TO LOAD AVERAGE DATA: " << timer.getElapsedTimeSeconds() << " seconds." << std::endl;
+        std::cout << std::endl;
+    }
     
     return dataWasLoadedForAnyFileFlag;
 }

@@ -101,6 +101,8 @@ namespace caret {
                                      const CaretMappableDataFile* mapFileThatLoadedData,
                                      std::vector<std::vector<float>>& brainordinateSeriesData);
         
+        bool m_timingTestFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
     };
     
