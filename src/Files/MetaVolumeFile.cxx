@@ -23,6 +23,8 @@
 #include "MetaVolumeFile.h"
 #undef __META_VOLUME_FILE_DECLARE__
 
+#include <cmath>
+
 #include <QXmlStreamReader>
 
 #include "CaretAssert.h"
