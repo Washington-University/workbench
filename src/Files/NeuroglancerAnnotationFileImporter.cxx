@@ -888,8 +888,10 @@ NeuroglancerAnnotationFileImporter::readNeuroglancerAnnotationFiles()
                                   + filenameOnly);
         QFile file(pathAndName);
         if ( ! file.open(QFile::ReadOnly)) {
-            throw DataFileException("Failed to read file "
-                                    + pathAndName);
+            throw DataFileException("Failed to open file "
+                                    + pathAndName +
+                                    + " with error "
+                                    + file.errorString());
         }
         
         bool validFlag(false);
@@ -1386,8 +1388,10 @@ NeuroglancerAnnotationFileImporter::readNeuroglancerAnnotationShardedFiles(const
         
         QFile file(shardFileName);
         if ( ! file.open(QFile::ReadOnly)) {
-            throw DataFileException("Failed to read file "
-                                    + shardFileName);
+            throw DataFileException("Failed to open sharded file "
+                                    + shardFileName +
+                                    + " with error "
+                                    + file.errorString());
         }
         if (m_debugFlag) std::cout << "File length: " << file.size() << std::endl;
         
