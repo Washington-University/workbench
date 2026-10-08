@@ -316,7 +316,7 @@ DataFileTypeEnum::initialize()
                                         "Points",
                                         "Points",
                                         false,
-                                        "wb_feature")); // this file is never written
+                                        "info")); // this file is never written
     
     enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI",
