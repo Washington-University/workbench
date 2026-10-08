@@ -51,8 +51,10 @@ using namespace caret;
  *    The group ID that groups features
  * @param uniqueID
  *    Unique ID of feature
- * @param ijk
- *    IJK(s) for the feature
+ * @param coordinatesType
+ *    Type of the coordinates
+ * @param coordinates;
+ *    The coordinates
  * @param color
  *    Color of the feature
  * @param symbolSize
@@ -63,7 +65,8 @@ using namespace caret;
 FeatureItem::FeatureItem(const FeatureItemTypeEnum::Enum featureType,
                          const uint64_t groupID,
                          const uint64_t uniqueID,
-                         const std::vector<Vector3D>& ijk,
+                         const FeatureCoordinateTypeEnum::Enum coordinatesType,
+                         const std::vector<Vector3D>& coordinates,
                          const QColor& color,
                          const float symbolSize,
                          const std::vector<const FeaturePropertyValue*>& propertyValues)
@@ -71,7 +74,8 @@ FeatureItem::FeatureItem(const FeatureItemTypeEnum::Enum featureType,
 m_featureType(featureType),
 m_featureKey(groupID,
              uniqueID),
-m_ijk(ijk),
+m_coordinatesType(coordinatesType),
+m_coordinates(coordinates),
 m_color(color),
 m_symbolSize(symbolSize),
 m_propertyValues(propertyValues)
@@ -80,7 +84,7 @@ m_propertyValues(propertyValues)
         case FeatureItemTypeEnum::INVALID:
             break;
         case FeatureItemTypeEnum::POINT:
-            CaretAssert(m_ijk.size() == 1);
+            CaretAssert(m_coordinates.size() == 1);
             break;
     }
     
@@ -116,12 +120,13 @@ FeatureItem::~FeatureItem()
 void
 FeatureItem::copyHelperFeatureItem(const FeatureItem& obj)
 {
-    m_featureType    = obj.m_featureType;
-    m_featureKey     = obj.m_featureKey;
-    m_ijk            = obj.m_ijk;
-    m_color          = obj.m_color;
-    m_symbolSize     = obj.m_symbolSize;
-    m_propertyValues = obj.m_propertyValues;
+    m_featureType     = obj.m_featureType;
+    m_featureKey      = obj.m_featureKey;
+    m_coordinatesType = obj.m_coordinatesType;
+    m_coordinates     = obj.m_coordinates;
+    m_color           = obj.m_color;
+    m_symbolSize      = obj.m_symbolSize;
+    m_propertyValues  = obj.m_propertyValues;
     setUniqueID(m_featureKey.getUniqueID());
 }
 
@@ -153,7 +158,8 @@ FeatureItem::isDisplayed() const
     for (const FeaturePropertyValue* propertyValue  : m_propertyValues) {
         const FeatureLabelModel* labelModel(propertyValue->getLabelModel());
         if (labelModel != NULL) {
-            const FeatureLabel* label(labelModel->getLabelWithValue(propertyValue->getValue().toInt()));
+            const int32_t labelIndex(propertyValue->getValue().toInt());
+            const FeatureLabel* label(labelModel->getLabelWithValue(labelIndex));
             if (label != NULL) {
                 if (label->checkState() != Qt::Checked) {
                     return false;
@@ -202,15 +208,6 @@ FeatureItem::getUniqueIdAsString() const
 }
 
 /**
- * @return Number of IJK in the feature
- */
-int32_t
-FeatureItem::getNumberOfIJK() const
-{
-    return m_ijk.size();
-}
-
-/**
  * @return The color
  */
 const QColor&
@@ -220,15 +217,33 @@ FeatureItem::getColor() const
 }
 
 /**
- * @return IJK at the given index
+ * @return The coordinates type
+ */
+FeatureCoordinateTypeEnum::Enum
+FeatureItem::getCoordinatesType() const
+{
+    return m_coordinatesType;
+}
+
+/**
+ * @return Number of Coordinates in the feature
+ */
+int32_t
+FeatureItem::getNumberOfCoordinates() const
+{
+    return m_coordinates.size();
+}
+
+/**
+ * @return Coordinate at the given index
  * @param index
  *    The index
  */
 const Vector3D&
-FeatureItem::getIJK(const int32_t index) const
+FeatureItem::getCoordinate(const int32_t index) const
 {
-    CaretAssertVectorIndex(m_ijk, index);
-    return m_ijk[index];
+    CaretAssertVectorIndex(m_coordinates, index);
+    return m_coordinates[index];
 }
 
 /**
@@ -261,8 +276,10 @@ FeatureItem::setUniqueID(const uint64_t uniqueID)
     setText(getUniqueIdAsString()
             + " - "
             + FeatureItemTypeEnum::toGuiName(m_featureType)
-            + " ("
-            + AString::fromNumbers(m_ijk[0])
+            + " "
+            + FeatureCoordinateTypeEnum::toGuiNameShort(m_coordinatesType)
+            + "=("
+            + AString::fromNumbers(m_coordinates[0])
             + ")");
 }
 
@@ -290,16 +307,17 @@ FeatureItem::setUniqueID(const AString& uniqueID)
 AString
 FeatureItem::toString() const
 {
-    AString ijkString;
-    for (int32_t i = 0; i < getNumberOfIJK(); i++) {
+    AString coordString;
+    for (int32_t i = 0; i < getNumberOfCoordinates(); i++) {
         if (i > 0) {
-            ijkString += ", ";
+            coordString += ", ";
         }
-        ijkString += "(" + AString::fromNumbers(m_ijk[i]) + ")";
+        coordString += "(" + AString::fromNumbers(m_coordinates[i]) + ")";
     }
     AString txt("id=" + getUniqueIdAsString()
                 + ", type=" + getTypeName()
-                + ", IJK=" + ijkString
+                + ", coordsType=" + FeatureCoordinateTypeEnum::toGuiName(m_coordinatesType)
+                + ", coords=" + coordString
                 + ", color=" + FeaturePropertyValue::QColorToString(m_color));
     return txt;
 }
@@ -330,14 +348,15 @@ FeatureItem::getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
         idTextOut.push_back(rowOne);
         
         const int32_t iCoord(0);
-        const Vector3D ijk(getIJK(iCoord));
+        const Vector3D coordValue(getCoordinate(iCoord));
         std::vector<AString> rowTwo;
-        rowTwo.push_back("IJK: "
-                         + AString::fromNumbers(ijk));
+        rowTwo.push_back(FeatureCoordinateTypeEnum::toGuiNameShort(m_coordinatesType)
+                         + ": "
+                         + AString::fromNumbers(coordValue));
         idTextOut.push_back(rowTwo);
         
-        const Vector3D xyz(featureFile->featureIJKtoXYZ(this,
-                                                        iCoord));
+        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(this,
+                                                                  iCoord));
         std::vector<AString> rowThree;
         rowThree.push_back("XYZ: "
                            + AString::fromNumbers(xyz, ",", 'f', 3));
@@ -348,25 +367,31 @@ FeatureItem::getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
         rowOne.push_back(featureName);
         idTextOut.push_back(rowOne);
         
-        const int32_t numIJK(getNumberOfIJK());
-        for (int32_t iCoord = 0; iCoord < numIJK; iCoord++) {
+        const int32_t numCoord(getNumberOfCoordinates());
+        for (int32_t iCoord = 0; iCoord < numCoord; iCoord++) {
             const AString indexString((iCoord > 0)
                                       ? (" " + AString::number(iCoord+1))
                                       : "");
-            const Vector3D ijk(getIJK(iCoord));
+            const Vector3D coord(getCoordinate(iCoord));
             std::vector<AString> rowIJKXYZ;
-            rowIJKXYZ.push_back("IJK"
+            rowIJKXYZ.push_back(FeatureCoordinateTypeEnum::toGuiNameShort(m_coordinatesType)
                                 + indexString
                                 + ": "
-                                + AString::fromNumbers(ijk));
+                                + AString::fromNumbers(coord));
             
-            if (featureFile != NULL) {
-                const Vector3D xyz(featureFile->featureIJKtoXYZ(this,
-                                                                iCoord));
-                rowIJKXYZ.push_back("XYZ"
-                                    + indexString
-                                    + ": "
-                                    + AString::fromNumbers(xyz, ",", 'f', 3));
+            switch (m_coordinatesType) {
+                case FeatureCoordinateTypeEnum::STEREOTAXIC_XYZ:
+                    break;
+                case FeatureCoordinateTypeEnum::VOLUME_IJK:
+                    if (featureFile != NULL) {
+                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(this,
+                                                                                  iCoord));
+                        rowIJKXYZ.push_back("XYZ"
+                                            + indexString
+                                            + ": "
+                                            + AString::fromNumbers(xyz, ",", 'f', 3));
+                    }
+                    break;
             }
             idTextOut.push_back(rowIJKXYZ);
         }

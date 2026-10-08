@@ -37,6 +37,7 @@ class QStandardItem;
 
 namespace caret {
     class FeatureItem;
+    class FeatureItemGroup;
     class FeatureItemModel;
     class FeatureLabelModel;
     class FileInformation;
@@ -56,12 +57,14 @@ namespace caret {
         
         FunctionResult addFeature(QList<QStandardItem*>& featureAndProperties);
         
+        FunctionResult addFeatureGroup(FeatureItemGroup* featureItemGroup);
+        
         virtual FeatureFile* castToFeatureFile() override;
         virtual const FeatureFile* castToFeatureFile() const override;
 
-        Vector3D featureIJKtoXYZ(const FeatureItem* featureItem,
-                                 const int32_t coordinateIndex) const;
-        
+        Vector3D getFeatureCoordinateAsXYZ(const FeatureItem* featureItem,
+                                           const int32_t coordinateIndex) const;
+
         virtual void receiveEvent(Event* event) override;
 
         virtual bool isEmpty() const override;
@@ -92,11 +95,15 @@ namespace caret {
         
         const CaretDataFileSelectionModel* getVolumeFileSelectionModel() const;
         
+        void addLabelModel(FeatureLabelModel* featureLabelModel);
+        
         int32_t getNumberOfLabelModels() const;
         
         FeatureLabelModel* getLabelModel(const int32_t index);
 
         const FeatureLabelModel* getLabelModel(const int32_t index) const;
+        
+        void setHeaderLabels(const QStringList& horizontalHeaderLabels);
         
         // ADD_NEW_METHODS_HERE
         

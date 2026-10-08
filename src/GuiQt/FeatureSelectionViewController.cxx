@@ -709,7 +709,7 @@ FeatureSelectionViewController::createAttributesWidget()
     QObject::connect(m_symbolScaleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      [=]() { processAttributesChanges(); });
     
-    QLabel* distanceToVolumeSliceLabel = new QLabel("Distanct to Volume Slice");
+    QLabel* distanceToVolumeSliceLabel = new QLabel("Distance to Volume Slice");
     m_distanceToVolumeSliceSpinBox = new QDoubleSpinBox();
     m_distanceToVolumeSliceSpinBox->setRange(0.0, 10000.0);
     m_distanceToVolumeSliceSpinBox->setSingleStep(1.0);

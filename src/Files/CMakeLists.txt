@@ -140,6 +140,7 @@ EventSurfaceFileGet.h
 EventSurfaceStructuresValidGet.h
 EventVolumeColoringInvalidate.h
 FeatureBase.h
+FeatureCoordinateTypeEnum.h
 FeatureFile.h
 FeatureItem.h
 FeatureItemGroup.h
@@ -352,6 +353,7 @@ EventSurfaceFileGet.cxx
 EventSurfaceStructuresValidGet.cxx
 EventVolumeColoringInvalidate.cxx
 FeatureBase.cxx
+FeatureCoordinateTypeEnum.cxx
 FeatureFile.cxx
 FeatureItem.cxx
 FeatureItemGroup.cxx

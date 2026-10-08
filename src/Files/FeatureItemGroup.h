@@ -39,7 +39,8 @@ namespace caret {
     public:
         static uint64_t getDefaultGroupID();
 
-        FeatureItemGroup(const uint64_t groupID);
+        FeatureItemGroup(const uint64_t groupID,
+                         const AString& groupName);
         
         virtual ~FeatureItemGroup();
         

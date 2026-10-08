@@ -81,6 +81,8 @@ FeatureLabelModel::addLabel(FeatureLabel* label)
     
     m_valueToLabelMap.insert(std::make_pair(label->getValue(),
                                             label));
+    m_labelTextToValueMap.insert(std::make_pair(label->text(),
+                                                label->getValue()));
 }
 
 /**
@@ -112,6 +114,24 @@ FeatureLabelModel::getLabelWithValue(const int32_t value) const
     }
     
     return labelOut;
+}
+
+/**
+ * @return the value (index) for the label name or negative if not found
+ * @param labelName
+ *    name of label
+ */
+int32_t
+FeatureLabelModel::getValueForLabel(const AString& labelName) const
+{
+    int32_t value(-1);
+    
+    const auto iter(m_labelTextToValueMap.find(labelName));
+    if (iter != m_labelTextToValueMap.end()) {
+        value = iter->second;
+    }
+    
+    return value;
 }
 
 /**

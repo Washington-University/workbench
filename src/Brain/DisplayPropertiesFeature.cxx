@@ -116,7 +116,7 @@ DisplayPropertiesFeature::resetPrivate()
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         m_displayStatusInDisplayGroup[i] = defaultDisplayStatusFlag;
     }
-    m_symbolScale = 1.0;
+    m_symbolScale = 5.0;
     m_distanceFromSliceTolerance = 100.0;
 }
 

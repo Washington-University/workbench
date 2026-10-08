@@ -98,7 +98,7 @@ namespace caret {
         
         bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        float m_symbolScale = 1.0;
+        float m_symbolScale = 5.0;
         
         float m_distanceFromSliceTolerance = 100.0;
         

@@ -87,6 +87,45 @@ FeatureItemModel::receiveEvent(Event* /*event*/)
 }
 
 /**
+ * Add a feature group to this model.  If there is
+ * a feature group already in the model with the matching unique ID, the
+ * featureGroup are NOT added and are destroyed.
+ *
+ * @param featureGroup
+ *    The feature group.  Caller MUST NOT
+ *    reference featureGroup after calling this function as
+ *    they could be destroyed immediately or at a later time.
+ * @return
+ *   A FunctionResult with success or failure.
+ */
+FunctionResult
+FeatureItemModel::addFeatureGroup(FeatureItemGroup* featureItemGroup)
+{
+    CaretAssert(featureItemGroup);
+    const uint64_t groupID(featureItemGroup->getGroupID());
+    
+    AString errorMessage;
+    
+    const auto iter(m_groupIdToFeatureGroupMap.find(groupID));
+    if (iter == m_groupIdToFeatureGroupMap.end()) {
+        m_groupIdToFeatureGroupMap.insert(std::make_pair(groupID,
+                                                         featureItemGroup));
+        invisibleRootItem()->appendRow(featureItemGroup);
+        m_groupIdToFeatureGroupMap.insert(std::make_pair(groupID,
+                                                         featureItemGroup));
+    }
+    else {
+        errorMessage = ("A feature group with ID="
+                        + AString::number(groupID)
+                        + " already exists");
+    }
+    
+    return FunctionResult(errorMessage,
+                          errorMessage.isEmpty());
+}
+
+
+/**
  * Add a feature to this model.  If there is
  * a feature already in the model with the matching unique ID, the
  * featureAndProperties are NOT added and are destroyed.
@@ -104,6 +143,7 @@ FeatureItemModel::addFeature(QList<QStandardItem*>& featureAndProperties)
     for (const auto& qsi : featureAndProperties) {
         CaretAssert(qsi);
     }
+    
     CaretAssertVectorIndex(featureAndProperties, 0);
     FeatureItem* featureItem(dynamic_cast<FeatureItem*>(featureAndProperties[0]));
     CaretAssert(featureItem);
@@ -137,7 +177,9 @@ FeatureItemModel::addFeature(QList<QStandardItem*>& featureAndProperties)
             /*
              * Add to new group
              */
-            featureItemGroup = new FeatureItemGroup(groupID);
+            AString groupName;
+            featureItemGroup = new FeatureItemGroup(groupID,
+                                                    groupName);
             invisibleRootItem()->appendRow(featureItemGroup);
             m_groupIdToFeatureGroupMap.insert(std::make_pair(groupID,
                                                              featureItemGroup));

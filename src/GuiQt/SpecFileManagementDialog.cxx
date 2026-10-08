@@ -62,8 +62,10 @@
 #include "DataFileContentCopyMoveInterface.h"
 #include "DataFileException.h"
 #include "DataFileContentInformation.h"
+#include "DeveloperFlagsEnum.h"
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventBrowserWindowCreateTabs.h"
+#include "EventDataFileAdd.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
 #include "EventDataFileReloadAll.h"
@@ -74,7 +76,9 @@
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FeatureFile.h"
 #include "FileInformation.h"
+#include "FociFile.h"
 #include "GuiManager.h"
 #include "MetaDataEditorDialog.h"
 #include "ProgressReportingDialog.h"
@@ -2331,6 +2335,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
         QAction* showFileInformationAction     = NULL;
         QAction* setStructureAction            = NULL;
         QAction* unloadFileMapsAction          = NULL;
+        QAction* convertFociToFeaturesAction   = NULL;
         
         QMenu menu;
         switch (m_dialogMode) {
@@ -2353,6 +2358,12 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                         }
                         setFileNameAction = menu.addAction("Set File Name...");
                         showFileInformationAction = menu.addAction("Show File Information...");
+                        
+                        if (caretDataFile != NULL) {
+                            if (caretDataFile->getDataFileType() == DataFileTypeEnum::FOCI) {
+                                convertFociToFeaturesAction = menu.addAction("Convert to Features File");
+                            }
+                        }
                     }
                 }
                 else if ( ! sceneAnnotationFileFlag) {
@@ -2420,6 +2431,21 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                                                           cziImageFile,
                                                           this);
                 cziImageExportDialog.exec();
+            }
+            else if (convertFociToFeaturesAction != NULL) {
+                CaretAssert(caretDataFile);
+                FociFile* fociFile(dynamic_cast<FociFile*>(caretDataFile));
+                CaretAssert(fociFile);
+                FunctionResultValue<FeatureFile*> result(fociFile->exportToFeatureFile());
+                if (result.isOk()) {
+                    EventDataFileAdd addFileEvent(result.getValue());
+                    EventManager::get()->sendEvent(addFileEvent.getPointer());
+                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+                }
+                else {
+                    WuQMessageBoxTwo::critical(this, "Error", result.getErrorMessage());
+                }
             }
             else if (selectedAction != NULL) {
                 CaretAssertMessage(0,

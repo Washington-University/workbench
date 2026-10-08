@@ -33,6 +33,8 @@ namespace caret {
 
     class DataFileEditorModel;
     class GroupAndNameHierarchyModel;
+    class FeatureFile;
+    class FeatureLabelModel;
     class Focus;
     class GiftiLabelTable;
     class GiftiMetaData;
@@ -121,6 +123,8 @@ namespace caret {
         
         FunctionResult importFromDataFileEditorModel(const DataFileEditorModel& dataFileEditorModel);
         
+        FunctionResultValue<FeatureFile*> exportToFeatureFile() const;
+        
         /** XML Tag for foci file */
         static const AString XML_TAG_FOCI_FILE;
         
@@ -139,6 +143,10 @@ namespace caret {
         void initializeFociFile();
         
         void clearFoci();
+        
+        FeatureLabelModel* createClassFeatureLabelModel() const;
+        
+        FeatureLabelModel* createNameFeatureLabelModel() const;
         
         GiftiMetaData* m_metadata;
         

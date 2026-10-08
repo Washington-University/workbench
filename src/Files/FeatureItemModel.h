@@ -52,6 +52,8 @@ namespace caret {
         
         FunctionResult addFeature(QList<QStandardItem*>& featureAndProperties);
         
+        FunctionResult addFeatureGroup(FeatureItemGroup* featureItemGroup);
+        
         std::vector<const FeatureItemGroup*> getAllFeatureGroups() const;
         
         FeatureItemGroup* getFeatureItemGroupWithID(const uint64_t groupID);

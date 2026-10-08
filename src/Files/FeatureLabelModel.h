@@ -57,6 +57,8 @@ namespace caret {
         
         void setAllLabelsDisplayed(const bool displayStatus);
         
+        int32_t getValueForLabel(const AString& labelName) const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -86,6 +88,8 @@ namespace caret {
         AString m_description;
         
         std::map<int32_t, FeatureLabel*> m_valueToLabelMap;
+        
+        std::map<AString, int32_t> m_labelTextToValueMap;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -36,7 +36,15 @@
 #include "DataFileEditorModel.h"
 #include "DataFileException.h"
 #include "GroupAndNameHierarchyModel.h"
+#include "FeatureFile.h"
+#include "FeatureItem.h"
+#include "FeatureItemGroup.h"
+#include "FeatureLabel.h"
+#include "FeatureLabelModel.h"
+#include "FeatureItemModel.h"
+#include "FeaturePropertyValue.h"
 #include "FileAdapter.h"
+#include "FileInformation.h"
 #include "FociFileSaxReader.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
@@ -181,7 +189,7 @@ FociFile::getStructure() const
 void 
 FociFile::setStructure(const StructureEnum::Enum /*structure*/)
 {
-    // does nothing since focuss apply to all structures
+    /* does nothing since focuss apply to all structures */
 }
 
 /**
@@ -1159,3 +1167,225 @@ FociFile::getNameOrClassColor(const SamplesColorModeEnum::Enum samplesColorMode,
                                                        ( errorMessage.isEmpty()));
 }
 
+/**
+ * Export the foci to a feature file
+ */
+FunctionResultValue<FeatureFile*>
+FociFile::exportToFeatureFile() const
+{
+    const int32_t numFoci(getNumberOfFoci());
+    if (numFoci <= 0) {
+        return FunctionResultValue<FeatureFile*>(NULL,
+                                                 "There are no foci in the file",
+                                                 false);
+    }
+    
+    AString absPath, fileNameNoExt, ext;
+    FileInformation(getFileName()).getFileComponents(absPath, fileNameNoExt, ext);
+    
+    const AString featureFileName(FileInformation::assembleFileComponents(absPath,
+                                                                          fileNameNoExt,
+                                                                          DataFileTypeEnum::toFileExtension(DataFileTypeEnum::FEATURE)));
+
+    std::unique_ptr<FeatureFile> featureFile(new FeatureFile());
+    featureFile->setFileName(featureFileName);
+    
+    AString errorMessage;
+
+    /*
+     * Create a FeatureItemGroup for each class
+     */
+    const GiftiLabelTable* classLabelTable(getClassColorTable());
+    CaretAssert(classLabelTable);
+    
+    std::map<int32_t, AString> classKeyAndNameMap;
+    classLabelTable->getKeysAndNames(classKeyAndNameMap);
+
+    /*
+     * Labels at top of tree view
+     */
+    QStringList headerLabels;
+    headerLabels << "Point";
+    
+    /*
+     * Create label columns with foci names
+     */
+    FeatureLabelModel* nameModel(createNameFeatureLabelModel());
+    if (nameModel != NULL) {
+        featureFile->addLabelModel(nameModel);
+        headerLabels << nameModel->getDescription();
+    }
+    
+    /*
+     * Create label columns with foci class names
+     */
+    FeatureLabelModel* classModel(createClassFeatureLabelModel());
+    if (classModel != NULL) {
+        featureFile->addLabelModel(classModel);
+        headerLabels << classModel->getDescription();
+    }
+        
+    /*
+     * To avoid clashing with feature IDs, start the feature
+     * group ID at the maximum interger (it is used by OpenGL
+     * for ID and must be 32-bits or less) and decrement.
+     */
+    int32_t featureGroupId(std::numeric_limits<int32_t>::max());
+
+    std::map<AString, FeatureItemGroup*> classNameToFeatureGroupMap;
+    for (const auto& keyName : classKeyAndNameMap) {
+        FeatureItemGroup* featureGroup(new FeatureItemGroup(featureGroupId,
+                                                            keyName.second));
+        --featureGroupId;
+        classNameToFeatureGroupMap.insert(std::make_pair(keyName.second,
+                                                         featureGroup));
+        featureFile->addFeatureGroup(featureGroup);
+    }
+    
+    for (int32_t i = 0; i < numFoci; i++) {
+        const Focus* focus(getFocus(i));
+        
+        CaretAssert(focus->getNumberOfProjections() > 0);
+        const float* xyz(focus->getProjection(0)->getStereotaxicXYZ());
+        const std::vector<Vector3D> coords { Vector3D(xyz[0], xyz[1], xyz[2]) };
+        
+        const int64_t annotationID(i);
+        
+        float annotationSize(5.0);
+    
+        int32_t featureGroupID(FeatureItemGroup::getDefaultGroupID());
+        const auto iter(classNameToFeatureGroupMap.find(focus->getClassName()));
+        if (iter != classNameToFeatureGroupMap.end()) {
+            featureGroupID = iter->second->getGroupID();
+        }
+        
+        /*
+         * Get focus color
+         */
+        float nameRGBA[4] { 1.0f, 1.0f, 1.0f, 1.0f };
+        const GiftiLabel* nameLabel(m_nameColorTable->getLabelBestMatching(focus->getName()));
+        if (nameLabel != NULL) {
+            nameLabel->getColor(nameRGBA);
+            nameRGBA[3] = 1.0; /* some labels have zero for alpha, don't know why */
+        }
+        else {
+            CaretLogWarning("No focus color found for focus: "
+                            + focus->getName());
+        }
+
+        QColor annotationColor;
+        annotationColor.setRgbF(nameRGBA[0], nameRGBA[1], nameRGBA[2], nameRGBA[3]);
+        
+        /*
+         * The property values are added into same row as the annotation in the model
+         */
+        QList<QStandardItem*> modelRowPropertyValues;
+        std::vector<const FeaturePropertyValue*> propertyValues;
+        
+        if (nameModel != NULL) {
+            const AString propertyLabelText(focus->getName());
+            const int32_t propertyValue(nameModel->getValueForLabel(propertyLabelText));
+            FeaturePropertyValue* fpv(new FeaturePropertyValue(nameModel->getDescription(),
+                                                               FeaturePropertyDataTypeEnum::LABEL,
+                                                               propertyValue,
+                                                               propertyLabelText,
+                                                               nameModel));
+            propertyValues.push_back(fpv);
+            modelRowPropertyValues.push_back(fpv);
+        }
+
+        if (classModel != NULL) {
+            const AString propertyLabelText(focus->getClassName());
+            const int32_t propertyValue(classModel->getValueForLabel(propertyLabelText));
+            FeaturePropertyValue* fpv(new FeaturePropertyValue(classModel->getDescription(),
+                                                               FeaturePropertyDataTypeEnum::LABEL,
+                                                               propertyValue,
+                                                               propertyLabelText,
+                                                               classModel));
+            propertyValues.push_back(fpv);
+            modelRowPropertyValues.push_back(fpv);
+        }
+        
+        FeatureItem* item(new FeatureItem(FeatureItemTypeEnum::POINT,
+                                          featureGroupID,
+                                          annotationID,
+                                          FeatureCoordinateTypeEnum::STEREOTAXIC_XYZ,
+                                          coords,
+                                          annotationColor,
+                                          annotationSize,
+                                          propertyValues));
+        
+        QList<QStandardItem*> newRow;
+        newRow.push_back(item);
+        newRow.append(modelRowPropertyValues);
+
+        featureFile->addFeature(newRow);
+    }
+
+    featureFile->setHeaderLabels(headerLabels);
+    
+    if ( ! errorMessage.isEmpty()) {
+        featureFile.reset();
+    }
+    
+    /*
+     * Note: OK to call 'release' when the pointer is NULL
+     */
+    return FunctionResultValue<FeatureFile*>(featureFile.release(),
+                                             errorMessage,
+                                             errorMessage.isEmpty());
+}
+
+/**
+ * @return a Feature label model for foci classes
+ */
+FeatureLabelModel*
+FociFile::createClassFeatureLabelModel() const
+{
+    /*
+     * Note: Foci supported partially matching names, features do not
+     */
+    std::set<AString> uniqueNames;
+    const int32_t numFoci(getNumberOfFoci());
+    for (int32_t i = 0; i < numFoci; i++) {
+        uniqueNames.insert(getFocus(i)->getClassName());
+    }
+    
+    FeatureLabelModel* labelModel(new FeatureLabelModel("Class"));
+    
+    int32_t nameIndex(0);
+    for (const auto& name : uniqueNames) {
+        FeatureLabel* label(new FeatureLabel(nameIndex, name));
+        labelModel->addLabel(label);
+        ++nameIndex;
+    }
+
+    return labelModel;
+}
+
+/**
+ * @return a Feature label model for foci names
+ */
+FeatureLabelModel*
+FociFile::createNameFeatureLabelModel() const
+{
+    /*
+     * Note: Foci supported partially matching names, features do not
+     */
+    std::set<AString> uniqueNames;
+    const int32_t numFoci(getNumberOfFoci());
+    for (int32_t i = 0; i < numFoci; i++) {
+        uniqueNames.insert(getFocus(i)->getName());
+    }
+    
+    FeatureLabelModel* labelModel(new FeatureLabelModel("Name"));
+    
+    int32_t nameIndex(0);
+    for (const auto& name : uniqueNames) {
+        FeatureLabel* label(new FeatureLabel(nameIndex, name));
+        labelModel->addLabel(label);
+        ++nameIndex;
+    }
+    
+    return labelModel;
+}

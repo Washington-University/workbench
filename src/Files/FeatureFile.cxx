@@ -44,6 +44,7 @@
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "FeatureItem.h"
+#include "FeatureItemGroup.h"
 #include "FeatureLabel.h"
 #include "FeatureLabelModel.h"
 #include "FeatureItemModel.h"
@@ -390,13 +391,44 @@ FeatureFile::addFeature(QList<QStandardItem*>& featureAndProperties)
     CaretAssert(featureItem);
     
     if (featureItem->getGroupID() > std::numeric_limits<int32_t>::max()) {
-        CaretLogWarning("Group ID is greater than 32-bit integer maximum.  OpenGL ID will fail.");
+        CaretLogWarning("Group ID="
+                        + AString::number(featureItem->getGroupID())
+                        + " is greater than 32-bit integer maximum.  OpenGL ID will fail.");
     }
     if (featureItem->getUniqueID() > std::numeric_limits<int32_t>::max()) {
-        CaretLogWarning("Unique ID is greater than 32-bit integer maximum.  OpenGL ID will fail.");
+        CaretLogWarning("Unique ID="
+                        + AString::number(featureItem->getUniqueID())
+                        + " is greater than 32-bit integer maximum.  OpenGL ID will fail.");
     }
     
     return m_featureModel->addFeature(featureAndProperties);
+}
+
+/**
+ * Add a feature group to this file.  If there is
+ * a feature group already in the model with the matching unique ID, the
+ * featureGroup are NOT added and are destroyed.
+ *
+ * @param featureGroup
+ *    The feature group.  Caller MUST NOT
+ *    reference featureGroup after calling this function as
+ *    they could be destroyed immediately or at a later time.
+ * @return
+ *   A FunctionResult with success or failure.
+ */
+FunctionResult
+FeatureFile::addFeatureGroup(FeatureItemGroup* featureItemGroup)
+{
+    CaretAssert(featureItemGroup);
+    
+    FunctionResult result(m_featureModel->addFeatureGroup(featureItemGroup));
+    if (result.isOk()) {
+        return result;
+    }
+    return FunctionResult((result.getErrorMessage()
+                           + "  When adding to file "
+                           + getFileName()),
+                          false);
 }
 
 /**
@@ -407,21 +439,29 @@ FeatureFile::addFeature(QList<QStandardItem*>& featureAndProperties)
  *    Index of the feature's coordinate
  */
 Vector3D
-FeatureFile::featureIJKtoXYZ(const FeatureItem* featureItem,
-                             const int32_t coordinateIndex) const
+FeatureFile::getFeatureCoordinateAsXYZ(const FeatureItem* featureItem,
+                                       const int32_t coordinateIndex) const
 {
     Vector3D xyz(0.0, 0.0, 0.0);
     
     CaretAssert(featureItem);
     if (featureItem != NULL) {
-        Vector3D ijk(featureItem->getIJK(coordinateIndex));
-        xyz = ijk;
-        const CaretDataFile* cdf(m_volumeFileSelectionModel->getSelectedFile());
-        if (cdf != NULL) {
-            const VolumeFile* volumeFile(cdf->castToVolumeFile());
-            if (volumeFile != NULL) {
-                volumeFile->indexToSpace(ijk, xyz);
+        Vector3D coord(featureItem->getCoordinate(coordinateIndex));
+        xyz = coord;
+        switch (featureItem->getCoordinatesType()) {
+            case FeatureCoordinateTypeEnum::STEREOTAXIC_XYZ:
+                break;
+            case FeatureCoordinateTypeEnum::VOLUME_IJK:
+            {
+                const CaretDataFile* cdf(m_volumeFileSelectionModel->getSelectedFile());
+                if (cdf != NULL) {
+                    const VolumeFile* volumeFile(cdf->castToVolumeFile());
+                    if (volumeFile != NULL) {
+                        volumeFile->indexToSpace(coord, xyz);
+                    }
+                }
             }
+                break;
         }
     }
     
@@ -444,6 +484,18 @@ const FeatureItemModel*
 FeatureFile::getFeatureItemModel() const
 {
     return m_featureModel.get();
+}
+
+/**
+ * Add a label model
+ * @param featureLabelModel
+ *    Label model that is added
+ */
+void
+FeatureFile::addLabelModel(FeatureLabelModel* featureLabelModel)
+{
+    CaretAssert(featureLabelModel);
+    m_labelModels.emplace_back(featureLabelModel);
 }
 
 /**
@@ -477,5 +529,18 @@ FeatureFile::getLabelModel(const int32_t index) const
 {
     CaretAssertVectorIndex(m_labelModels, index);
     return m_labelModels[index].get();
+}
+
+/**
+ * Set the header labels
+ * @param horizontalHeaderLabels
+ *    Labels for the horizontal header
+ */
+void
+FeatureFile::setHeaderLabels(const QStringList& horizontalHeaderLabels)
+{
+    if (m_featureModel != NULL) {
+        m_featureModel->setHeaderLabels(horizontalHeaderLabels);
+    }
 }
 

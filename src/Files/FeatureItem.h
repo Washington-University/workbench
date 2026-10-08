@@ -29,6 +29,7 @@
 
 #include "FeatureBase.h"
 #include "FeatureKey.h"
+#include "FeatureCoordinateTypeEnum.h"
 #include "FeatureItemTypeEnum.h"
 #include "SceneableInterface.h"
 #include "Vector3D.h"
@@ -45,7 +46,8 @@ namespace caret {
         FeatureItem(const FeatureItemTypeEnum::Enum featureType,
                     const uint64_t groupID,
                     const uint64_t uniqueID,
-                    const std::vector<Vector3D>& ijk,
+                    const FeatureCoordinateTypeEnum::Enum coordinatesType,
+                    const std::vector<Vector3D>& coordinates,
                     const QColor& color,
                     const float symbolSize,
                     const std::vector<const FeaturePropertyValue*>& propertyValues);
@@ -68,9 +70,11 @@ namespace caret {
         
         uint64_t getUniqueID() const;
         
-        int32_t getNumberOfIJK() const;
+        FeatureCoordinateTypeEnum::Enum getCoordinatesType() const;
         
-        const Vector3D& getIJK(const int32_t index) const;
+        int32_t getNumberOfCoordinates() const;
+        
+        const Vector3D& getCoordinate(const int32_t index) const;
         
         const QColor& getColor() const;
         
@@ -104,7 +108,9 @@ namespace caret {
         
         FeatureKey m_featureKey;
         
-        std::vector<Vector3D> m_ijk;
+        FeatureCoordinateTypeEnum::Enum m_coordinatesType;
+        
+        std::vector<Vector3D> m_coordinates;
         
         QColor m_color;
         

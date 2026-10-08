@@ -2906,6 +2906,12 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
      */
     this->drawSurfaceFoci(surface);
 
+    /*
+     * Draw features
+     */
+    BrainOpenGLFeatureDrawing featureDrawing;
+    featureDrawing.drawOnSurface(m_brain, this, surface);
+
     const SurfaceDrawingTypeEnum::Enum drawingType = dps->getSurfaceDrawingType();
     switch (this->mode)  {
         case MODE_DRAWING:

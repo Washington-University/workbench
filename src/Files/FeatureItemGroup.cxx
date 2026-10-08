@@ -59,16 +59,22 @@ FeatureItemGroup::getDefaultGroupID()
 /**
  * Constructor.
  */
-FeatureItemGroup::FeatureItemGroup(const uint64_t groupID)
+FeatureItemGroup::FeatureItemGroup(const uint64_t groupID,
+                                   const AString& groupName)
 : FeatureBase(FeatureBase::BaseType::FEATURE_GROUP),
 m_groupID(groupID)
 {
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-    AString groupName((m_groupID == std::numeric_limits<uint64_t>::max())
-                      ? "Default"
-                      : ("Group " + AString::number(m_groupID)));
-    setText(groupName);
+    AString name;
+    if ( ! groupName.isEmpty()) {
+        name = (groupName + " ");
+    }
+    name.append((m_groupID == std::numeric_limits<uint64_t>::max())
+                ? "Default"
+                : ("Group " + AString::number(m_groupID)));
+
+    setText(name);
     
     setFlags(Qt::ItemIsSelectable
              | Qt::ItemIsEnabled);
