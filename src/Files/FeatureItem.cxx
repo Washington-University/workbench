@@ -342,6 +342,7 @@ FeatureItem::getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
                               + " "
                               + FeatureItemTypeEnum::toGuiName(getType()));
 
+    const VolumeFile* ijkToXyzVolumeFile(featureFile->getIjkToXyzVolumeFile());
     if (toolTipFlag) {
         std::vector<AString> rowOne;
         rowOne.push_back(featureName);
@@ -355,7 +356,8 @@ FeatureItem::getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
                          + AString::fromNumbers(coordValue));
         idTextOut.push_back(rowTwo);
         
-        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(this,
+        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(ijkToXyzVolumeFile,
+                                                                  this,
                                                                   iCoord));
         std::vector<AString> rowThree;
         rowThree.push_back("XYZ: "
@@ -384,7 +386,8 @@ FeatureItem::getIdentificationText(std::vector<std::vector<AString>>& idTextOut,
                     break;
                 case FeatureCoordinateTypeEnum::VOLUME_IJK:
                     if (featureFile != NULL) {
-                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(this,
+                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(ijkToXyzVolumeFile,
+                                                                                  this,
                                                                                   iCoord));
                         rowIJKXYZ.push_back("XYZ"
                                             + indexString

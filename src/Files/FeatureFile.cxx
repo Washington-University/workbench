@@ -188,6 +188,19 @@ FeatureFile::supportsFileMetaData() const
 }
 
 /**
+ * @return Volume file for converting IJK to XYZ (may be NULL)
+ */
+const VolumeFile*
+FeatureFile::getIjkToXyzVolumeFile() const
+{
+    const CaretDataFile* caretVolumeFile(m_volumeFileSelectionModel->getSelectedFile());
+    const VolumeFile* ijkToXyzVolumeFile((caretVolumeFile != NULL)
+                                         ? dynamic_cast<const VolumeFile*>(caretVolumeFile)
+                                         : NULL );
+    return ijkToXyzVolumeFile;
+}
+
+/**
  * @return Selection model for volume that maps voxel indices to stereotaxic coordinates
  */
 CaretDataFileSelectionModel*
@@ -433,13 +446,16 @@ FeatureFile::addFeatureGroup(FeatureItemGroup* featureItemGroup)
 
 /**
  * @return XYZ of an feature's coordinate
+ * @param ijkToXyzVolumeFile
+ *    Volume file used to convert IJK voxel indices to stereotaxic XYZ
  * @param featureItem
  *    The feature item
  * @param coordinateIndex
  *    Index of the feature's coordinate
  */
 Vector3D
-FeatureFile::getFeatureCoordinateAsXYZ(const FeatureItem* featureItem,
+FeatureFile::getFeatureCoordinateAsXYZ(const VolumeFile* ijkToXyzVolumeFile,
+                                       const FeatureItem* featureItem,
                                        const int32_t coordinateIndex) const
 {
     Vector3D xyz(0.0, 0.0, 0.0);
@@ -452,15 +468,9 @@ FeatureFile::getFeatureCoordinateAsXYZ(const FeatureItem* featureItem,
             case FeatureCoordinateTypeEnum::STEREOTAXIC_XYZ:
                 break;
             case FeatureCoordinateTypeEnum::VOLUME_IJK:
-            {
-                const CaretDataFile* cdf(m_volumeFileSelectionModel->getSelectedFile());
-                if (cdf != NULL) {
-                    const VolumeFile* volumeFile(cdf->castToVolumeFile());
-                    if (volumeFile != NULL) {
-                        volumeFile->indexToSpace(coord, xyz);
-                    }
+                if (ijkToXyzVolumeFile != NULL) {
+                    ijkToXyzVolumeFile->indexToSpace(coord, xyz);
                 }
-            }
                 break;
         }
     }

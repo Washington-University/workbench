@@ -403,6 +403,9 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
     for (int32_t iFile = 0; iFile < numberOfFeatureFiles; iFile++) {
         CaretAssertVectorIndex(allFeatureFiles, iFile);
         const FeatureFile* featureFile(allFeatureFiles[iFile]);
+        
+        const VolumeFile* ijkToXyzVolumeFile(featureFile->getIjkToXyzVolumeFile());
+        
         const FeatureItemModel* featureItemModel(featureFile->getFeatureItemModel());
         const std::vector<const FeatureItemGroup*> allFeatureGroups(featureItemModel->getAllFeatureGroups());
         const int32_t numGroups(allFeatureGroups.size());
@@ -444,7 +447,9 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
                 
                 CaretAssert(featureItem->getNumberOfCoordinates() > 0);
                 const int32_t coordIndex(0);
-                Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(featureItem, coordIndex));
+                Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(ijkToXyzVolumeFile,
+                                                                    featureItem,
+                                                                    coordIndex));
                 
                 bool drawFeatureFlag = false;
                 switch (drawType) {
@@ -564,6 +569,7 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
             FeatureItem* featureItem(featureItemModel->getFeatureWithGroupAndUniqueID(featureGroupID,
                                                                                       featureUniqueID));
             CaretAssert(featureItem);
+            const VolumeFile* ijkToXyzVolumeFile(featureFile->getIjkToXyzVolumeFile());
             switch (drawType) {
                 case DrawType::HISTOLOGY:
                     if (selectionItemFeature->isOtherScreenDepthCloserToViewer(depth)) {
@@ -575,8 +581,9 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
                                                                     featureUniqueID);
                         selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(featureItem,
-                                                                            coordIndex));
+                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(ijkToXyzVolumeFile,
+                                                                                  featureItem,
+                                                                                  coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
                         CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
                                      + QString::number(featureGroupID)
@@ -594,8 +601,9 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
                                                                   featureUniqueID);
                         selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(featureItem,
-                                                                            coordIndex));
+                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(ijkToXyzVolumeFile,
+                                                                                  featureItem,
+                                                                                  coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
                         CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
                                      + QString::number(featureGroupID)
@@ -616,8 +624,9 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
                                                                  featureUniqueID);
                         selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(featureItem,
-                                                                            coordIndex));
+                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(ijkToXyzVolumeFile,
+                                                                                  featureItem,
+                                                                                  coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
                         CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
                                      + QString::number(featureGroupID)
@@ -634,8 +643,9 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
                                                                      featureUniqueID);
                         selectionItemFeature->setScreenDepth(depth);
                         const int32_t coordIndex(0);
-                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(featureItem,
-                                                                            coordIndex));
+                        const Vector3D xyz(featureFile->getFeatureCoordinateAsXYZ(ijkToXyzVolumeFile,
+                                                                                  featureItem,
+                                                                                  coordIndex));
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemFeature, xyz);
                         CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
                                      + QString::number(featureGroupID)

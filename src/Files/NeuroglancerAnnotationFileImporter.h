@@ -170,15 +170,20 @@ namespace caret {
          * Contains name and feature with properties that are added to
          * a model.  The model could be be a table or a tree.
          */
-        class NewAnnoationInformation {
+        class NewAnnotationInformation {
         public:
-            NewAnnoationInformation(const uint64_t uniqueID,
+            NewAnnotationInformation()
+            : m_validFlag(false) { }
+            
+            NewAnnotationInformation(const uint64_t uniqueID,
                                     const QList<QStandardItem*>& featureAndPropertiesList)
             : m_uniqueID(uniqueID),
-            m_featureAndPropertiesList(featureAndPropertiesList) { }
+            m_featureAndPropertiesList(featureAndPropertiesList),
+            m_validFlag(true) { }
             
             uint64_t m_uniqueID;
             QList<QStandardItem*> m_featureAndPropertiesList;
+            bool m_validFlag = false;
         };
         
 
@@ -239,7 +244,7 @@ namespace caret {
                                               const AString& shardingName,
                                               const Sharding& sharding) const;
         
-        NewAnnoationInformation readAnnotationFromDataStream(QFile* file,
+        NewAnnotationInformation readAnnotationFromDataStream(QFile* file,
                                                              const QByteArray& dataBytes,
                                                              QDataStream& dataStream,
                                                              const uint64_t relationshipID,
@@ -284,6 +289,10 @@ namespace caret {
          * Upper bound of grid
          */
         std::vector<float> m_lowerBound;
+        
+        int64_t m_numberOfAnnotationsRead = 0;
+        
+        int64_t m_skipAfterReadingNumberOfAnnotations = 10000;
         
         bool m_debugFlag = false;
         

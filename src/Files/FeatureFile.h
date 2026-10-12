@@ -62,7 +62,8 @@ namespace caret {
         virtual FeatureFile* castToFeatureFile() override;
         virtual const FeatureFile* castToFeatureFile() const override;
 
-        Vector3D getFeatureCoordinateAsXYZ(const FeatureItem* featureItem,
+        Vector3D getFeatureCoordinateAsXYZ(const VolumeFile* ijkToXyzVolumeFile,
+                                           const FeatureItem* featureItem,
                                            const int32_t coordinateIndex) const;
 
         virtual void receiveEvent(Event* event) override;
@@ -90,6 +91,8 @@ namespace caret {
         FeatureItemModel* getFeatureItemModel();
         
         const FeatureItemModel* getFeatureItemModel() const;
+        
+        const VolumeFile* getIjkToXyzVolumeFile() const;
         
         CaretDataFileSelectionModel* getVolumeFileSelectionModel();
         
