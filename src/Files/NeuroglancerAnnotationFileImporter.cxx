@@ -284,7 +284,7 @@ NeuroglancerAnnotationFileImporter::readNeuroglancerInfoFile(const AString& file
      * Can print a "pretty" (formatted with indentation
      * for easier reading) version of the JSON
      */
-    const bool prettyPrintFlag(true);
+    const bool prettyPrintFlag(false);
     if (prettyPrintFlag) {
         AString nameOut(FileInformation::assembleFileComponents(fileInfo.getAbsolutePath(),
                                                                 "formatted",
@@ -296,8 +296,10 @@ NeuroglancerAnnotationFileImporter::readNeuroglancerInfoFile(const AString& file
             fileOut.close();
         }
         else {
-            throw DataFileException("Error opening " + nameOut
-                                    + ": " + fileOut.errorString());
+            CaretLogWarning("Unable to open file "
+                            + nameOut
+                            + " for writing a formatted version of the Neuroglancer 'info' file.  Error: "
+                            + fileOut.errorString());
         }
     }
     
