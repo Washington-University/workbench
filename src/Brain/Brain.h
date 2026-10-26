@@ -64,6 +64,7 @@ namespace caret {
     class CiftiBrainordinateScalarFile;
     class CiftiConnectivityMatrixDenseFile;
     class CiftiConnectivityMatrixDenseDynamicFile;
+    class CiftiFiberTrajectoryDenseDynamicFile;
     class CiftiConnectivityMatrixDenseParcelFile;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiConnectivityMatrixParcelDenseFile;
@@ -71,6 +72,7 @@ namespace caret {
     class CiftiDenseSparseFile;
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
+    class CiftiFiberTrajectoryLoadingInterface;
     class CiftiFiberTrajectoryMapFile;
     class CiftiMappableDataFile;
     class CiftiMappableConnectivityMatrixDataFile;
@@ -114,6 +116,7 @@ namespace caret {
     class ModelSurfaceMontage;
     class ModelVolume;
     class ModelWholeBrain;
+    class NeuroglancerAnnotationFile;
     class OmeZarrImageFile;
     class PaletteFile;
     class PaletteNewGroup;
@@ -192,6 +195,14 @@ namespace caret {
         
         const FeatureFile* getFeatureFile(const int32_t indx) const;
         
+        const std::vector<NeuroglancerAnnotationFile*> getAllNeuroglancerAnnotationFiles() const;
+        
+        int32_t getNumberOfNeuroglancerAnnotationFiles() const;
+        
+        NeuroglancerAnnotationFile* getNeuroglancerAnnotationFile(const int32_t indx);
+        
+        const NeuroglancerAnnotationFile* getNeuroglancerAnnotationFile(const int32_t indx) const;
+
         const std::vector<OmeZarrImageFile*> getAllOmeZarrImageFiles() const;
         
         int32_t getNumberOfOmeZarrImageFiles() const;
@@ -314,6 +325,8 @@ namespace caret {
         
         void getConnectivityMatrixDenseDynamicFiles(std::vector<CiftiConnectivityMatrixDenseDynamicFile*>& connectivityDenseDynamicFilesOut) const;
         
+        void getCiftiFiberTrajectoryDenseDynamicFiles(std::vector<CiftiFiberTrajectoryDenseDynamicFile*>& connFiberTrajDynamicFilesOut) const;
+        
         int32_t getNumberOfConnectivityDenseLabelFiles() const;
         
         CiftiBrainordinateLabelFile* getConnectivityDenseLabelFile(int32_t indx);
@@ -402,6 +415,8 @@ namespace caret {
         
         void getConnectivityFiberTrajectoryMapFiles(std::vector<CiftiFiberTrajectoryMapFile*>& ciftiFiberTrajectoryMapFilesOut) const;
         
+        std::vector<CiftiFiberTrajectoryLoadingInterface*> getFiberTrajectoryLoadingInterfaceFiles() const;
+
         int32_t getNumberOfDenseSparseFiles() const;
         
         CiftiDenseSparseFile* getDenseSparseFile(const int32_t index);
@@ -925,6 +940,10 @@ namespace caret {
                                                                   CaretDataFile* caretDataFile,
                                                                   const AString& filename);
         
+        NeuroglancerAnnotationFile* addReadOrReloadNeuroglancerAnnotationFile(const FileModeAddReadReload fileMode,
+                                                                              CaretDataFile* caretDataFile,
+                                                                              const AString& filename);
+        
         OmeZarrImageFile* addReadOrReloadOmeZarrImageFile(const FileModeAddReadReload fileMode,
                                                           CaretDataFile* caretDataFile,
                                                           const AString& filename);
@@ -1005,6 +1024,8 @@ namespace caret {
         std::vector<CziImageFile*> m_cziImageFiles;
         
         std::vector<FeatureFile*> m_featureFiles;
+        
+        std::vector<NeuroglancerAnnotationFile*> m_neuroglancerAnnotationFiles;
         
         std::vector<OmeZarrImageFile*> m_omeZarrImageFiles;
         

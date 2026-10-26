@@ -171,6 +171,9 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const st
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                fileSpecialPrefix = "fibertrajdynconn";
+                break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -195,6 +198,8 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const st
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 fileSpecialPrefix = "metricdynconn - ";
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                 break;
             case DataFileTypeEnum::FEATURE:
                 break;

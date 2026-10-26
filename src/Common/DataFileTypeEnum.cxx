@@ -241,6 +241,13 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "fiberTEMP.nii"));
     
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC,
+                                        "CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC",
+                                        "CIFTI - Fiber Trajectory Connectivity Dynamic",
+                                        "Fiber Trajectory Connectivity Dynamic",
+                                        false,
+                                        "dyntraj.nii"));
+    
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY,
                                         "CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY",
                                         "CIFTI - Fiber Trajectory TEMPORARY",
@@ -369,6 +376,13 @@ DataFileTypeEnum::initialize()
                                         "METRIC_DYNAMIC",
                                         true,
                                         "func_dynconn")); // this file is never written
+    
+    enumData.push_back(DataFileTypeEnum(NEUROGLANCER_ANNOTATION,
+                                        "NEUROGLANCER_ANNOTATION",
+                                        "Neuroglancer Annotation",
+                                        "NEUROGLANCER_ANNOTATION",
+                                        false,
+                                        "info"));
     
     enumData.push_back(DataFileTypeEnum(OME_ZARR_IMAGE,
                                         "OME_ZARR_IMAGE",
@@ -881,6 +895,9 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                validFlag = includeNonWritableFileTypesFlag;
+                break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
@@ -902,6 +919,9 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
             case DataFileTypeEnum::METRIC:
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
+                validFlag = includeNonWritableFileTypesFlag;
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                 validFlag = includeNonWritableFileTypesFlag;
                 break;
             case DataFileTypeEnum::FEATURE:
@@ -1232,6 +1252,7 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
     allEnums.clear();
     
     const bool includeDenseDynamicFlag  = (options & OPTIONS_INCLUDE_CONNECTIVITY_DENSE_DYNAMIC);
+    const bool includeFiberTrajDynamicFlag = (options & OPTIONS_INCLUDE_CONNECTIVITY_FIBER_TRAJ_DYNAMIC);
     const bool includeParcelDynamicFlag = (options & OPTIONS_INCLUDE_CONNECTIVITY_PARCEL_DYNAMIC);
     const bool includeMetricDynamicFlag = (options & OPTIONS_INCLUDE_METRIC_DENSE_DYNAMIC);
     const bool includeVolumeDynamicFlag = (options & OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC);
@@ -1279,6 +1300,11 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                if ( ! includeFiberTrajDynamicFlag) {
+                    addEnumFlag = false;
+                }
+                break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -1305,6 +1331,8 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
                 if ( ! includeMetricDynamicFlag) {
                     addEnumFlag = false;
                 }
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                 break;
             case DataFileTypeEnum::FEATURE:
                 break;
@@ -1678,6 +1706,8 @@ DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -1701,6 +1731,8 @@ DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
         case DataFileTypeEnum::METRIC:
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::FEATURE:
             //dialogFilterShowType = DialogFilterShowType::SHOW_DIRECTORY;
@@ -1773,6 +1805,8 @@ DataFileTypeEnum::fileExtensionMatchesExactFileName(const Enum enumValue)
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -1796,6 +1830,9 @@ DataFileTypeEnum::fileExtensionMatchesExactFileName(const Enum enumValue)
         case DataFileTypeEnum::METRIC:
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            extensionIsExactFileName = true;
             break;
         case DataFileTypeEnum::FEATURE:
             extensionIsExactFileName = true;

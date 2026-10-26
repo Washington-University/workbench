@@ -86,7 +86,7 @@ FeatureSelectionViewController::FeatureSelectionViewController(const int32_t bro
                                                          QWidget* parent)
 : QWidget(parent),
 m_objectNamePrefix(parentObjectName
-                   + ":NueroAnn")
+                   + ":Feature")
 {
     m_browserWindowIndex = browserWindowIndex;
     
@@ -275,14 +275,12 @@ FeatureSelectionViewController::createFeatureItemsWidget()
     QObject::connect(m_featureItemTreeView, &QTreeView::clicked,
                      this, &FeatureSelectionViewController::featureTreeItemClicked);
     
-//    const int BIG_STRETCH(100);
     QWidget* widget(new QWidget());
     QVBoxLayout* layout(new QVBoxLayout(widget));
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(layout->spacing() / 2);
     layout->addLayout(buttonsLayout);
     layout->addWidget(m_featureItemTreeView);//, BIG_STRETCH);
-//    layout->addStretch();
     
     return widget;
 }

@@ -851,6 +851,8 @@ GiftiTypeFile::isMappedWithPalette() const
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -876,6 +878,8 @@ GiftiTypeFile::isMappedWithPalette() const
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             paletteFlag = true;
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::FEATURE:
             break;
@@ -939,6 +943,8 @@ GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormaliz
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -977,6 +983,8 @@ GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormaliz
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::FEATURE:
             break;
@@ -1281,6 +1289,8 @@ GiftiTypeFile::getBrainordinateMappingMatchImplementation(const CaretMappableDat
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -1319,6 +1329,8 @@ GiftiTypeFile::getBrainordinateMappingMatchImplementation(const CaretMappableDat
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             giftiFlag = true;
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::FEATURE:
             break;
@@ -1410,6 +1422,8 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -1484,6 +1498,8 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
                     textOut = valuesText;
                 }
             }
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                 break;
             case DataFileTypeEnum::FEATURE:
                 break;

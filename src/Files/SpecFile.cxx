@@ -1993,6 +1993,9 @@ SpecFile::isDataFileTypeAllowedInSpecFile(const DataFileTypeEnum::Enum dataFileT
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            allowedFlag = false;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -2017,6 +2020,8 @@ SpecFile::isDataFileTypeAllowedInSpecFile(const DataFileTypeEnum::Enum dataFileT
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             allowedFlag = false;
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::FEATURE:
             break;

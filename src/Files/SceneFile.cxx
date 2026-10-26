@@ -1240,6 +1240,9 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                                         break;
                                     case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                                         break;
+                                    case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                                        validDiskFileFlag = false;
+                                        break;
                                     case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                                         break;
                                     case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -1277,6 +1280,8 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                                         break;
                                     case DataFileTypeEnum::METRIC_DYNAMIC:
                                         validDiskFileFlag = false;
+                                        break;
+                                    case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                                         break;
                                     case DataFileTypeEnum::FEATURE:
                                         break;

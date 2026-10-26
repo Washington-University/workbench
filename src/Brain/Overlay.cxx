@@ -29,6 +29,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "CiftiFiberTrajectoryDenseDynamicFile.h"
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "DeveloperFlagsEnum.h"
@@ -449,6 +450,13 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                {
+                    CiftiFiberTrajectoryDenseDynamicFile* connFiberTrajFile(dynamic_cast<CiftiFiberTrajectoryDenseDynamicFile*>(mapFile));
+                    CaretAssert(connFiberTrajFile);
+                    useIt = connFiberTrajFile->isEnabledAsLayer();
+                }
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -477,6 +485,8 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                     CaretAssert(metricDynFile);
                     useIt = metricDynFile->isEnabledAsLayer();
                 }
+                    break;
+                case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                     break;
                 case DataFileTypeEnum::FEATURE:
                     break;

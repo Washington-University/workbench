@@ -57,6 +57,8 @@ public:
         CONNECTIVITY_DENSE_TIME_SERIES,
         /** Connectivity - Fiber Orientations TEMPORARY */
         CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
+        /** Connectivity - FIber Trajectory Dynamic Connectivity */
+        CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC,
         /** Connectivity - Fiber Trajectory TEMPORARY */
         CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY,
         /** Connectivity - Fiber Trajectory Maps */
@@ -93,6 +95,8 @@ public:
         METRIC,
         /** Metric Dynamic Connectivity */
         METRIC_DYNAMIC,
+        /** Neuroglancer Annotation */
+        NEUROGLANCER_ANNOTATION,
         /** OME-ZARR Image */
         OME_ZARR_IMAGE,
         /** Palette */
@@ -124,14 +128,16 @@ public:
         OPTIONS_NONE = 0,
         /** Include the dense dynamic data file type */
         OPTIONS_INCLUDE_CONNECTIVITY_DENSE_DYNAMIC = 1,
+        /** Include the fiber trajectory dynamic connectivity */
+        OPTIONS_INCLUDE_CONNECTIVITY_FIBER_TRAJ_DYNAMIC = 2,
         /** Include the parcel dynamic data file type */
-        OPTIONS_INCLUDE_CONNECTIVITY_PARCEL_DYNAMIC = 2,
+        OPTIONS_INCLUDE_CONNECTIVITY_PARCEL_DYNAMIC = 4,
         /** Include the metric dynamic data file type */
-        OPTIONS_INCLUDE_METRIC_DENSE_DYNAMIC = 4,
+        OPTIONS_INCLUDE_METRIC_DENSE_DYNAMIC = 8,
         /** Include the volume dynamic data file type */
-        OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC = 8,
+        OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC = 16,
         /** Include the unknown data file type */
-        OPTIONS_INCLUDE_UNKNOWN = 16
+        OPTIONS_INCLUDE_UNKNOWN = 32
     };
     
     enum DialogFilterShowType {

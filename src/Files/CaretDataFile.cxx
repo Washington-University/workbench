@@ -82,6 +82,9 @@ SceneableInterface()
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             supportsIdentificationAttributesFlag = true;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            supportsIdentificationAttributesFlag = true;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             supportsIdentificationAttributesFlag = true;
             break;
@@ -134,6 +137,8 @@ SceneableInterface()
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::FEATURE:
             break;

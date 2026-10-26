@@ -55,7 +55,9 @@
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "CiftiFiberOrientationFile.h"
+#include "CiftiFiberTrajectoryDenseDynamicFile.h"
 #include "CiftiFiberTrajectoryMapFile.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "CiftiParcelSeriesFile.h"
 #include "ClippingPlaneGroup.h"
 #include "GroupAndNameHierarchyGroup.h"
@@ -3099,6 +3101,13 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                         break;
                     case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                         break;
+                    case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                    {
+                        CiftiFiberTrajectoryDenseDynamicFile* fiberTrajDynFile(dynamic_cast<CiftiFiberTrajectoryDenseDynamicFile*>(overlayDataFile));
+                        CaretAssert(fiberTrajDynFile);
+                        displayedDataFiles.insert(fiberTrajDynFile->getParentFiberTrajectoryFile());
+                    }
+                        break;
                     case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                         break;
                     case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -3130,8 +3139,10 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                     {
                         MetricDynamicConnectivityFile* metricDynFile = dynamic_cast<MetricDynamicConnectivityFile*>(overlayDataFile);
                         CaretAssert(metricDynFile);
-                        displayedDataFiles.insert(metricDynFile);
+                        displayedDataFiles.insert(metricDynFile->getParentMetricFile());
                     }
+                        break;
+                    case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                         break;
                     case DataFileTypeEnum::FEATURE:
                         break;

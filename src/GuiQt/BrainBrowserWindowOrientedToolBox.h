@@ -39,6 +39,7 @@ namespace caret {
     class ChartTwoOverlaySetViewController;
     class ChartToolBoxViewController;
     class CiftiConnectivityMatrixViewController;
+    class FeatureSelectionViewController;
     class FiberOrientationSelectionViewController;
     class FociSelectionViewController;
     class HistologyOverlaySetViewController;
@@ -46,7 +47,7 @@ namespace caret {
     class ImageSelectionViewController;
     class LabelSelectionViewWidget;
     class MediaOverlaySetViewController;
-    class FeatureSelectionViewController;
+    class NeuroglancerAnnotationViewController;
     class OverlaySetViewController;
     class SamplesSelectionViewController;
     class VolumeSurfaceOutlineSetViewController;
@@ -91,6 +92,8 @@ namespace caret {
         
         void restoreMinimumAndMaximumSizesAfterSceneRestored();
         
+        void currentTabChanged(int tabIndex);
+        
     private:
         BrainBrowserWindowOrientedToolBox(const BrainBrowserWindowOrientedToolBox&);
         BrainBrowserWindowOrientedToolBox& operator=(const BrainBrowserWindowOrientedToolBox&);
@@ -133,6 +136,8 @@ namespace caret {
         
         FeatureSelectionViewController* m_featureSelectionViewController;
         
+        NeuroglancerAnnotationViewController* m_neuroglancerAnnotationViewController = NULL;
+        
         SamplesSelectionViewController* m_samplesSelectionViewController;
         
         VolumeSurfaceOutlineSetViewController* m_volumeSurfaceOutlineSetViewController;
@@ -170,6 +175,8 @@ namespace caret {
         int32_t m_mediaTabIndex;
         
         int32_t m_featureTabIndex;
+        
+        int32_t m_neuroglancerAnnotationTabIndex;
         
         int32_t m_samplesTabIndex;
         

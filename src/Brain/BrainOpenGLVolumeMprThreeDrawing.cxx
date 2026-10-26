@@ -5175,7 +5175,6 @@ BrainOpenGLVolumeMprThreeDrawing::setPrimitiveCoordinates(const VolumeMprVirtual
                                                              stereotaxicXYZ,
                                                              textureStr,
                                                              layersDrawingPlaneUnused);
-            const CaretMappableDataFile* mapFile(dynamic_cast<const CaretMappableDataFile*>(volume));
             
             if (validFlag) {
                 const int32_t numVertices(stereotaxicXYZ.size());

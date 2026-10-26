@@ -30,6 +30,7 @@
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "CiftiDenseSparseFile.h"
+#include "CiftiFiberTrajectoryDenseDynamicFile.h"
 #include "CiftiFile.h"
 #include "CiftiXML.h"
 #include "DataFileException.h"
@@ -330,6 +331,126 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiSparseDenseFile(const Cif
     return NULL;
 }
 
+/**
+ * Create a Cifti Scalar File using the currently loaded data in a
+ * Cifti Fiber Trajectory Dense Dynamic File
+ *
+ * @param fiberTrajDynFile
+ *    Cifti trajectory dense dynamic file.
+ * @param destinationDirectory
+ *    Directory in which file is placed if the input matrix file is not
+ *    in a valid local (user's file system) directory.
+ * @param errorMessageOut
+ *    Will describe problem if there is an error.
+ * @return
+ *    Pointer to the newly created file.  If there is an error,
+ *    NULL will be returned and errorMessageOut will describe the problem.
+ */
+CiftiBrainordinateScalarFile*
+CiftiBrainordinateScalarFile::newInstanceFromCiftiFiberTrajectoryDenseDynamicFile(const CiftiFiberTrajectoryDenseDynamicFile* fiberTrajDynFile,
+                                                                                  const AString& destinationDirectory,
+                                                                                  AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    std::vector<float> fiberCountsData;
+    fiberTrajDynFile->getMapData(CiftiFiberTrajectoryDenseDynamicFile::getFiberCountsMapIndex(),
+                                 fiberCountsData);
+    std::vector<float> fiberDistancesData;
+    fiberTrajDynFile->getMapData(CiftiFiberTrajectoryDenseDynamicFile::getFiberDistancesMapIndex(),
+                                 fiberDistancesData);
+    
+    CiftiBrainordinateScalarFile* scalarFile = NULL;
+    
+    try {
+        CiftiFile* ciftiFile = new CiftiFile();
+        
+        /*
+         * Copy XML from matrix file
+         * and update to be a scalar file.
+         */
+        const CiftiXML& ciftiMatrixXML = fiberTrajDynFile->getCiftiXML();
+        CiftiXML ciftiScalarXML = ciftiMatrixXML;
+        
+        CiftiBrainModelsMap brainModelsMap(ciftiMatrixXML.getBrainModelsMap(CiftiXML::ALONG_ROW));
+        
+        CiftiScalarsMap scalarsMap;
+        scalarsMap.setLength(2);
+        scalarsMap.setMapName(CiftiFiberTrajectoryDenseDynamicFile::getFiberCountsMapIndex(),
+                              fiberTrajDynFile->getMapName(CiftiFiberTrajectoryDenseDynamicFile::getFiberCountsMapIndex()));
+        scalarsMap.setMapName(CiftiFiberTrajectoryDenseDynamicFile::getFiberDistancesMapIndex(),
+                              fiberTrajDynFile->getMapName(CiftiFiberTrajectoryDenseDynamicFile::getFiberDistancesMapIndex()));
+        ciftiScalarXML.setMap(CiftiXML::ALONG_ROW,
+                              scalarsMap);
+        ciftiScalarXML.setMap(CiftiXML::ALONG_COLUMN,
+                              brainModelsMap);
+        ciftiFile->setCiftiXML(ciftiScalarXML);
+        
+        /*
+         * Add data to the file
+         */
+        ciftiFile->setColumn(&fiberCountsData[0],
+                             CiftiFiberTrajectoryDenseDynamicFile::getFiberCountsMapIndex());
+        ciftiFile->setColumn(&fiberDistancesData[0],
+                             CiftiFiberTrajectoryDenseDynamicFile::getFiberDistancesMapIndex());
+
+        /*
+         * Create a scalar file
+         */
+        CiftiBrainordinateScalarFile* scalarFile = new CiftiBrainordinateScalarFile();
+        scalarFile->m_ciftiFile.grabNew(ciftiFile);
+        
+        
+        
+        /*
+         * May need to convert a remote path to a local path
+         */
+        FileInformation initialFileNameInfo(fiberTrajDynFile->getFileName());
+        const AString scalarFileName = initialFileNameInfo.getAsLocalAbsoluteFilePath(destinationDirectory,
+                                                                                      scalarFile->getDataFileType());
+        
+        /*
+         * Create name of scalar file with row/column information
+         */
+        FileInformation scalarFileInfo(scalarFileName);
+        AString thePath, theName, theExtension;
+        scalarFileInfo.getFileComponents(thePath,
+                                         theName,
+                                         theExtension);
+        theName.append("_" + fiberTrajDynFile->getDataLoadingName());
+        const AString newFileName = FileInformation::assembleFileComponents(thePath,
+                                                                            theName,
+                                                                            theExtension);
+        scalarFile->setFileName(newFileName);
+        
+        scalarFile->initializeAfterReading(newFileName);
+        
+        /*
+         * Need to copy color palette since it may be the default
+         */
+        for (int32_t iMap = 0; iMap < scalarFile->getNumberOfMaps(); iMap++) {
+            PaletteColorMapping* scalarPalette = scalarFile->getMapPaletteColorMapping(iMap);
+            CaretAssert(scalarPalette);
+            const PaletteColorMapping* palette = fiberTrajDynFile->getMapPaletteColorMapping(iMap);
+            CaretAssert(palette);
+            scalarPalette->copy(*palette,
+                                true);
+        }
+        
+        scalarFile->updateAfterFileDataChanges();
+        scalarFile->setModified();
+        
+        return scalarFile;
+    }
+    catch (const DataFileException& de) {
+        if (scalarFile != NULL) {
+            delete scalarFile;
+        }
+        errorMessageOut = de.whatString();
+    }
+    
+    return NULL;
+}
 
 /**
  * @return Is charting enabled for this file?
@@ -405,41 +526,6 @@ CiftiBrainordinateScalarFile::loadLineSeriesChartDataForSurfaceNode(const Struct
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNode(structure,
                                                            nodeIndex);
     return chartData;
-
-//    ChartDataCartesian* chartData = NULL;
-//    
-//    try {
-//        std::vector<float> data;
-//        if (getSeriesDataForSurfaceNode(structure,
-//                                        nodeIndex,
-//                                        data)) {
-//            const int64_t numData = static_cast<int64_t>(data.size());
-//            
-//            chartData = new ChartDataCartesian(ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
-//                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-//                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-//            for (int64_t i = 0; i < numData; i++) {
-//                float xValue = i;
-//                chartData->addPoint(xValue,
-//                                    data[i]);
-//            }
-//            
-//            const AString description = (getFileNameNoPath()
-//                                         + " node "
-//                                         + AString::number(nodeIndex));
-//            chartData->setDescription(description);
-//        }
-//    }
-//    catch (const DataFileException& dfe) {
-//        if (chartData != NULL) {
-//            delete chartData;
-//            chartData = NULL;
-//        }
-//        
-//        throw dfe;
-//    }
-//    
-//    return chartData;
 }
 
 /**

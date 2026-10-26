@@ -1871,7 +1871,6 @@ CiftiDenseSparseFile::finishRestorationOfScene()
      * so temporarily enabled loading and then 
      * restore the status.
      */
-    const int32_t mapIndex(0);
     const bool loadingEnabledStatus = isMapDataLoadingEnabled();
     setMapDataLoadingEnabled(true);
     

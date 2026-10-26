@@ -90,6 +90,14 @@ namespace caret {
             return m_fiberFraction->distance;
         }
         
+        inline int64_t getFiberFractionCount() const {
+            return m_fiberFraction->totalCount;
+        }
+        
+        inline float getTotalCountSum() const {
+            return m_totalCountSum;
+        }
+        
         void finishAveraging();
         
     private:

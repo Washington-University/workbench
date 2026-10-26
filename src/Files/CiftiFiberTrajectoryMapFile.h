@@ -24,6 +24,7 @@
 #include "BrainConstants.h"
 #include "CaretMappableDataFile.h"
 #include "CaretSparseFile.h"
+#include "CiftiFiberTrajectoryLoadingInterface.h"
 #include "DisplayGroupEnum.h"
 #include "SceneClassAssistant.h"
 #include "VoxelIJK.h"
@@ -36,7 +37,7 @@ namespace caret {
     class FiberTrajectoryMapProperties;
     class GiftiMetaData;
     
-    class CiftiFiberTrajectoryMapFile : public CaretMappableDataFile {
+    class CiftiFiberTrajectoryMapFile : public CaretMappableDataFile, public CiftiFiberTrajectoryLoadingInterface {
         
     public:
         CiftiFiberTrajectoryMapFile();
@@ -125,20 +126,20 @@ namespace caret {
                                           float voxelXYZOut[3],
                                           bool& voxelValidOut) const;
         
-        int64_t loadDataForSurfaceNode(const StructureEnum::Enum structure,
+        virtual int64_t loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                     const int32_t surfaceNumberOfNodes,
-                                    const int32_t nodeIndex);
+                                    const int32_t nodeIndex) override;
         
-        void loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
+        virtual bool loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
                                             const int32_t surfaceNumberOfNodes,
-                                            const std::vector<int32_t>& nodeIndices);
+                                            const std::vector<int32_t>& nodeIndices) override;
         
-        virtual int64_t loadMapDataForVoxelAtCoordinate(const float xyz[3]);
+        virtual int64_t loadDataForVoxelAtCoordinate(const float xyz[3]) override;
         
-        virtual void loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
-                                                       const std::vector<VoxelIJK>& voxelIndices);
+        virtual bool loadAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+                                                       const std::vector<VoxelIJK>& voxelIndices) override;
         
-        void loadDataForRowIndex(const int64_t rowIndex);
+        virtual bool loadDataForRowIndex(const int64_t rowIndex);
         
         const std::vector<FiberOrientationTrajectory*>* getFiberOrientationTrajectoriesForMap(const int32_t mapIndex);
         
@@ -148,19 +149,29 @@ namespace caret {
         
         const FiberTrajectoryMapProperties* getFiberTrajectoryMapProperties() const;
         
-        bool isDataLoadingEnabled() const;
+        virtual bool isEnabledAsLayerSupported() const override;
         
-        void setDataLoadingEnabled(const bool loadingEnabled);
+        virtual bool isEnabledAsLayer() const override;
         
-        CiftiFiberOrientationFile* getMatchingFiberOrientationFile();
+        virtual void setEnabledAsLayer(const bool status) override;
         
-        const CiftiFiberOrientationFile* getMatchingFiberOrientationFile() const;
+        virtual bool isDataLoadingSupported() const override;
+
+        virtual bool isDataLoadingEnabled() const override;
         
-        bool isFiberOrientationFileCombatible(const CiftiFiberOrientationFile* fiberOrientationFile) const;
+        virtual void setDataLoadingEnabled(const bool loadingEnabled) override;
         
-        void setMatchingFiberOrientationFile(CiftiFiberOrientationFile* matchingFiberOrientationFile);
+        virtual bool isMatchingFiberOrientationFileSupported() const override;
         
-        void updateMatchingFiberOrientationFileFromList(std::vector<CiftiFiberOrientationFile*> matchingFiberOrientationFiles);
+        virtual CiftiFiberOrientationFile* getMatchingFiberOrientationFile() override;
+        
+        virtual const CiftiFiberOrientationFile* getMatchingFiberOrientationFile() const override;
+        
+        virtual bool isFiberOrientationFileCombatible(const CiftiFiberOrientationFile* fiberOrientationFile) const override;
+        
+        virtual void setMatchingFiberOrientationFile(CiftiFiberOrientationFile* matchingFiberOrientationFile) override;
+        
+        virtual void updateMatchingFiberOrientationFileFromList(std::vector<CiftiFiberOrientationFile*> matchingFiberOrientationFiles) override;
         
         void finishRestorationOfScene();
         

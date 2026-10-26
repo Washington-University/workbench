@@ -27,6 +27,7 @@
 #include "BrainOpenGLFixedPipeline.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesFeature.h"
 #include "FeatureFile.h"
 #include "GiftiLabel.h"
@@ -39,6 +40,7 @@
 #include "FeatureItem.h"
 #include "FeatureItemGroup.h"
 #include "FeatureItemModel.h"
+#include "NeuroglancerAnnotationFileImporter.h"
 #include "Plane.h"
 #include "SelectionItemFeature.h"
 #include "SelectionManager.h"
@@ -397,13 +399,15 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
             break;
     }
     
+    NeuroglancerAnnotationFileImporter nafi(NULL);
+    const std::set<uint64_t> featureIdsForDebugging(nafi.getAnnotionsUniqueIDsForDebugging());
+
     /*
      * Process each feature file
      */
     for (int32_t iFile = 0; iFile < numberOfFeatureFiles; iFile++) {
         CaretAssertVectorIndex(allFeatureFiles, iFile);
         const FeatureFile* featureFile(allFeatureFiles[iFile]);
-        
         const VolumeFile* ijkToXyzVolumeFile(featureFile->getIjkToXyzVolumeFile());
         
         const FeatureItemModel* featureItemModel(featureFile->getFeatureItemModel());
@@ -419,6 +423,13 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
                 CaretAssert(featureItem);
                 if ( ! featureItem->isDisplayed()) {
                     continue;
+                }
+                
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEUROGLANCER_ANNOTATIONS)) {
+                    const uint64_t id(featureItem->getUniqueID());
+                    if (featureIdsForDebugging.find(id) == featureIdsForDebugging.end()) {
+                        continue;
+                    }
                 }
                 
                 bool supportedTypeFlag(false);

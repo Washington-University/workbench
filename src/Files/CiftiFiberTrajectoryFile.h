@@ -24,19 +24,21 @@
 #include "BrainConstants.h"
 #include "CaretMappableDataFile.h"
 #include "CaretSparseFile.h"
+#include "CiftiFiberTrajectoryLoadingInterface.h"
 #include "DisplayGroupEnum.h"
 #include "SceneClassAssistant.h"
 #include "VoxelIJK.h"
 
 namespace caret {
 
+    class CiftiFiberTrajectoryDenseDynamicFile;
     class CiftiFiberOrientationFile;
     class ConnectivityDataLoaded;
     class FiberOrientationTrajectory;
     class FiberTrajectoryMapProperties;
     class GiftiMetaData;
     
-    class CiftiFiberTrajectoryFile : public CaretMappableDataFile {
+    class CiftiFiberTrajectoryFile : public CaretMappableDataFile, public CiftiFiberTrajectoryLoadingInterface {
         
     public:
         CiftiFiberTrajectoryFile();
@@ -125,20 +127,20 @@ namespace caret {
                                           float voxelXYZOut[3],
                                           bool& voxelValidOut) const;
         
-        int64_t loadDataForSurfaceNode(const StructureEnum::Enum structure,
+        virtual int64_t loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                     const int32_t surfaceNumberOfNodes,
-                                    const int32_t nodeIndex);
+                                    const int32_t nodeIndex) override;
         
-        void loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
+        virtual bool loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
                                             const int32_t surfaceNumberOfNodes,
-                                            const std::vector<int32_t>& nodeIndices);
+                                            const std::vector<int32_t>& nodeIndices) override;
         
-        virtual int64_t loadMapDataForVoxelAtCoordinate(const float xyz[3]);
+        virtual int64_t loadDataForVoxelAtCoordinate(const float xyz[3]) override;
         
-        virtual void loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
-                                                       const std::vector<VoxelIJK>& voxelIndices);
+        virtual bool loadAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+                                                    const std::vector<VoxelIJK>& voxelIndices) override;
         
-        void loadDataForRowIndex(const int64_t rowIndex);
+        virtual bool loadDataForRowIndex(const int64_t rowIndex) override;
         
         const std::vector<FiberOrientationTrajectory*>* getLoadedFiberOrientationTrajectories() const;
         
@@ -148,19 +150,29 @@ namespace caret {
         
         const FiberTrajectoryMapProperties* getFiberTrajectoryMapProperties() const;
         
-        bool isDataLoadingEnabled() const;
+        virtual bool isEnabledAsLayerSupported() const override;
         
-        void setDataLoadingEnabled(const bool loadingEnabled);
+        virtual bool isEnabledAsLayer() const override;
         
-        CiftiFiberOrientationFile* getMatchingFiberOrientationFile();
+        virtual void setEnabledAsLayer(const bool status) override;
         
-        const CiftiFiberOrientationFile* getMatchingFiberOrientationFile() const;
+        virtual bool isDataLoadingSupported() const override;
         
-        bool isFiberOrientationFileCombatible(const CiftiFiberOrientationFile* fiberOrientationFile) const;
+        virtual bool isDataLoadingEnabled() const override;
         
-        void setMatchingFiberOrientationFile(CiftiFiberOrientationFile* matchingFiberOrientationFile);
+        virtual void setDataLoadingEnabled(const bool loadingEnabled) override;
         
-        void updateMatchingFiberOrientationFileFromList(std::vector<CiftiFiberOrientationFile*> matchingFiberOrientationFiles);
+        virtual bool isMatchingFiberOrientationFileSupported() const override;
+        
+        virtual CiftiFiberOrientationFile* getMatchingFiberOrientationFile() override;
+        
+        virtual const CiftiFiberOrientationFile* getMatchingFiberOrientationFile() const override;
+        
+        virtual bool isFiberOrientationFileCombatible(const CiftiFiberOrientationFile* fiberOrientationFile) const override;
+        
+        virtual void setMatchingFiberOrientationFile(CiftiFiberOrientationFile* matchingFiberOrientationFile) override;
+        
+        virtual void updateMatchingFiberOrientationFileFromList(std::vector<CiftiFiberOrientationFile*> matchingFiberOrientationFiles) override;
         
         void finishRestorationOfScene();
         
@@ -180,12 +192,23 @@ namespace caret {
 
         virtual BrainordinateMappingMatch getBrainordinateMappingMatchImplementation(const CaretMappableDataFile* mapFile) const override;
         
+        CiftiFiberTrajectoryDenseDynamicFile* getDynamicConnectivityFile();
+        
+        const CiftiFiberTrajectoryDenseDynamicFile* getDynamicConnectivityFile() const;
+        
         // ADD_NEW_METHODS_HERE
         
     private:
         CiftiFiberTrajectoryFile(const CiftiFiberTrajectoryFile&);
 
         CiftiFiberTrajectoryFile& operator=(const CiftiFiberTrajectoryFile&);
+        
+        void addToDynamicConnectivity(const CiftiBrainModelsMap& brainModelsMap,
+                                      const FiberOrientationTrajectory* fot);
+        
+        bool initializeDynamicConnectivity();
+        
+        void finishDynamicConnectivity();
         
     protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
@@ -210,7 +233,7 @@ namespace caret {
         
         void clearPrivate();
         
-        void validateAssignedMatchingFiberOrientationFile();
+        bool validateAssignedMatchingFiberOrientationFile();
         
         void finishFiberOrientationTrajectoriesAveraging();
        
@@ -235,12 +258,22 @@ namespace caret {
         
         AString m_loadedDataDescriptionForFileCopy;
         AString m_loadedDataDescriptionForMapName;
+        AString m_dynamicConnectivityLoadedDataName;
         
         ConnectivityDataLoaded* m_connectivityDataLoaded;
+        
+        std::unique_ptr<CiftiFiberTrajectoryDenseDynamicFile> m_lazyInitializedDynamicConnectivityFile;
+        
+        bool m_attemptedToCreateDynamicConnectivityFileFlag = false;
+
+        std::vector<float> m_dynamicConnectivityFiberCountsData;
+        
+        std::vector<float> m_dynamicConnectivityFiberDistancesData;
         
         SceneClassAssistant* m_sceneAssistant;
         // ADD_NEW_MEMBERS_HERE
 
+        friend class CiftiFiberTrajectoryDenseDynamicFile;
     };
     
 #ifdef __CIFTI_FIBER_TRAJECTORY_FILE_DECLARE__

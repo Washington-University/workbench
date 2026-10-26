@@ -63,6 +63,7 @@
 #include "LabelSelectionViewWidget.h"
 #include "MediaOverlaySetViewController.h"
 #include "FeatureSelectionViewController.h"
+#include "NeuroglancerAnnotationViewController.h"
 #include "OverlaySetViewController.h"
 #include "SamplesSelectionViewController.h"
 #include "SceneClass.h"
@@ -170,11 +171,14 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_imageSelectionViewController      = NULL;
     m_labelSelectionWidget              = NULL;
     m_mediaSelectionViewController      = NULL;
+    m_neuroglancerAnnotationViewController = NULL;
     m_overlaySetViewController          = NULL;
     m_samplesSelectionViewController    = NULL;
     m_volumeSurfaceOutlineSetViewController = NULL;
 
     m_tabWidget = new WuQTabWidgetWithSizeHint();
+    QObject::connect(m_tabWidget, &QTabWidget::currentChanged,
+                     this, &BrainBrowserWindowOrientedToolBox::currentTabChanged);
     if (s_combineFeaturesAndOverlayToolBoxFlag) {
         m_tabWidget->setUsesScrollButtons(true);
     }
@@ -212,6 +216,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_labelTabIndex = -1;
     m_mediaTabIndex = -1;
     m_featureTabIndex = -1;
+    m_neuroglancerAnnotationTabIndex = -1;
     m_overlayTabIndex = -1;
     m_samplesTabIndex = -1;
     m_volumeSurfaceOutlineTabIndex = -1;
@@ -246,6 +251,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_connectivityTabIndex = addToScrolledAreaInTabWidget(m_connectivityMatrixViewController,
                              "Connectivity");
     }
+    
     if (isFeaturesToolBox) {
         m_annotationViewController = new AnnotationSelectionViewController(browserWindowIndex,
                                                                            objectNamePrefix,
@@ -330,7 +336,15 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                                objectNamePrefix,
                                                                                                this);
         m_featureTabIndex = addToTabWidget(m_featureSelectionViewController,
-                                                "Points");
+                                                "Points2");
+    }
+    
+    if (isFeaturesToolBox) {
+        m_neuroglancerAnnotationViewController = new NeuroglancerAnnotationViewController(browserWindowIndex,
+                                                                                          objectNamePrefix,
+                                                                                          this);
+        m_neuroglancerAnnotationTabIndex = addToTabWidget(m_neuroglancerAnnotationViewController,
+                                                          "Points");
     }
     
     if (isFeaturesToolBox) {
@@ -638,6 +652,10 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_featureSelectionViewController->saveToScene(sceneAttributes,
                                                                            "m_featureSelectionViewController"));
     }
+    if (m_neuroglancerAnnotationViewController != NULL) {
+        sceneClass->addClass(m_neuroglancerAnnotationViewController->saveToScene(sceneAttributes,
+                                                                                 "m_neuroglancerAnnotationViewController"));
+    }
     if (m_fiberOrientationViewController != NULL) {
         sceneClass->addClass(m_fiberOrientationViewController->saveToScene(sceneAttributes,
                                                      "m_fiberOrientationViewController"));
@@ -774,6 +792,10 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         m_labelSelectionWidget->restoreFromScene(sceneAttributes,
                                                           sceneClass->getClass("m_labelSelectionWidget"));
     }
+    if (m_neuroglancerAnnotationViewController != NULL) {
+        m_neuroglancerAnnotationViewController->restoreFromScene(sceneAttributes,
+                                                                 sceneClass->getClass("m_neuroglancerAnnotationViewController"));
+    }
     if (m_samplesSelectionViewController != NULL) {
         m_samplesSelectionViewController->restoreFromScene(sceneAttributes,
                                                            sceneClass->getClass("m_samplesSelectionViewController"));
@@ -875,8 +897,10 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool haveImages        = false;
         bool haveLabels        = false;
         bool haveFeatures      = false;
+        bool haveNeuroAnn      = false;
         bool haveSamples       = false;
         bool haveSurfaces      = false;
+        bool haveTrajFiles     = false;
         bool haveVolumes       = false;
         
         std::vector<CaretDataFile*> allDataFiles;
@@ -917,14 +941,20 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                    haveConnFiles = true;
+                    haveTrajFiles = true;
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                     haveFibers = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                     haveConnFiles = true;
+                    haveTrajFiles = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
                     haveConnFiles = true;
+                    haveTrajFiles = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                     haveConnFiles = true;
@@ -975,6 +1005,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::METRIC_DYNAMIC:
                     haveConnFiles = true;
+                    break;
+                case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                    haveNeuroAnn = true;
                     break;
                 case DataFileTypeEnum::FEATURE:
                     haveFeatures = true;
@@ -1152,6 +1185,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         if (m_labelTabIndex >= 0) m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
         
         if (m_featureTabIndex >= 0) m_tabWidget->setTabEnabled(m_featureTabIndex, haveFeatures);
+        if (m_neuroglancerAnnotationTabIndex >= 0) m_tabWidget->setTabEnabled(m_neuroglancerAnnotationTabIndex, haveNeuroAnn);
         if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, enableLayers);
         if (m_mediaTabIndex >= 0) m_tabWidget->setTabEnabled(m_mediaTabIndex, enableMedia);
         if (m_histologyTabIndex >= 0) m_tabWidget->setTabEnabled(m_histologyTabIndex, enableHistology);
@@ -1214,5 +1248,15 @@ void
 BrainBrowserWindowOrientedToolBox::setCombineFeaturesAndOverlayToolBox(const bool status)
 {
     s_combineFeaturesAndOverlayToolBoxFlag = status;
+}
+
+/**
+ * Called when the current tab is changed
+ * @param tabIndex
+ *    Index of new tab
+ */
+void
+BrainBrowserWindowOrientedToolBox::currentTabChanged(int /*tabIndex*/)
+{
 }
 

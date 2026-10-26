@@ -39,6 +39,7 @@ namespace caret {
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
     class CiftiDenseSparseFile;
+    class CiftiFiberTrajectoryDenseDynamicFile;
     class CiftiParcelLabelFile;
     class CiftiParcelScalarFile;
     class CiftiParcelSeriesFile;
@@ -120,6 +121,12 @@ namespace caret {
                                        const int32_t numberOfNodes,
                                        float* rgbv);
         
+        bool assignCiftiFiberTrajDynamicColoring(const BrainStructure* brainStructure,
+                                                 CiftiFiberTrajectoryDenseDynamicFile* fiberTrajDynFile,
+                                                 const int32_t mapIndex,
+                                                 const int32_t numberOfNodes,
+                                                 float* rgbv);
+
         bool assignCiftiParcelLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
                                            const int32_t browserTabIndex,
                                            const BrainStructure* brainStructure,

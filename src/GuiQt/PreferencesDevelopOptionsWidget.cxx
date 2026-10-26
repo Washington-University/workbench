@@ -173,6 +173,8 @@ PreferencesDevelopOptionsWidget::developerFlagSelected(const DeveloperFlagsEnum:
             break;
         case DeveloperFlagsEnum::DEVELOPER_FLAG_HISTOLOGY_CORRECT_IMAGE_OVERLAP:
             break;
+        case DeveloperFlagsEnum::DEVELOPER_FLAG_NEUROGLANCER_ANNOTATIONS:
+            break;
         case DeveloperFlagsEnum::DEVELOPER_FLAG_VOXEL_EDIT:
             break;
         case DeveloperFlagsEnum::DEVELOPER_FLAG_UNUSED:

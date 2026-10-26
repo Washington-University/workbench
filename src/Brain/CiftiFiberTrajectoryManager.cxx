@@ -25,6 +25,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiMappableDataFile.h"
@@ -87,23 +88,23 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(Brain* brain,
     /*
      * Load fiber trajectory data
      */
-    const int32_t numTrajFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
-    for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
-        CiftiFiberTrajectoryFile* trajFile = brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
-        const int64_t rowIndex = trajFile->loadDataForSurfaceNode(surfaceFile->getStructure(),
+    std::vector<CiftiFiberTrajectoryLoadingInterface*> trajFiles(getFilesEnabledForDataLoading(brain));
+
+    for (CiftiFiberTrajectoryLoadingInterface* tf : trajFiles) {
+        const int64_t rowIndex = tf->loadDataForSurfaceNode(surfaceFile->getStructure(),
                                          surfaceFile->getNumberOfNodes(),
                                          nodeIndex);
         if (rowIndex >= 0) {
             /*
              * Get row/column info for node
              */
-            rowColumnInformationOut.push_back(trajFile->getFileNameNoPath()
+            rowColumnInformationOut.push_back(tf->getMapFileNameNoPath()
                                               + " nodeIndex="
                                               + AString::number(nodeIndex)
                                               + ", row index= "
                                               + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
             htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                    trajFile->getFileNameNoPath());
+                                    tf->getMapFileNameNoPath());
             dataWasLoaded = true;
         }
     }
@@ -138,19 +139,15 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(Brain* brain,
     for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
         CiftiFiberTrajectoryFile* trajFile = brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
         
-        try {
-            trajFile->loadDataAverageForSurfaceNodes(surfaceFile->getStructure(),
+        if (trajFile->loadDataAverageForSurfaceNodes(surfaceFile->getStructure(),
                                                      surfaceFile->getNumberOfNodes(),
-                                                     nodeIndices);
+                                                     nodeIndices)) {
             dataWasLoaded = true;
-        }
-        catch (const DataFileException& dfe) {
-            errorMessage.appendWithNewLine(dfe.whatString());
         }
     }
 
     if (errorMessage.isEmpty() == false) {
-        throw DataFileException(errorMessage);
+        CaretLogWarning(errorMessage);
     }
     
     return dataWasLoaded;
@@ -184,7 +181,7 @@ CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(Brain* brain,
          iter++) {
         CiftiFiberTrajectoryFile* trajFile = *iter;
         if (trajFile->isEmpty() == false) {
-            const int64_t rowIndex = trajFile->loadMapDataForVoxelAtCoordinate(xyz);
+            const int64_t rowIndex = trajFile->loadDataForVoxelAtCoordinate(xyz);
             if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node
@@ -240,29 +237,45 @@ CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(Brain* brain,
  *    Indices for averaging of data.
  * @return
  *    true if any data was loaded, else false.
- * @throw DataFileException
- *    If an error occurs.
  */
 bool
 CiftiFiberTrajectoryManager::loadAverageDataForVoxelIndices(Brain* brain,
                                                             const int64_t volumeDimensionIJK[3],
                                                             const std::vector<VoxelIJK>& voxelIndices)
 {
-    std::vector<CiftiFiberTrajectoryFile*> ciftiTrajFiles;
-    brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
-    
+    std::vector<CiftiFiberTrajectoryLoadingInterface*> trajFiles(getFilesEnabledForDataLoading(brain));
     bool haveData = false;
-    for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = ciftiTrajFiles.begin();
-         iter != ciftiTrajFiles.end();
-         iter++) {
-        CiftiFiberTrajectoryFile* trajFile = *iter;
-        if (trajFile->isEmpty() == false) {
-            trajFile->loadMapAverageDataForVoxelIndices(volumeDimensionIJK,
-                                                        voxelIndices);
+    for (CiftiFiberTrajectoryLoadingInterface* tf : trajFiles) {
+        if (tf->loadAverageDataForVoxelIndices(volumeDimensionIJK,
+                                               voxelIndices)) {
             haveData = true;
         }
     }
     
     return haveData;
+}
+
+/**
+ * @return Fiber trajectory files that support data loading and are enabled for loading
+ * @param brain
+ *    Get files from this brain
+ */
+std::vector<CiftiFiberTrajectoryLoadingInterface*>
+CiftiFiberTrajectoryManager::getFilesEnabledForDataLoading(Brain* brain)
+{
+    std::vector<CiftiFiberTrajectoryLoadingInterface*> trajFilesOut;
+    
+    std::vector<CiftiFiberTrajectoryLoadingInterface*> allTrajFiles(brain->getFiberTrajectoryLoadingInterfaceFiles());
+    for (CiftiFiberTrajectoryLoadingInterface* tf : allTrajFiles) {
+        if (tf->isDataLoadingSupported()) {
+            if (tf->isDataLoadingEnabled()) {
+                if ( ! tf->getMapFile()->isEmpty()) {
+                    trajFilesOut.push_back(tf);
+                }
+            }
+        }
+    }
+    
+    return trajFilesOut;
 }
 

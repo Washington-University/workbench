@@ -54,6 +54,7 @@
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixDenseFile.h"
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
+#include "CiftiFiberTrajectoryDenseDynamicFile.h"
 #include "CiftiConnectivityMatrixDenseParcelFile.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "CiftiDenseSparseFile.h"
@@ -128,6 +129,7 @@
 #include "ModelWholeBrain.h"
 #include "LabelFile.h"
 #include "FeatureFile.h"
+#include "NeuroglancerAnnotationFile.h"
 #include "OmeZarrImageFile.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -682,6 +684,11 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_featureFiles.clear();
     
+    for (auto naf : m_neuroglancerAnnotationFiles) {
+        delete naf;
+    }
+    m_neuroglancerAnnotationFiles.clear();
+    
     for (auto oz : m_omeZarrImageFiles) {
         delete oz;
     }
@@ -975,6 +982,8 @@ Brain::resetBrainKeepSceneFiles()
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -1010,6 +1019,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::METRIC:
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                 break;
             case DataFileTypeEnum::FEATURE:
                 break;
@@ -2421,6 +2432,82 @@ Brain::addReadOrReloadFeatureFile(const FileModeAddReadReload fileMode,
 }
 
 
+/**
+ * Read a neuroglancer file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+NeuroglancerAnnotationFile*
+Brain::addReadOrReloadNeuroglancerAnnotationFile(const FileModeAddReadReload fileMode,
+                                  CaretDataFile* caretDataFile,
+                                  const AString& filename)
+{
+    NeuroglancerAnnotationFile* neuroAnnFile = NULL;
+    if (caretDataFile != NULL) {
+        neuroAnnFile = dynamic_cast<NeuroglancerAnnotationFile*>(caretDataFile);
+        CaretAssert(neuroAnnFile);
+    }
+    else {
+        neuroAnnFile = new NeuroglancerAnnotationFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                neuroAnnFile->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete neuroAnnFile;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_neuroglancerAnnotationFiles,
+                                      neuroAnnFile);
+        m_neuroglancerAnnotationFiles.push_back(neuroAnnFile);
+    }
+    
+    return neuroAnnFile;
+}
 
 /**
  * Read an OME-ZARR image file.
@@ -4389,6 +4476,27 @@ Brain::getConnectivityMatrixDenseDynamicFiles(std::vector<CiftiConnectivityMatri
 }
 
 /**
+ * Get ALL connectivity matrix dense dynamic files.
+ * @param connectivityDenseDynamicFilesOut
+ *   Contains all connectivity dense dynamic files on exit.
+ */
+void
+Brain::getCiftiFiberTrajectoryDenseDynamicFiles(std::vector<CiftiFiberTrajectoryDenseDynamicFile*>& connFiberTrajDynamicFilesOut) const
+{
+    connFiberTrajDynamicFilesOut.clear();
+    
+    for (const auto& fiberTrajFile : m_connectivityFiberTrajectoryFiles) {
+        CiftiFiberTrajectoryDenseDynamicFile* dynamicFile = fiberTrajFile->getDynamicConnectivityFile();
+        CaretAssert(dynamicFile);
+        if (dynamicFile->isDataValid()) {
+            connFiberTrajDynamicFilesOut.push_back(dynamicFile);
+        }
+    }
+}
+
+
+
+/**
  * @return Number of connectivity dense label files.
  */
 int32_t
@@ -5076,6 +5184,25 @@ Brain::getConnectivityFiberTrajectoryMapFiles(std::vector<CiftiFiberTrajectoryMa
 }
 
 /**
+ * @return All files implementing the fiber trajectory loading interface
+ */
+std::vector<CiftiFiberTrajectoryLoadingInterface*>
+Brain::getFiberTrajectoryLoadingInterfaceFiles() const
+{
+    std::vector<CiftiFiberTrajectoryLoadingInterface*> fiberTrajLoadingFiles;
+    
+    std::vector<CaretMappableDataFile*> allCaretMappableDataFiles;
+    getAllMappableDataFiles(allCaretMappableDataFiles);
+    for (CaretMappableDataFile* mapFile : allCaretMappableDataFiles) {
+        CiftiFiberTrajectoryLoadingInterface* ftlif(dynamic_cast<CiftiFiberTrajectoryLoadingInterface*>(mapFile));
+        if (ftlif != NULL) {
+            fiberTrajLoadingFiles.push_back(ftlif);
+        }
+    }
+    return fiberTrajLoadingFiles;
+}
+
+/**
  * @return Number of cifti parcel files.
  */
 int32_t
@@ -5433,6 +5560,9 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
             m_connectivityDataSeriesFiles.push_back(file);
         }
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            CaretAssertMessage(0, "Fiber trajectory dynamic files should never be added to brain");
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         {
             CiftiFiberOrientationFile* file = dynamic_cast<CiftiFiberOrientationFile*>(caretDataFile);
@@ -5569,6 +5699,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             CaretAssertMessage(0, "Metric dynamic files should never be added to brain");
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+        {
+            NeuroglancerAnnotationFile* file(dynamic_cast<NeuroglancerAnnotationFile*>(caretDataFile));
+            CaretAssert(file);
+            m_neuroglancerAnnotationFiles.push_back(file);
+        }
             break;
         case DataFileTypeEnum::FEATURE:
         {
@@ -5877,6 +6014,48 @@ Brain::getFeatureFile(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_featureFiles, indx);
     return m_featureFiles[indx];
+}
+
+/**
+ * @return All neuroglancer annotation files
+ */
+const std::vector<NeuroglancerAnnotationFile*>
+Brain::getAllNeuroglancerAnnotationFiles() const
+{
+    return m_neuroglancerAnnotationFiles;
+}
+
+/**
+ * @return Number of fneuroglancer annotation files
+ */
+int32_t
+Brain::getNumberOfNeuroglancerAnnotationFiles() const
+{
+    return m_neuroglancerAnnotationFiles.size();
+}
+
+/**
+ * @return neuroglancer annotation file at the given index
+ * @param indx
+ *    Index of file
+ */
+NeuroglancerAnnotationFile*
+Brain::getNeuroglancerAnnotationFile(const int32_t indx)
+{
+    CaretAssertVectorIndex(m_neuroglancerAnnotationFiles, indx);
+    return m_neuroglancerAnnotationFiles[indx];
+}
+
+/**
+ * @return neuroglancer annotation file at the given index
+ * @param indx
+ *    Index of file
+ */
+const NeuroglancerAnnotationFile*
+Brain::getNeuroglancerAnnotationFile(const int32_t indx) const
+{
+    CaretAssertVectorIndex(m_neuroglancerAnnotationFiles, indx);
+    return m_neuroglancerAnnotationFiles[indx];
 }
 
 /**
@@ -6737,6 +6916,9 @@ Brain::getReloadableDataFiles() const
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                reloadFlag = false;
+                break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -6775,6 +6957,8 @@ Brain::getReloadableDataFiles() const
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 reloadFlag = false;
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                 break;
             case DataFileTypeEnum::FEATURE:
                 break;
@@ -7055,6 +7239,9 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                                                                    caretDataFile,
                                                                    dataFileName);
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                CaretAssertMessage(0, "Fiber Trajectory Connectivity Dynamic files are never read by the Brain.");
+                break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 caretDataFileRead  = addReadOrReloadConnectivityFiberOrientationFile(fileMode,
                                                                          caretDataFile,
@@ -7144,6 +7331,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 CaretAssertMessage(0, "Metric dynamic files are never read by Brain");
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                caretDataFileRead = addReadOrReloadNeuroglancerAnnotationFile(fileMode,
+                                                                              caretDataFile,
+                                                                              dataFileName);
                 break;
             case DataFileTypeEnum::FEATURE:
                 caretDataFileRead = addReadOrReloadFeatureFile(fileMode,
@@ -7705,6 +7897,7 @@ Brain::sortDataFilesByFileNameNoPath()
     sortDataFileTypeByFileNameNoPath(m_cziImageFiles);
     sortDataFileTypeByFileNameNoPath(m_imageFiles);
     sortDataFileTypeByFileNameNoPath(m_featureFiles);
+    sortDataFileTypeByFileNameNoPath(m_neuroglancerAnnotationFiles);
     sortDataFileTypeByFileNameNoPath(m_omeZarrImageFiles);
 }
 
@@ -9062,6 +9255,8 @@ Brain::setAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -9114,6 +9309,8 @@ Brain::setAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType
         case DataFileTypeEnum::METRIC:
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::FEATURE:
             break;
@@ -9216,6 +9413,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_featureFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_neuroglancerAnnotationFiles.begin(),
+                           m_neuroglancerAnnotationFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_omeZarrImageFiles.begin(),
                            m_omeZarrImageFiles.end());
     
@@ -9254,9 +9455,13 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityFiberOrientationFiles.begin(),
                            m_connectivityFiberOrientationFiles.end());
     
-    allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_connectivityFiberTrajectoryFiles.begin(),
-                           m_connectivityFiberTrajectoryFiles.end());
+    for (auto& cftf : m_connectivityFiberTrajectoryFiles) {
+        CiftiFiberTrajectoryDenseDynamicFile* dynFile(cftf->getDynamicConnectivityFile());
+        allDataFilesOut.push_back(cftf);
+        if (dynFile != NULL) {
+            allDataFilesOut.push_back(dynFile);
+        }
+    }
     
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityFiberTrajectoryMapFiles.begin(),
@@ -9358,6 +9563,9 @@ Brain::getAllDataFilesExcludingChildDynamicConnectivityFiles(std::vector<CaretDa
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                includeFileFlag = false;
+                break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -9395,6 +9603,8 @@ Brain::getAllDataFilesExcludingChildDynamicConnectivityFiles(std::vector<CaretDa
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 includeFileFlag = false;
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                 break;
             case DataFileTypeEnum::FEATURE:
                 break;
@@ -9558,6 +9768,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -9593,6 +9805,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
         case DataFileTypeEnum::METRIC:
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::FEATURE:
             break;
@@ -9684,6 +9898,9 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            canBeRemovedFlag = false;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -9708,6 +9925,8 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             canBeRemovedFlag = false;
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::FEATURE:
             break;
@@ -9959,6 +10178,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
                                                                                  caretDataFile));
     if (featureFileIterator != m_featureFiles.end()) {
         m_featureFiles.erase(featureFileIterator);
+        return true;
+    }
+    
+    std::vector<NeuroglancerAnnotationFile*>::iterator neuroAnnIterator(std::find(m_neuroglancerAnnotationFiles.begin(),
+                                                                                  m_neuroglancerAnnotationFiles.end(),
+                                                                                  caretDataFile));
+    if (neuroAnnIterator != m_neuroglancerAnnotationFiles.end()) {
+        m_neuroglancerAnnotationFiles.erase(neuroAnnIterator);
         return true;
     }
     

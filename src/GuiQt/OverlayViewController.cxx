@@ -1025,6 +1025,9 @@ OverlayViewController::menuConstructionAboutToShow()
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                    dynConnFlag = true;
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
@@ -1047,6 +1050,8 @@ OverlayViewController::menuConstructionAboutToShow()
                     break;
                 case DataFileTypeEnum::METRIC_DYNAMIC:
                     dynConnFlag = true;
+                    break;
+                case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                     break;
                 case DataFileTypeEnum::FEATURE:
                     break;

@@ -397,6 +397,8 @@ OperationZipSpecFile::addChildDataFiles(const AString& dataFileName,
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -450,6 +452,9 @@ OperationZipSpecFile::addChildDataFiles(const AString& dataFileName,
             case DataFileTypeEnum::METRIC:
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
+                break;
+            case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+                CaretLogWarning("Need to get child files of Neuroglancer Annotations");
                 break;
             case DataFileTypeEnum::FEATURE:
                 break;

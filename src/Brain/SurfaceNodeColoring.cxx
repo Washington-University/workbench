@@ -36,6 +36,7 @@
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiDenseSparseFile.h"
+#include "CiftiFiberTrajectoryDenseDynamicFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiParcelLabelFile.h"
 #include "CiftiParcelScalarFile.h"
@@ -428,6 +429,13 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                       numNodes,
                                                                       overlayRGBV);
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+                    isColoringValid = this->assignCiftiFiberTrajDynamicColoring(brainStructure,
+                                                                      dynamic_cast<CiftiFiberTrajectoryDenseDynamicFile*>(selectedMapFile),
+                                                                      selectedMapIndex,
+                                                                      numNodes,
+                                                                      overlayRGBV);
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -520,6 +528,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                  selectedMapIndex,
                                                                  numNodes, 
                                                                  overlayRGBV);
+                    break;
+                case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
                     break;
                 case DataFileTypeEnum::FEATURE:
                     break;
@@ -1391,6 +1401,59 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
     std::vector<float> dataValues(numberOfNodes);
     const StructureEnum::Enum structure = brainStructure->getStructure();
     ciftiScalarFile->getMapSurfaceNodeColoring(mapIndex,
+                                               structure,
+                                               rgbv,
+                                               &dataValues[0],
+                                               numberOfNodes);
+    return true;
+}
+
+/**
+ * Assign cifti scalar coloring to nodes
+ * @param brainStructure
+ *    The brain structure that contains the data files.
+ * @param ciftiScalarFile
+ *    Cifti Scalar file that is selected.
+ * @param ciftiMapUniqueID
+ *    UniqueID of selected map.
+ * @param numberOfNodes
+ *    Number of nodes in surface.
+ * @param rgbv
+ *    Color components set by this method.
+ *    Red, green, blue, valid.  If the valid component is
+ *    zero, it indicates that the overlay did not assign
+ *    any coloring to the node.
+ * @return
+ *    True if coloring is valid, else false.
+ */
+bool
+SurfaceNodeColoring::assignCiftiFiberTrajDynamicColoring(const BrainStructure* brainStructure,
+                                                         CiftiFiberTrajectoryDenseDynamicFile* fiberTrajDynFile,
+                                                         const int32_t mapIndex,
+                                                         const int32_t numberOfNodes,
+                                                         float* rgbv)
+{
+    if (mapIndex < 0) {
+        return false;
+    }
+    
+    /*
+     * Invalidate all coloring.
+     */
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        rgbv[i*4+3] = 0.0;
+    }
+    
+    /*
+     * Update coloring
+     */
+    if (fiberTrajDynFile->isMapColoringValid(mapIndex) == false) {
+        fiberTrajDynFile->updateScalarColoringForMap(mapIndex);
+    }
+    
+    std::vector<float> dataValues(numberOfNodes);
+    const StructureEnum::Enum structure = brainStructure->getStructure();
+    fiberTrajDynFile->getMapSurfaceNodeColoring(mapIndex,
                                                structure,
                                                rgbv,
                                                &dataValues[0],

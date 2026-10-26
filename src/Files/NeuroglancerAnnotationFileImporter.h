@@ -24,6 +24,7 @@
 
 
 #include <memory>
+#include <set>
 
 #include <QJsonArray>
 
@@ -156,6 +157,8 @@ namespace caret {
         
         virtual void writeFile(const AString& filename) override;
 
+        std::set<uint64_t> getAnnotionsUniqueIDsForDebugging() const;
+        
         // ADD_NEW_METHODS_HERE
         
     protected:
@@ -292,7 +295,9 @@ namespace caret {
         
         int64_t m_numberOfAnnotationsRead = 0;
         
-        int64_t m_skipAfterReadingNumberOfAnnotations = 10000;
+        int64_t m_skipAfterReadingNumberOfAnnotations = 100000;
+        
+        std::set<uint64_t> m_annotionsUniqueIDsForDebugging;
         
         bool m_debugFlag = false;
         

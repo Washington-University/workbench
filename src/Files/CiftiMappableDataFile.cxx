@@ -249,6 +249,15 @@ VolumeMappableInterface()
         case DataFileTypeEnum::ANNOTATION:
         case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
         case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
@@ -260,6 +269,7 @@ VolumeMappableInterface()
         case DataFileTypeEnum::META_VOLUME:
         case DataFileTypeEnum::METRIC:
         case DataFileTypeEnum::METRIC_DYNAMIC:
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
         case DataFileTypeEnum::FEATURE:
         case DataFileTypeEnum::OME_ZARR_IMAGE:
         case DataFileTypeEnum::PALETTE:
@@ -844,6 +854,11 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
         case DataFileTypeEnum::ANNOTATION:
         case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
         case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            expectedAlongColumnMapType = CiftiMappingType::SCALARS;
+            expectedAlongRowMapType = CiftiMappingType::BRAIN_MODELS;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
@@ -855,6 +870,7 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
         case DataFileTypeEnum::METRIC:
         case DataFileTypeEnum::META_VOLUME:
         case DataFileTypeEnum::METRIC_DYNAMIC:
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
         case DataFileTypeEnum::FEATURE:
         case DataFileTypeEnum::OME_ZARR_IMAGE:
         case DataFileTypeEnum::PALETTE:
@@ -2525,6 +2541,8 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
             break;
         case DataFileTypeEnum::BORDER:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -2546,6 +2564,8 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
         case DataFileTypeEnum::METRIC:
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             break;
         case DataFileTypeEnum::FEATURE:
             break;
@@ -5664,8 +5684,6 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                             return false;
                             break;
                         case ConnectivityDataLoaded::MODE_CORRELATION:
-                            CaretAssertToDoFatal();
-                            break;
                         case ConnectivityDataLoaded::MODE_COLUMN:
                         case ConnectivityDataLoaded::MODE_ROW:
                         case ConnectivityDataLoaded::MODE_SURFACE_NODE:
@@ -6045,6 +6063,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             useSeriesData = true;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            useMapData = true;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             CaretAssert(0);
             break;
@@ -6096,6 +6117,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             CaretAssert(0);
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
+            CaretAssert(0);
+            break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
             CaretAssert(0);
             break;
         case DataFileTypeEnum::FEATURE:
@@ -6896,8 +6920,6 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
                                         return false;
                                         break;
                                     case ConnectivityDataLoaded::MODE_CORRELATION:
-                                        CaretAssertToDoFatal();
-                                        break;
                                     case ConnectivityDataLoaded::MODE_COLUMN:
                                     case ConnectivityDataLoaded::MODE_ROW:
                                     case ConnectivityDataLoaded::MODE_SURFACE_NODE:

@@ -74,6 +74,8 @@ NeuroglancerAnnotationFileImporter::NeuroglancerAnnotationFileImporter(FeatureFi
 : DataFile(),
 m_featureFile(featureFile)
 {
+    m_annotionsUniqueIDsForDebugging.insert(228299);
+    m_annotionsUniqueIDsForDebugging.insert(2997417);
 }
 
 /**
@@ -171,10 +173,16 @@ NeuroglancerAnnotationFileImporter::readFile(const AString& filename)
 {
     readNeuroglancerInfoFile(filename);
     
-    for (const Relationship& r : m_relationships) {
-        readNeuroglancerAnnotationShardedFiles(r.m_sharding,
-                                               ShardingDataType::RELATIONSHIP,
-                                               r.m_directoryName);
+    const bool readRelationShipFilesFlag(false);
+    if (readRelationShipFilesFlag) {
+        /*
+         * Read relationship files
+         */
+        for (const Relationship& r : m_relationships) {
+            readNeuroglancerAnnotationShardedFiles(r.m_sharding,
+                                                   ShardingDataType::RELATIONSHIP,
+                                                   r.m_directoryName);
+        }
     }
     
     if (m_byIdSharding.m_validFlag) {
@@ -1027,13 +1035,19 @@ NeuroglancerAnnotationFileImporter::readAnnotationFromDataStream(QFile* file,
      */
     int64_t numberOfBytesRead(0);
     
-    float i, j, k;
-    dataStream >> i >> j >> k;
+    float iCoord, jCoord, kCoord;
+    dataStream >> iCoord >> jCoord >> kCoord;
     numberOfBytesRead += (sizeof(float) * 3);
     
-    if ((m_numberOfAnnotationsRead % 10000) == 0) {
-        std::cout << "Annotation " << m_numberOfAnnotationsRead << " IJK_"
-        << i << ", " << j << ", " << k << std::endl;
+    FeatureCoordinateTypeEnum::Enum featureCoordinateType(FeatureCoordinateTypeEnum::VOLUME_IJK);
+    
+    const bool printEveryXAnnotationsFlag(false);
+    if (printEveryXAnnotationsFlag) {
+        if ((m_numberOfAnnotationsRead % 10000) == 0) {
+            std::cout << "Annotation ID=" << annotationID << ": IJK="
+            << iCoord << ", " << jCoord << ", " << kCoord
+            << " num read=" << m_numberOfAnnotationsRead << std::endl;
+        }
     }
     const int32_t numProperties(m_properties.size());
     for (int32_t iProp = 0; iProp < numProperties; iProp++) {
@@ -1144,6 +1158,14 @@ NeuroglancerAnnotationFileImporter::readAnnotationFromDataStream(QFile* file,
                 if (property.m_description == "size") {
                     annotationSize = propertyValue.toFloat();
                 }
+//                else if (property.m_description == "x_slab_mm") {
+//                    iCoord = propertyValue.toFloat();
+//                    featureCoordinateType = FeatureCoordinateTypeEnum::STEREOTAXIC_XYZ;
+//                }
+//                else if (property.m_description == "y_slab_mm") {
+//                    jCoord = propertyValue.toFloat();
+//                    featureCoordinateType = FeatureCoordinateTypeEnum::STEREOTAXIC_XYZ;
+//                }
             }
             else {
                 int32_t labelIndex(-1);
@@ -1253,10 +1275,12 @@ NeuroglancerAnnotationFileImporter::readAnnotationFromDataStream(QFile* file,
 //        }
     }
     
-    static bool firstTime(true);
-    if (firstTime) {
-        std::cout << "Size of one neuroglancer annotation in bytes: " << numberOfBytesRead << std::endl;
-        firstTime = false;
+    if (m_debugFlag) {
+        static bool firstTime(true);
+        if (firstTime) {
+            std::cout << "Size of one neuroglancer annotation in bytes: " << numberOfBytesRead << std::endl;
+            firstTime = false;
+        }
     }
     if ( ! extraBytes.isEmpty()) {
         std::cout << "Annotation: " << getFileName() << " has extra bytes at end, num="
@@ -1303,22 +1327,59 @@ NeuroglancerAnnotationFileImporter::readAnnotationFromDataStream(QFile* file,
                                 + FeatureItemTypeEnum::toGuiName(m_annotationType));
     }
     
-    std::vector<Vector3D> ijks { Vector3D(i, j, k) };
+    const bool coordSwapFlag(true);
+    if (coordSwapFlag) {
+        /*
+         * In web browser version of neuoglancer
+         * y and z are swapped and sign swapped
+         */
+        const float j = -kCoord;
+        const float k = -jCoord;
+        jCoord = j;
+        kCoord = k;
+        
+        featureCoordinateType = FeatureCoordinateTypeEnum::STEREOTAXIC_XYZ;
+    }
+    
+    const bool convertToIntsFlag(true);
+    if (convertToIntsFlag) {
+        if (iCoord >= 0) {
+            iCoord = std::floor(iCoord);
+        }
+        else {
+            iCoord = std::ceil(iCoord);
+        }
+        if (jCoord >= 0) {
+            jCoord = std::floor(jCoord);
+        }
+        else {
+            jCoord = std::ceil(jCoord);
+        }
+        if (kCoord >= 0) {
+            kCoord = std::floor(kCoord);
+        }
+        else {
+            kCoord = std::ceil(kCoord);
+        }
+    }
+
+    std::vector<Vector3D> ijks { Vector3D(iCoord, jCoord, kCoord) };
     
     NewAnnotationInformation nfi;
-    if (m_numberOfAnnotationsRead < m_skipAfterReadingNumberOfAnnotations) {
+    if ((m_numberOfAnnotationsRead < m_skipAfterReadingNumberOfAnnotations)
+        || (m_annotionsUniqueIDsForDebugging.find(annotationID) != m_annotionsUniqueIDsForDebugging.end())) {
         /*
          * Create the annotation
          */
-        FeatureItem* na = new FeatureItem(m_annotationType,
+        FeatureItem* featureItem(new FeatureItem(m_annotationType,
                                           relationshipID,
                                           annotationID,
-                                          FeatureCoordinateTypeEnum::VOLUME_IJK,
+                                          featureCoordinateType,
                                           ijks,
                                           annotationColor,
                                           annotationSize,
-                                          neuroglancerAnnotationPropertyValues);
-        
+                                          neuroglancerAnnotationPropertyValues));
+                
         /*
          * The annotation and properties must be inserted
          * as a row.  There does not appear to be a way
@@ -1326,7 +1387,7 @@ NeuroglancerAnnotationFileImporter::readAnnotationFromDataStream(QFile* file,
          * in the same row.
          */
         QList<QStandardItem*> newRow;
-        newRow.push_back(na);
+        newRow.push_back(featureItem);
         newRow.append(modelRowPropertyValues);
         
         nfi = NewAnnotationInformation(annotationID,
@@ -1339,6 +1400,23 @@ NeuroglancerAnnotationFileImporter::readAnnotationFromDataStream(QFile* file,
         modelRowPropertyValues.clear();
     }
     
+    const bool printAnnotationsOfInterestFlag(true);
+    if (printAnnotationsOfInterestFlag) {
+        if (m_annotionsUniqueIDsForDebugging.find(annotationID) != m_annotionsUniqueIDsForDebugging.end()) {
+            std::cout << "Annotation ID=" << annotationID << std::endl;
+            FeatureItem featureItem(m_annotationType,
+                                    relationshipID,
+                                    annotationID,
+                                    featureCoordinateType,
+                                    ijks,
+                                    annotationColor,
+                                    annotationSize,
+                                    neuroglancerAnnotationPropertyValues);
+            std::cout << "   " << featureItem.toString() << std::endl;
+            std::cout << std::endl << std::flush;
+        }
+    }
+
     ++m_numberOfAnnotationsRead;
     
     return nfi;
@@ -1414,7 +1492,7 @@ NeuroglancerAnnotationFileImporter::readNeuroglancerAnnotationShardedFiles(const
     }
     
     for (const AString& shardFileName : allShardFileNames) {
-        /*if (m_debugFlag)*/ std::cout << "Processing shareded annotations file: " << shardFileName << std::endl;
+        if (m_debugFlag) std::cout << "Processing shareded annotations file: " << shardFileName << std::endl;
         
         QFile file(shardFileName);
         if ( ! file.open(QFile::ReadOnly)) {
@@ -1494,7 +1572,7 @@ NeuroglancerAnnotationFileImporter::readNeuroglancerAnnotationShardedFiles(const
                                       minishardLength);
         }
         
-        std::cout << "Read " << (m_numberOfAnnotationsRead - numAnnReadAtStart) << " annotations from file "
+        if (m_debugFlag) std::cout << "Read " << (m_numberOfAnnotationsRead - numAnnReadAtStart) << " annotations from file "
         << shardFileName << std::endl << std::flush;
     }
 }
@@ -1647,6 +1725,7 @@ NeuroglancerAnnotationFileImporter::processMinishardIndex(QFile& file,
     /*
      * Row zero (dim i=0) contains chunk IDs
      * A chunkID is relative to the previous chunk ID
+     * Note: ChunkID is same as Annotation ID
      */
     uint64_t previousChunkID(0);
     for (int64_t iChunk = 0; iChunk < numChunks; iChunk++) {
@@ -1660,7 +1739,6 @@ NeuroglancerAnnotationFileImporter::processMinishardIndex(QFile& file,
         chunkID += previousChunkID;
         previousChunkID = chunkID;
         
-
         CaretAssertVectorIndex(miniShardChunkInfoOut, iChunk);
         miniShardChunkInfoOut[iChunk].m_id = chunkID;
     }
@@ -1764,11 +1842,15 @@ NeuroglancerAnnotationFileImporter::readChunksFromShardFile(QFile& file,
                 {
                     QFile* nullFile(NULL);
                     const bool readRelationshipDataAfterAnnotationFlag(false);
+                    const uint64_t annotationID(chunk.m_id);
+//                    if (chunk.m_id == -1) {
+//                        std::cout << "******************* FOUND CHUNK (Annotation) ID " << chunk.m_id << std::endl << std::endl;
+//                    }
                     NewAnnotationInformation nfi(readAnnotationFromDataStream(nullFile,
                                                                              data,
                                                                              dataStream,
                                                                              FeatureItemGroup::getDefaultGroupID(),
-                                                                             chunk.m_id,
+                                                                             annotationID,
                                                                              readRelationshipDataAfterAnnotationFlag));
                     if (nfi.m_validFlag) {
                         /*
@@ -1974,6 +2056,16 @@ NeuroglancerAnnotationFileImporter::neuroglancerDataTypeToString(const Neuroglan
     return dataTypeName;
 }
 
+/**
+ * @return Unique IDs of annotations for debugging
+ */
+std::set<uint64_t>
+NeuroglancerAnnotationFileImporter::getAnnotionsUniqueIDsForDebugging() const
+{
+    return m_annotionsUniqueIDsForDebugging;
+}
+
+
 /* =========================================================== */
 
 /**
@@ -1994,3 +2086,4 @@ NeuroglancerAnnotationFileImporter::Sharding::print(const AString& name) const
     std::cout << "  m_shardBits:" << m_shardBits << std::endl;
     std::cout << "  m_validFlag:" << AString::fromBool(m_validFlag) << std::endl;
 }
+

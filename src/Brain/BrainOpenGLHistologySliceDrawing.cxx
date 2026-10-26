@@ -1137,7 +1137,6 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
     const HistologySlice* histologySlice(m_mediaFilesAndDataToDraw[0].m_histologySlice);
     CaretAssert(histologySlice);
     
-    int32_t ctr(0);
     for (auto& vdi : volumeDrawingInfo) {
         Overlay* overlay(vdi.m_overlay);
         VolumeMappableInterface* vmi(vdi.m_volumeMappableInterface);

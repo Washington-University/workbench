@@ -138,6 +138,12 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 false));
     
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_NEUROGLANCER_ANNOTATIONS,
+                                                "DEVELOPER_FLAG_NEUROGLANCER_ANNOTATIONS",
+                                                "Neuroglancer Annotation Testing",
+                                                CheckableEnum::YES,
+                                                false));
+    
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_SURFACE_BUFFER,
                                                 "DEVELOPER_FLAG_SURFACE_BUFFER",
                                                 "Drawing: Draw Surfaces Using Buffers",
@@ -287,6 +293,9 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
             break;
         case DELELOPER_FLAG_TEXTURE_FUNCTIONAL_VOLUME_SMOOTH:
             toolTip = ("Smooth MPR volume functional volume drawing voxels");
+            break;
+        case DEVELOPER_FLAG_NEUROGLANCER_ANNOTATIONS:
+            toolTip = ("Enables a Neuroglancer Annotations Test");
             break;
         case DEVELOPER_FLAG_SURFACE_BUFFER:
             toolTip = ("Draw surface using buffers (improved performance)");

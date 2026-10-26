@@ -46,6 +46,7 @@
 #include "CiftiFiberTrajectoryMapFile.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "CziImageFile.h"
+#include "FeatureFile.h"
 #include "FileInformation.h"
 #include "FociFile.h"
 #include "HistologySlicesFile.h"
@@ -53,6 +54,7 @@
 #include "LabelFile.h"
 #include "MetaVolumeFile.h"
 #include "MetricFile.h"
+#include "NeuroglancerAnnotationFile.h"
 #include "OmeZarrImageFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
@@ -342,6 +344,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             caretDataFile = new CiftiBrainordinateDataSeriesFile();
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
+            CaretAssertMessage(0, "Never create a fiber trajectory dynamic file.");
+            break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             caretDataFile = new CiftiFiberOrientationFile();
             break;
@@ -396,8 +401,11 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
         case DataFileTypeEnum::METRIC_DYNAMIC:
             CaretAssertMessage(0, "Never create a metric dynamic file");
             break;
+        case DataFileTypeEnum::NEUROGLANCER_ANNOTATION:
+            caretDataFile = new NeuroglancerAnnotationFile();
+            break;
         case DataFileTypeEnum::FEATURE:
-            CaretAssertToDoFatal();
+            caretDataFile = new FeatureFile();
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE:
             caretDataFile = new OmeZarrImageFile();

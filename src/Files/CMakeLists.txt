@@ -90,7 +90,9 @@ CiftiConnectivityMatrixParcelFile.h
 CiftiConnectivityMatrixParcelDenseFile.h
 CiftiDenseSparseFile.h
 CiftiFiberOrientationFile.h
+CiftiFiberTrajectoryDenseDynamicFile.h
 CiftiFiberTrajectoryFile.h
+CiftiFiberTrajectoryLoadingInterface.h
 CiftiFiberTrajectoryMapFile.h
 CiftiMappableDataFile.h
 CiftiMappableConnectivityMatrixDataFile.h
@@ -201,6 +203,7 @@ MetaVolumeFileXmlStreamWriter.h
 MetricDynamicConnectivityFile.h
 MetricFile.h
 MetricSmoothingObject.h
+NeuroglancerAnnotationFile.h
 NeuroglancerAnnotationFileImporter.h
 NodeAndVoxelColoring.h
 OmeZarrImageFile.h
@@ -299,6 +302,8 @@ CiftiBrainordinateLabelFile.cxx
 CiftiBrainordinateScalarFile.cxx
 CiftiConnectivityMatrixDenseFile.cxx
 CiftiConnectivityMatrixDenseDynamicFile.cxx
+CiftiFiberTrajectoryDenseDynamicFile.cxx
+CiftiFiberTrajectoryLoadingInterface.cxx
 CiftiConnectivityMatrixDenseParcelFile.cxx
 CiftiConnectivityMatrixParcelFile.cxx
 CiftiConnectivityMatrixParcelDynamicFile.cxx
@@ -413,6 +418,7 @@ MetaVolumeFileXmlStreamWriter.cxx
 MetricDynamicConnectivityFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
+NeuroglancerAnnotationFile.cxx
 NeuroglancerAnnotationFileImporter.cxx
 NodeAndVoxelColoring.cxx
 OmeZarrImageFile.cxx

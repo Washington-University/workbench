@@ -1009,7 +1009,6 @@ VolumeDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
         {
-            const int32_t mapIndex(0);
             int64_t dimIJK[3];
             std::vector<VoxelIJK> voxelIJKs;
             m_connectivityDataLoaded->getVolumeAverageVoxelLoading(dimIJK,

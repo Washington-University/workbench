@@ -21,13 +21,13 @@
  */
 /*LICENSE_END*/
 
-
 #include "CaretObject.h"
 #include "VoxelIJK.h"
 
 namespace caret {
 
     class Brain;
+    class CiftiFiberTrajectoryLoadingInterface;
     class HtmlTableBuilder;
     class SurfaceFile;
     
@@ -63,6 +63,10 @@ namespace caret {
 
         CiftiFiberTrajectoryManager& operator=(const CiftiFiberTrajectoryManager&);
         
+        AString getFileNameNoPathForFile(CiftiFiberTrajectoryLoadingInterface* trajFile);
+        
+        std::vector<CiftiFiberTrajectoryLoadingInterface*> getFilesEnabledForDataLoading(Brain* brain);
+
         // ADD_NEW_MEMBERS_HERE
     };
     

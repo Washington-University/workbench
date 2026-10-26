@@ -149,6 +149,45 @@ CiftiFiberTrajectoryMapFile::isEmpty() const
 }
 
 /**
+ * @return True if this file supports enabled as a connectivity layer
+ */
+bool
+CiftiFiberTrajectoryMapFile::isEnabledAsLayerSupported() const
+{
+    /* not supported */
+    return false;
+}
+
+/**
+ * @return True if this file is enabled as a connectivity layer
+ */
+bool
+CiftiFiberTrajectoryMapFile::isEnabledAsLayer() const
+{
+    /* not supported */
+    return false;
+}
+
+/**
+ * Setf this file is enabled as a connectivity layer
+ * @param enabled
+ *    New status
+ */
+void
+CiftiFiberTrajectoryMapFile::setEnabledAsLayer(const bool /*enabled */)
+{
+    /* not supported */
+}
+/**
+ * @return Is data loading supported?
+ */
+bool
+CiftiFiberTrajectoryMapFile::isDataLoadingSupported() const
+{
+    return false;
+}
+
+/**
  * @return Is data loading enabled?
  */
 bool
@@ -167,6 +206,15 @@ void
 CiftiFiberTrajectoryMapFile::setDataLoadingEnabled(const bool loadingEnabled)
 {
     m_dataLoadingEnabled = loadingEnabled;
+}
+
+/**
+ * @return True if matching fiber orientation is supported, else false.
+ */
+bool
+CiftiFiberTrajectoryMapFile::isMatchingFiberOrientationFileSupported() const
+{
+    return true;
 }
 
 /**
@@ -921,8 +969,6 @@ CiftiFiberTrajectoryMapFile::clearLoadedFiberOrientations()
  * Validate that the assigned matching fiber orientation file is valid
  * (not NULL and row/column is compatible).
  *
- * @throws DataFileException 
- *    If fiber orientation file is NULL or incompatible.
  * @return True if validation is successful, else false.
  */
 bool
@@ -1077,12 +1123,12 @@ CiftiFiberTrajectoryMapFile::finishFiberOrientationTrajectoriesAveraging()
  * @param nodeIndices
  *    Indices of the surface nodes.
  */
-void
+bool
 CiftiFiberTrajectoryMapFile::loadDataAverageForSurfaceNodes(const StructureEnum::Enum /*structure*/,
                                                             const int32_t /*surfaceNumberOfNodes*/,
                                                             const std::vector<int32_t>& /*nodeIndices*/)
 {
-    CaretLogWarning("Not implemented: CiftiFiberTrajectoryMapFile::loadDataAverageForSurfaceNodes");
+    return false;
 }
 
 /**
@@ -1092,13 +1138,10 @@ CiftiFiberTrajectoryMapFile::loadDataAverageForSurfaceNodes(const StructureEnum:
  *    Indices of rows for averaging.
  * @return
  *    True if data was loaded else false if no data or user cancelled.
- * @throw 
- *    DataFileException if there is an error.
  */
 bool
 CiftiFiberTrajectoryMapFile::loadRowsForAveraging(const std::vector<int64_t>& /*rowIndices*/)
 {
-    CaretLogWarning("Not implemented: CiftiFiberTrajectoryMapFile::loadRowsForAveraging");
     return false;
 }
 
@@ -1109,13 +1152,10 @@ CiftiFiberTrajectoryMapFile::loadRowsForAveraging(const std::vector<int64_t>& /*
  *    Coordinate of voxel.
  * @return
  *    Index of row that was loaded or -1 if no data was found for coordinate.
- * @throw
- *    DataFileException if there is an error.
  */
 int64_t
-CiftiFiberTrajectoryMapFile::loadMapDataForVoxelAtCoordinate(const float* /*xyz[3]*/)
+CiftiFiberTrajectoryMapFile::loadDataForVoxelAtCoordinate(const float* /*xyz[3]*/)
 {
-    CaretLogWarning("Not implemented: CiftiFiberTrajectoryMapFile::loadMapDataForVoxelAtCoordinate");
     return -1;
 }
 
@@ -1124,16 +1164,14 @@ CiftiFiberTrajectoryMapFile::loadMapDataForVoxelAtCoordinate(const float* /*xyz[
  *
  * @param volumeDimensionIJK
  *    Dimensions of the volume.
- * @param voxelIndices
- *    Indices of voxels.
- * @throw
- *    DataFileException if there is an error.
+ * @return
+ *    True if data was loaded else false if no data or user cancelled.
  */
-void
-CiftiFiberTrajectoryMapFile::loadMapAverageDataForVoxelIndices(const int64_t* /*volumeDimensionIJK[3]*/,
+bool
+CiftiFiberTrajectoryMapFile::loadAverageDataForVoxelIndices(const int64_t* /*volumeDimensionIJK[3]*/,
                                                                const std::vector<VoxelIJK>& /*voxelIndices*/)
 {
-    CaretLogWarning("Not implmented: CiftiFiberTrajectoryMapFile::loadMapAverageDataForVoxelIndices");
+    return false;
 }
 
 /**
@@ -1141,13 +1179,13 @@ CiftiFiberTrajectoryMapFile::loadMapAverageDataForVoxelIndices(const int64_t* /*
  *
  * @param rowIndex
  *    Index of row that is loaded.
- * @throw DataFileException
- *    If an error occurs.
+ * @return
+ *    True if data was loaded else false if no data or user cancelled.
  */
-void
+bool
 CiftiFiberTrajectoryMapFile::loadDataForRowIndex(const int64_t /*rowIndex*/)
 {
-    CaretLogWarning("Not implemented: CiftiFiberTrajectoryMapFile::loadDataForRowIndex");
+    return false;
 }
 
 /**
@@ -1237,7 +1275,7 @@ CiftiFiberTrajectoryMapFile::finishRestorationOfScene()
             m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ,
                                                           rowIndex,
                                                           columnIndex);
-            loadMapDataForVoxelAtCoordinate(volumeXYZ);
+            loadDataForVoxelAtCoordinate(volumeXYZ);
         }
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
@@ -1246,7 +1284,7 @@ CiftiFiberTrajectoryMapFile::finishRestorationOfScene()
             std::vector<VoxelIJK> voxelIndicesIJK;
             m_connectivityDataLoaded->getVolumeAverageVoxelLoading(volumeDimensionsIJK,
                                                                    voxelIndicesIJK);
-            loadMapAverageDataForVoxelIndices(volumeDimensionsIJK,
+            loadAverageDataForVoxelIndices(volumeDimensionsIJK,
                                               voxelIndicesIJK);
         }
             break;
