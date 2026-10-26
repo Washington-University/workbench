@@ -49,7 +49,6 @@
 #include "CiftiConnectivityMatrixViewController.h"
 #include "CziImageFile.h"
 #include "DeveloperFlagsEnum.h"
-#include "DynConnViewController.h"
 #include "EventBrowserWindowDrawingContent.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventManager.h"
@@ -362,13 +361,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                             "toolbox");
         m_volumeSurfaceOutlineTabIndex = addToScrolledAreaInTabWidget(m_volumeSurfaceOutlineSetViewController,
                              "Vol/Surf Outline");
-    }
-    
-    if (isOverlayToolBox) {
-#ifdef __SHOW_DYNCONN_PROTOTYPE__
-        DynConnViewController* dynConn = new DynConnViewController();
-        addToScrolledAreaInTabWidget(dynConn, "DynConn");
-#endif // __SHOW_DYNCONN_PROTOTYPE__
     }
     
     switch (toolBoxType) {

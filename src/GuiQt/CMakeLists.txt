@@ -159,7 +159,6 @@ ELSE()
 	DingOntologyTermsDialog.h
         DisplayGroupAndTabItemViewController.h
         DisplayGroupEnumComboBox.h
-	DynConnViewController.h
         EnumComboBoxTemplate.h
 	ExitProgramModifiedFilesDialog.h
 	FeatureSelectionViewController.h
@@ -473,7 +472,6 @@ DingOntologyTermsDialog.h
 DisplayGroupAndTabItemTreeWidgetItem.h
 DisplayGroupAndTabItemViewController.h
 DisplayGroupEnumComboBox.h
-DynConnViewController.h
 EnumComboBoxTemplate.h
 EventAnnotationCreateNewType.h
 EventAnnotationDrawingFinishCancel.h
@@ -847,7 +845,6 @@ DingOntologyTermsDialog.cxx
 DisplayGroupAndTabItemTreeWidgetItem.cxx
 DisplayGroupAndTabItemViewController.cxx
 DisplayGroupEnumComboBox.cxx
-DynConnViewController.cxx
 EventBrowserTabCloseInToolBar.cxx
 EventBrowserTabDeleteInToolBar.cxx
 EventBrowserTabNewInGUI.cxx
