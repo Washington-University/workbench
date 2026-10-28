@@ -417,7 +417,7 @@ CiftiBrainordinateScalarFile::newInstanceFromCiftiFiberTrajectoryDenseDynamicFil
         scalarFileInfo.getFileComponents(thePath,
                                          theName,
                                          theExtension);
-        theName.append("_" + fiberTrajDynFile->getDataLoadingName());
+        theName.append("_" + fiberTrajDynFile->getDataLoadingName().replace(" ", "_"));
         const AString newFileName = FileInformation::assembleFileComponents(thePath,
                                                                             theName,
                                                                             theExtension);
