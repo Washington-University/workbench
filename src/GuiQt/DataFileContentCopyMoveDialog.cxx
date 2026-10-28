@@ -263,8 +263,7 @@ DataFileContentCopyMoveDialog::createDestinationWidget()
 void
 DataFileContentCopyMoveDialog::newDestinationFileToolButtonClicked()
 {
-    const CaretDataFile* caretDataFile = dynamic_cast<const CaretDataFile*>(m_sourceDataFileInterface);
-    CaretAssert(caretDataFile);
+    CaretAssert(dynamic_cast<const CaretDataFile*>(m_sourceDataFileInterface));
     AString filename;
     if (m_cziAnnotationFileName.isNotEmpty()) {
         filename = m_cziAnnotationFileName;

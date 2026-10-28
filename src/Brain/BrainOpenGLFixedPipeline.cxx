@@ -7932,8 +7932,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageHippocampsFlatCompact(BrowserTabCont
     const int32_t numberOfViewports(montageViewports.size());
     for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
         CaretAssertVectorIndex(montageViewports, ivp);
-        SurfaceMontageViewport* smv(montageViewports[ivp]);
-        CaretAssert(smv);
+        CaretAssert(montageViewports[ivp]);
         CaretAssertVectorIndex(surfaceAspectRatios, ivp);
         const int32_t vpHeight(tabViewport.getHeight());
         const int32_t vpWidth(static_cast<float>(vpHeight) / surfaceAspectRatios[ivp]);

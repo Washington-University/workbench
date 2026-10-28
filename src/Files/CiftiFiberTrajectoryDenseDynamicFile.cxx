@@ -453,9 +453,8 @@ CiftiFiberTrajectoryDenseDynamicFile::setDynamicConnectivityData(const std::vect
                                                                  const AString& dataLoadingName)
 {
     CaretAssert(m_ciftiFile);
-    const int64_t columnCount(m_ciftiFile->getNumberOfColumns());
-    CaretAssert(columnCount == static_cast<int64_t>(dynamicConnectivityFiberCountsData.size()));
-    CaretAssert(columnCount == static_cast<int64_t>(dynamicConnectivityFiberDistancesData.size()));
+    CaretAssert(m_ciftiFile->getNumberOfColumns() == static_cast<int64_t>(dynamicConnectivityFiberCountsData.size()));
+    CaretAssert(m_ciftiFile->getNumberOfColumns() == static_cast<int64_t>(dynamicConnectivityFiberDistancesData.size()));
     
     m_ciftiFile->setRow(&dynamicConnectivityFiberCountsData[0],
                         s_fiberCountsMapIndex);
@@ -470,11 +469,6 @@ CiftiFiberTrajectoryDenseDynamicFile::setDynamicConnectivityData(const std::vect
     setMapName(s_fiberDistancesMapIndex,
                "Fiber Distances " + loadingName);
     invalidateColoringInAllMaps();
-    
-    
-//    create DCONN files on brainmappers
-//    
-//    wb_command -convert-matrix4-to-matrix2  /mnt/myelin/brainmappers/Connectome_Project/YA_HCP_Final/100206/MMORFNonLinear/Results/matrix3whim/fdt_matrix4.trajTEMP.wbsparse CIFTI fiber_counts.dconn.nii -distances fiber_distances.dconn.nii
 }
 
 /**

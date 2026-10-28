@@ -2502,8 +2502,6 @@ IdentificationFormattedTextGenerator::generateFeatureIdentifcationText(HtmlTable
     const FeatureItem* featureItem(idFeature->getFeatureItem());
     CaretAssert(featureItem);
     const FeatureFile* featureFile(idFeature->getFeatureFile());
-    const uint64_t featureGroupID(idFeature->getFeatureGroupID());
-    const uint64_t featureUniqueID(idFeature->getFeatureUniqueID());
 
     std::vector<std::vector<AString>> idTextRows;
     featureItem->getIdentificationText(idTextRows, featureFile, toolTipFlag);
