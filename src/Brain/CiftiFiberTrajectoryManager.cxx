@@ -135,13 +135,12 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(Brain* brain,
     /*
      * Load fiber trajectory data
      */
-    const int32_t numTrajFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
-    for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
-        CiftiFiberTrajectoryFile* trajFile = brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
-        
-        if (trajFile->loadDataAverageForSurfaceNodes(surfaceFile->getStructure(),
-                                                     surfaceFile->getNumberOfNodes(),
-                                                     nodeIndices)) {
+    std::vector<CiftiFiberTrajectoryLoadingInterface*> trajFiles(getFilesEnabledForDataLoading(brain));
+    
+    for (CiftiFiberTrajectoryLoadingInterface* tf : trajFiles) {
+        if (tf->loadDataAverageForSurfaceNodes(surfaceFile->getStructure(),
+                                               surfaceFile->getNumberOfNodes(),
+                                               nodeIndices)) {
             dataWasLoaded = true;
         }
     }
@@ -172,27 +171,29 @@ CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(Brain* brain,
                                                           std::vector<AString>& rowColumnInformationOut,
                                                           HtmlTableBuilder& htmlTableBuilder)
 {
-    std::vector<CiftiFiberTrajectoryFile*> ciftiTrajFiles;
-    brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
-    
     bool haveData = false;
-    for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = ciftiTrajFiles.begin();
-         iter != ciftiTrajFiles.end();
-         iter++) {
-        CiftiFiberTrajectoryFile* trajFile = *iter;
-        if (trajFile->isEmpty() == false) {
-            const int64_t rowIndex = trajFile->loadDataForVoxelAtCoordinate(xyz);
+
+    /*
+     * Load fiber trajectory data
+     */
+    std::vector<CiftiFiberTrajectoryLoadingInterface*> trajFiles(getFilesEnabledForDataLoading(brain));
+    
+    for (CiftiFiberTrajectoryLoadingInterface* tf : trajFiles) {
+        CaretMappableDataFile* mapFile(tf->getMapFile());
+        CaretAssert(mapFile);
+        if ( ! mapFile->isEmpty()) {
+            const int64_t rowIndex = tf->loadDataForVoxelAtCoordinate(xyz);
             if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node
                  */
-                rowColumnInformationOut.push_back(trajFile->getFileNameNoPath()
+                rowColumnInformationOut.push_back(tf->getMapFileNameNoPath()
                                                   + " Voxel XYZ="
                                                   + AString::fromNumbers(xyz, 3, ",")
                                                   + ", row index= "
                                                   + AString::number(rowIndex));
                 htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
-                                        trajFile->getFileNameNoPath());
+                                        tf->getMapFileNameNoPath());
                 haveData = true;
             }
             else {
@@ -243,8 +244,13 @@ CiftiFiberTrajectoryManager::loadAverageDataForVoxelIndices(Brain* brain,
                                                             const int64_t volumeDimensionIJK[3],
                                                             const std::vector<VoxelIJK>& voxelIndices)
 {
-    std::vector<CiftiFiberTrajectoryLoadingInterface*> trajFiles(getFilesEnabledForDataLoading(brain));
     bool haveData = false;
+
+    /*
+     * Load fiber trajectory data
+     */
+    std::vector<CiftiFiberTrajectoryLoadingInterface*> trajFiles(getFilesEnabledForDataLoading(brain));
+    
     for (CiftiFiberTrajectoryLoadingInterface* tf : trajFiles) {
         if (tf->loadAverageDataForVoxelIndices(volumeDimensionIJK,
                                                voxelIndices)) {
