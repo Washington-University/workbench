@@ -88,6 +88,10 @@ CiftiDenseSparseFile::CiftiDenseSparseFile()
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded.get());
+    m_sceneAssistant->add("m_loadedDataDescriptionForMapName",
+                          &m_loadedDataDescriptionForMapName);
+    m_sceneAssistant->add("m_loadedDataDescriptionForFileCopy",
+                          &m_loadedDataDescriptionForFileCopy);
 
     m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
 
@@ -1393,7 +1397,7 @@ CiftiDenseSparseFile::loadMapDataForSurfaceNode(const int32_t surfaceNumberOfNod
         if (loadRowResult.isOk()) {
             m_loadedDataDescriptionForMapName = ("Row: "
                                                  + AString::number(rowIndex + 1)
-                                                 + ", Node Index: "
+                                                 + ", Vertex Index: "
                                                  + AString::number(nodeIndex)
                                                  + ", Structure: "
                                                  + StructureEnum::toName(structure));
