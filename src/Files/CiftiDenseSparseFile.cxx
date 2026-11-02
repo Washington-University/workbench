@@ -1315,11 +1315,7 @@ CiftiDenseSparseFile::getVolumeVoxelIdentificationForMaps(const std::vector<int3
         return false;
     }
     const VolumeSpace& volSpace(alongRowMap.getVolumeSpace());
-    Vector3D ijkFloat;
-    volSpace.spaceToIndex(xyz, ijkFloat);
-    ijkOut[0] = static_cast<int64_t>(ijkFloat[0]);
-    ijkOut[1] = static_cast<int64_t>(ijkFloat[1]);
-    ijkOut[2] = static_cast<int64_t>(ijkFloat[2]);
+    volSpace.enclosingVoxel(xyz, ijkOut);
     
     bool validFlag(false);
 
