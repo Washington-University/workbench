@@ -1166,7 +1166,7 @@ CiftiFiberTrajectoryFile::getBrainordinateFromRowIndex(const int64_t rowIndex,
     if ((rowIndex < 0)
         || (rowIndex >= numRows)) {
         throw DataFileException(getFileName(),
-                                "Row index "
+                                "Row index (zero based)"
                                 + AString::number(rowIndex)
                                 + " is invalid.  Number of rows is "
                                 + AString::number(numRows));
@@ -1297,6 +1297,11 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
     const CiftiBrainModelsMap brainModelsMap(m_sparseFile->getCiftiXML().getBrainModelsMap(CiftiXML::ALONG_ROW));
     
     if (numFibers > 0) {
+        if (updateDynConnFlag) {
+            addToDynamicConnectivity(fiberIndices,
+                                     fiberFractions);
+        }
+
         m_fiberOrientationTrajectories.reserve(numFibers);
         
         for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
@@ -1308,11 +1313,6 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
                                                                                  fiberOrientation);
                 fot->setFiberFractions(fiberFractions[iFiber]);
                 m_fiberOrientationTrajectories.push_back(fot);
-                
-                if (updateDynConnFlag) {
-                    addToDynamicConnectivity(brainModelsMap,
-                                             fot);
-                }
             }
             else{
                 CaretLogSevere("Invalid index="
@@ -1320,15 +1320,15 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
                                + " into fiber orientations");
             }
         }
-        
+
         m_loadedDataDescriptionForMapName = ("Row: "
-                                             + AString::number(rowIndex)
+                                             + AString::number(rowIndex + 1)
                                              + ", Vertex Index: "
                                              + AString::number(nodeIndex)
                                              + ", Structure: "
                                              + StructureEnum::toName(structure));
         m_loadedDataDescriptionForFileCopy = ("Row_"
-                                              + AString::number(rowIndex)
+                                              + AString::number(rowIndex + 1)
                                               + "_Vertex_"
                                               + AString::number(nodeIndex)
                                               + "_"
@@ -1609,6 +1609,11 @@ CiftiFiberTrajectoryFile::loadDataForVoxelAtCoordinate(const float xyz[3])
                  + AString::number(numFibers));
     
     if (numFibers > 0) {
+        if (updateDynConnFlag) {
+            addToDynamicConnectivity(fiberIndices,
+                                     fiberFractions);
+        }
+
         m_fiberOrientationTrajectories.reserve(numFibers);
         
         for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
@@ -1621,10 +1626,6 @@ CiftiFiberTrajectoryFile::loadDataForVoxelAtCoordinate(const float xyz[3])
                 fot->setFiberFractions(fiberFractions[iFiber]);
                 m_fiberOrientationTrajectories.push_back(fot);
                 
-                if (updateDynConnFlag) {
-                    addToDynamicConnectivity(colMap,
-                                             fot);
-                }
             }
             else{
                 CaretLogSevere("Invalid index="
@@ -1634,12 +1635,12 @@ CiftiFiberTrajectoryFile::loadDataForVoxelAtCoordinate(const float xyz[3])
         }
         
         m_loadedDataDescriptionForMapName = ("Row: "
-                                             + AString::number(rowIndex)
+                                             + AString::number(rowIndex + 1)
                                              + ", Voxel XYZ: "
                                              + AString::fromNumbers(xyz, 3, ",")
                                              + ", Structure: ");
         m_loadedDataDescriptionForFileCopy = ("Row_"
-                                              + AString::number(rowIndex)
+                                              + AString::number(rowIndex + 1)
                                               + " IJK_"
                                               + AString::number(ijk[0])
                                               + "_"
@@ -1746,9 +1747,14 @@ CiftiFiberTrajectoryFile::loadAverageDataForVoxelIndices(const int64_t volumeDim
 bool
 CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex)
 {
+    const bool updateDynConnFlag(initializeDynamicConnectivity());
+    
     clearLoadedFiberOrientations();
     
     if ( ! validateAssignedMatchingFiberOrientationFile()) {
+        if (updateDynConnFlag) {
+            finishDynamicConnectivity();
+        }
         return false;
     }
     
@@ -1761,7 +1767,13 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex)
     
     const int64_t numFibers = static_cast<int64_t>(fiberIndices.size());
     
+    bool dataLoadedFlag(false);
     if (numFibers > 0) {
+        if (updateDynConnFlag) {
+            addToDynamicConnectivity(fiberIndices,
+                                     fiberFractions);
+        }
+
         m_fiberOrientationTrajectories.reserve(numFibers);
         
         for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
@@ -1782,9 +1794,9 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex)
         }
         
         m_loadedDataDescriptionForMapName = ("Row: "
-                                             + AString::number(rowIndex));
+                                             + AString::number(rowIndex + 1));
         m_loadedDataDescriptionForFileCopy = ("Row_"
-                                              + AString::number(rowIndex));
+                                              + AString::number(rowIndex + 1));
         
         const float* invalidLoadedData(NULL);
         const int32_t invalidLoadedDataLength(0);
@@ -1792,15 +1804,21 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex)
                                                       -1,
                                                       invalidLoadedData,
                                                       invalidLoadedDataLength);
-        return true;
+        dataLoadedFlag = true;
     }
     else {
+        dataLoadedFlag = false;
         CaretLogWarning(getFileName() +
-                                " Row "
+                                " Row index (zero based)"
                                 + AString::number(rowIndex)
                                 + " is invalid or contains no data.");
     }
-    return false;
+    
+    if (updateDynConnFlag) {
+        finishDynamicConnectivity();
+    }
+
+    return dataLoadedFlag;
 }
 
 /**
@@ -2134,50 +2152,29 @@ CiftiFiberTrajectoryFile::getDynamicConnectivityFile()
 
 /**
  * Add fiber informaiton to dynamic connectivity
- * @param brainModelsMap
- *    Mapping of data to brainordinates
- * @param fot
- *    The fiber trajectory
+ * @param fiberIndices
+ *    The fiber indices
+ * @param fiberFractions
+ *    The fiber fractions
  */
 void
-CiftiFiberTrajectoryFile::addToDynamicConnectivity(const CiftiBrainModelsMap& brainModelsMap,
-                                                   const FiberOrientationTrajectory* fot)
+CiftiFiberTrajectoryFile::addToDynamicConnectivity(std::vector<int64_t> fiberIndices,
+                                                   std::vector<FiberFractions> fiberFractions)
 {
-    CaretAssert(fot);
-    const FiberOrientation* fiberOrientation(fot->getFiberOrientation());
-    CaretAssert(fiberOrientation);
+    CaretAssert(fiberIndices.size() == fiberFractions.size());
+    const int64_t numElem(fiberIndices.size());
     
-    Vector3D ijkFloat;
-    const VolumeSpace volumeSpace(brainModelsMap.getVolumeSpace());
-    volumeSpace.spaceToIndex(fiberOrientation->m_xyz, ijkFloat);
-    const int64_t ijk[3] {
-        static_cast<int64_t>(ijkFloat[0]),
-        static_cast<int64_t>(ijkFloat[1]),
-        static_cast<int64_t>(ijkFloat[2])
-    };
-    const int64_t dataIndex(brainModelsMap.getIndexForVoxel(ijk));
-    if (dataIndex >= 0) {
+    for (int64_t i = 0; i < numElem; i++) {
+        CaretAssertVectorIndex(fiberIndices, i);
+        const int64_t dataIndex(fiberIndices[i]);
         CaretAssertVectorIndex(m_dynamicConnectivityFiberCountsData, dataIndex);
-        if (m_dynamicConnectivityFiberCountsData[dataIndex] != 0.0) {
-            std::cout << "Fiber counts has been set before, index="
-            << dataIndex
-            << " value=" << m_dynamicConnectivityFiberCountsData[dataIndex] << std::endl;
-        }
-        m_dynamicConnectivityFiberCountsData[dataIndex] = fot->getFiberFractionCount();
-
+        m_dynamicConnectivityFiberCountsData[dataIndex] = fiberFractions[i].totalCount;
+        
         CaretAssertVectorIndex(m_dynamicConnectivityFiberDistancesData, dataIndex);
-        if (m_dynamicConnectivityFiberDistancesData[dataIndex] != 0.0) {
-            std::cout << "Fiber distance has been set before, index="
-            << dataIndex
-            << " value=" << m_dynamicConnectivityFiberDistancesData[dataIndex] << std::endl;
-        }
-        m_dynamicConnectivityFiberDistancesData[dataIndex] = fot->getFiberFractionDistance();
-    }
-    else {
-        CaretLogWarning(ijkFloat.toString()
-                        + " does not map to a CiftiBrainModelsMap voxel.");
+        m_dynamicConnectivityFiberDistancesData[dataIndex] = fiberFractions[i].distance;
     }
 }
+
 
 /**
  * Initialize dynamic connectivity for new data

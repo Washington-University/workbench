@@ -203,8 +203,8 @@ namespace caret {
 
         CiftiFiberTrajectoryFile& operator=(const CiftiFiberTrajectoryFile&);
         
-        void addToDynamicConnectivity(const CiftiBrainModelsMap& brainModelsMap,
-                                      const FiberOrientationTrajectory* fot);
+        void addToDynamicConnectivity(std::vector<int64_t> fiberIndices,
+                                      std::vector<FiberFractions> fiberFractions);
         
         bool initializeDynamicConnectivity();
         
