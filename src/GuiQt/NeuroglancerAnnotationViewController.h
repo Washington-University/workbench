@@ -35,18 +35,15 @@ class QComboBox;
 class QDoubleSpinBox;
 class QLineEdit;
 class QTableView;
-class QToolButton;
-class QTreeView;
-class QVBoxLayout;
 
 namespace caret {
 
-    class CaretColorEnumComboBox;
     class CaretDataFileSelectionComboBox;
+    class ComboBoxItemInterface;
+    class ComboBoxItemInterfaceComboBox;
     class DisplayGroupEnumComboBox;
-    class EnumComboBoxTemplate;
-    class FeatureItemModel;
     class FeatureLabelModel;
+    class NeuroglancerAnnotationFile;
     class WuQTabWidget;
     
     class NeuroglancerAnnotationViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
@@ -69,6 +66,8 @@ namespace caret {
                                       const SceneClass* sceneClass);
         
     private slots:
+        void colorPropertySelected(ComboBoxItemInterface* itemInterface);
+        
         void processSelectionChanges();
         
         void displayGroupSelected(const DisplayGroupEnum::Enum);
@@ -79,30 +78,6 @@ namespace caret {
         
         void labelTableViewItemClicked(const QModelIndex& index);
 
-        void featureTreeItemClicked(const QModelIndex& modelIndex);
-        
-        void featureTreeItemDoubleClicked(const QModelIndex& modelIndex);
-        
-        void featureCollapseAllActionTriggered();
-        
-        void featureExpandAllActionTriggered();
-        
-        void featureAllOnActionTriggered();
-        
-        void featureAllOffActionTriggered();
-        
-        void featureInfoActionTriggered();
-        
-        void featureMoreActionTriggered();
-        
-        void featureFindActionTriggered();
-        
-        void featureNextActionTriggered();
-        
-        void featureFindTextLineEditTextChanged(const QString& text);
-        
-        void featureScrollTreeViewToFindItem();
-        
         void labelFindActionTriggered();
         
         void labelNextActionTriggered();
@@ -116,17 +91,11 @@ namespace caret {
 
         NeuroglancerAnnotationViewController& operator=(const NeuroglancerAnnotationViewController&);
 
-        void updateFeatureViewController();
+        void updateViewController();
         
-        void updateOtherFeatureViewControllers();
-        
-        void updateFeatureItemsWidget();
+        void updateOtherViewControllers();
         
         void updateLabelWidget();
-        
-        QWidget* createFeatureItemsWidget();
-        
-        void featureItemsAllOnOffButtonClicked(const bool onFlag);
         
         void labelsAllOnOffButtonClicked(const bool onFlag);
         
@@ -134,11 +103,9 @@ namespace caret {
         
         QWidget* createLabelsWidget();
         
+        NeuroglancerAnnotationFile* getSelectedFile();
+        
         FeatureLabelModel* getSelectedLabelModel();
-        
-        void featureResetFindItemsAndFindText();
-        
-        void featureResetFindItems();
         
         void labelResetFindItemsAndFindText();
         
@@ -148,9 +115,9 @@ namespace caret {
         
         int32_t m_browserWindowIndex;
         
-        CaretDataFileSelectionComboBox* m_featureFileSelectionComboBox;
+        CaretDataFileSelectionComboBox* m_fileSelectionComboBox;
         
-        CaretDataFileSelectionComboBox* m_volumeFileSelectionComboBox;
+        ComboBoxItemInterfaceComboBox* m_colorPropertySelectionComboBox;
         
         QCheckBox* m_displayCheckBox;
         
@@ -164,33 +131,10 @@ namespace caret {
         
         static std::set<NeuroglancerAnnotationViewController*> allNeuroglancerAnnotationViewControllers;
         
-        QTreeView* m_featureItemTreeView;
-        
         QComboBox* m_labelModelSelectionComboBox;
         
         QTableView* m_labelsTableView;
         
-        
-        QAction* m_featureCollapseAllAction;
-        QAction* m_featureExpandAllAction;
-        QAction* m_featureAllOnAction;
-        QAction* m_featureAllOffAction;
-        QAction* m_featureMoreAction;
-        QToolButton* m_featureMoreToolButton;
-        QAction* m_featureInfoAction;
-        QToolButton* m_featureInfoToolButton;
-        QAction* m_featureFindAction;
-        QAction* m_featureNextAction;
-        QLineEdit* m_featureFindTextLineEdit;
-        
-        /*
-         * Find model indices are in proxy model, not the model from the file
-         */
-        std::vector<QModelIndex> m_featureFindItemModelIndices;
-        
-        int32_t m_featureFindItemsCurrentIndex = 0;
-        
-
         QAction* m_labelFindAction;
         QAction* m_labelNextAction;
         QLineEdit* m_labelFindTextLineEdit;
@@ -200,12 +144,6 @@ namespace caret {
         std::vector<QModelIndex> m_labelFindItemModelIndices;
         
         int32_t m_labelFindItemsCurrentIndex = 0;
-        
-
-
-
-        FeatureItemModel* m_selectedFeatureItemModel = NULL;
-        
         
     };
     

@@ -92,6 +92,7 @@ namespace caret {
     class DisplayPropertiesFoci;
     class DisplayPropertiesImages;
     class DisplayPropertiesLabels;
+    class DisplayPropertiesNeuroglancerAnnotation;
     class DisplayPropertiesSurface;
     class DisplayPropertiesSamples;
     class DisplayPropertiesVolume;
@@ -540,6 +541,10 @@ namespace caret {
         DisplayPropertiesFeature* getDisplayPropertiesFeature();
         
         const DisplayPropertiesFeature* getDisplayPropertiesFeature() const;
+        
+        DisplayPropertiesNeuroglancerAnnotation* getDisplayPropertiesNeuroglancerAnnotation();
+        
+        const DisplayPropertiesNeuroglancerAnnotation* getDisplayPropertiesNeuroglancerAnnotation() const;
         
         DisplayPropertiesVolume* getDisplayPropertiesVolume();
         
@@ -1171,6 +1176,12 @@ namespace caret {
          * is also in the displayProperties std::vector.
          */
         DisplayPropertiesFeature* m_displayPropertiesFeature;
+        
+        /**
+         * Display properties for neuroglancer annotation - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesNeuroglancerAnnotation* m_displayPropertiesNeuroglancerAnnotation;
         
         /**
          * Display properties for foci - DO NOT delete since this

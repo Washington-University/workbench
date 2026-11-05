@@ -399,8 +399,7 @@ BrainOpenGLFeatureDrawing::drawAllFeatures(const DrawType drawType,
             break;
     }
     
-    NeuroglancerAnnotationFileImporter nafi(NULL);
-    const std::set<uint64_t> featureIdsForDebugging(nafi.getAnnotionsUniqueIDsForDebugging());
+    const std::set<uint64_t> featureIdsForDebugging(NeuroglancerAnnotationFileImporter::getAnnotionsUniqueIDsForDebugging());
 
     /*
      * Process each feature file

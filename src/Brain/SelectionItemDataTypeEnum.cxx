@@ -131,11 +131,15 @@ SelectionItemDataTypeEnum::initialize()
                                                  "CZI_IMAGE",
                                                  "CZI Image"));
     
-    enumData.push_back(SelectionItemDataTypeEnum(FOCUS_SURFACE,
-                                    "FOCUS_SURFACE", 
-                                    "Surface Focus"));
+    enumData.push_back(SelectionItemDataTypeEnum(FEATURE,
+                                    "FEATURE",
+                                    "Feature"));
     
-    enumData.push_back(SelectionItemDataTypeEnum(FOCUS_VOLUME, 
+    enumData.push_back(SelectionItemDataTypeEnum(FOCUS_SURFACE,
+                                                 "FOCUS_SURFACE",
+                                                 "Surface Focus"));
+    
+    enumData.push_back(SelectionItemDataTypeEnum(FOCUS_VOLUME,
                                     "FOCUS_VOLUME", 
                                     "Volume Focus"));
     
@@ -158,6 +162,10 @@ SelectionItemDataTypeEnum::initialize()
     enumData.push_back(SelectionItemDataTypeEnum(MEDIA_PLANE_COORDINATE,
                                                  "MEDIA_PLANE_COORDINATE",
                                                  "Media Plane Coordinate"));
+    
+    enumData.push_back(SelectionItemDataTypeEnum(NEUROGLANCER_ANNOTATION,
+                                                 "NEUROGLANCER_ANNOTATION",
+                                                 "Neuroglancer Annotation"));
     
     enumData.push_back(SelectionItemDataTypeEnum(SURFACE_NODE,
                                     "SURFACE_NODE", 

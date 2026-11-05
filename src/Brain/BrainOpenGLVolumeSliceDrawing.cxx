@@ -35,6 +35,7 @@
 #include "BrainOpenGLFociDrawing.h"
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLFeatureDrawing.h"
+#include "BrainOpenGLNeuroglancerAnnotationDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeSurfaceOutlineDrawing.h"
@@ -2432,6 +2433,17 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
                                                       slicePlane,
                                                       sliceViewPlane,
                                                       sliceThickness);
+                
+                /*
+                 * Draw neuroglancer annotations
+                 */
+                BrainOpenGLNeuroglancerAnnotationDrawing neuroAnnDrawing;
+                neuroAnnDrawing.drawOnVolumeOrthogonal(m_brain,
+                                                       m_fixedPipelineDrawing,
+                                                       m_underlayVolume,
+                                                       slicePlane,
+                                                       sliceViewPlane,
+                                                       sliceThickness);
             }
             
             if (depthBufferEnabled) {

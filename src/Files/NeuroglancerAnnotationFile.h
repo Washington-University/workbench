@@ -31,6 +31,11 @@
 
 namespace caret {
 
+    class ComboBoxItemInterface;
+    class FeatureLabelModel;
+    class NeuroglancerAnnotation;
+    class NeuroglancerPropertyInfo;
+    
     class NeuroglancerAnnotationFile : public CaretDataFile {
         
     public:
@@ -42,6 +47,10 @@ namespace caret {
 
         NeuroglancerAnnotationFile& operator=(const NeuroglancerAnnotationFile&) = delete;
         
+        const NeuroglancerAnnotationFile* castToNeuroglancerAnnotationFile() const;
+        
+        NeuroglancerAnnotationFile* castToNeuroglancerAnnotationFile();
+        
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const override;
         
         GiftiMetaData* getFileMetaData();
@@ -51,6 +60,28 @@ namespace caret {
         StructureEnum::Enum getStructure() const;
         
         void setStructure(const StructureEnum::Enum structure);
+        
+        void addAnnotation(NeuroglancerAnnotation* annotation);
+        
+        int32_t getNumberOfAnnotations() const;
+        
+        const NeuroglancerAnnotation* getAnnotation(const int32_t index) const;
+        
+        const NeuroglancerAnnotation* getAnnotationWithUniqueID(const uint64_t uniqueID) const;
+        
+        void addPropertyInfo(NeuroglancerPropertyInfo* propertyInfo);
+        
+        std::vector<FeatureLabelModel*> getLabelModels() const;
+        
+        NeuroglancerPropertyInfo* getSelectedColorProperty();
+        
+        const NeuroglancerPropertyInfo* getSelectedColorProperty() const;
+
+        void setSelectedColorProperty(NeuroglancerPropertyInfo* colorProperty);
+        
+        std::vector<ComboBoxItemInterface*> getColorPropertiesForComboBox() const;
+        
+        const std::vector<const NeuroglancerPropertyInfo*> getAllPropertyInfos() const;
         
         void readFile(const AString& filename);
         
@@ -69,8 +100,21 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
         
+        void validateSelectedColorProperty() const;
+        
+        void updateColoring();
+        
         std::unique_ptr<GiftiMetaData> m_fileMetaData;
 
+        std::vector<std::unique_ptr<NeuroglancerPropertyInfo>> m_propertyInfos;
+        
+        std::vector<std::unique_ptr<NeuroglancerAnnotation>> m_annotations;
+        
+        mutable NeuroglancerPropertyInfo* m_selectedColorProperty = NULL;
+        
+        mutable bool m_annotationColoringValidFlag = false;
+        
+        friend class NeuroglancerAnnotationFileImporter;
     };
     
 #ifdef __NEUROGLANCER_ANNOTATION_FILE_DECLARE__

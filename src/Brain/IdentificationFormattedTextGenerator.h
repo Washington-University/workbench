@@ -57,12 +57,13 @@ namespace caret {
     class SelectionItemChartTwoMatrix;
     class SelectionItemCiftiConnectivityMatrixRowColumn;
     class SelectionItemChartTimeSeries;
+    class SelectionItemFeature;
     class SelectionItemFocusSurface;
     class SelectionItemFocus;
     class SelectionItemHistologyCoordinate;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
-    class SelectionItemFeature;
+    class SelectionItemNeuroglancerAnnotation;
     class SelectionItemSurfaceNode;
     class SelectionItemVoxel;
     class SelectionManager;
@@ -170,6 +171,11 @@ namespace caret {
                                               const SelectionItemFeature* selectionFeature,
                                               const bool toolTipFlag) const;
 
+        void generateNeuroglancerAnnotationIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
+                                              IdentificationStringBuilder& idText,
+                                              const SelectionItemNeuroglancerAnnotation* selectionNeuroglancerAnnotation,
+                                              const bool toolTipFlag) const;
+        
         void generateSurfaceVertexIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                const Brain* brain,
                                                const SelectionItemSurfaceNode* idSurfaceNode) const;
@@ -291,6 +297,11 @@ namespace caret {
                                                    HtmlTableBuilder& htmlTableBuilder,
                                                    IdentificationStringBuilder& idText) const;
         
+        void generateNeuroglancerAnnotationToolTip(const DataToolTipsManager* dataToolTipsManager,
+                                                   const SelectionItemNeuroglancerAnnotation* neuroglancerAnnotationSelection,
+                                                   HtmlTableBuilder& htmlTableBuilder,
+                                                   IdentificationStringBuilder& idText) const;
+
         AString xyToText(const float xy[2],
                          const int32_t precisionDigits = -1) const;
         

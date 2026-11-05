@@ -35,6 +35,7 @@
 #include "BrainOpenGLFociDrawing.h"
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLFeatureDrawing.h"
+#include "BrainOpenGLNeuroglancerAnnotationDrawing.h"
 #include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
@@ -4400,6 +4401,17 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
                                               sliceViewPlane,
                                               sliceThickness);
 
+        /*
+         * Draw neuroglancer annotations
+         */
+        BrainOpenGLNeuroglancerAnnotationDrawing neuroAnnDrawing;
+        neuroAnnDrawing.drawOnVolumeOrthogonal(m_brain,
+                                               m_fixedPipelineDrawing,
+                                               const_cast<VolumeMappableInterface*>(underlayVolume),
+                                               slicePlane,
+                                               sliceViewPlane,
+                                               sliceThickness);
+        
         glDisable(GL_POLYGON_OFFSET_FILL);
         
         glPopMatrix();

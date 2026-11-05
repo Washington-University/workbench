@@ -46,13 +46,14 @@
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
+#include "SelectionItemFeature.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocus.h"
 #include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemImageControlPoint.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
-#include "SelectionItemFeature.h"
+#include "SelectionItemNeuroglancerAnnotation.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemUniversalIdentificationSymbol.h"
@@ -98,6 +99,7 @@ SelectionManager::SelectionManager()
     m_mediaLogicalCoordinateIdentification.reset(new SelectionItemMediaLogicalCoordinate());
     m_mediaPlaneCoordinateIdentification.reset(new SelectionItemMediaPlaneCoordinate());
     m_featureIdentification.reset(new SelectionItemFeature());
+    m_neuroglancerAnnotationIdentification.reset(new SelectionItemNeuroglancerAnnotation());
     
     m_samplesIdentification.reset(new SelectionItemAnnotation());
     m_surfaceNodeIdentification = new SelectionItemSurfaceNode();
@@ -130,6 +132,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_mediaLogicalCoordinateIdentification.get());
     m_allSelectionItems.push_back(m_featureIdentification.get());
     m_allSelectionItems.push_back(m_mediaPlaneCoordinateIdentification.get());
+    m_allSelectionItems.push_back(m_neuroglancerAnnotationIdentification.get());
     m_allSelectionItems.push_back(m_universalIdentificationSymbol.get());
     m_allSelectionItems.push_back(m_volumeMprCrosshairIdentification.get());
     m_allSelectionItems.push_back(m_voxelIdentification);
@@ -622,6 +625,23 @@ SelectionManager::getFeatureIdentification() const
     return m_featureIdentification.get();
 }
 
+/**
+ * @return Identification for neuroglancer annotation
+ */
+SelectionItemNeuroglancerAnnotation*
+SelectionManager::getNeuroglancerAnnotationIdentification()
+{
+    return m_neuroglancerAnnotationIdentification.get();
+}
+
+/**
+ * @return Identification for neuroglancer annotation
+ */
+const SelectionItemNeuroglancerAnnotation*
+SelectionManager::getNeuroglancerAnnotationIdentification() const
+{
+    return m_neuroglancerAnnotationIdentification.get();
+}
 /**
  * @return Identification for samples.
  */

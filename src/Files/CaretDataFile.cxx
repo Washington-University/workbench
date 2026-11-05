@@ -714,6 +714,26 @@ CaretDataFile::castToFeatureFile() const
 }
 
 /**
+ * @return File casted to neuroglancer annotation file (avoids use of dynamic_cast that can be slow)
+ * Overidden in NeuroglancerAnnotationFile
+ */
+NeuroglancerAnnotationFile*
+CaretDataFile::castToNeuroglancerAnnotationFile()
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to neuroglancer annotation file (avoids use of dynamic_cast that can be slow)
+ * Overidden in NeuroglancerAnnotationFile
+ */
+const NeuroglancerAnnotationFile*
+CaretDataFile::castToNeuroglancerAnnotationFile() const
+{
+    return NULL;
+}
+
+/**
  * @return File casted to a histology slices file (avoids use of dynamic_cast that can be slow)
  * Overidden in HistologySlicesFile
  */

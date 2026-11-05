@@ -52,6 +52,7 @@
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
+#include "FeatureItem.h"
 #include "FeatureFile.h"
 #include "FileIdentificationAttributes.h"
 #include "FileInformation.h"
@@ -71,7 +72,8 @@
 #include "MediaFile.h"
 #include "MetaVolumeFile.h"
 #include "MetricDynamicConnectivityFile.h"
-#include "FeatureItem.h"
+#include "NeuroglancerAnnotation.h"
+#include "NeuroglancerAnnotationFile.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
@@ -84,12 +86,13 @@
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
+#include "SelectionItemFeature.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocus.h"
 #include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
-#include "SelectionItemFeature.h"
+#include "SelectionItemNeuroglancerAnnotation.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
@@ -297,6 +300,11 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     this->generateFeatureIdentifcationText(*layersHtmlTableBuilder,
                                                           idText,
                                                           selectionManager->getFeatureIdentification(),
+                                                          false);
+    
+    this->generateNeuroglancerAnnotationIdentifcationText(*layersHtmlTableBuilder,
+                                                          idText,
+                                                          selectionManager->getNeuroglancerAnnotationIdentification(),
                                                           false);
     
     this->generateChartDataSeriesIdentificationText(*chartHtmlTableBuilder,
@@ -2540,6 +2548,68 @@ IdentificationFormattedTextGenerator::generateFeatureIdentifcationText(HtmlTable
     }
 }
 
+/**
+ * Generate identification text for a neuroglancer annotation identification.
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param idText
+ *     Text for tooltip
+ * @param selectionNeuroglancerAnnotation
+ *     Information for neuroglancer annotation ID.
+ * @param toolTipFlag
+ *     True when generating text for tooltip
+ */
+void
+IdentificationFormattedTextGenerator::generateNeuroglancerAnnotationIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                       IdentificationStringBuilder& idText,
+                                                                       const SelectionItemNeuroglancerAnnotation* selectionNeuroglancerAnnotation,
+                                                                       const bool toolTipFlag) const
+{
+    if ( ! selectionNeuroglancerAnnotation->isValid()) {
+        return;
+    }
+    const NeuroglancerAnnotation* annotation(selectionNeuroglancerAnnotation->getNeuroglancerAnnotation());
+    CaretAssert(annotation);
+    const NeuroglancerAnnotationFile* neuroAnnFile(selectionNeuroglancerAnnotation->getNeuroglancerAnnotationFile());
+    
+    std::vector<std::vector<AString>> idTextRows;
+    annotation->getIdentificationText(idTextRows,
+                                      neuroAnnFile,
+                                      toolTipFlag);
+    
+    if (toolTipFlag) {
+        AString toolTipText;
+        for (const auto& textRow : idTextRows) {
+            if ( ! toolTipText.isEmpty()) {
+                toolTipText.append("\n");
+            }
+            toolTipText.append(AString::join(textRow, " "));
+        }
+        idText.add(toolTipText);
+    }
+    else {
+        for (const auto& textRow : idTextRows) {
+            if (textRow.size() == 1) {
+                CaretAssertVectorIndex(textRow, 0);
+                htmlTableBuilder.addRowAllColumns(textRow[0]);
+            }
+            else if (textRow.size() == 2) {
+                CaretAssertVectorIndex(textRow, 1);
+                htmlTableBuilder.addRow(textRow[0],
+                                        textRow[1]);
+            }
+            else if (textRow.size() == 3) {
+                CaretAssertVectorIndex(textRow, 2);
+                htmlTableBuilder.addRow(textRow[0],
+                                        textRow[1],
+                                        textRow[2]);
+            }
+            else {
+                CaretLogSevere("More than three columns for feature ID not supported");
+            }
+        }
+    }
+}
 
 /**
  * Add if second column is not empty
@@ -2907,6 +2977,11 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                                           *htmlTableBuilder,
                                           idText);
 
+    generateNeuroglancerAnnotationToolTip(dataToolTipsManager,
+                                          selectionManager->getNeuroglancerAnnotationIdentification(),
+                                          *htmlTableBuilder,
+                                          idText);
+    
     if (vertexXYZValidFlag) {
         std::vector<AString> textLines;
         getTextDistanceToMostRecentIdentificationSymbol(idManager,
@@ -3044,6 +3119,10 @@ IdentificationFormattedTextGenerator::generateVolumeToolTip(const Identification
                                           selectionManager->getFeatureIdentification(),
                                           unusedHtmlTableBuilder,
                                           idText);
+    generateNeuroglancerAnnotationToolTip(dataToolTipsManager,
+                                          selectionManager->getNeuroglancerAnnotationIdentification(),
+                                          unusedHtmlTableBuilder,
+                                          idText);
 }
 
 /**
@@ -3069,6 +3148,34 @@ IdentificationFormattedTextGenerator::generateFeatureToolTip(const DataToolTipsM
             this->generateFeatureIdentifcationText(htmlTableBuilder,
                                                                   idText,
                                                                   featureSelection,
+                                                                  toolTipFlag);
+        }
+    }
+}
+
+/**
+ * Generate tooltip for a neuroglancer annotation identification.
+ * @param dataToolTipsManager
+ *     The data tooltips manager
+ * @param neuroglancerAnnotationSelection
+ *     Selection for neuroglancer annotation
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param idText
+ *     Text for tooltip
+ */
+void
+IdentificationFormattedTextGenerator::generateNeuroglancerAnnotationToolTip(const DataToolTipsManager* dataToolTipsManager,
+                                                                            const SelectionItemNeuroglancerAnnotation* neuroglancerAnnotationSelection,
+                                                                            HtmlTableBuilder& htmlTableBuilder,
+                                                                            IdentificationStringBuilder& idText) const
+{
+    if (dataToolTipsManager->isShowFeatures()) {
+        if (neuroglancerAnnotationSelection->isEnabledForSelection()) {
+            const bool toolTipFlag(true);
+            this->generateNeuroglancerAnnotationIdentifcationText(htmlTableBuilder,
+                                                                  idText,
+                                                                  neuroglancerAnnotationSelection,
                                                                   toolTipFlag);
         }
     }
@@ -3170,6 +3277,10 @@ IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateToolTip(co
     
     generateFeatureToolTip(dataToolTipsManager,
                                           selectionManager->getFeatureIdentification(),
+                                          *htmlTableBuilder,
+                                          idText);
+    generateNeuroglancerAnnotationToolTip(dataToolTipsManager,
+                                          selectionManager->getNeuroglancerAnnotationIdentification(),
                                           *htmlTableBuilder,
                                           idText);
 }

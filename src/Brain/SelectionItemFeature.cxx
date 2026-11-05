@@ -41,7 +41,7 @@ using namespace caret;
  * Constructor.
  */
 SelectionItemFeature::SelectionItemFeature()
-: SelectionItem(SelectionItemDataTypeEnum::FOCUS_VOLUME)
+: SelectionItem(SelectionItemDataTypeEnum::FEATURE)
 {
     resetPrivate();
 }

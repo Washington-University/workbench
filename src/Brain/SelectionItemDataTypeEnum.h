@@ -71,8 +71,10 @@ public:
         CHART_TWO_MATRIX,
         /** CIFTI Connectivity Matrix Row or Column */
         CIFTI_CONNECTIVITY_MATRIX_ROW_COLUMN,
-        /* CZI Image */
+        /** CZI Image */
         CZI_IMAGE,
+        /** Feature */
+        FEATURE,
         /** Focus on Surface */
         FOCUS_SURFACE,
         /** Focus on Volume */
@@ -89,6 +91,8 @@ public:
         MEDIA_LOGICAL_COORDINATE,
         /** Media Plane Coordinate */
         MEDIA_PLANE_COORDINATE,
+        /** Neuroglancer Annotation */
+        NEUROGLANCER_ANNOTATION,
         /** Surface Node*/
         SURFACE_NODE,
         /** Surface Triangle */

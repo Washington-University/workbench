@@ -72,11 +72,12 @@
 #include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesCziImages.h"
+#include "DisplayPropertiesFeature.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesImages.h"
 #include "DisplayPropertiesLabels.h"
-#include "DisplayPropertiesFeature.h"
+#include "DisplayPropertiesNeuroglancerAnnotation.h"
 #include "DisplayPropertiesSamples.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
@@ -240,6 +241,9 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_displayPropertiesFeature = new DisplayPropertiesFeature();
     m_displayProperties.push_back(m_displayPropertiesFeature);
     
+    m_displayPropertiesNeuroglancerAnnotation = new DisplayPropertiesNeuroglancerAnnotation();
+    m_displayProperties.push_back(m_displayPropertiesNeuroglancerAnnotation);
+    
     m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation(this);
     m_displayProperties.push_back(m_displayPropertiesFiberOrientation);
     
@@ -341,6 +345,10 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_sceneAssistant->add("m_displayPropertiesLabels",
                           "DisplayPropertiesLabels",
                           m_displayPropertiesLabels);
+    
+    m_sceneAssistant->add("m_displayPropertiesNeuroglancerAnnotation",
+                          "DisplayPropertiesNeuroglancerAnnotation",
+                          m_displayPropertiesNeuroglancerAnnotation);
     
     m_sceneAssistant->add("m_displayPropertiesSamples",
                           "DisplayPropertiesSamples",
@@ -10348,6 +10356,24 @@ const DisplayPropertiesFeature*
 Brain::getDisplayPropertiesFeature() const
 {
     return m_displayPropertiesFeature;
+}
+
+/**
+ * @return The neuroglancer annotation display properties.
+ */
+DisplayPropertiesNeuroglancerAnnotation*
+Brain::getDisplayPropertiesNeuroglancerAnnotation()
+{
+    return m_displayPropertiesNeuroglancerAnnotation;
+}
+
+/**
+ * @return The neuroglancer annotation  display properties.
+ */
+const DisplayPropertiesNeuroglancerAnnotation*
+Brain::getDisplayPropertiesNeuroglancerAnnotation() const
+{
+    return m_displayPropertiesNeuroglancerAnnotation;
 }
 
 /**

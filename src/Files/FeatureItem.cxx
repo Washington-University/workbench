@@ -319,6 +319,10 @@ FeatureItem::toString() const
                 + ", coordsType=" + FeatureCoordinateTypeEnum::toGuiName(m_coordinatesType)
                 + ", coords=" + coordString
                 + ", color=" + FeaturePropertyValue::QColorToString(m_color));
+    
+    for (const FeaturePropertyValue* fpv : m_propertyValues) {
+        txt += ("\n   " + fpv->toString());
+    }
     return txt;
 }
 

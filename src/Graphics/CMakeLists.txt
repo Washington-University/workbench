@@ -46,6 +46,7 @@ GraphicsPrimitiveV3fN3fC4ub.h
 GraphicsPrimitiveV3fT2f.h
 GraphicsPrimitiveV3fT3f.h
 GraphicsRegionSelectionBox.h
+GraphicsShapeOptimizedDrawing.h
 GraphicsShape.h
 GraphicsTextureMagnificationFilterEnum.h
 GraphicsTextureMinificationFilterEnum.h
@@ -81,6 +82,7 @@ GraphicsPrimitiveV3fN3fC4ub.cxx
 GraphicsPrimitiveV3fT2f.cxx
 GraphicsPrimitiveV3fT3f.cxx
 GraphicsRegionSelectionBox.cxx
+GraphicsShapeOptimizedDrawing.cxx
 GraphicsShape.cxx
 GraphicsTextureMagnificationFilterEnum.cxx
 GraphicsTextureMinificationFilterEnum.cxx

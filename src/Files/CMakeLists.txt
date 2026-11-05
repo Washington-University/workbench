@@ -203,8 +203,11 @@ MetaVolumeFileXmlStreamWriter.h
 MetricDynamicConnectivityFile.h
 MetricFile.h
 MetricSmoothingObject.h
+NeuroglancerAnnotation.h
 NeuroglancerAnnotationFile.h
 NeuroglancerAnnotationFileImporter.h
+NeuroglancerPropertyDataTypeEnum.h
+NeuroglancerPropertyInfo.h
 NodeAndVoxelColoring.h
 OmeZarrImageFile.h
 OxfordSparseThreeFile.h
@@ -418,8 +421,11 @@ MetaVolumeFileXmlStreamWriter.cxx
 MetricDynamicConnectivityFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
+NeuroglancerAnnotation.cxx
 NeuroglancerAnnotationFile.cxx
 NeuroglancerAnnotationFileImporter.cxx
+NeuroglancerPropertyDataTypeEnum.cxx
+NeuroglancerPropertyInfo.cxx
 NodeAndVoxelColoring.cxx
 OmeZarrImageFile.cxx
 OxfordSparseThreeFile.cxx

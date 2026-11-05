@@ -99,6 +99,7 @@ Cluster.h
 ClusterContainer.h
 ClusterTypeEnum.h
 ColorFunctions.h
+ComboBoxItemInterface.h
 CubicSpline.h
 DataCompressZLib.h
 DataFile.h
@@ -193,6 +194,7 @@ RecentFilesSystemAccessModeEnum.h
 RecentSceneInfoContainer.h
 ReductionEnum.h
 ReductionOperation.h
+RgbaUnsignedByte.h
 SpacerTabIndex.h
 SpecFileDialogViewFilesTypeEnum.h
 SpeciesEnum.h
@@ -366,6 +368,7 @@ RecentFilesSystemAccessModeEnum.cxx
 RecentSceneInfoContainer.cxx
 ReductionEnum.cxx
 ReductionOperation.cxx
+RgbaUnsignedByte.cxx
 SpacerTabIndex.cxx
 SpecFileDialogViewFilesTypeEnum.cxx
 SpeciesEnum.cxx

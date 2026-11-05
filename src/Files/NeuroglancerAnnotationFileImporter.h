@@ -31,6 +31,7 @@
 #include "DataFile.h"
 
 #include "FeatureItemTypeEnum.h"
+#include "NeuroglancerAnnotationFile.h"
 
 class QFile;
 class QJsonObject;
@@ -43,10 +44,36 @@ namespace caret {
     class FeatureItemModel;
     class FeatureLabelModel;
     class FileInformation;
+    class NeuroglancerAnnotation;
 
     class NeuroglancerAnnotationFileImporter : public DataFile {
         
     public:
+        static std::set<uint64_t> getAnnotionsUniqueIDsForDebugging();
+        
+        NeuroglancerAnnotationFileImporter(FeatureFile* featureFile);
+        
+        NeuroglancerAnnotationFileImporter(NeuroglancerAnnotationFile* neuroglancerAnnotationFile);
+        
+        virtual ~NeuroglancerAnnotationFileImporter();
+        
+        NeuroglancerAnnotationFileImporter(const NeuroglancerAnnotationFileImporter&) = delete;
+
+        NeuroglancerAnnotationFileImporter& operator=(const NeuroglancerAnnotationFileImporter&) = delete;
+        
+        virtual bool isEmpty() const override;
+        
+        void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const;
+        
+        virtual void readFile(const AString& filename) override;
+        
+        virtual void writeFile(const AString& filename) override;
+
+        // ADD_NEW_METHODS_HERE
+        
+    protected:
+
+    private:
         enum class AnnotationFileType {
             AXIS_ALIGNED_BOUNDING_BOX,
             ELLIPSOID,
@@ -66,7 +93,7 @@ namespace caret {
             SECONDS,
             UNITLESS
         };
-                
+        
         class Dimension {
         public:
             Axis m_axis  = Axis::X;
@@ -75,7 +102,7 @@ namespace caret {
             float m_resolution = 1.0;
             bool m_valid = false;
         };
-                
+        
         struct SpatialGrid
         {
             QString m_path;
@@ -118,7 +145,7 @@ namespace caret {
             uint64_t m_size = -1;
         };
         
-        enum class NeuroglancerDataType {
+        enum class NeuroglancerFileImporterDataType {
             INVALID,
             RGB,
             RGBA,
@@ -131,39 +158,22 @@ namespace caret {
             FLOAT32
         };
         
-        class NeuroglancerProperty {
+        class NeuroglancerFileImporterProperty {
         public:
-            NeuroglancerDataType m_propertyType = NeuroglancerDataType::INVALID;
+            NeuroglancerFileImporterDataType m_propertyType = NeuroglancerFileImporterDataType::INVALID;
             AString m_description;
             AString m_id;
             std::map<int32_t, AString> m_enumValueLabel;
             int64_t m_fileOffset = -1;
+            int32_t m_propertyIndex;
             FeatureLabelModel* m_labelModel = NULL;
         };
-
-        NeuroglancerAnnotationFileImporter(FeatureFile* featureFile);
         
-        virtual ~NeuroglancerAnnotationFileImporter();
+        enum class ReadingTarget {
+            FEATURE_FILE,
+            NEUROGLANCER_ANNOTATION_FILE
+        };
         
-        NeuroglancerAnnotationFileImporter(const NeuroglancerAnnotationFileImporter&) = delete;
-
-        NeuroglancerAnnotationFileImporter& operator=(const NeuroglancerAnnotationFileImporter&) = delete;
-        
-        virtual bool isEmpty() const override;
-        
-        void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const;
-        
-        virtual void readFile(const AString& filename) override;
-        
-        virtual void writeFile(const AString& filename) override;
-
-        std::set<uint64_t> getAnnotionsUniqueIDsForDebugging() const;
-        
-        // ADD_NEW_METHODS_HERE
-        
-    protected:
-
-    private:
         enum class ShardingDataType {
             ANNOTATION,
             RELATIONSHIP
@@ -179,18 +189,21 @@ namespace caret {
             : m_validFlag(false) { }
             
             NewAnnotationInformation(const uint64_t uniqueID,
-                                    const QList<QStandardItem*>& featureAndPropertiesList)
+                                     const QList<QStandardItem*>& featureAndPropertiesList,
+                                     NeuroglancerAnnotation* neuroglancerAnnotation)
             : m_uniqueID(uniqueID),
             m_featureAndPropertiesList(featureAndPropertiesList),
+            m_neuroglancerAnnotation(neuroglancerAnnotation),
             m_validFlag(true) { }
             
             uint64_t m_uniqueID;
             QList<QStandardItem*> m_featureAndPropertiesList;
+            NeuroglancerAnnotation* m_neuroglancerAnnotation = NULL;
             bool m_validFlag = false;
         };
         
 
-        static AString neuroglancerDataTypeToString(const NeuroglancerDataType& dataType);
+        static AString neuroglancerDataTypeToString(const NeuroglancerFileImporterDataType& dataType);
         
         void readNeuroglancerInfoFile(const AString& filename);
 
@@ -262,7 +275,13 @@ namespace caret {
                             QByteArray& uncompressedDataOut,
                             const AString encodingName);
 
+        void initializeFile();
+        
+        const ReadingTarget m_readingTarget;
+        
         FeatureFile* m_featureFile = NULL;
+        
+        NeuroglancerAnnotationFile* m_neuroglancerAnnotationFile = NULL;
         
         AString m_infoFileDirectoryName;
         
@@ -280,7 +299,7 @@ namespace caret {
         
         std::vector<Relationship> m_relationships;
         
-        std::vector<NeuroglancerProperty> m_properties;
+        std::vector<NeuroglancerFileImporterProperty> m_properties;
         
 
         /**
@@ -295,9 +314,11 @@ namespace caret {
         
         int64_t m_numberOfAnnotationsRead = 0;
         
-        int64_t m_skipAfterReadingNumberOfAnnotations = 100000;
+        int64_t m_skipAfterReadingNumberOfAnnotations = 0;
         
         std::set<uint64_t> m_annotionsUniqueIDsForDebugging;
+        
+        static std::set<uint64_t> s_annotionsUniqueIDsForDebugging;
         
         bool m_debugFlag = false;
         
@@ -306,7 +327,7 @@ namespace caret {
     };
     
 #ifdef __NEUROGLANCER_ANNOTATION_FILE_IMPORTER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::set<uint64_t> NeuroglancerAnnotationFileImporter::s_annotionsUniqueIDsForDebugging;
 #endif // __NEUROGLANCER_ANNOTATION_FILE_IMPORTER_DECLARE__
 
 } // namespace

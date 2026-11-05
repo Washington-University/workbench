@@ -42,17 +42,17 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionComboBox.h"
+#include "ComboBoxItemInterfaceComboBox.h"
 #include "DisplayGroupEnumComboBox.h"
-#include "DisplayPropertiesFeature.h"
+#include "DisplayPropertiesNeuroglancerAnnotation.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
-#include "FeatureFile.h"
 #include "GuiManager.h"
 #include "FeatureLabelModel.h"
-#include "FeatureItemModel.h"
-#include "FeatureItem.h"
+#include "NeuroglancerAnnotationFile.h"
+#include "NeuroglancerPropertyInfo.h"
 #include "SceneClass.h"
 #include "WuQMacroManager.h"
 #include "WuQTabWidget.h"
@@ -64,10 +64,10 @@ using namespace caret;
     
 /**
  * \class caret::NeuroglancerAnnotationViewController 
- * \brief Widget for controlling display of features
+ * \brief Widget for controlling display of neuroglancer annotations
  * \ingroup GuiQt
  *
- * Widget for controlling the display of features including
+ * Widget for controlling the display of neuroglancer annotations including
  * different display groups.
  */
 
@@ -90,14 +90,14 @@ m_objectNamePrefix(parentObjectName
 {
     m_browserWindowIndex = browserWindowIndex;
     
-    QLabel* groupLabel = new QLabel("Group");
+    QLabel* groupLabel = new QLabel("Display Group");
     m_displayGroupComboBox = new DisplayGroupEnumComboBox(this);
     QObject::connect(m_displayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
                      this, SLOT(displayGroupSelected(const DisplayGroupEnum::Enum)));
     m_displayGroupComboBox->getWidget()->setEnabled(false);
     
     /*
-     * Hide group selection label and combo box
+     * Hide group selectigvon label and combo box
      */
     groupLabel->setVisible(false);
     m_displayGroupComboBox->getWidget()->setVisible(false);
@@ -109,41 +109,38 @@ m_objectNamePrefix(parentObjectName
     groupLayout->addStretch();
     
     QLabel* fileLabel(new QLabel("File"));
-    m_featureFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
-    QObject::connect(m_featureFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
-                     [=]() { this->updateFeatureItemsWidget(); });
-    
-    QLabel* volumeLabel(new QLabel("Volume"));
-    m_volumeFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
-    QObject::connect(m_volumeFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
-                     [=]() { this->updateFeatureItemsWidget(); });
+    m_fileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
+    QObject::connect(m_fileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
+                     [=]() { this->updateViewController(); });
 
+    QLabel* colorLabel(new QLabel("Color"));
+    m_colorPropertySelectionComboBox = new ComboBoxItemInterfaceComboBox(this);
+    QObject::connect(m_colorPropertySelectionComboBox, &ComboBoxItemInterfaceComboBox::itemActivated,
+                     this, &NeuroglancerAnnotationViewController::colorPropertySelected);
+    
     QGridLayout* fileLayout(new QGridLayout());
     fileLayout->setColumnStretch(1, 100);
     fileLayout->setContentsMargins(0, 0, 0, 0);
     fileLayout->addWidget(fileLabel, 0, 0);
-    fileLayout->addWidget(m_featureFileSelectionComboBox->getWidget(), 0, 1);
-    fileLayout->addWidget(volumeLabel, 1, 0);
-    fileLayout->addWidget(m_volumeFileSelectionComboBox->getWidget(), 1, 1);
+    fileLayout->addWidget(m_fileSelectionComboBox->getWidget(), 0, 1);
+    fileLayout->addWidget(colorLabel, 1, 0);
+    fileLayout->addWidget(m_colorPropertySelectionComboBox->getWidget(), 1, 1);
 
     m_displayCheckBox = new QCheckBox("Display Points");
     m_displayCheckBox->setToolTip("Enable the display of points");
     QObject::connect(m_displayCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
     m_displayCheckBox->setObjectName(m_objectNamePrefix
-                                            + ":DisplayFeatureItems");
+                                            + ":DisplayNeuroglancerAnnotationItems");
     WuQMacroManager::instance()->addMacroSupportToObject(m_displayCheckBox,
                                                          "Enable points display");
     
     QWidget* attributesWidget = this->createAttributesWidget();
-    QWidget* featuresItemsWidget = this->createFeatureItemsWidget();
     QWidget* labelsWidget     = this->createLabelsWidget();
     
     m_tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
                                    this);
     m_tabWidget->getWidget()->layout()->setContentsMargins(0, 0, 0, 0);
-    m_tabWidget->addTab(featuresItemsWidget,
-                        "Points");
     m_tabWidget->addTab(attributesWidget,
                         "Attributes");
     m_tabWidget->addTab(labelsWidget,
@@ -153,7 +150,7 @@ m_objectNamePrefix(parentObjectName
     m_tabWidget->getTabBar()->setObjectName(m_objectNamePrefix
                                             + ":Tab");
     WuQMacroManager::instance()->addMacroSupportToObject(m_tabWidget->getTabBar(),
-                                                         "Select features toolbox points tab");
+                                                         "Select neuroglancer annotation toolbox tab");
     
     this->setContentsMargins(0, 0, 0, 0);
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -180,341 +177,6 @@ NeuroglancerAnnotationViewController::~NeuroglancerAnnotationViewController()
     
     NeuroglancerAnnotationViewController::allNeuroglancerAnnotationViewControllers.erase(this);
 }
-
-/**
- * @return New instance of features selection widget
- */
-QWidget* 
-NeuroglancerAnnotationViewController::createFeatureItemsWidget()
-{
-    m_featureCollapseAllAction = new QAction("Collapse");
-    m_featureCollapseAllAction->setToolTip("Collapse all items");
-    QObject::connect(m_featureCollapseAllAction, &QAction::triggered,
-                     this, &NeuroglancerAnnotationViewController::featureCollapseAllActionTriggered);
-    QToolButton* collapseAllToolButton(new QToolButton());
-    collapseAllToolButton->setDefaultAction(m_featureCollapseAllAction);
-    
-    m_featureExpandAllAction = new QAction("Expand");
-    m_featureExpandAllAction->setToolTip("Expand all items");
-    QObject::connect(m_featureExpandAllAction, &QAction::triggered,
-                     this, &NeuroglancerAnnotationViewController::featureExpandAllActionTriggered);
-    QToolButton* expandAllToolButton(new QToolButton());
-    expandAllToolButton->setDefaultAction(m_featureExpandAllAction);
-    
-    m_featureAllOnAction = new QAction("On");
-    m_featureAllOnAction->setToolTip("Turn all items on (check all)");
-    QObject::connect(m_featureAllOnAction, &QAction::triggered,
-                     this, &NeuroglancerAnnotationViewController::featureAllOnActionTriggered);
-    QToolButton* allOnToolButton(new QToolButton());
-    allOnToolButton->setDefaultAction(m_featureAllOnAction);
-    
-    m_featureAllOffAction = new QAction("Off");
-    m_featureAllOffAction->setToolTip("Turn all items off (uncheck all)");
-    QObject::connect(m_featureAllOffAction, &QAction::triggered,
-                     this, &NeuroglancerAnnotationViewController::featureAllOffActionTriggered);
-    QToolButton* allOffToolButton(new QToolButton());
-    allOffToolButton->setDefaultAction(m_featureAllOffAction);
-    
-    m_featureMoreAction = new QAction("More");
-    QObject::connect(m_featureMoreAction, &QAction::triggered,
-                     this, &NeuroglancerAnnotationViewController::featureMoreActionTriggered);
-    m_featureMoreAction->setToolTip("Show additional option(s)");
-    m_featureMoreAction->setEnabled(false);
-    
-    m_featureMoreToolButton = new QToolButton();
-    m_featureMoreToolButton->setDefaultAction(m_featureMoreAction);
-    
-    m_featureInfoAction = new QAction("Info");
-    m_featureInfoAction->setToolTip("Show information about selected label");
-    m_featureInfoAction->setEnabled(false);
-    QObject::connect(m_featureInfoAction, &QAction::triggered,
-                     this, &NeuroglancerAnnotationViewController::featureInfoActionTriggered);
-    m_featureInfoToolButton = new QToolButton;
-    m_featureInfoToolButton->setDefaultAction(m_featureInfoAction);
-    
-    m_featureFindAction = new QAction("Find");
-    m_featureFindAction->setToolTip("Find the first item containing the text");
-    m_featureFindAction->setEnabled(false);
-    QObject::connect(m_featureFindAction, &QAction::triggered,
-                     this, &NeuroglancerAnnotationViewController::featureFindActionTriggered);
-    QToolButton* findToolButton(new QToolButton);
-    findToolButton->setDefaultAction(m_featureFindAction);
-    
-    m_featureNextAction = new QAction("Next");
-    m_featureNextAction->setToolTip("Move to the next item containing the text (will wrap)");
-    m_featureNextAction->setEnabled(false);
-    QObject::connect(m_featureNextAction, &QAction::triggered,
-                     this, &NeuroglancerAnnotationViewController::featureNextActionTriggered);
-    QToolButton* nextToolButton(new QToolButton);
-    nextToolButton->setDefaultAction(m_featureNextAction);
-    
-    m_featureFindTextLineEdit = new QLineEdit();
-    m_featureFindTextLineEdit->setToolTip("Enter find text here");
-    QObject::connect(m_featureFindTextLineEdit, &QLineEdit::returnPressed,
-                     this, &NeuroglancerAnnotationViewController::featureFindActionTriggered);
-    QObject::connect(m_featureFindTextLineEdit, &QLineEdit::textChanged,
-                     this, &NeuroglancerAnnotationViewController::featureFindTextLineEditTextChanged);
-    
-    QHBoxLayout* buttonsLayout(new QHBoxLayout());
-    buttonsLayout->setSpacing(buttonsLayout->spacing() / 2);
-    buttonsLayout->setContentsMargins(2, 2, 2, 2);
-    buttonsLayout->addWidget(allOnToolButton);
-    buttonsLayout->addWidget(allOffToolButton);
-    buttonsLayout->addWidget(collapseAllToolButton);
-    buttonsLayout->addWidget(expandAllToolButton);
-    buttonsLayout->addSpacing(4);
-    buttonsLayout->addWidget(m_featureInfoToolButton);
-    buttonsLayout->addWidget(m_featureMoreToolButton);
-    buttonsLayout->addSpacing(4);
-    buttonsLayout->addWidget(findToolButton);
-    buttonsLayout->addWidget(nextToolButton);
-    buttonsLayout->addWidget(m_featureFindTextLineEdit,
-                             100); /* stretch factor */
-
-    m_featureItemTreeView = new QTreeView();
-    QObject::connect(m_featureItemTreeView, &QTreeView::clicked,
-                     this, &NeuroglancerAnnotationViewController::featureTreeItemClicked);
-    
-//    const int BIG_STRETCH(100);
-    QWidget* widget(new QWidget());
-    QVBoxLayout* layout(new QVBoxLayout(widget));
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(layout->spacing() / 2);
-    layout->addLayout(buttonsLayout);
-    layout->addWidget(m_featureItemTreeView);//, BIG_STRETCH);
-//    layout->addStretch();
-    
-    return widget;
-}
-
-/**
- * Called when tree item is
- * @param modelIndex
- *     Model index that is
- */
-void
-NeuroglancerAnnotationViewController::featureTreeItemClicked(const QModelIndex& modelIndex)
-{
-    if (m_selectedFeatureItemModel != NULL) {
-        QStandardItem* item(m_selectedFeatureItemModel->itemFromIndex(modelIndex));
-        if (item != NULL) {
-            FeatureBase* featureBase(dynamic_cast<FeatureBase*>(item));
-            const Qt::CheckState checkState(featureBase->checkState());
-            featureBase->setAllChildrenChecked(checkState == Qt::Checked);
-            m_selectedFeatureItemModel->updateCheckedStateOfAllItems();
-            processSelectionChanges();
-            
-            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-        }
-    }
-}
-
-/**
- * Called when tree item is
- * @param modelIndex
- *     Model index that is
- */
-void
-NeuroglancerAnnotationViewController::featureTreeItemDoubleClicked(const QModelIndex& /*modelIndex*/)
-{
-}
-
-
-/**
- * Called when collapse all action is triggered
- */
-void
-NeuroglancerAnnotationViewController::featureCollapseAllActionTriggered()
-{
-    m_featureItemTreeView->collapseAll();
-}
-
-/**
- * Called when expand all action is triggered
- */
-void
-NeuroglancerAnnotationViewController::featureExpandAllActionTriggered()
-{
-    m_featureItemTreeView->expandAll();
-}
-
-/**
- * Called when expand all action is triggered
- */
-void
-NeuroglancerAnnotationViewController::featureAllOnActionTriggered()
-{
-    featureItemsAllOnOffButtonClicked(true);
-}
-
-/**
- * Called when expand all action is triggered
- */
-void
-NeuroglancerAnnotationViewController::featureAllOffActionTriggered()
-{
-    featureItemsAllOnOffButtonClicked(false);
-}
-
-/**
- * Called when Info button is clicked
- */
-void
-NeuroglancerAnnotationViewController::featureInfoActionTriggered()
-{
-// TBD
-//
-//    const LabelSelectionItem* labelItem(getLabelSelectionItemAtModelIndex(m_treeView->currentIndex()));
-//    if (labelItem != NULL) {
-//        const bool infoButtonFlag(true);
-//        showSelectedItemMenu(labelItem,
-//                             mapToGlobal(m_infoToolButton->pos()),
-//                             infoButtonFlag);
-//    }
-//    else {
-//        WuQMessageBoxTwo::information(this,
-//                                      "Information",
-//                                      "Select an item to get information about it");
-//    }
-}
-
-/**
- * Called when more action triggered
- */
-void
-NeuroglancerAnnotationViewController::featureMoreActionTriggered()
-{
-// TBD
-//
-//    DisplayPropertiesLabels* dsl(GuiManager::get()->getBrain()->getDisplayPropertiesLabels());
-//    
-//    QMenu menu;
-//    
-//    QAction* showBranchesWithoutLabelsAction = menu.addAction("Show branches without labels");
-//    showBranchesWithoutLabelsAction->setCheckable(true);
-//    showBranchesWithoutLabelsAction->setChecked(dsl->isShowBranchesWithoutLabelsInHierarchies());
-//    
-//    QAction* unusedLabelsAction = menu.addAction("Show unused labels");
-//    unusedLabelsAction->setCheckable(true);
-//    unusedLabelsAction->setChecked(dsl->isShowUnusedLabelsInHierarchies());
-//    
-//    QAction* selectedAction = menu.exec(m_moreToolButton->mapToGlobal(QPoint(0, 0)));
-//    if (selectedAction == showBranchesWithoutLabelsAction) {
-//        dsl->setShowBranchesWithoutLabelsInHierarchies(showBranchesWithoutLabelsAction->isChecked());
-//        resetFindItems();
-//        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//    }
-//    else if (selectedAction == unusedLabelsAction) {
-//        dsl->setShowUnusedLabelsInHierarchies(unusedLabelsAction->isChecked());
-//        resetFindItems();
-//        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//    }
-//    else if (selectedAction != NULL) {
-//        CaretAssertMessage(0, "Has new menu item been added to More menu");
-//    }
-}
-
-/**
- * Called when find button is clicked or return is pressed in the find line edit
- */
-void
-NeuroglancerAnnotationViewController::featureFindActionTriggered()
-{
-    m_featureFindItemModelIndices.clear();
-    m_featureFindItemsCurrentIndex = 0;
-    
-    if (m_selectedFeatureItemModel != NULL) {
-        const QString findText(m_featureFindTextLineEdit->text().trimmed());
-        
-        const int modelColumn(0);
-        QList<QStandardItem*> matchingItems(m_selectedFeatureItemModel->findItems(findText,
-                                                                             (Qt::MatchContains
-                                                                              | Qt::MatchRecursive),
-                                                                             modelColumn));
-        for (QStandardItem* item : matchingItems) {
-            const QModelIndex modelIndex(m_selectedFeatureItemModel->indexFromItem(item));
-            if (modelIndex.isValid()) {
-                m_featureFindItemModelIndices.push_back(modelIndex);
-            }
-        }
-    }
-    if (m_featureFindItemModelIndices.empty()) {
-        GuiManager::get()->beep();
-    }
-    featureScrollTreeViewToFindItem();
-}
-
-/**
- * Called when next button is clicked
- */
-void
-NeuroglancerAnnotationViewController::featureNextActionTriggered()
-{
-    featureScrollTreeViewToFindItem();
-}
-
-/**
- * Scroll the tree view to the next find item
- */
-void
-NeuroglancerAnnotationViewController::featureScrollTreeViewToFindItem()
-{
-    const int32_t numFindItems(m_featureFindItemModelIndices.size());
-    if (numFindItems > 0) {
-        if ((m_featureFindItemsCurrentIndex < 0)
-            || (m_featureFindItemsCurrentIndex >= numFindItems)) {
-            m_featureFindItemsCurrentIndex = 0;
-        }
-        CaretAssertVectorIndex(m_featureFindItemModelIndices, m_featureFindItemsCurrentIndex);
-        const QModelIndex modelIndex(m_featureFindItemModelIndices[m_featureFindItemsCurrentIndex]);
-        if (modelIndex.isValid()) {
-            m_featureItemTreeView->setCurrentIndex(modelIndex);
-            m_featureItemTreeView->scrollTo(modelIndex,
-                                            QTreeView::PositionAtCenter);
-        }
-        
-        /*
-         * For 'next'
-         */
-        ++m_featureFindItemsCurrentIndex;
-    }
-    
-    m_featureNextAction->setEnabled(numFindItems > 1);
-}
-
-/**
- * Called when next button is clicked
- * @param text
- *    Text in the line edit
- */
-void
-NeuroglancerAnnotationViewController::featureFindTextLineEditTextChanged(const QString& text)
-{
-    m_featureFindAction->setEnabled( ! text.trimmed().isEmpty());
-    m_featureNextAction->setEnabled(false);
-    m_featureFindItemModelIndices.clear();
-    m_featureFindItemsCurrentIndex = 0;
-}
-
-/**
- * Reset find items but and clear find text
- */
-void
-NeuroglancerAnnotationViewController::featureResetFindItemsAndFindText()
-{
-    m_featureFindTextLineEdit->clear();
-    featureResetFindItems();
-}
-
-/**
- * Reset find items but do not clear find text
- */
-void
-NeuroglancerAnnotationViewController::featureResetFindItems()
-{
-    featureFindTextLineEditTextChanged(m_featureFindTextLineEdit->text());
-}
-
 
 /**
  * @return New instance of labels selection widget
@@ -586,8 +248,7 @@ NeuroglancerAnnotationViewController::createLabelsWidget()
     layout->setSpacing(layout->spacing() / 2);
     layout->addLayout(fileLayout);
     layout->addLayout(buttonsLayout);
-    layout->addWidget(m_labelsTableView);//, BIG_STRETCH);
-//    layout->addStretch();
+    layout->addWidget(m_labelsTableView);
 
     return widget;
 }
@@ -716,11 +377,10 @@ NeuroglancerAnnotationViewController::createAttributesWidget()
     m_distanceToVolumeSliceSpinBox->setSuffix("mm");
     QObject::connect(m_distanceToVolumeSliceSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      [=]() { processAttributesChanges(); });
-
+    
     QWidget* widget = new QWidget();
     QGridLayout* layout = new QGridLayout(widget);
     layout->setVerticalSpacing(layout->verticalSpacing() / 2);
-//    layout->setAlignment(Qt::AlignTop);
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 100);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -743,7 +403,7 @@ NeuroglancerAnnotationViewController::createAttributesWidget()
 void 
 NeuroglancerAnnotationViewController::processAttributesChanges()
 {
-    DisplayPropertiesFeature* dpna = GuiManager::get()->getBrain()->getDisplayPropertiesFeature();
+    DisplayPropertiesNeuroglancerAnnotation* dpna = GuiManager::get()->getBrain()->getDisplayPropertiesNeuroglancerAnnotation();
         
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
@@ -762,11 +422,11 @@ NeuroglancerAnnotationViewController::processAttributesChanges()
     
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
-    updateOtherFeatureViewControllers();
+    updateOtherViewControllers();
 }
 
 /**
- * Called when the features display group combo box is changed.
+ * Called when the neuroglancer annotation display group combo box is changed.
  */
 void 
 NeuroglancerAnnotationViewController::displayGroupSelected(const DisplayGroupEnum::Enum displayGroup)
@@ -782,14 +442,14 @@ NeuroglancerAnnotationViewController::displayGroupSelected(const DisplayGroupEnu
     
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesFeature* dpna = brain->getDisplayPropertiesFeature();
+    DisplayPropertiesNeuroglancerAnnotation* dpna = brain->getDisplayPropertiesNeuroglancerAnnotation();
     dpna->setDisplayGroupForTab(browserTabIndex,
                                 displayGroup);
     
     /*
      * Since display group has changed, need to update controls
      */
-    updateFeatureViewController();
+    updateViewController();
     
     /*
      * Apply the changes.
@@ -798,10 +458,10 @@ NeuroglancerAnnotationViewController::displayGroupSelected(const DisplayGroupEnu
 }
 
 /**
- * Update the features widget.
+ * Update the widget.
  */
 void 
-NeuroglancerAnnotationViewController::updateFeatureViewController()
+NeuroglancerAnnotationViewController::updateViewController()
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
@@ -809,14 +469,9 @@ NeuroglancerAnnotationViewController::updateFeatureViewController()
         return;
     }
     
-    setEnabled(false);
-    return;
-    
-    
-    
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesFeature* dpna = brain->getDisplayPropertiesFeature();
+    DisplayPropertiesNeuroglancerAnnotation* dpna = brain->getDisplayPropertiesNeuroglancerAnnotation();
     const DisplayGroupEnum::Enum displayGroup = dpna->getDisplayGroupForTab(browserTabIndex);
     
     setWindowTitle("Points");
@@ -827,77 +482,55 @@ NeuroglancerAnnotationViewController::updateFeatureViewController()
     QSignalBlocker symbolSizeBlocker(m_symbolScaleSpinBox);
     m_symbolScaleSpinBox->setValue(dpna->getSymbolScale());
     
-    QSignalBlocker distanceToVolumeSlice(m_distanceToVolumeSliceSpinBox);
+    QSignalBlocker volumeDistanceBlocker(m_distanceToVolumeSliceSpinBox);
     m_distanceToVolumeSliceSpinBox->setValue(dpna->getDistanceFromVolumeSliceTolerance());
     
-    updateFeatureItemsWidget();
+    m_fileSelectionComboBox->updateComboBox(dpna->getFileSelectionModel());
+    
+    std::vector<ComboBoxItemInterface*> colorItems;
+    ComboBoxItemInterface* selectedColorItem(NULL);
+    NeuroglancerAnnotationFile* neuroAnnFile(getSelectedFile());
+    if (neuroAnnFile != NULL) {
+        CaretAssert(neuroAnnFile);
+        colorItems = neuroAnnFile->getColorPropertiesForComboBox();
+        selectedColorItem = neuroAnnFile->getSelectedColorProperty();
+    }
+    m_colorPropertySelectionComboBox->updateComboBox(colorItems);
+    m_colorPropertySelectionComboBox->setCurrentItem(selectedColorItem);
     
     updateLabelWidget();
+    
+    setEnabled(neuroAnnFile != NULL);
 }
 
 /**
- * Update the feature items tab
+ * @return The selected neuroglancer annotation file or NULL if no file selected
  */
-void
-NeuroglancerAnnotationViewController::updateFeatureItemsWidget()
+NeuroglancerAnnotationFile*
+NeuroglancerAnnotationViewController::getSelectedFile()
 {
-    Brain* brain = GuiManager::get()->getBrain();
-    
-    QAbstractItemModel* previousModel(m_featureItemTreeView->model());
-    DisplayPropertiesFeature* dpna = brain->getDisplayPropertiesFeature();
-    m_featureFileSelectionComboBox->updateComboBox(dpna->getFeatureFileSelectionModel());
-    
-    m_selectedFeatureItemModel = NULL;
-    
-    CaretDataFile* cdf(m_featureFileSelectionComboBox->getSelectedFile());
-    if (cdf != NULL) {
-        FeatureFile* featureFile(dynamic_cast<FeatureFile*>(cdf));
-        CaretAssert(featureFile);
-        
-        m_volumeFileSelectionComboBox->updateComboBox(featureFile->getVolumeFileSelectionModel());
-        
-        m_selectedFeatureItemModel = featureFile->getFeatureItemModel();
-        CaretAssert(m_selectedFeatureItemModel);
-        
-        m_featureItemTreeView->setModel(m_selectedFeatureItemModel);
-        m_featureItemTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-        
-        if (previousModel != m_selectedFeatureItemModel) {
-            m_featureItemTreeView->expandAll();
-        }
+    NeuroglancerAnnotationFile* selectedFile(NULL);
+    CaretDataFile* selFile(m_fileSelectionComboBox->getSelectedFile());
+    if (selFile != NULL) {
+        selectedFile = selFile->castToNeuroglancerAnnotationFile();
     }
-    else {
-        m_featureItemTreeView->setModel(NULL);
-        m_volumeFileSelectionComboBox->updateComboBox(NULL);
-    }
+
+    return selectedFile;
 }
 
-/**
- * Called when feature items all on/off button clicked
- * @param onFlag
- *   True if on clicked, false if off clicked
- */
-void
-NeuroglancerAnnotationViewController::featureItemsAllOnOffButtonClicked(const bool onFlag)
-{
-    if (m_selectedFeatureItemModel != NULL) {
-        m_selectedFeatureItemModel->setCheckedStatusOfAllItems(onFlag);
-    }
-    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-}
 
 /**
- * Update other features view controllers.
+ * Update other view controllers.
  */
 void 
-NeuroglancerAnnotationViewController::updateOtherFeatureViewControllers()
+NeuroglancerAnnotationViewController::updateOtherViewControllers()
 {
     for (std::set<NeuroglancerAnnotationViewController*>::iterator iter = NeuroglancerAnnotationViewController::allNeuroglancerAnnotationViewControllers.begin();
          iter != NeuroglancerAnnotationViewController::allNeuroglancerAnnotationViewControllers.end();
          iter++) {
         NeuroglancerAnnotationViewController* bsw = *iter;
         if (bsw != this) {
-            bsw->updateFeatureViewController();
+            bsw->updateViewController();
         }
     }
 }
@@ -908,7 +541,27 @@ NeuroglancerAnnotationViewController::updateOtherFeatureViewControllers()
 void 
 NeuroglancerAnnotationViewController::processSelectionChanges()
 {
-    updateOtherFeatureViewControllers();
+    updateOtherViewControllers();
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+}
+
+/**
+ * Called when a color property is selected
+ * @param item
+ *     Color item that was selected
+ */
+void
+NeuroglancerAnnotationViewController::colorPropertySelected(ComboBoxItemInterface* item)
+{
+    NeuroglancerAnnotationFile* selectedFile(getSelectedFile());
+    if (selectedFile != NULL) {
+        NeuroglancerPropertyInfo* propInfo(NULL);
+        if (item != NULL) {
+            propInfo = dynamic_cast<NeuroglancerPropertyInfo*>(item);
+        }
+        selectedFile->setSelectedColorProperty(propInfo);
+    }
+    
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
@@ -936,7 +589,7 @@ NeuroglancerAnnotationViewController::receiveEvent(Event* event)
     }
 
     if (doUpdate) {
-        updateFeatureViewController();
+        updateViewController();
     }
 }
 
@@ -968,13 +621,16 @@ NeuroglancerAnnotationViewController::updateLabelWidget()
     m_labelModelSelectionComboBox->clear();
     
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesFeature* dpna = brain->getDisplayPropertiesFeature();
-    FeatureFile* featureFile(dpna->getSelectedFeatureFile());
-    if (featureFile != NULL) {
+    DisplayPropertiesNeuroglancerAnnotation* dpna(brain->getDisplayPropertiesNeuroglancerAnnotation());
+    NeuroglancerAnnotationFile* neuroAnnFile(dpna->getSelectedFile());
+    if (neuroAnnFile != NULL) {
         int32_t selectedIndex(-1);
-        const int32_t numLabelModels(featureFile->getNumberOfLabelModels());
+        std::vector<FeatureLabelModel*> labelModels(neuroAnnFile->getLabelModels());
+        const int32_t numLabelModels(labelModels.size());
         for (int32_t i = 0; i < numLabelModels; i++) {
-            FeatureLabelModel* labelModel(featureFile->getLabelModel(i));
+            CaretAssertVectorIndex(labelModels, i);
+            FeatureLabelModel* labelModel(labelModels[i]);
+            CaretAssert(labelModel);
             if (labelModel == previousSelectedLabelModel) {
                 selectedIndex = m_labelModelSelectionComboBox->count();
             }

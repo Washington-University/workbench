@@ -766,13 +766,14 @@ namespace caret {
         friend class BrainOpenGLAnnotationDrawingFixedPipeline;
         friend class BrainOpenGLChartDrawingFixedPipeline;
         friend class BrainOpenGLChartTwoDrawingFixedPipeline;
+        friend class BrainOpenGLFeatureDrawing;
         friend class BrainOpenGLFociDrawing;
         friend class BrainOpenGLHistologySliceDrawing;
         friend class BrainOpenGLHistologyStereotaxicSliceDrawing;
         friend class BrainOpenGLIdentificationDrawing;
         friend class BrainOpenGLMediaCoordinateDrawing;
         friend class BrainOpenGLMediaDrawing;
-        friend class BrainOpenGLFeatureDrawing;
+        friend class BrainOpenGLNeuroglancerAnnotationDrawing;
         friend class BrainOpenGLVolumeSurfaceClippedOutlineDrawing;
         friend class BrainOpenGLVolumeMprThreeDrawing;
         friend class BrainOpenGLVolumeMprTwoDrawing;

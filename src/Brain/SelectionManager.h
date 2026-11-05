@@ -44,13 +44,14 @@ namespace caret {
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
     class SelectionItemCiftiConnectivityMatrixRowColumn;
+    class SelectionItemFeature;
     class SelectionItemFocusSurface;
     class SelectionItemFocus;
     class SelectionItemHistologyCoordinate;
     class SelectionItemImageControlPoint;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
-    class SelectionItemFeature;
+    class SelectionItemNeuroglancerAnnotation;
     class SelectionItemSurfaceNode;
     class SelectionItemSurfaceTriangle;
     class SelectionItemUniversalIdentificationSymbol;
@@ -107,6 +108,10 @@ namespace caret {
         SelectionItemFeature* getFeatureIdentification();
         
         const SelectionItemFeature* getFeatureIdentification() const;
+        
+        SelectionItemNeuroglancerAnnotation* getNeuroglancerAnnotationIdentification();
+        
+        const SelectionItemNeuroglancerAnnotation* getNeuroglancerAnnotationIdentification() const;
         
         SelectionItemAnnotation* getSamplesIdentification();
         
@@ -260,6 +265,8 @@ namespace caret {
         
         std::unique_ptr<SelectionItemFeature> m_featureIdentification;
 
+        std::unique_ptr<SelectionItemNeuroglancerAnnotation> m_neuroglancerAnnotationIdentification;
+        
         std::unique_ptr<SelectionItemAnnotation> m_samplesIdentification;
         
         SelectionItemSurfaceNode* m_surfaceNodeIdentification;
