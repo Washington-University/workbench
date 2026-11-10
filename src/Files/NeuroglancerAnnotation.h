@@ -30,7 +30,10 @@
 
 namespace caret {
 
+    class Matrix4x4;
     class NeuroglancerAnnotationFile;
+    class NeuroglancerPropertyInfo;
+    class RgbaUnsignedByte;
     
     class NeuroglancerAnnotation {
         
@@ -49,6 +52,8 @@ namespace caret {
         
         const Vector3D& getXYZ() const;
         
+        void updateXYZ(const Matrix4x4& ijkToXyzTransformationMatrix);
+        
         uint64_t getUniqueID() const;
         
         AString getUniqueIdAsString() const;
@@ -57,9 +62,13 @@ namespace caret {
         
         int32_t getPropertyAsInt(const int32_t propertyIndex) const;
         
-        int32_t getPropertyAsUnsignedInt(const int32_t propertyIndex) const;
+        uint32_t getPropertyAsUnsignedInt(const int32_t propertyIndex) const;
         
-        int32_t getPropertyAsFloat(const int32_t propertyIndex) const;
+        float getPropertyAsFloat(const int32_t propertyIndex) const;
+        
+        int32_t getPropertyAsLabelIndex(const int32_t propertyIndex) const;
+        
+        RgbaUnsignedByte getPropertyAsRGBA(const int32_t propertyIndex) const;
         
         const uint8_t* getRgba() const;
 
@@ -72,6 +81,8 @@ namespace caret {
         bool isDisplayed() const;
         
         void setDisplayed(const bool status);
+        
+        void updateDisplayedStatus(const std::vector<const NeuroglancerPropertyInfo*>& allPropertyInfos);
         
         // ADD_NEW_METHODS_HERE
 

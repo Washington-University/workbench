@@ -335,7 +335,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                                objectNamePrefix,
                                                                                                this);
         m_featureTabIndex = addToTabWidget(m_featureSelectionViewController,
-                                                "Points2");
+                                                "Feature");
     }
     
     if (isFeaturesToolBox) {
@@ -892,7 +892,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool haveNeuroAnn      = false;
         bool haveSamples       = false;
         bool haveSurfaces      = false;
-        bool haveTrajFiles     = false;
         bool haveVolumes       = false;
         
         std::vector<CaretDataFile*> allDataFiles;
@@ -935,18 +934,15 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_DYNAMIC:
                     haveConnFiles = true;
-                    haveTrajFiles = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                     haveFibers = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                     haveConnFiles = true;
-                    haveTrajFiles = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
                     haveConnFiles = true;
-                    haveTrajFiles = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                     haveConnFiles = true;
@@ -1177,6 +1173,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         if (m_labelTabIndex >= 0) m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
         
         if (m_featureTabIndex >= 0) m_tabWidget->setTabEnabled(m_featureTabIndex, haveFeatures);
+        if (m_featureTabIndex >= 0) m_tabWidget->setTabVisible(m_featureTabIndex, haveFeatures);
+        
         if (m_neuroglancerAnnotationTabIndex >= 0) m_tabWidget->setTabEnabled(m_neuroglancerAnnotationTabIndex, haveNeuroAnn);
         if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, enableLayers);
         if (m_mediaTabIndex >= 0) m_tabWidget->setTabEnabled(m_mediaTabIndex, enableMedia);

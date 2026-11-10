@@ -24,9 +24,11 @@
 #undef __NEUROGLANCER_ANNOTATION_DECLARE__
 
 #include "CaretAssert.h"
+#include "FeatureLabel.h"
 #include "Matrix4x4.h"
 #include "NeuroglancerAnnotationFile.h"
 #include "NeuroglancerPropertyInfo.h"
+#include "RgbaUnsignedByte.h"
 
 using namespace caret;
 
@@ -54,35 +56,7 @@ NeuroglancerAnnotation::NeuroglancerAnnotation(const uint64_t& uniqueID,
 m_ijk(ijk),
 m_xyz(ijk),
 m_propertyValues(propertyValues)
-{
-    Matrix4x4 m;
-    m.setMatrixElement(0, 0, -1.0);
-    m.setMatrixElement(0, 3, 48.0);
-
-    m.setMatrixElement(1, 1, 0.0);
-    m.setMatrixElement(1, 2, -1.0);
-    m.setMatrixElement(1, 3, 48.0);
-
-    m.setMatrixElement(2, 1, 1.0);
-    m.setMatrixElement(2, 2, 0.0);
-    m.setMatrixElement(2, 3, -64.0);
-    
-    m_xyz[0] = -(m_ijk[0] - 48);
-    m_xyz[1] = m_ijk[1] + 64;
-    m_xyz[2] = (m_ijk[2] + 48);
-    static bool firstTimeFlag(true);
-    if (firstTimeFlag) {
-        firstTimeFlag = false;
-        std::cout << "Matrix" << std::endl;
-        std::cout << m.toFormattedString("   ") << std::endl << std::endl;
-        std::cout << "IJK: " << m_xyz.toString() << std::endl;
-        m.multiplyPoint3(m_xyz);
-        std::cout << "XYZ: " << m_xyz.toString() << std::endl;
-    }
-    else {
-        m.multiplyPoint3(m_xyz);
-    }
-    
+{    
     m_rgba.setRgba(255, 0, 0, 255);
 }
 
@@ -110,6 +84,19 @@ const Vector3D&
 NeuroglancerAnnotation::getXYZ() const
 {
     return m_xyz;
+}
+
+/**
+ * Update the XYZ coordinates of this annotation by multiplying the
+ * IJK by the given matrix.
+ * @param ijkToXyzTransformationMatrix
+ *    Transforms IJK to XYZ.
+ */
+void
+NeuroglancerAnnotation::updateXYZ(const Matrix4x4& ijkToXyzTransformationMatrix)
+{
+    m_xyz = m_ijk;
+    ijkToXyzTransformationMatrix.multiplyPoint3(m_xyz);
 }
 
 /**
@@ -167,7 +154,7 @@ NeuroglancerAnnotation::getPropertyAsInt(const int32_t propertyIndex) const
  * @param propertyIndex
  *    Index of the property
  */
-int32_t
+uint32_t
 NeuroglancerAnnotation::getPropertyAsUnsignedInt(const int32_t propertyIndex) const
 {
     const int32_t intValue(getPropertyAsInt(propertyIndex));
@@ -180,7 +167,7 @@ NeuroglancerAnnotation::getPropertyAsUnsignedInt(const int32_t propertyIndex) co
  * @param propertyIndex
  *    Index of the property
  */
-int32_t
+float
 NeuroglancerAnnotation::getPropertyAsFloat(const int32_t propertyIndex) const
 {
     const int32_t intValue(getPropertyAsInt(propertyIndex));
@@ -188,6 +175,29 @@ NeuroglancerAnnotation::getPropertyAsFloat(const int32_t propertyIndex) const
     return *floatPointer;
 }
 
+/**
+ * @return Proprerty at given index as RGBA
+ * @param propertyIndex
+ *    Index of the property
+ */
+RgbaUnsignedByte
+NeuroglancerAnnotation::getPropertyAsRGBA(const int32_t propertyIndex) const
+{
+    RgbaUnsignedByte rgba;
+    rgba.setUnsignedIntRGBA(getPropertyAsUnsignedInt(propertyIndex));
+    return rgba;
+}
+
+/**
+ * @return Proprerty for indexing a label table
+ * @param propertyIndex
+ *    Index of the property
+ */
+int32_t
+NeuroglancerAnnotation::getPropertyAsLabelIndex(const int32_t propertyIndex) const
+{
+    return static_cast<int32_t>(getPropertyAsUnsignedInt(propertyIndex));
+}
 
 /**
  * @return RGBA coloring for this annotation
@@ -227,10 +237,11 @@ NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>&
 {
     idTextOut.clear();
     
-    const AString featureName(getUniqueIdAsString());
-    
+    const AString annName("Neuroglancer: "
+                          + getUniqueIdAsString());
+
     std::vector<AString> rowOne;
-    rowOne.push_back(featureName);
+    rowOne.push_back(annName);
     idTextOut.push_back(rowOne);
     
     std::vector<AString> rowTwo;
@@ -263,7 +274,20 @@ NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>&
                     valueText = AString::number(getPropertyAsUnsignedInt(iProp));
                     break;
                 case NeuroglancerPropertyDataTypeEnum::RGBA:
+                    valueText = getPropertyAsRGBA(iProp).toString();
                     break;
+            }
+            
+            if (pi->isLabels()) {
+                const int32_t propertyIndex(pi->getPropertyIndex());
+                const int32_t labelIndex(getPropertyAsLabelIndex(propertyIndex));
+                FeatureLabelModel* labelModel(pi->getLabelModel());
+                if (labelModel != NULL) {
+                    FeatureLabel* label(labelModel->getLabelWithValue(labelIndex));
+                    if (label != NULL) {
+                        valueText = label->text();
+                    }
+                }
             }
             
             if ( ! valueText.isEmpty()) {
@@ -292,3 +316,28 @@ NeuroglancerAnnotation::setDisplayed(const bool status)
 {
     m_displayedFlag = status;
 }
+
+/**
+ * Update the displayed status using the given label selections
+ * @param allPropertyInfos
+ *    All property infos
+ */
+void
+NeuroglancerAnnotation::updateDisplayedStatus(const std::vector<const NeuroglancerPropertyInfo*>& allPropertyInfos)
+{
+    /*
+     * Assume displayed until a label that is off is found
+     */
+    m_displayedFlag = true;
+    
+    for (const NeuroglancerPropertyInfo* npi : allPropertyInfos) {
+        CaretAssert(npi);
+        if (npi->isLabels()) {
+            if ( ! npi->isLabelAtIndexEnabled(getPropertyAsLabelIndex(npi->getPropertyIndex()))) {
+                m_displayedFlag = false;
+                return;
+            }
+        }
+    }
+}
+

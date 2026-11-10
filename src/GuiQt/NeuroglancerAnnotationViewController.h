@@ -86,6 +86,8 @@ namespace caret {
         
         void labelScrollTreeViewToFindItem();
         
+        void nXpZpYOrientationCheckBoxClicked(bool clicked);
+        
     private:
         NeuroglancerAnnotationViewController(const NeuroglancerAnnotationViewController&);
 
@@ -97,11 +99,19 @@ namespace caret {
         
         void updateLabelWidget();
         
+        void updateTransformationWidget();
+        
         void labelsAllOnOffButtonClicked(const bool onFlag);
         
         QWidget* createAttributesWidget();
         
         QWidget* createLabelsWidget();
+        
+        QWidget* createTransformationWidget();
+        
+        void transformationSpinBoxValueChanged(const int32_t row,
+                                               const int32_t column,
+                                               const double value);
         
         NeuroglancerAnnotationFile* getSelectedFile();
         
@@ -145,6 +155,9 @@ namespace caret {
         
         int32_t m_labelFindItemsCurrentIndex = 0;
         
+        QDoubleSpinBox* m_matrixSpinBoxes[4][4];
+        
+        QCheckBox* m_nXpZpYOrientationCheckBox;
     };
     
 #ifdef __NEUROGLANCER_ANNOTATION_VIEW_CONTROLLER_DECLARE__

@@ -166,6 +166,25 @@ SelectionItemNeuroglancerAnnotation::setHistologySelection(HistologySlicesFile* 
 }
 
 /**
+ * Set  identification of a neuroglancer annotation
+ * @param neuroglancerAnnotationFile
+ *    neuroglancer annotation file containing neuroglancer annotation
+ * @param neuroglancerAnnotation
+ *    The neuroglancer annotation
+ */
+void
+SelectionItemNeuroglancerAnnotation::setIdentifySelection(NeuroglancerAnnotationFile* neuroglancerAnnotationFile,
+                                                          const NeuroglancerAnnotation* neuroglancerAnnotation)
+{
+    CaretAssert(neuroglancerAnnotationFile);
+    CaretAssert(neuroglancerAnnotation);
+    
+    m_idType               = IdType::IDENTIFY_BRAINORDINATE_DIALOG;
+    m_neuroglancerAnnotationFile = neuroglancerAnnotationFile;
+    m_neuroglancerAnnotation     = neuroglancerAnnotation;
+}
+
+/**
  * Set surface identification of a neuroglancer annotation
  * @param volumeMappableInterface
  *    volume on which neuroglancer annotation was identified

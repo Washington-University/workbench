@@ -76,9 +76,11 @@ using namespace caret;
 #include "IdentifiedItemUniversal.h"
 #include "ImageFile.h"
 #include "LabelFile.h"
+#include "NeuroglancerAnnotationFile.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
+#include "SelectionItemNeuroglancerAnnotation.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -279,11 +281,17 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
      */
     m_imagePixelWidget = createImagePixelWidget(imageFileTypes);
     
+    /*
+     * Neuroglancer Annotation Widget
+     */
+    m_neuroglancerAnnotationWidgets.m_widget = createNeuroglancerAnnotationWidget();
+    
     m_stackedWidget = new QStackedWidget();
     m_stackedWidget->addWidget(m_ciftiRowWidget);
     m_stackedWidget->addWidget(m_ciftiParcelWidget);
     m_stackedWidget->addWidget(m_imagePixelWidget);
     m_stackedWidget->addWidget(m_labelFileWidgets.m_widget);
+    m_stackedWidget->addWidget(m_neuroglancerAnnotationWidgets.m_widget);
     m_stackedWidget->addWidget(m_stereotaxicWidget);
     m_stackedWidget->addWidget(m_surfaceVertexWidget);
 
@@ -294,6 +302,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     m_ciftiFileParcelRadioButton = new QRadioButton("CIFTI File Parcel");
     m_imagePixelRadioButton = new QRadioButton("Image Pixel");
     m_labelRadioButton = new QRadioButton("Label (selected label will flash)");
+    m_neuroglancerAnnotationRadioButton = new QRadioButton("Neuroglancer Annotation");
     m_stereotaxicRadioButton = new QRadioButton("Stereotaxic");
     m_surfaceVertexRadioButton = new QRadioButton("Surface Vertex");
     
@@ -303,6 +312,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     idTypeButtonGroup->addButton(m_ciftiFileParcelRadioButton, buttonIndex++);
     idTypeButtonGroup->addButton(m_imagePixelRadioButton, buttonIndex++);
     idTypeButtonGroup->addButton(m_labelRadioButton, buttonIndex++);
+    idTypeButtonGroup->addButton(m_neuroglancerAnnotationRadioButton, buttonIndex++);
     idTypeButtonGroup->addButton(m_stereotaxicRadioButton, buttonIndex++);
     idTypeButtonGroup->addButton(m_surfaceVertexRadioButton, buttonIndex++);
     QObject::connect(idTypeButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
@@ -314,6 +324,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     radioButtonLayout->addWidget(m_ciftiFileParcelRadioButton);
     radioButtonLayout->addWidget(m_imagePixelRadioButton);
     radioButtonLayout->addWidget(m_labelRadioButton);
+    radioButtonLayout->addWidget(m_neuroglancerAnnotationRadioButton);
     radioButtonLayout->addWidget(m_stereotaxicRadioButton);
     radioButtonLayout->addWidget(m_surfaceVertexRadioButton);
     
@@ -448,6 +459,40 @@ IdentifyBrainordinateDialog::createCiftiParcelWidget()
     ciftiParcelLayout->setRowStretch(1000, 1000);
     ciftiParcelLayout->setColumnStretch(2, 1000);
 
+    return widget;
+}
+
+/**
+ * @return New instance of Neuroglancer Annotation widget
+ */
+QWidget*
+IdentifyBrainordinateDialog::createNeuroglancerAnnotationWidget()
+{
+    QLabel* fileLabel(new QLabel("File"));
+    auto modelAndComboBox(CaretDataFileSelectionComboBox::newInstanceForFileType(DataFileTypeEnum::NEUROGLANCER_ANNOTATION,
+                                                                                 this));
+    m_neuroglancerAnnotationWidgets.m_fileSelectionModel = modelAndComboBox.first;
+    CaretDataFileSelectionComboBox* comboBox = modelAndComboBox.second;
+    
+    QLabel* uniqueIdLabel(new QLabel("Unique ID"));
+    m_neuroglancerAnnotationWidgets.m_uniqueIdSpinBox = new QSpinBox();
+    m_neuroglancerAnnotationWidgets.m_uniqueIdSpinBox->setRange(0,
+                                                                std::numeric_limits<int32_t>::max());
+    m_neuroglancerAnnotationWidgets.m_uniqueIdSpinBox->setSingleStep(1);
+    m_neuroglancerAnnotationWidgets.m_uniqueIdSpinBox->setValue(2997417);
+    
+    QWidget* widget = new QWidget();
+    QGridLayout* layout(new QGridLayout(widget));
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 100);
+    int row(layout->rowCount());
+    layout->addWidget(fileLabel, row, 0);
+    layout->addWidget(comboBox->getWidget(), row, 1);
+    ++row;
+    layout->addWidget(uniqueIdLabel, row, 0);
+    layout->addWidget(m_neuroglancerAnnotationWidgets.m_uniqueIdSpinBox, row, 1);
+    layout->setRowStretch(1000, 1000);
+    
     return widget;
 }
 
@@ -726,6 +771,9 @@ IdentifyBrainordinateDialog::idTypeRadioButtonClicked(QAbstractButton* button)
         m_stackedWidget->setCurrentWidget(m_labelFileWidgets.m_widget);
         enableRotateWidgetFlag = true;
     }
+    else if (button == m_neuroglancerAnnotationRadioButton) {
+        m_stackedWidget->setCurrentWidget(m_neuroglancerAnnotationWidgets.m_widget);
+    }
     else if (button == m_stereotaxicRadioButton) {
         m_stackedWidget->setCurrentWidget(m_stereotaxicWidget);
     }
@@ -861,6 +909,9 @@ IdentifyBrainordinateDialog::applyButtonClicked()
     }
     else if (m_labelFileWidgets.m_widget == selectedWidget) {
         processLabelFileWidget(errorMessage);
+    }
+    else if (m_neuroglancerAnnotationWidgets.m_widget == selectedWidget) {
+        processNeuroglancerAnnotationWidget(errorMessage);
     }
     else if (m_stereotaxicWidget == selectedWidget) {
         processStereotaxicWidget(errorMessage);
@@ -1027,6 +1078,42 @@ IdentifyBrainordinateDialog::processLabelFileWidget(AString& errorMessageOut)
         
         if ( ! errorMessage.isEmpty()) {
             WuQMessageBox::warningOk(this, errorMessage);
+        }
+    }
+}
+
+/**
+ * Process user's selectons in Neuroglancer Annotation Widget
+ *
+ * @param errorMessageOut
+ *    Output containing error message.
+ */
+void
+IdentifyBrainordinateDialog::processNeuroglancerAnnotationWidget(AString& errorMessageOut)
+{
+    const CaretDataFile* caretDataFile(m_neuroglancerAnnotationWidgets.m_fileSelectionModel->getSelectedFile());
+    if (caretDataFile != NULL) {
+        const NeuroglancerAnnotationFile* neuroAnnFile(caretDataFile->castToNeuroglancerAnnotationFile());
+        if (neuroAnnFile != NULL) {
+            const int32_t uniqueID(m_neuroglancerAnnotationWidgets.m_uniqueIdSpinBox->value());
+            const NeuroglancerAnnotation* neuroAnn(neuroAnnFile->getAnnotationWithUniqueID(uniqueID));
+            if (neuroAnn == NULL) {
+                errorMessageOut = ("No annotation with unique ID="
+                                   + AString::number(uniqueID)
+                                   + " exists in file "
+                                   + neuroAnnFile->getFileNameNoPath());
+                return;
+            }
+            SelectionManager* selectionManager = GuiManager::get()->getBrain()->getSelectionManager();
+            selectionManager->reset();
+            
+            SelectionItemNeuroglancerAnnotation* selectionItemNeuroAnn(selectionManager->getNeuroglancerAnnotationIdentification());
+            CaretAssert(selectionItemNeuroAnn);
+            selectionItemNeuroAnn->setIdentifySelection(const_cast<NeuroglancerAnnotationFile*>(neuroAnnFile),
+                                                        neuroAnn);
+            GuiManager::get()->processIdentification(-1,
+                                                     selectionManager,
+                                                     this);
         }
     }
 }
@@ -1302,7 +1389,6 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
                     
                 }
                 else if (voxelValid) {
-//                    if (ciftiMapFile != NULL) {
                         SelectionItemVoxel* voxelID = selectionManager->getVoxelIdentification();
                         voxelID->setBrain(brain);
                         voxelID->setEnabledForSelection(true);
@@ -1318,7 +1404,6 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
                         GuiManager::get()->processIdentification(-1, // invalid tab index
                                                                  selectionManager,
                                                                  this);
-//                    }
                 }
             }
         }

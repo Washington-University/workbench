@@ -96,6 +96,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
         
+        QWidget* createNeuroglancerAnnotationWidget();
+        
         QWidget* createCiftiParcelWidget();
         
         QWidget* createCiftiRowWidget(const std::vector<DataFileTypeEnum::Enum>& supportedFileTypes);
@@ -115,6 +117,8 @@ namespace caret {
         void processImagePixelSelection(AString& errorMessage);
         
         void processLabelFileWidget(AString& errorMessageOut);
+        
+        void processNeuroglancerAnnotationWidget(AString& errorMessageOut);
         
         void processStereotaxicWidget(AString& errorMessageOut);
         
@@ -171,7 +175,15 @@ namespace caret {
         
         LabelFileWidgets m_labelFileWidgets;
         
+        struct NeuroglancerAnnotationWidgets {
+            QWidget* m_widget;
+            
+            CaretDataFileSelectionModel* m_fileSelectionModel;
+            
+            QSpinBox* m_uniqueIdSpinBox;
+        };
         
+        NeuroglancerAnnotationWidgets m_neuroglancerAnnotationWidgets;
         
         QLabel* m_ciftiRowFileLabel;
         
@@ -225,6 +237,7 @@ namespace caret {
         QRadioButton* m_ciftiFileParcelRadioButton;
         QRadioButton* m_imagePixelRadioButton;
         QRadioButton* m_labelRadioButton;
+        QRadioButton* m_neuroglancerAnnotationRadioButton;
         QRadioButton* m_stereotaxicRadioButton;
         QRadioButton* m_surfaceVertexRadioButton;
         

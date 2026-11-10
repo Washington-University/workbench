@@ -365,7 +365,6 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
     const DisplayPropertiesNeuroglancerAnnotation* displayProperties(brain->getDisplayPropertiesNeuroglancerAnnotation());
     const DisplayGroupEnum::Enum displayGroup(displayProperties->getDisplayGroupForTab(fixedPipelineDrawing->windowTabIndex));
     const float distanceFromVolumeSliceTolerance(displayProperties->getDistanceFromVolumeSliceTolerance());
-    
     if ( ! displayProperties->isDisplayed(displayGroup,
                                                fixedPipelineDrawing->windowTabIndex)) {
         return;
@@ -390,15 +389,15 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
     
     const std::set<uint64_t> uniqueIdsForDebugging(NeuroglancerAnnotationFileImporter::getAnnotionsUniqueIDsForDebugging());
 
-    ElapsedTimer timer;
-    timer.start();
-    
     /*
      * Process each feature file
      */
     for (int32_t iFile = 0; iFile < numberOfNeuroAnnFiles; iFile++) {
         CaretAssertVectorIndex(allNeuroAnnFiles, iFile);
         const NeuroglancerAnnotationFile* neuroAnnFile(allNeuroAnnFiles[iFile]);
+        CaretAssert(neuroAnnFile);
+        
+        const bool nXpZpYOrientationFlag(neuroAnnFile->isLeftNegxPosteriorPoszInferiorPosYOrientation());
         
         const int32_t numAnn(neuroAnnFile->getNumberOfAnnotations());
         for (int32_t iAnn = 0; iAnn < numAnn; iAnn++) {
@@ -423,7 +422,17 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                 rgbaAnn[3]
             };
             
-            Vector3D xyz(neuroAnn->getXYZ());
+            const Vector3D neuroAnnXYZ(neuroAnn->getXYZ());
+            Vector3D xyz(neuroAnnXYZ);
+            if (nXpZpYOrientationFlag) {
+                /*
+                 * Orientation: Left is -X;
+                 *              Anterior is +Z
+                 *              Inferior is +Y
+                 */
+                xyz[1] = -neuroAnnXYZ[2];
+                xyz[2] = -neuroAnnXYZ[1];
+            }
             
             bool drawFlag = false;
             switch (drawType) {
@@ -481,7 +490,6 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
             
             if (drawFlag) {
                 if (selectFlag) {
-                    int32_t groupID(-1);
                     fixedPipelineDrawing->colorIdentification->addItem(rgba,
                                                                        SelectionItemDataTypeEnum::NEUROGLANCER_ANNOTATION,
                                                                        iFile, /* file index */
@@ -519,7 +527,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
         int32_t fileIndex(-1);
         int32_t annIndex(-1);
         float depth = -1.0;
-        fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::FOCUS_VOLUME,
+        fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::NEUROGLANCER_ANNOTATION,
                                                          fixedPipelineDrawing->mouseX,
                                                          fixedPipelineDrawing->mouseY,
                                                          fileIndex,
@@ -555,7 +563,6 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                                                                                  neuroAnnFile,
                                                                                  neuroAnn);
                         selectionItemNeuroglancerAnnotation->setScreenDepth(depth);
-                        const int32_t coordIndex(0);
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemNeuroglancerAnnotation, xyz);
                         CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
                                      + QString::number(groupID)
@@ -573,7 +580,6 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                                                                                 neuroAnnFile,
                                                                                 neuroAnn);
                         selectionItemNeuroglancerAnnotation->setScreenDepth(depth);
-                        const int32_t coordIndex(0);
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemNeuroglancerAnnotation, xyz);
                         CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
                                      + QString::number(groupID)
@@ -587,7 +593,6 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                         selectionItemNeuroglancerAnnotation->setWholeBrainSelection(neuroAnnFile,
                                                                                     neuroAnn);
                         selectionItemNeuroglancerAnnotation->setScreenDepth(depth);
-                        const int32_t coordIndex(0);
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemNeuroglancerAnnotation, xyz);
                         CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
                                      + QString::number(groupID)
@@ -598,12 +603,6 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
             }
         }
     }
-    
-    std::cout << "Time to draw neuroglancer annotations: " << timer.getElapsedTimeSeconds() << " seconds" << std::endl;
-    
-    SystemBacktrace sbt;
-    SystemUtilities::getBackTrace(sbt);
-    std::cout << sbt.toSymbolString() << std::endl << std::endl << std::endl;
     
     fixedPipelineDrawing->checkForOpenGLError(NULL, "At end BrainOpenGLNeuroglancerAnnotationDrawing::drawAllFeatures())");
 }

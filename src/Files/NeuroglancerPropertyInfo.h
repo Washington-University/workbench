@@ -29,13 +29,13 @@
 #include "ComboBoxItemInterface.h"
 #include "FeatureLabelModel.h"
 #include "NeuroglancerPropertyDataTypeEnum.h"
-
+#include "SceneableInterface.h"
 
 namespace caret {
 
     class DataFileContentInformation;
     
-    class NeuroglancerPropertyInfo : public ComboBoxItemInterface, public CaretObject {
+    class NeuroglancerPropertyInfo : public ComboBoxItemInterface, public SceneableInterface, public CaretObject {
         
     public:
         NeuroglancerPropertyInfo(const NeuroglancerPropertyDataTypeEnum::Enum dataType,
@@ -69,13 +69,19 @@ namespace caret {
         
         void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const;
         
+        bool isLabelAtIndexEnabled(const int32_t labelIndex) const;
+        
         // ADD_NEW_METHODS_HERE
+
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
 
         virtual AString toString() const;
         
     private:
-//        void copyHelperNeuroglancerPropertyInfo(const NeuroglancerPropertyInfo& obj);
-
         void setLabelModel(FeatureLabelModel* labelModel);
         
         NeuroglancerPropertyDataTypeEnum::Enum m_dataType;

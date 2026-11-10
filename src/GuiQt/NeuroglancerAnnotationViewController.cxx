@@ -50,6 +50,7 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "FeatureLabel.h"
 #include "FeatureLabelModel.h"
 #include "NeuroglancerAnnotationFile.h"
 #include "NeuroglancerPropertyInfo.h"
@@ -137,6 +138,7 @@ m_objectNamePrefix(parentObjectName
     
     QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* labelsWidget     = this->createLabelsWidget();
+    QWidget* transWidget      = this->createTransformationWidget();
     
     m_tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
                                    this);
@@ -145,6 +147,8 @@ m_objectNamePrefix(parentObjectName
                         "Attributes");
     m_tabWidget->addTab(labelsWidget,
                         "Labels");
+    m_tabWidget->addTab(transWidget,
+                        "Transformation");
     m_tabWidget->setCurrentWidget(attributesWidget);
     m_tabWidget->getTabBar()->setToolTip("Select points tab");
     m_tabWidget->getTabBar()->setObjectName(m_objectNamePrefix
@@ -500,6 +504,8 @@ NeuroglancerAnnotationViewController::updateViewController()
     
     updateLabelWidget();
     
+    updateTransformationWidget();
+    
     setEnabled(neuroAnnFile != NULL);
 }
 
@@ -669,8 +675,20 @@ NeuroglancerAnnotationViewController::getSelectedLabelModel()
  * Called when user clicks on an item in the label table view
  */
 void
-NeuroglancerAnnotationViewController::labelTableViewItemClicked(const QModelIndex& /*index*/)
+NeuroglancerAnnotationViewController::labelTableViewItemClicked(const QModelIndex& index)
 {
+    FeatureLabelModel* labelModel(getSelectedLabelModel());
+    if (labelModel != NULL) {
+        QStandardItem* standardItem(labelModel->itemFromIndex(index));
+        if (standardItem != NULL) {
+            FeatureLabel* fetatureLabel(dynamic_cast<FeatureLabel*>(standardItem));
+            CaretAssert(fetatureLabel);
+            
+            NeuroglancerAnnotationFile* neuroAnnFile(getSelectedFile());
+            CaretAssert(neuroAnnFile);
+            neuroAnnFile->updateDisplayedAnnotations();
+        }
+    }
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
@@ -685,10 +703,116 @@ NeuroglancerAnnotationViewController::labelsAllOnOffButtonClicked(const bool onF
     FeatureLabelModel* labelModel(getSelectedLabelModel());
     if (labelModel != NULL) {
         labelModel->setAllLabelsDisplayed(onFlag);
+        
+        NeuroglancerAnnotationFile* neuroAnnFile(getSelectedFile());
+        CaretAssert(neuroAnnFile);
+        neuroAnnFile->updateDisplayedAnnotations();
     }
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
+/**
+ * @return New instance of transformation widget
+ */
+QWidget*
+NeuroglancerAnnotationViewController::createTransformationWidget()
+{
+    QLabel* matrixLabel(new QLabel("IJK to XYZ Transformation Matrix"));
+    QGridLayout* matrixLayout(new QGridLayout());
+    for (int32_t iRow = 0; iRow < 4; iRow++) {
+        for (int32_t jCol = 0; jCol < 4; jCol++) {
+            QDoubleSpinBox* spinBox = new QDoubleSpinBox();
+            spinBox->setRange(-999999.0, 999999.0);
+            spinBox->setDecimals(2);
+            spinBox->setSingleStep(0.1);
+            QObject::connect(spinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                             [=](double value) {
+                transformationSpinBoxValueChanged(iRow, jCol, value);
+            } );
+            matrixLayout->addWidget(spinBox, iRow, jCol);
+            
+            m_matrixSpinBoxes[iRow][jCol] = spinBox;
+        }
+    }
+    
+    m_nXpZpYOrientationCheckBox = new QCheckBox("Orientation is Neg X, Pos Z, Pos Y");
+    m_nXpZpYOrientationCheckBox->setToolTip("Orientation: \n"
+                                            "Left: Negative X\n"
+                                            "Anterior: Positive Z\n"
+                                            "Inferior: Positive Y");
+    QObject::connect(m_nXpZpYOrientationCheckBox, &QCheckBox::clicked,
+                     this, &NeuroglancerAnnotationViewController::nXpZpYOrientationCheckBoxClicked);
+    
+    QWidget* widget(new QWidget());
+    QVBoxLayout* layout( new QVBoxLayout(widget));
+    layout->addWidget(matrixLabel);
+    layout->addLayout(matrixLayout);
+    layout->addWidget(m_nXpZpYOrientationCheckBox);
+    layout->addStretch();
+    
+    return widget;
+}
+
+/**
+ * Update the transformation widget
+ */
+void
+NeuroglancerAnnotationViewController::updateTransformationWidget()
+{
+    NeuroglancerAnnotationFile* neuroAnnFile(getSelectedFile());
+    if (neuroAnnFile != NULL) {
+        const Matrix4x4 m(neuroAnnFile->getIjkToXyzTransformationMatrix());
+        for (int32_t iRow = 0; iRow < 4; iRow++) {
+            for (int32_t jCol = 0; jCol < 4; jCol++) {
+                QDoubleSpinBox* spinBox(m_matrixSpinBoxes[iRow][jCol]);
+                CaretAssert(spinBox);
+                QSignalBlocker blocker(spinBox);
+                const float value(m.getMatrixElement(iRow, jCol));
+                spinBox->setValue(value);
+            }
+        }
+        m_nXpZpYOrientationCheckBox->setChecked(neuroAnnFile->isLeftNegxPosteriorPoszInferiorPosYOrientation());
+    }
+}
+
+/**
+ * Called when a transformation matrix value is changed
+ * @param row
+ *    Row of element changed
+ * @param column
+ *    Column of element changed
+ * @param value
+ *    Value of element changed
+ */
+void
+NeuroglancerAnnotationViewController::transformationSpinBoxValueChanged(const int32_t row,
+                                                                        const int32_t column,
+                                                                        const double value)
+{
+    NeuroglancerAnnotationFile* neuroAnnFile(getSelectedFile());
+    if (neuroAnnFile != NULL) {
+        neuroAnnFile->setIjkToXyzTransformationMatrixComponent(row,
+                                                               column,
+                                                               value);
+        
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+    }
+}
+
+/**
+ * Called if orientation checkbox is checked
+ * @param checked
+ *    New checked status
+ */
+void
+NeuroglancerAnnotationViewController::nXpZpYOrientationCheckBoxClicked(bool checked)
+{
+    NeuroglancerAnnotationFile* neuroAnnFile(getSelectedFile());
+    if (neuroAnnFile != NULL) {
+        neuroAnnFile->setLeftNegxPosteriorPoszInferiorPosYOrientation(checked);
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+    }
+}
 
 /**
  * Create a scene for an instance of a class.
@@ -713,6 +837,7 @@ NeuroglancerAnnotationViewController::saveToScene(const SceneAttributes* sceneAt
                                                   "m_tabWidget"));
     sceneClass->addInteger("selectedTabIndex",
                            m_tabWidget->currentIndex());
+    
     return sceneClass;
 }
 

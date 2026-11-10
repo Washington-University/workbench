@@ -32,6 +32,8 @@
 #include "NeuroglancerAnnotation.h"
 #include "NeuroglancerAnnotationFileImporter.h"
 #include "NeuroglancerPropertyInfo.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
     
@@ -48,6 +50,11 @@ NeuroglancerAnnotationFile::NeuroglancerAnnotationFile()
 : CaretDataFile(DataFileTypeEnum::NEUROGLANCER_ANNOTATION)
 {
     m_fileMetaData.reset(new GiftiMetaData());
+    initializeIjkToXyzTransformationMatrix();
+    
+    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_sceneAssistant->add("m_leftNegxPosteriorPoszInferiorPosYOrientationFlag",
+                          &m_leftNegxPosteriorPoszInferiorPosYOrientationFlag);
 }
 
 /**
@@ -150,6 +157,7 @@ NeuroglancerAnnotationFile::clear()
 {
     CaretDataFile::clear();
     m_fileMetaData->clear();
+    initializeIjkToXyzTransformationMatrix();
 }
 
 /**
@@ -370,29 +378,13 @@ NeuroglancerAnnotationFile::updateColoring()
     const NeuroglancerPropertyInfo* colorProperty(getSelectedColorProperty());
     if (colorProperty != NULL) {
         const int32_t propertyIndex(colorProperty->getPropertyIndex());
-        std::cout << "Coloring with property index=" << propertyIndex
-        << ", name: " << colorProperty->getDescription() << std::endl;
         
         CaretAssert(propertyIndex >= 0);
         for (auto& ann : m_annotations) {
             ann->setRgbaFromPropertyAtIndex(propertyIndex);
         }
         
-        std::set<uint64_t> debugIDs(NeuroglancerAnnotationFileImporter::getAnnotionsUniqueIDsForDebugging());
-        for (uint64_t id : debugIDs) {
-            const NeuroglancerAnnotation* ann(getAnnotationWithUniqueID(id));
-            if (ann != NULL) {
-                const uint8_t* rgba(ann->getRgba());
-                AString rHex(AString::number(rgba[0], 16));
-                AString gHex(AString::number(rgba[1], 16));
-                AString bHex(AString::number(rgba[2], 16));
-                AString aHex(AString::number(rgba[3], 16));
-                std::cout << "Annotation UniqueID=" << ann->getUniqueID()
-                << ", XYZ=" << ann->getXYZ().toString()
-                << ", RGBA=" << AString::fromNumbers(rgba, 4)
-                << ", RGBA Hex=" << rHex << ", " << gHex << ", " << bHex << ", " << aHex << std::endl;
-            }
-        }
+        printDebugAnnotations();
     }
     m_annotationColoringValidFlag = true;
 }
@@ -412,6 +404,162 @@ NeuroglancerAnnotationFile::getAllPropertyInfos() const
     return propInfo;
 }
 
+/**
+ * @return Property with the given name (description)
+ * @param name
+ *    Name of property
+ */
+NeuroglancerPropertyInfo*
+NeuroglancerAnnotationFile::getPropertyWithName(const AString& name)
+{
+    for (const auto& p : m_propertyInfos) {
+        if (p->getDescription() == name) {
+            return p.get();
+        }
+    }
+
+    return NULL;
+}
+
+/**
+ * @return Property info at the given index or NULL if invalid index
+ * @param propertyIndex
+ *    Index of the propertry
+ */
+const NeuroglancerPropertyInfo*
+NeuroglancerAnnotationFile::getPropertyAtIndex(const int32_t propertyIndex) const
+{
+    NeuroglancerPropertyInfo* propInfoOut(NULL);
+    const int32_t numProps(m_propertyInfos.size());
+    if ((propertyIndex >= 0)
+        && (propertyIndex < numProps)) {
+        propInfoOut = m_propertyInfos[propertyIndex].get();
+    }
+    
+    return propInfoOut;
+}
+
+/**
+ * @return Matrix for transforming IJK to XYZ
+ */
+Matrix4x4
+NeuroglancerAnnotationFile::getIjkToXyzTransformationMatrix()
+{
+    return m_ijkToXyzTransformationMatrix;
+}
+
+/**
+ * @return Matrix for transforming IJK to XYZ
+ */
+const Matrix4x4
+NeuroglancerAnnotationFile::getIjkToXyzTransformationMatrix() const
+{
+    return m_ijkToXyzTransformationMatrix;
+}
+
+/**
+ * Set the transformation matrix that converts voxel indices (IJK) to
+ * coordinates (XYZ).
+ *
+ * @param matrix
+ *    The new transformation matrix.
+ */
+void
+NeuroglancerAnnotationFile::setIjkToXyzTransformationMatrix(const Matrix4x4& matrix)
+{
+    if (matrix != m_ijkToXyzTransformationMatrix) {
+        m_ijkToXyzTransformationMatrix = matrix;
+        updateAnnotationsXYZ();
+    }
+}
+
+/**
+ * Set one component of the IJK to XYZ transformation matrix.
+ *
+ * @param row
+ *    Row of the component, in [0, 3].
+ * @param column
+ *    Column of the component, in [0, 3].
+ * @param value
+ *    New value for the component.
+ */
+void
+NeuroglancerAnnotationFile::setIjkToXyzTransformationMatrixComponent(const int32_t row,
+                                                                     const int32_t column,
+                                                                     const float value)
+{
+    CaretAssertMessage((row >= 0) && (row < 4), "Row must be in [0, 3]");
+    CaretAssertMessage((column >= 0) && (column < 4), "Column must be in [0, 3]");
+    if ((row < 0) || (row > 3)
+        || (column < 0) || (column > 3)) {
+        return;
+    }
+    
+    if (m_ijkToXyzTransformationMatrix.getMatrixElement(row, column) != value) {
+        m_ijkToXyzTransformationMatrix.setMatrixElement(row,
+                                                        column,
+                                                        static_cast<double>(value));
+        updateAnnotationsXYZ();
+    }
+}
+
+/**
+ * @return Flag indicating orientation is: (Left, Negative X), (Posterior, Positive Z), (Inferior, PosY)
+ * when drawing annotations.
+ */
+bool
+NeuroglancerAnnotationFile::isLeftNegxPosteriorPoszInferiorPosYOrientation() const
+{
+    return m_leftNegxPosteriorPoszInferiorPosYOrientationFlag;
+}
+
+/**
+ * Set flag indicating orientation is: (Left, Negative X), (Posterior, Positive Z), (Inferior, PosY)
+ * when drawing annotations.
+ */
+void
+NeuroglancerAnnotationFile::setLeftNegxPosteriorPoszInferiorPosYOrientation(const bool status)
+{
+    m_leftNegxPosteriorPoszInferiorPosYOrientationFlag = status;
+}
+
+/**
+ * Initialize the IJK to XYZ transformation matrix.
+ */
+void
+NeuroglancerAnnotationFile::initializeIjkToXyzTransformationMatrix()
+{
+    /*
+     Matrix is contained in the URL for the neuroglancer web page.
+     Look for the "matrix as shown below.
+     
+     {
+     "type": "annotation",
+     "name": "cells",
+     "source": {
+     "url": "precomputed://https://allen-hmba-releases.s3.us-west-2.amazonaws.com/neuroglancer/HMBA-MERSCOPE-QM23.50.001-BG/20250630/donor/cells",
+     "transform": {
+     "matrix": [
+     [1, 0, 0, 0],
+     [0, 0, -1, 0],
+     [0, -1, 0, 0]
+     ],
+     "outputDimensions": {
+     "x": [0.001, "m"],
+     "y": [0.001, "m"],
+     "z": [0.001, "m"]
+     }
+     }
+     },
+     */
+    
+    m_ijkToXyzTransformationMatrix.setRow(0,  1.0,  0.0,  0.0,   0.0);
+    m_ijkToXyzTransformationMatrix.setRow(1,  0.0,  0.0, -1.0,   0.0);
+    m_ijkToXyzTransformationMatrix.setRow(2,  0.0, -1.0,  0.0,   0.0);
+    m_ijkToXyzTransformationMatrix.setRow(3,  0.0,  0.0,  0.0,   1.0);
+    
+    m_leftNegxPosteriorPoszInferiorPosYOrientationFlag = true;
+}
 
 /**
  * Read the data file.
@@ -431,14 +579,14 @@ NeuroglancerAnnotationFile::readFile(const AString& filename)
     NeuroglancerAnnotationFileImporter importer(this);
     importer.readFile(filename);
     
-    std::cout << "After reading " << filename << std::endl;
-    std::cout << "   Property Count: " << m_propertyInfos.size() << std::endl;
-    std::cout << "   Annotations Count: " << m_annotations.size() << std::endl;
-    
     setFileName(filename);
+    
+    updateDisplayedAnnotations();
     
     updateColoring();
     
+    updateAnnotationsXYZ();
+
     clearModified();
 }
 
@@ -455,4 +603,159 @@ NeuroglancerAnnotationFile::writeFile(const AString& filename)
 {
     throw DataFileException("Writing of NeuroglancerAnnotationFile is not supported for "
                             + filename);
+}
+
+/**
+ * Save subclass data to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.  Will always
+ *     be valid (non-NULL).
+ */
+void
+NeuroglancerAnnotationFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                 SceneClass* sceneClass)
+{
+    CaretDataFile::saveFileDataToScene(sceneAttributes,
+                                       sceneClass);
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
+    const NeuroglancerPropertyInfo* colorProperty(getSelectedColorProperty());
+    if (colorProperty != NULL) {
+        sceneClass->addString("selectedColorProperty",
+                              colorProperty->getDescription());
+    }
+    
+    for (const auto& p : m_propertyInfos) {
+        SceneClass* propInfoSceneClass(p->saveToScene(sceneAttributes,
+                                                      p->getDescription()));
+        if (propInfoSceneClass != NULL) {
+            sceneClass->addClass(propInfoSceneClass);
+        }
+    }
+    
+    float m16[16];
+    m_ijkToXyzTransformationMatrix.getMatrixForOpenGL(m16);
+    sceneClass->addFloatArray("m_ijkToXyzTransformationMatrix", m16, 16);
+}
+
+/**
+ * Restore file data from the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+NeuroglancerAnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass)
+{
+    m_annotationColoringValidFlag = false;
+    
+    CaretDataFile::restoreFileDataFromScene(sceneAttributes,
+                                            sceneClass);
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    
+    const AString colorPropertyName(sceneClass->getStringValue("selectedColorProperty"));
+    if ( ! colorPropertyName.isEmpty()) {
+        NeuroglancerPropertyInfo* propertyInfo(getPropertyWithName(colorPropertyName));
+        if (propertyInfo != NULL) {
+            if (propertyInfo->getDataType() == NeuroglancerPropertyDataTypeEnum::RGBA) {
+                setSelectedColorProperty(propertyInfo);
+            }
+        }
+    }
+    
+    for (const auto& p : m_propertyInfos) {
+        const SceneClass* propInfoSceneClass(sceneClass->getClass(p->getDescription()));
+        if (propInfoSceneClass != NULL) {
+            p->restoreFromScene(sceneAttributes,
+                                propInfoSceneClass);
+        }
+    }
+    
+    float m16[16];
+    if (sceneClass->getFloatArrayValue("m_ijkToXyzTransformationMatrix", m16, 16) == 16) {
+        m_ijkToXyzTransformationMatrix.setMatrixFromOpenGL(m16);
+    }
+    else {
+        initializeIjkToXyzTransformationMatrix();
+    }
+    
+    updateDisplayedAnnotations();
+    
+    updateAnnotationsXYZ();
+}
+
+/**
+ * Update the displayed annotations
+ */
+void
+NeuroglancerAnnotationFile::updateDisplayedAnnotations()
+{
+    const std::vector<const NeuroglancerPropertyInfo*> allPropInfo(getAllPropertyInfos());
+    for (auto& ann : m_annotations) {
+        ann->updateDisplayedStatus(allPropInfo);
+    }
+}
+
+void
+/**
+ * Update the XYZ for all annotations
+ */
+NeuroglancerAnnotationFile::updateAnnotationsXYZ()
+{
+    std::set<uint64_t> debugIDs(NeuroglancerAnnotationFileImporter::getAnnotionsUniqueIDsForDebugging());
+    
+    for (auto& ann : m_annotations) {
+        ann->updateXYZ(m_ijkToXyzTransformationMatrix);
+    }
+    
+    printDebugAnnotations();
+}
+
+/**
+ * Print info about some annotations for debugging
+ */
+void
+NeuroglancerAnnotationFile::printDebugAnnotations()
+{
+    const bool printFlag(false);
+    if ( ! printFlag) {
+        return;
+    }
+    
+    std::set<uint64_t> debugIDs(NeuroglancerAnnotationFileImporter::getAnnotionsUniqueIDsForDebugging());
+    if ( ! debugIDs.empty()) {
+        std::cout << "IJK to XYZ Matrix" << std::endl;
+        std::cout << m_ijkToXyzTransformationMatrix.toFormattedString("   ") << std::endl;
+    }
+    for (uint64_t id : debugIDs) {
+        const NeuroglancerAnnotation* ann(getAnnotationWithUniqueID(id));
+        if (ann != NULL) {
+            const uint8_t* rgba(ann->getRgba());
+            AString rHex(AString::number(rgba[0], 16));
+            AString gHex(AString::number(rgba[1], 16));
+            AString bHex(AString::number(rgba[2], 16));
+            AString aHex(AString::number(rgba[3], 16));
+            std::cout << "Annotation UniqueID=" << ann->getUniqueID() << std::endl;
+            std::cout << "   IJK=" << ann->getIJK().toString() << std::endl;
+            std::cout << "   XYZ=" << ann->getXYZ().toString() << std::endl;
+            std::cout << "   RGBA=" << AString::fromNumbers(rgba, 4) << std::endl;
+            std::cout << "   RGBA Hex=" << rHex << ", " << gHex << ", " << bHex << ", " << aHex << std::endl;
+        }
+    }
+
 }

@@ -25,6 +25,8 @@
 
 #include "CaretAssert.h"
 #include "DataFileContentInformation.h"
+#include "FeatureLabel.h"
+#include "SceneClass.h"
 
 using namespace caret;
 
@@ -67,57 +69,6 @@ m_labelModelIndex(labelModelIndex)
 NeuroglancerPropertyInfo::~NeuroglancerPropertyInfo()
 {
 }
-
-///**
-// * Copy constructor.
-// * @param obj
-// *    Object that is copied.
-// */
-//NeuroglancerPropertyInfo::NeuroglancerPropertyInfo(const NeuroglancerPropertyInfo& obj)
-//: ComboBoxItemInterface(),
-//CaretObject(obj)
-//{
-//    this->copyHelperNeuroglancerPropertyInfo(obj);
-//}
-//
-///**
-// * Assignment operator.
-// * @param obj
-// *    Data copied from obj to this.
-// * @return 
-// *    Reference to this object.
-// */
-//NeuroglancerPropertyInfo&
-//NeuroglancerPropertyInfo::operator=(const NeuroglancerPropertyInfo& obj)
-//{
-//    if (this != &obj) {
-//        CaretObject::operator=(obj);
-//        this->copyHelperNeuroglancerPropertyInfo(obj);
-//    }
-//    return *this;    
-//}
-
-///**
-// * Helps with copying an object of this type.
-// * @param obj
-// *    Object that is copied.
-// */
-//void 
-//NeuroglancerPropertyInfo::copyHelperNeuroglancerPropertyInfo(const NeuroglancerPropertyInfo& obj)
-//{
-//    m_dataType        = obj.m_dataType;
-//    m_description     = obj.m_description;
-//    m_labelModelIndex = obj.m_labelModelIndex;
-//    m_propertyIndex   = obj.m_propertyIndex;
-//    m_uniqueID        = obj.m_uniqueID;
-//    
-//    if (obj.m_labelModel) {
-//        *m_labelModel.get() = *obj.m_labelModel.get();
-//    }
-//    else {
-//        m_labelModel.reset();
-//    }
-//}
 
 /**
  * @return Text for this item displayed in combo box
@@ -181,7 +132,6 @@ NeuroglancerPropertyInfo::isLabels() const
 FeatureLabelModel*
 NeuroglancerPropertyInfo::getLabelModel() const
 {
-//    CaretAssert(m_dataType == NeuroglancerPropertyDataTypeEnum::LABEL);
     CaretAssert(m_labelModel);
     return m_labelModel.get();
 }
@@ -248,4 +198,74 @@ NeuroglancerPropertyInfo::addToDataFileContentInformation(DataFileContentInforma
     }
     dataFileInformation.addNameAndValue("   Type",
                                         typeName);
+}
+
+/**
+ * @return True if label at given index is enabled
+ * @param labelIndex
+ *    Index of label
+ */
+bool
+NeuroglancerPropertyInfo::isLabelAtIndexEnabled(const int32_t labelIndex) const
+{
+    return (m_labelModel->getLabelWithValue(labelIndex)->checkState() == Qt::Checked);
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+NeuroglancerPropertyInfo::saveToScene(const SceneAttributes* sceneAttributes,
+                                      const AString& instanceName)
+{
+    SceneClass* sceneClass(NULL);
+    if (isLabels()) {
+        sceneClass = new SceneClass(instanceName,
+                                    "NeuroglancerPropertyInfo",
+                                    1);
+
+        CaretAssert(m_labelModel);
+        SceneClass* labelModelSceneClass(m_labelModel->saveToScene(sceneAttributes,
+                                                                   "m_labelModel"));
+        if (labelModelSceneClass != NULL) {
+            sceneClass->addClass(labelModelSceneClass);
+        }
+    }
+
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+NeuroglancerPropertyInfo::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                           const SceneClass* sceneClass)
+{
+    const SceneClass* labelModelSceneClass(sceneClass->getClass("m_labelModel"));
+    if (labelModelSceneClass != NULL) {
+        m_labelModel->restoreFromScene(sceneAttributes,
+                                       labelModelSceneClass);
+    }
 }

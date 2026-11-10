@@ -38,6 +38,7 @@ namespace caret {
         enum class IdType {
             INVALID,
             HISTOLOGY,
+            IDENTIFY_BRAINORDINATE_DIALOG,
             SURFACE,
             VOLUME,
             WHOLE_BRAIN
@@ -51,6 +52,9 @@ namespace caret {
                                    NeuroglancerAnnotationFile* neuroglancerAnnotationFile,
                                    const NeuroglancerAnnotation* neuroglancerAnnotation);
 
+        void setIdentifySelection(NeuroglancerAnnotationFile* neuroglancerAnnotationFile,
+                                  const NeuroglancerAnnotation* neuroglancerAnnotation);
+        
         void setVolumeSelection(VolumeMappableInterface* volumeMappableInterface,
                                 NeuroglancerAnnotationFile* neuroglancerAnnotationFile,
                                 const NeuroglancerAnnotation* neuroglancerAnnotation);

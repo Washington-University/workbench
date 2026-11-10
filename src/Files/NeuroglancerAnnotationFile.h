@@ -26,7 +26,7 @@
 #include <memory>
 
 #include "CaretDataFile.h"
-
+#include "Matrix4x4.h"
 
 
 namespace caret {
@@ -35,6 +35,7 @@ namespace caret {
     class FeatureLabelModel;
     class NeuroglancerAnnotation;
     class NeuroglancerPropertyInfo;
+    class SceneClassAssistant;
     
     class NeuroglancerAnnotationFile : public CaretDataFile {
         
@@ -83,6 +84,24 @@ namespace caret {
         
         const std::vector<const NeuroglancerPropertyInfo*> getAllPropertyInfos() const;
         
+        NeuroglancerPropertyInfo* getPropertyWithName(const AString& name);
+        
+        const NeuroglancerPropertyInfo* getPropertyAtIndex(const int32_t propertyIndex) const;
+        
+        Matrix4x4 getIjkToXyzTransformationMatrix();
+        
+        const Matrix4x4 getIjkToXyzTransformationMatrix() const;
+        
+        void setIjkToXyzTransformationMatrix(const Matrix4x4& matrix);
+        
+        void setIjkToXyzTransformationMatrixComponent(const int32_t row,
+                                                      const int32_t column,
+                                                      const float value);
+
+        bool isLeftNegxPosteriorPoszInferiorPosYOrientation() const;
+
+        void setLeftNegxPosteriorPoszInferiorPosYOrientation(const bool status);
+        
         void readFile(const AString& filename);
         
         void writeFile(const AString& filename);
@@ -95,20 +114,41 @@ namespace caret {
         
         virtual void clearModified();
         
+        void updateDisplayedAnnotations();
+        
+        void updateAnnotationsXYZ();
+        
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass);
+        
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass);
+    
     private:
         // ADD_NEW_MEMBERS_HERE
+        
+        void initializeIjkToXyzTransformationMatrix();
         
         void validateSelectedColorProperty() const;
         
         void updateColoring();
         
+        void printDebugAnnotations();
+        
         std::unique_ptr<GiftiMetaData> m_fileMetaData;
 
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
+        
         std::vector<std::unique_ptr<NeuroglancerPropertyInfo>> m_propertyInfos;
         
         std::vector<std::unique_ptr<NeuroglancerAnnotation>> m_annotations;
+        
+        Matrix4x4 m_ijkToXyzTransformationMatrix;
+        
+        bool m_leftNegxPosteriorPoszInferiorPosYOrientationFlag = true;
         
         mutable NeuroglancerPropertyInfo* m_selectedColorProperty = NULL;
         
