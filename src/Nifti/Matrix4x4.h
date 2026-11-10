@@ -49,6 +49,8 @@ public:
 
     Matrix4x4& operator=(const Matrix4x4& o);
 
+    bool operator==(const Matrix4x4& m) const;
+    
     virtual ~Matrix4x4();
 
     static Matrix4x4 rotationTo(const Vector3D& fromVector,
@@ -170,6 +172,18 @@ public:
     
     void setColumn(const int32_t columnIndex,
                    const double column[4]);
+    
+    void setRow(const int32_t rowIndex,
+                const float row[4]);
+    
+    void setRow(const int32_t rowIndex,
+                const double row[4]);
+    
+    void setRow(const int32_t rowIndex,
+                const double a,
+                const double b,
+                const double c,
+                const double d);
     
     Vector3D getBasisVector(const int32_t columnIndex) const;
     

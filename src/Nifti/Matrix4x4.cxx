@@ -146,6 +146,26 @@ Matrix4x4::operator=(const Matrix4x4& o)
 }
 
 /**
+ * Comparison operator that compares the given matrix
+ * to this instance.
+ * @param m
+ *    Matrix for comparison with this
+ * @return True if the same, else faslse.
+ */
+bool
+Matrix4x4::operator==(const Matrix4x4& m) const
+{
+    for (int iRow = 0; iRow < 4; iRow++) {
+        for (int jCol = 0; jCol < 4; jCol++) {
+            if (this->matrix[iRow][jCol] != m.matrix[iRow][jCol]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * Helps with copy constructor and assignment operator.
  */
 void
@@ -1789,6 +1809,64 @@ Matrix4x4::setColumn(const int32_t columnIndex,
     for (int iRow = 0; iRow < 4; iRow++) {
         this->matrix[iRow][columnIndex] = column[iRow];
     }
+}
+
+/**
+ * Set a row in the matrix.
+ * @param rowIndex
+ *    Index of the row
+ * @param row
+ *    New values for row
+ */
+void
+Matrix4x4::setRow(const int32_t rowIndex,
+                  const float row[4])
+{
+    for (int iCol = 0; iCol < 4; iCol++) {
+        this->matrix[rowIndex][iCol] = row[iCol];
+    }
+}
+
+/**
+ * Set a row in the matrix.
+ * @param rowIndex
+ *    Index of the row
+ * @param row
+ *    New values for row
+ */
+void
+Matrix4x4::setRow(const int32_t rowIndex,
+                  const double row[4])
+{
+    for (int iCol = 0; iCol < 4; iCol++) {
+        this->matrix[rowIndex][iCol] = row[iCol];
+    }
+}
+
+/**
+ * Set a row in the matrix.
+ * @param rowIndex
+ *    Index of the row
+ * @param a
+ *    First element in row
+ * @param b
+ *    Second element in row
+ * @param c
+ *    Third element in row
+ * @param d
+ *    Fourth element in row
+ */
+void
+Matrix4x4::setRow(const int32_t rowIndex,
+                  const double a,
+                  const double b,
+                  const double c,
+                  const double d)
+{
+    this->matrix[rowIndex][0] = a;
+    this->matrix[rowIndex][1] = b;
+    this->matrix[rowIndex][2] = c;
+    this->matrix[rowIndex][3] = d;
 }
 
 /**
