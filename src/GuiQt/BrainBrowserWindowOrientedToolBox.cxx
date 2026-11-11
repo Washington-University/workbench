@@ -331,11 +331,17 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     }
     
     if (isFeaturesToolBox) {
+        /*
+         * Before 5.15 does not support setTabVisible()
+         * so only create feature page is 5.15 or newer.
+         */
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
         m_featureSelectionViewController = new FeatureSelectionViewController(browserWindowIndex,
                                                                                                objectNamePrefix,
                                                                                                this);
         m_featureTabIndex = addToTabWidget(m_featureSelectionViewController,
                                                 "Feature");
+#endif
     }
     
     if (isFeaturesToolBox) {
@@ -872,7 +878,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         CaretAssert(uiEvent);
         
         uiEvent->setEventProcessed();
-
+        
         Brain* brain = GuiManager::get()->getBrain();
         
         /*
@@ -1051,68 +1057,68 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         EventBrowserWindowDrawingContent browserContentEvent(m_browserWindowIndex);
         EventManager::get()->sendEvent(browserContentEvent.getPointer());
         BrowserTabContent* windowContent = browserContentEvent.getSelectedBrowserTabContent();
-            if (windowContent != NULL) {
-                switch (windowContent->getSelectedModelType()) {
-                    case ModelTypeEnum::MODEL_TYPE_INVALID:
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                        defaultTabIndex = m_histologyTabIndex;
-                        enableHistology = true;
-                        enableLayers = true;
-                        enableVolumeSurfaceOutline = true;
-                        haveBorders = false;
-                        haveFibers  = false;
-                        haveFoci    = true;
-                        break;
-                    case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-                        defaultTabIndex = m_mediaTabIndex;
-                        enableMedia     = true;
-                        enableLayers = false;
-                        enableVolumeSurfaceOutline = false;
-                        haveBorders = false;
-                        haveFibers  = false;
-                        haveFoci    = false;
-                        haveLabels  = false;
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                        defaultTabIndex = m_overlayTabIndex;
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                        defaultTabIndex = m_overlayTabIndex;
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                        defaultTabIndex = m_overlayTabIndex;
-                        enableVolumeSurfaceOutline = (haveSurfaces
-                                                      & haveVolumes);
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                        defaultTabIndex = m_overlayTabIndex;
-                        enableVolumeSurfaceOutline = (haveSurfaces
-                                                      & haveVolumes);
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_CHART:
-                        defaultTabIndex = m_chartTabIndex;
-                        enableChartOne = true;
-                        enableLayers = false;
-                        enableVolumeSurfaceOutline = false;
-                        haveBorders = false;
-                        haveFibers  = false;
-                        haveFoci    = false;
-                        haveLabels  = false;
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-                        defaultTabIndex = m_chartOverlayTabIndex;
-                        enableChartTwo = true;
-                        enableLayers = false;
-                        enableVolumeSurfaceOutline = false;
-                        haveBorders = false;
-                        haveFibers  = false;
-                        haveFoci    = false;
-                        haveLabels  = false;
-                        break;
-                }
+        if (windowContent != NULL) {
+            switch (windowContent->getSelectedModelType()) {
+                case ModelTypeEnum::MODEL_TYPE_INVALID:
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                    defaultTabIndex = m_histologyTabIndex;
+                    enableHistology = true;
+                    enableLayers = true;
+                    enableVolumeSurfaceOutline = true;
+                    haveBorders = false;
+                    haveFibers  = false;
+                    haveFoci    = true;
+                    break;
+                case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                    defaultTabIndex = m_mediaTabIndex;
+                    enableMedia     = true;
+                    enableLayers = false;
+                    enableVolumeSurfaceOutline = false;
+                    haveBorders = false;
+                    haveFibers  = false;
+                    haveFoci    = false;
+                    haveLabels  = false;
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                    defaultTabIndex = m_overlayTabIndex;
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                    defaultTabIndex = m_overlayTabIndex;
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                    defaultTabIndex = m_overlayTabIndex;
+                    enableVolumeSurfaceOutline = (haveSurfaces
+                                                  & haveVolumes);
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                    defaultTabIndex = m_overlayTabIndex;
+                    enableVolumeSurfaceOutline = (haveSurfaces
+                                                  & haveVolumes);
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_CHART:
+                    defaultTabIndex = m_chartTabIndex;
+                    enableChartOne = true;
+                    enableLayers = false;
+                    enableVolumeSurfaceOutline = false;
+                    haveBorders = false;
+                    haveFibers  = false;
+                    haveFoci    = false;
+                    haveLabels  = false;
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                    defaultTabIndex = m_chartOverlayTabIndex;
+                    enableChartTwo = true;
+                    enableLayers = false;
+                    enableVolumeSurfaceOutline = false;
+                    haveBorders = false;
+                    haveFibers  = false;
+                    haveFoci    = false;
+                    haveLabels  = false;
+                    break;
             }
-
+        }
+        
         EventGetOrSetUserInputModeProcessor inputModeEvent(m_browserWindowIndex);
         EventManager::get()->sendEvent(inputModeEvent.getPointer());
         const UserInputModeEnum::Enum inputMode = inputModeEvent.getUserInputMode();
@@ -1150,11 +1156,11 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * to change
          */
         const int32_t tabIndex = m_tabWidget->currentIndex();
-
+        
         
         /*
          * Enable/disable Tabs based upon data that is loaded
-         * NOTE: Order is important so that overlay tab is 
+         * NOTE: Order is important so that overlay tab is
          * automatically selected.
          */
         if (m_chartTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartTabIndex, enableChartOne);
@@ -1173,7 +1179,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         if (m_labelTabIndex >= 0) m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
         
         if (m_featureTabIndex >= 0) m_tabWidget->setTabEnabled(m_featureTabIndex, haveFeatures);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
         if (m_featureTabIndex >= 0) m_tabWidget->setTabVisible(m_featureTabIndex, haveFeatures);
+#endif
         
         if (m_neuroglancerAnnotationTabIndex >= 0) m_tabWidget->setTabEnabled(m_neuroglancerAnnotationTabIndex, haveNeuroAnn);
         if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, enableLayers);

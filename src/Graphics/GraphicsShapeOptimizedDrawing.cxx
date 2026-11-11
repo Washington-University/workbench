@@ -23,6 +23,8 @@
 #include "GraphicsShapeOptimizedDrawing.h"
 #undef __GRAPHICS_SHAPE_OPTIMIZED_DRAWING_DECLARE__
 
+#include <cmath>
+
 #include "CaretAssert.h"
 #include "CaretOpenGLInclude.h"
 #include "GraphicsEngineDataOpenGL.h"

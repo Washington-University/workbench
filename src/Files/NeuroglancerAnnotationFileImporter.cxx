@@ -682,7 +682,11 @@ NeuroglancerAnnotationFileImporter::parsePropertiesArray(const QJsonArray &props
     for (const QJsonValue &pv : propsArr) {
         const QJsonObject po = pv.toObject();
         
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         const uint64_t idUint(po.value("id").toInteger());
+#else
+        const uint64_t idUint(po.value("id").toInt());
+#endif
         const AString id(po.value("id").toString());
         const AString description(po.value("description").toString());
         const AString typeName(po.value("type").toString().toLower());
