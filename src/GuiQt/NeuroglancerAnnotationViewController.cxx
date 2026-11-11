@@ -367,10 +367,13 @@ NeuroglancerAnnotationViewController::createAttributesWidget()
 {
     //WuQMacroManager* macroManager = WuQMacroManager::instance();
 
+    const int spinBoxWidth(80);
+    
     QLabel* symbolScaleLabel(new QLabel("Symbol Scale"));
     m_symbolScaleSpinBox = new QDoubleSpinBox();
     m_symbolScaleSpinBox->setRange(0.01, 10000.0);
     m_symbolScaleSpinBox->setSingleStep(1.0);
+    m_symbolScaleSpinBox->setFixedWidth(spinBoxWidth);
     QObject::connect(m_symbolScaleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      [=]() { processAttributesChanges(); });
     
@@ -379,6 +382,7 @@ NeuroglancerAnnotationViewController::createAttributesWidget()
     m_distanceToVolumeSliceSpinBox->setRange(0.0, 10000.0);
     m_distanceToVolumeSliceSpinBox->setSingleStep(1.0);
     m_distanceToVolumeSliceSpinBox->setSuffix("mm");
+    m_distanceToVolumeSliceSpinBox->setFixedWidth(spinBoxWidth);
     QObject::connect(m_distanceToVolumeSliceSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      [=]() { processAttributesChanges(); });
     
@@ -390,10 +394,10 @@ NeuroglancerAnnotationViewController::createAttributesWidget()
     layout->setContentsMargins(0, 0, 0, 0);
     int32_t row(0);
     layout->addWidget(symbolScaleLabel, row, 0);
-    layout->addWidget(m_symbolScaleSpinBox, row, 1);
+    layout->addWidget(m_symbolScaleSpinBox, row, 1, Qt::AlignLeft);
     ++row;
     layout->addWidget(distanceToVolumeSliceLabel, row, 0);
-    layout->addWidget(m_distanceToVolumeSliceSpinBox, row, 1);
+    layout->addWidget(m_distanceToVolumeSliceSpinBox, row, 1, Qt::AlignLeft);
     ++row;
     layout->setRowStretch(row, 100);
 
@@ -672,7 +676,8 @@ NeuroglancerAnnotationViewController::getSelectedLabelModel()
 
 
 /**
- * Called when user clicks on an item in the label table view
+ * Called when user clicks on an item in the label table view.
+ * Usually to turn a label on or off.
  */
 void
 NeuroglancerAnnotationViewController::labelTableViewItemClicked(const QModelIndex& index)
@@ -681,9 +686,6 @@ NeuroglancerAnnotationViewController::labelTableViewItemClicked(const QModelInde
     if (labelModel != NULL) {
         QStandardItem* standardItem(labelModel->itemFromIndex(index));
         if (standardItem != NULL) {
-            FeatureLabel* fetatureLabel(dynamic_cast<FeatureLabel*>(standardItem));
-            CaretAssert(fetatureLabel);
-            
             NeuroglancerAnnotationFile* neuroAnnFile(getSelectedFile());
             CaretAssert(neuroAnnFile);
             neuroAnnFile->updateDisplayedAnnotations();
@@ -718,13 +720,15 @@ QWidget*
 NeuroglancerAnnotationViewController::createTransformationWidget()
 {
     QLabel* matrixLabel(new QLabel("IJK to XYZ Transformation Matrix"));
-    QGridLayout* matrixLayout(new QGridLayout());
+    QWidget* matrixWidget(new QWidget());
+    QGridLayout* matrixLayout(new QGridLayout(matrixWidget));
     for (int32_t iRow = 0; iRow < 4; iRow++) {
         for (int32_t jCol = 0; jCol < 4; jCol++) {
             QDoubleSpinBox* spinBox = new QDoubleSpinBox();
             spinBox->setRange(-999999.0, 999999.0);
             spinBox->setDecimals(2);
             spinBox->setSingleStep(0.1);
+            spinBox->setFixedWidth(80);
             QObject::connect(spinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                              [=](double value) {
                 transformationSpinBoxValueChanged(iRow, jCol, value);
@@ -746,7 +750,7 @@ NeuroglancerAnnotationViewController::createTransformationWidget()
     QWidget* widget(new QWidget());
     QVBoxLayout* layout( new QVBoxLayout(widget));
     layout->addWidget(matrixLabel);
-    layout->addLayout(matrixLayout);
+    layout->addWidget(matrixWidget, 0, Qt::AlignLeft);
     layout->addWidget(m_nXpZpYOrientationCheckBox);
     layout->addStretch();
     
