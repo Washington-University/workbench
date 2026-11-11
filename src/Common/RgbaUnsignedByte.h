@@ -47,6 +47,8 @@ namespace caret {
         
         bool operator==(const RgbaUnsignedByte& obj) const;
         
+        bool operator<(const RgbaUnsignedByte& obj) const;
+        
         const uint8_t* getRgbaPointer() const;
         
         void getRgba(uint8_t rgba[4]) const;
@@ -64,6 +66,8 @@ namespace caret {
                      const uint8_t alpha);
 
         uint32_t getUnsignedIntRGBA() const;
+        
+        RgbaUnsignedByte getScaledRgba(const uint32_t divisor) const;
         
         void setUnsignedIntRGBA(const uint32_t rgbaUnsignedInt);
         

@@ -30,6 +30,7 @@
 
 namespace caret {
 
+    class GraphicsPrimitiveV3fC4ub;
     class GraphicsPrimitiveV3fN3f;
     class RgbaUnsignedByte;
     class Vector3D;
@@ -51,7 +52,14 @@ namespace caret {
                                const float diameter,
                                const RgbaUnsignedByte& rgba);
         
-        virtual ~GraphicsShapeOptimizedDrawing();
+        static void drawSquare(const float width,
+                               const RgbaUnsignedByte& rgba);
+        
+        static void drawSquare(const Vector3D& xyz,
+                               const float width,
+                               const RgbaUnsignedByte& rgba);
+        
+       virtual ~GraphicsShapeOptimizedDrawing();
         
         GraphicsShapeOptimizedDrawing(const GraphicsShapeOptimizedDrawing&) = delete;
 
@@ -76,17 +84,26 @@ namespace caret {
             int totalVertices = 0;
         };
 
+        struct SquareTriangleStrip {
+            std::vector<float> coordinates;   // x,y,z per vertex
+            int totalVertices = 0;
+        };
+        
         GraphicsShapeOptimizedDrawing();
         
         GraphicsPrimitiveV3fN3f* getOctahedronPrimitiveForRGBA(const RgbaUnsignedByte& rgba);
         
         GraphicsPrimitiveV3fN3f* getSpherePrimitiveForRGBA(const RgbaUnsignedByte& rgba);
         
+        GraphicsPrimitiveV3fC4ub* getSquarePrimitiveForRGBA(const RgbaUnsignedByte& rgba);
+        
         OctahedronStrips* createOctahedronTriangleStrips(const bool joinWithDegenerates);
         
         SphereTriangleStrips* createSphereTriangleStrips(const int numberOfSlices,
                                                          const int numberOfStacks,
                                                          const bool joinWithDegenerates);
+        
+        SquareTriangleStrip* createSquareTriangleStrip();
         
         void drawOctahedronImplementation(const float diameter,
                                           const RgbaUnsignedByte& rgba);
@@ -99,6 +116,13 @@ namespace caret {
                                       const RgbaUnsignedByte& rgba);
         
         void drawSphereImplementation(const Vector3D& xyz,
+                                      const float diameter,
+                                      const RgbaUnsignedByte& rgba);
+        
+        void drawSquareImplementation(const float diameter,
+                                      const RgbaUnsignedByte& rgba);
+        
+        void drawSquareImplementation(const Vector3D& xyz,
                                       const float diameter,
                                       const RgbaUnsignedByte& rgba);
         
@@ -116,9 +140,17 @@ namespace caret {
          */
         std::map<uint32_t, GraphicsPrimitiveV3fN3f*> m_spherePrimitives;
         
+        /**
+         * Key is a 32-bit unsigned integer containing the RGBA byte coloring.
+         * Comparison will likely be faster than comparing 4 bytes.
+         */
+        std::map<uint32_t, GraphicsPrimitiveV3fC4ub*> m_squarePrimitives;
+        
         std::unique_ptr<SphereTriangleStrips> m_sphereTriangleStripInfo;
         
         std::unique_ptr<OctahedronStrips> m_octahedronTriangleStripInfo;
+        
+        std::unique_ptr<SquareTriangleStrip> m_squareTriangleStripInfo;
         
         static GraphicsShapeOptimizedDrawing* s_singletonInstance;
         

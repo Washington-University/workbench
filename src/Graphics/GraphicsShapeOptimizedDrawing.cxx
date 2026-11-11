@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "CaretOpenGLInclude.h"
 #include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3f.h"
 #include "Vector3D.h"
 
@@ -102,6 +103,38 @@ GraphicsShapeOptimizedDrawing::drawSphere(const Vector3D& xyz,
 }
 
 /**
+ * Draw a square with the given width and rgba color at the current location
+ * @param width
+ *    Width of the sphere
+ * @param rgba
+ *    Rgba Color components
+ */
+void
+GraphicsShapeOptimizedDrawing::drawSquare(const float width,
+                                          const RgbaUnsignedByte& rgba)
+{
+    getInstance()->drawSquareImplementation(width,
+                                            rgba);
+}
+
+/**
+ * Draw a sphere with the given width and rgba color at the current location
+ * @param width
+ *    Width of the sphere
+ * @param rgba
+ *    Rgba Color components
+ */
+void
+GraphicsShapeOptimizedDrawing::drawSquare(const Vector3D& xyz,
+                                          const float width,
+                                          const RgbaUnsignedByte& rgba)
+{
+    getInstance()->drawSquareImplementation(xyz,
+                                            width,
+                                            rgba);
+}
+
+/**
  * @return The singleton instance of this class
  */
 GraphicsShapeOptimizedDrawing*
@@ -130,6 +163,7 @@ GraphicsShapeOptimizedDrawing::GraphicsShapeOptimizedDrawing()
                                                          joinWithDegeneratesFlag));
     
     m_octahedronTriangleStripInfo.reset(createOctahedronTriangleStrips(joinWithDegeneratesFlag));
+    m_squareTriangleStripInfo.reset(createSquareTriangleStrip());
 }
 
 /**
@@ -216,16 +250,60 @@ GraphicsShapeOptimizedDrawing::drawSphereImplementation(const Vector3D& xyz,
 }
 
 /**
+ * Draw a square with the given diameter and rgba color at the current location
+ * @param width
+ *    Width of the square
+ * @param rgba
+ *    Rgba Color components
+ */
+void
+GraphicsShapeOptimizedDrawing::drawSquareImplementation(const float width,
+                                                        const RgbaUnsignedByte& rgba)
+{
+    glPushMatrix();
+    glScalef(width, width, 1.0);
+    GraphicsPrimitiveV3fC4ub* primitive(getSquarePrimitiveForRGBA(rgba));
+    GraphicsEngineDataOpenGL::draw(primitive);
+    glPopMatrix();
+}
+
+/**
+ * Draw a square with the given diameter and rgba color at the current location
+ * @param width
+ *    Width of the sphere
+ * @param rgba
+ *    Rgba Color components
+ */
+void
+GraphicsShapeOptimizedDrawing::drawSquareImplementation(const Vector3D& xyz,
+                                                        const float width,
+                                                        const RgbaUnsignedByte& rgba)
+{
+    glPushMatrix();
+    glTranslatef(xyz[0], xyz[1], xyz[2]);
+    glScalef(width, width, 1.0);
+    GraphicsPrimitiveV3fC4ub* primitive(getSquarePrimitiveForRGBA(rgba));
+    GraphicsEngineDataOpenGL::draw(primitive);
+    glPopMatrix();
+}
+
+
+/**
  * Get (and if necessary generate) a octahedron with diameter 1 with the given rgba coloring
  * @param rgba
  *   RGBA for octahedron
  */
 GraphicsPrimitiveV3fN3f*
-GraphicsShapeOptimizedDrawing::getOctahedronPrimitiveForRGBA(const RgbaUnsignedByte& rgba)
+GraphicsShapeOptimizedDrawing::getOctahedronPrimitiveForRGBA(const RgbaUnsignedByte& rgbaIn)
 {
     GraphicsPrimitiveV3fN3f* primitive(NULL);
     
-    auto iter(m_octahedronPrimitives.find(rgba.getUnsignedIntRGBA()));
+    const uint32_t divisor(10);
+    //const RgbaUnsignedByte rgba(rgbaIn);
+    const RgbaUnsignedByte rgba(rgbaIn.getScaledRgba(divisor));
+    const uint32_t rgbaUnsignedInt(rgba.getUnsignedIntRGBA());
+    
+    auto iter(m_octahedronPrimitives.find(rgbaUnsignedInt));
     if (iter != m_octahedronPrimitives.end()) {
         primitive = iter->second;
     }
@@ -237,10 +315,41 @@ GraphicsShapeOptimizedDrawing::getOctahedronPrimitiveForRGBA(const RgbaUnsignedB
         primitive->addVertices(m_octahedronTriangleStripInfo->coordinates.data(),
                                m_octahedronTriangleStripInfo->normals.data(),
                                m_octahedronTriangleStripInfo->totalVertices);
-        m_octahedronPrimitives.insert(std::make_pair(rgba.getUnsignedIntRGBA(), primitive));
-        
-        std::cout << "Create octahedron with " << m_octahedronTriangleStripInfo->totalVertices
-        << " vertices for: " << rgba.toString() << std::endl;
+        m_octahedronPrimitives.insert(std::make_pair(rgbaUnsignedInt, primitive));
+    }
+    
+    CaretAssert(primitive);
+    return primitive;
+}
+
+/**
+ * Get (and if necessary generate) a square with width 1 with the given rgba coloring
+ * @param rgba
+ *   RGBA for square
+ */
+GraphicsPrimitiveV3fC4ub*
+GraphicsShapeOptimizedDrawing::getSquarePrimitiveForRGBA(const RgbaUnsignedByte& rgbaIn)
+{
+    GraphicsPrimitiveV3fC4ub* primitive(NULL);
+    
+    const uint32_t divisor(10);
+    const RgbaUnsignedByte rgba(rgbaIn.getScaledRgba(divisor));
+    const uint32_t rgbaUnsignedInt(rgba.getUnsignedIntRGBA());
+    
+    auto iter(m_squarePrimitives.find(rgbaUnsignedInt));
+    if (iter != m_squarePrimitives.end()) {
+        primitive = iter->second;
+    }
+    else {
+        const uint8_t* rgbaPointer(rgba.getRgbaPointer());
+        primitive = new GraphicsPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP);
+        CaretAssert(static_cast<int32_t>(m_squareTriangleStripInfo->coordinates.size())
+                    == (m_squareTriangleStripInfo->totalVertices * 3));
+        for (int32_t i = 0; i < m_squareTriangleStripInfo->totalVertices; i++) {
+            primitive->addVertex(&m_squareTriangleStripInfo->coordinates[i*3],
+                                 rgbaPointer);
+        }
+        m_squarePrimitives.insert(std::make_pair(rgbaUnsignedInt, primitive));
     }
     
     CaretAssert(primitive);
@@ -253,11 +362,15 @@ GraphicsShapeOptimizedDrawing::getOctahedronPrimitiveForRGBA(const RgbaUnsignedB
  *   RGBA for sphere
  */
 GraphicsPrimitiveV3fN3f*
-GraphicsShapeOptimizedDrawing::getSpherePrimitiveForRGBA(const RgbaUnsignedByte& rgba)
+GraphicsShapeOptimizedDrawing::getSpherePrimitiveForRGBA(const RgbaUnsignedByte& rgbaIn)
 {
     GraphicsPrimitiveV3fN3f* primitive(NULL);
     
-    auto iter(m_spherePrimitives.find(rgba.getUnsignedIntRGBA()));
+    const uint32_t divisor(10);
+    const RgbaUnsignedByte rgba(rgbaIn.getScaledRgba(divisor));
+    const uint32_t rgbaUnsignedInt(rgba.getUnsignedIntRGBA());
+    
+    auto iter(m_spherePrimitives.find(rgbaUnsignedInt));
     if (iter != m_spherePrimitives.end()) {
         primitive = iter->second;
     }
@@ -269,10 +382,7 @@ GraphicsShapeOptimizedDrawing::getSpherePrimitiveForRGBA(const RgbaUnsignedByte&
         primitive->addVertices(m_sphereTriangleStripInfo->coordinates.data(),
                                m_sphereTriangleStripInfo->normals.data(),
                                m_sphereTriangleStripInfo->totalVertices);
-        m_spherePrimitives.insert(std::make_pair(rgba.getUnsignedIntRGBA(), primitive));
-        
-        std::cout << "Create sphere with " << m_sphereTriangleStripInfo->totalVertices
-        << " vertices for: " << rgba.toString() << std::endl;
+        m_spherePrimitives.insert(std::make_pair(rgbaUnsignedInt, primitive));
     }
     
     CaretAssert(primitive);
@@ -332,7 +442,7 @@ GraphicsShapeOptimizedDrawing::createSphereTriangleStrips(const int numberOfSlic
     
     s->numberOfStrips   = joinWithDegenerates ? 1 : stacks;
     s->verticesPerStrip = 2 * (slices + 1);
-    s->totalVertices    = static_cast<int>(s->coordinates.size() * 3);
+    s->totalVertices    = static_cast<int>(s->coordinates.size() / 3);
     
     return s;
 }
@@ -409,3 +519,28 @@ GraphicsShapeOptimizedDrawing::createOctahedronTriangleStrips(const bool joinWit
     
     return o;
 }
+
+/**
+ * @return Triangle strip coordinates for drawing a square
+ */
+GraphicsShapeOptimizedDrawing::SquareTriangleStrip*
+GraphicsShapeOptimizedDrawing::createSquareTriangleStrip()
+{
+    const float c[4][3] = {
+        { -0.5f,   0.5f,  0.0f },  /* top left */
+        { -0.5f,  -0.5f,  0.0f },  /* bottom left */
+        {  0.5f,   0.5f,  0.0f },  /* top right */
+        {  0.5f,  -0.5f,  0.0f },  /* bottom right*/
+    };
+
+    SquareTriangleStrip* ss(new SquareTriangleStrip());
+    for (int32_t i = 0; i < 4; i++) {
+        for (int32_t j = 0; j < 3; j++) {
+            ss->coordinates.push_back(c[i][j]);
+        }
+    }
+    ss->totalVertices = 4;
+    
+    return ss;
+}
+

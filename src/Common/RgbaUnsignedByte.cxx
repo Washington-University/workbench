@@ -115,6 +115,7 @@ RgbaUnsignedByte::operator=(const RgbaUnsignedByte& obj)
     return *this;
 }
 
+
 /**
  * Equality operator.
  *
@@ -132,6 +133,40 @@ RgbaUnsignedByte::operator==(const RgbaUnsignedByte& obj) const
     return (m_unsignedIntRGBA == obj.m_unsignedIntRGBA);
 }
 
+/**
+ * Less than operator.
+ *
+ * @param obj
+ *    Object compared to this.
+ * @return
+ *    True if all four components are equal, else false.
+ */
+bool
+RgbaUnsignedByte::operator<(const RgbaUnsignedByte& obj) const
+{
+    if (this == &obj) {
+        return true;
+    }
+    
+    if (m_unsignedIntRGBA == obj.m_unsignedIntRGBA) {
+        return false;
+    }
+    
+    uint8_t rgbaOne[4], rgbaTwo[4];
+    getRgba(rgbaOne);
+    obj.getRgba(rgbaTwo);
+    
+    return std::lexicographical_compare(rgbaOne, rgbaOne + 4,
+                                        rgbaTwo, rgbaTwo + 4);
+}
+
+/*
+ bool RgbaUnsignedByte::operator<(const RgbaUnsignedByte& obj) const
+ {
+ return std::lexicographical_compare(m_rgba, m_rgba + 4,
+ obj.m_rgba, obj.m_rgba + 4);
+ }
+ */
 /**
  * Helper for copy constructor and assignment operator.
  *
@@ -249,6 +284,27 @@ RgbaUnsignedByte::getUnsignedIntRGBA() const
     return m_unsignedIntRGBA;
 }
 
+/**
+ * @return An unsigned int representation with the color components divided then multipled
+ * by the given divisor.  The purpose is to map similar colors to one RGBA.
+ */
+RgbaUnsignedByte
+RgbaUnsignedByte::getScaledRgba(const uint32_t divisor) const
+{
+    uint8_t rgbaByte[4];
+    getRgba(rgbaByte);
+    
+    for (int32_t i = 0; i < 4; i++) {
+        rgbaByte[i] = ((rgbaByte[i] / divisor) * divisor);
+    }
+    
+    const RgbaUnsignedByte rgbaOut(rgbaByte);
+    return rgbaOut;
+}
+
+/**
+ * @return String with RGBA components
+ */
 AString
 RgbaUnsignedByte::toString() const
 {
