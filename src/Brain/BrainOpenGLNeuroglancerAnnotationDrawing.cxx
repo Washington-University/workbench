@@ -53,7 +53,7 @@ using namespace caret;
 
 /**
  * \class caret::BrainOpenGLNeuroglancerAnnotationDrawing
- * \brief Draws features on brain models
+ * \brief Draws neuroglancer annotations on brain models
  * \ingroup Brain
  */
 
@@ -74,7 +74,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::~BrainOpenGLNeuroglancerAnnotationDraw
 }
 
 /**
- * Draw features on surface
+ * Draw neuroglancer annotations on surface
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -107,7 +107,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnSurface(Brain* brain,
 }
 
 /**
- * Draw features on whole brain
+ * Draw neuroglancer annotations on whole brain
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -140,7 +140,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnWholeBrain(Brain* brain,
 }
 
 /**
- * Draw features on MPR volume slices.
+ * Draw neuroglancer annotations on MPR volume slices.
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -179,7 +179,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnHistology(Brain* brain,
 }
 
 /**
- * Draw features on MPR volume slices.
+ * Draw neuroglancer annotations on MPR volume slices.
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -218,7 +218,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeMpr(Brain* brain,
 
 
 /**
- * Draw features on oblique volume slices.
+ * Draw neuroglancer annotations on oblique volume slices.
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -255,7 +255,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeOblique(Brain* brain,
 }
 
 /**
- * Draw features on orthogonal volume slices.
+ * Draw neuroglancer annotations on orthogonal volume slices.
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -293,9 +293,9 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawOnVolumeOrthogonal(Brain* brain,
 }
 
 /**
- * Draw features
+ * Draw neuroglancer annotations
  * @param drawType
- *    Type of model for drawing features
+ *    Type of model for drawing neuroglancer annotations
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -325,7 +325,10 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                                                              const VolumeSliceViewPlaneEnum::Enum /*sliceViewPlane*/,
                                                              const float sliceThickness)
 {
-    fixedPipelineDrawing->checkForOpenGLError(NULL, "At beginning BrainOpenGLNeuroglancerAnnotationDrawing::drawAllFeatures())");
+    ElapsedTimer timer;
+    timer.start();
+    
+    fixedPipelineDrawing->checkForOpenGLError(NULL, "At beginning BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations())");
     
     const std::vector<NeuroglancerAnnotationFile*> allNeuroAnnFiles(brain->getAllNeuroglancerAnnotationFiles());
     const int32_t numberOfNeuroAnnFiles(allNeuroAnnFiles.size());
@@ -390,8 +393,29 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
     const std::set<uint64_t> uniqueIdsForDebugging(NeuroglancerAnnotationFileImporter::getAnnotionsUniqueIDsForDebugging());
 
     /*
-     * Process each feature file
+     * Octagons are much slower than drawing points (about 10 times slower)
      */
+    const bool drawOctagonsFlag(false);
+    const bool drawPointsFlag(selectFlag
+                              || ( ! drawOctagonsFlag));
+    
+    glPushAttrib(GL_LIGHTING_BIT);
+    
+    /*
+     * Code is fastest if there is one call each to glBegin/glEnd.
+     * If there is a call to these functions when drawing each annotation
+     * the code will be about 10 times slower.
+     */
+    if (drawPointsFlag) {
+        glDisable(GL_LIGHTING);
+        glPointSize(symbolScale);
+        glBegin(GL_POINTS);
+    }
+
+    /*
+     * Process each neuroglancer annotation file
+     */
+    int32_t numDrawn(0);
     for (int32_t iFile = 0; iFile < numberOfNeuroAnnFiles; iFile++) {
         CaretAssertVectorIndex(allNeuroAnnFiles, iFile);
         const NeuroglancerAnnotationFile* neuroAnnFile(allNeuroAnnFiles[iFile]);
@@ -421,6 +445,21 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                 rgbaAnn[2],
                 rgbaAnn[3]
             };
+            
+            static bool firstTimeFlag(false);
+            if (firstTimeFlag) {
+                firstTimeFlag = false;
+                std::set<RgbaUnsignedByte> allRGBA;
+                const uint32_t divisor(10);
+                for (int32_t i = 0; i < 255; i++) {
+                    const RgbaUnsignedByte rgba(i, 0, 0, 255);
+                    RgbaUnsignedByte rgbaTwo(rgba.getScaledRgba(divisor));
+                    
+                    allRGBA.insert(rgbaTwo);
+                    std::cout << "i=" << i << ": " << rgba.toString() << " -> " << rgbaTwo.toString() << std::endl;
+                }
+                std::cout << "Remapped to count=" << allRGBA.size() << std::endl;
+            }
             
             const Vector3D neuroAnnXYZ(neuroAnn->getXYZ());
             Vector3D xyz(neuroAnnXYZ);
@@ -489,6 +528,8 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
             }
             
             if (drawFlag) {
+                ++numDrawn;
+                
                 if (selectFlag) {
                     fixedPipelineDrawing->colorIdentification->addItem(rgba,
                                                                        SelectionItemDataTypeEnum::NEUROGLANCER_ANNOTATION,
@@ -497,31 +538,28 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                     rgba[3] = 255;
                 }
                 
-                glPushAttrib(GL_LIGHTING_BIT);
-                
                 /*
                  * Need to draw each symbol independently since each symbol
                  * contains a unique size (diameter)
                  */
-                const bool drawWithPointsFlag(true);
-                if (drawWithPointsFlag) {
-                    glDisable(GL_LIGHTING);
-                    glPointSize(symbolScale);
-                    glBegin(GL_POINTS);
+                if (drawPointsFlag) {
                     glColor4ubv(rgba);
                     glVertex3fv(xyz);
-                    glEnd();
                 }
                 else {
+                    glDisable(GL_LIGHTING);
                     GraphicsShapeOptimizedDrawing::drawOctahedron(xyz,
                                                                   symbolScale,
                                                                   rgba);
                 }
-                
-                glPopAttrib();
             }
         }
     }
+
+    if (drawPointsFlag) {
+        glEnd();
+    }
+    glPopAttrib();
 
     if (selectFlag) {
         int32_t fileIndex(-1);
@@ -550,7 +588,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                                                               neuroAnn);
                         selectionItemNeuroglancerAnnotation->setScreenDepth(depth);
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemNeuroglancerAnnotation, xyz);
-                        CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
+                        CaretLogFine("Selected Histology Neuroglancer Annotation Identification Symbol GroupID="
                                      + QString::number(groupID)
                                      + " UniqueID="
                                      + QString::number(uniqueID));
@@ -564,7 +602,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                                                                                  neuroAnn);
                         selectionItemNeuroglancerAnnotation->setScreenDepth(depth);
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemNeuroglancerAnnotation, xyz);
-                        CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
+                        CaretLogFine("Selected Histology Neuroglancer Annotation Identification Symbol GroupID="
                                      + QString::number(groupID)
                                      + " UniqueID="
                                      + QString::number(uniqueID));
@@ -581,7 +619,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                                                                                 neuroAnn);
                         selectionItemNeuroglancerAnnotation->setScreenDepth(depth);
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemNeuroglancerAnnotation, xyz);
-                        CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
+                        CaretLogFine("Selected Histology Neuroglancer Annotation Identification Symbol GroupID="
                                      + QString::number(groupID)
                                      + " UniqueID="
                                      + QString::number(uniqueID));
@@ -594,7 +632,7 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                                                                                     neuroAnn);
                         selectionItemNeuroglancerAnnotation->setScreenDepth(depth);
                         fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemNeuroglancerAnnotation, xyz);
-                        CaretLogFine("Selected Histology Feature Identification Symbol GroupID="
+                        CaretLogFine("Selected Histology Neuroglancer Annotation Identification Symbol GroupID="
                                      + QString::number(groupID)
                                      + " UniqueID="
                                      + QString::number(uniqueID));
@@ -604,7 +642,9 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
         }
     }
     
-    fixedPipelineDrawing->checkForOpenGLError(NULL, "At end BrainOpenGLNeuroglancerAnnotationDrawing::drawAllFeatures())");
+    //std::cout << "Time to draw " << numDrawn << " neuroglancer annotations: " << timer.getElapsedTimeSeconds() << " seconds" << std::endl;
+    
+    fixedPipelineDrawing->checkForOpenGLError(NULL, "At end BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations())");
 }
 
 /**
