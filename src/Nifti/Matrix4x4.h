@@ -51,6 +51,8 @@ public:
 
     bool operator==(const Matrix4x4& m) const;
     
+    bool operator!=(const Matrix4x4& m) const;
+    
     virtual ~Matrix4x4();
 
     static Matrix4x4 rotationTo(const Vector3D& fromVector,

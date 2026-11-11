@@ -150,7 +150,7 @@ Matrix4x4::operator=(const Matrix4x4& o)
  * to this instance.
  * @param m
  *    Matrix for comparison with this
- * @return True if the same, else faslse.
+ * @return True if the same, else fasse.
  */
 bool
 Matrix4x4::operator==(const Matrix4x4& m) const
@@ -163,6 +163,19 @@ Matrix4x4::operator==(const Matrix4x4& m) const
         }
     }
     return true;
+}
+
+/**
+ * Not the same comparison operator that compares the given matrix
+ * to this instance.
+ * @param m
+ *    Matrix for comparison with this
+ * @return True if different,, else false.
+ */
+bool
+Matrix4x4::operator!=(const Matrix4x4& m) const
+{
+    return ( ! (*this == m));
 }
 
 /**
