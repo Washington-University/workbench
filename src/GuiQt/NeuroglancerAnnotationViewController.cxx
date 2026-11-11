@@ -719,7 +719,12 @@ NeuroglancerAnnotationViewController::labelsAllOnOffButtonClicked(const bool onF
 QWidget*
 NeuroglancerAnnotationViewController::createTransformationWidget()
 {
-    QLabel* matrixLabel(new QLabel("IJK to XYZ Transformation Matrix"));
+    const AString toolTip("This matrix has no effect on where neuroglancer\n"
+                          "annotation are drawn.  It only affects the the\n"
+                          "Neuroglancer XYZ reported by Identification.");
+    QLabel* matrixLabel(new QLabel("IJK to Neuroglancer XYZ Transformation Matrix"));
+    matrixLabel->setToolTip(toolTip);
+    
     QWidget* matrixWidget(new QWidget());
     QGridLayout* matrixLayout(new QGridLayout(matrixWidget));
     for (int32_t iRow = 0; iRow < 4; iRow++) {
@@ -740,6 +745,7 @@ NeuroglancerAnnotationViewController::createTransformationWidget()
     }
     
     m_nXpZpYOrientationCheckBox = new QCheckBox("Orientation is Neg X, Pos Z, Pos Y");
+    m_nXpZpYOrientationCheckBox->setHidden(true);
     m_nXpZpYOrientationCheckBox->setToolTip("Orientation: \n"
                                             "Left: Negative X\n"
                                             "Anterior: Positive Z\n"

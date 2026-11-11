@@ -461,16 +461,30 @@ BrainOpenGLNeuroglancerAnnotationDrawing::drawAllAnnotations(const DrawType draw
                 std::cout << "Remapped to count=" << allRGBA.size() << std::endl;
             }
             
-            const Vector3D neuroAnnXYZ(neuroAnn->getXYZ());
-            Vector3D xyz(neuroAnnXYZ);
-            if (nXpZpYOrientationFlag) {
+            Vector3D xyz(neuroAnn->getIJK());
+            const bool useIjkAsXyzFlag(true);
+            if (useIjkAsXyzFlag) {
+                /* nothing */
+            }
+            else {
                 /*
-                 * Orientation: Left is -X;
-                 *              Anterior is +Z
-                 *              Inferior is +Y
+                 * This only works if the XYZ is set to
+                 * IJK * transform
                  */
-                xyz[1] = -neuroAnnXYZ[2];
-                xyz[2] = -neuroAnnXYZ[1];
+                const Vector3D neuroAnnXYZ(neuroAnn->getXYZ());
+                xyz = neuroAnnXYZ;
+                if (nXpZpYOrientationFlag) {
+                    /*
+                     * Orientation: Left is -X;
+                     *              Anterior is +Z
+                     *              Inferior is +Y
+                     */
+                    xyz[1] = -neuroAnnXYZ[2];
+                    xyz[2] = -neuroAnnXYZ[1];
+                    
+                    std::cout << "IJK=" << neuroAnn->getIJK().toString()
+                    << " XYZ=" << xyz.toString() << std::endl;
+                }
             }
             
             bool drawFlag = false;

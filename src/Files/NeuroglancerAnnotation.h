@@ -52,6 +52,8 @@ namespace caret {
         
         const Vector3D& getXYZ() const;
         
+        Vector3D getNeuroglancerXYZ(const Matrix4x4& ijkToXyzTransformationMatrix) const;
+        
         void updateXYZ(const Matrix4x4& ijkToXyzTransformationMatrix);
         
         uint64_t getUniqueID() const;

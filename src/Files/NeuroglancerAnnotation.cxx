@@ -23,6 +23,8 @@
 #include "NeuroglancerAnnotation.h"
 #undef __NEUROGLANCER_ANNOTATION_DECLARE__
 
+#include <cmath>
+
 #include "CaretAssert.h"
 #include "FeatureLabel.h"
 #include "Matrix4x4.h"
@@ -95,8 +97,44 @@ NeuroglancerAnnotation::getXYZ() const
 void
 NeuroglancerAnnotation::updateXYZ(const Matrix4x4& ijkToXyzTransformationMatrix)
 {
+    /*
+     * It appears that IJK is same as Workbench XYZ.
+     * Neuroglancer coordinates are (X, -Z, -Y) and that
+     * is what the transform is for.
+     */
+    const bool ignoreTransformFlag(true);
+    if (ignoreTransformFlag) {
+        return;
+    }
     m_xyz = m_ijk;
     ijkToXyzTransformationMatrix.multiplyPoint3(m_xyz);
+}
+
+/**
+ * @return the Neuroglancer XYZ which is (IJK * transform).
+ * The neuroglancer XYZ appears to be (X, -Z, -Y).
+ * @param ijkToXyzTransformationMatrix
+ *    Matrix that converts IJK to Neuroglancer XYZl.
+ */
+Vector3D
+NeuroglancerAnnotation::getNeuroglancerXYZ(const Matrix4x4& ijkToXyzTransformationMatrix) const
+{
+    Vector3D xyz(m_ijk);
+    ijkToXyzTransformationMatrix.multiplyPoint3(xyz);
+    for (int32_t i = 0; i < 3; i++) {
+        /*
+         * Neuroglancer seems to round "towards zero"
+         */
+        float v(xyz[i]);
+        if (v > 0.0) {
+            v = std::floor(v);
+        }
+        else if (v < 0.0) {
+            v = std::ceil(v);
+        }
+        xyz[i] = v;
+    }
+    return xyz;
 }
 
 /**
@@ -246,14 +284,20 @@ NeuroglancerAnnotation::getIdentificationText(std::vector<std::vector<AString>>&
     
     std::vector<AString> rowTwo;
     rowTwo.push_back("IJK: "
-                     + AString::fromNumbers(m_ijk));
+                     + AString::fromNumbers(m_ijk, ",", 'f', 3));
     idTextOut.push_back(rowTwo);
     
+    const Vector3D neuroglancerXYZ(getNeuroglancerXYZ(neuroAnnFile->getIjkToXyzTransformationMatrix()));
     std::vector<AString> rowThree;
-    rowThree.push_back("XYZ: "
-                       + AString::fromNumbers(m_xyz, ",", 'f', 3));
+    rowThree.push_back("Neuroglancer XYZ: "
+                       + AString::fromNumbers(neuroglancerXYZ, ",", 'f', 0));
     idTextOut.push_back(rowThree);
 
+    std::vector<AString> rowFour;
+    rowFour.push_back("Workbench XYZ: "
+                       + AString::fromNumbers(m_xyz, ",", 'f', 3));
+    idTextOut.push_back(rowFour);
+    
     if ( ! toolTipFlag) {
         const std::vector<const NeuroglancerPropertyInfo*> allPropInfo(neuroAnnFile->getAllPropertyInfos());
         const int32_t numProps(allPropInfo.size());

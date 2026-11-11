@@ -108,7 +108,7 @@ NeuroglancerAnnotationFile::addToDataFileContentInformation(DataFileContentInfor
 bool
 NeuroglancerAnnotationFile::isEmpty() const
 {
-    return true;
+    return m_annotations.empty();
 }
 
 /**
