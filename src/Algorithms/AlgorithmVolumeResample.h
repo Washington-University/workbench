@@ -22,9 +22,7 @@
 /*LICENSE_END*/
 
 #include "AbstractAlgorithm.h"
-#include "CaretPointer.h"
-#include "FloatMatrix.h"
-#include "Vector3D.h"
+
 #include "VolumeFile.h"
 #include "XfmStack.h"
 

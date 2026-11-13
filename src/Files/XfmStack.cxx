@@ -23,6 +23,7 @@
 #include "CaretAssert.h"
 #include "CaretException.h"
 #include "CaretLogger.h"
+#include "VolumeFile.h"
 
 #include <vector>
 

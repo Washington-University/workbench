@@ -22,6 +22,8 @@
 /*LICENSE_END*/
 
 #include "AbstractAlgorithm.h"
+
+#include "VolumeSpace.h"
 #include "XfmStack.h"
 
 namespace caret {

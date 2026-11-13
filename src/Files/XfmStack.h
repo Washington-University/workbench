@@ -24,9 +24,10 @@
 #include "CaretPointer.h"
 #include "FloatMatrix.h"
 #include "Vector3D.h"
-#include "VolumeFile.h"
 
 namespace caret {
+    
+    class VolumeFile;
 
     struct XfmBase
     {
